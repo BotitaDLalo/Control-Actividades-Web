@@ -1,0 +1,44 @@
+﻿@{ 
+    ViewBag.Title = "Validar email";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <!--<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">-->
+    @*<link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />*@
+
+    <title>Validar correo</title>
+</head>
+<body>
+    <div class="logo">
+        <img src="@Url.Content("~/Content/Iconos/iconizer-LOGO HORIZONTAL-AzulF.svg")" alt="Logo" class="mx-auto d-block" />
+    </div>
+    <div class="verify-box">
+
+
+        <div class="login-header">
+            <header>Validar correo</header>
+        </div>
+
+        @using (Html.BeginForm("ValidateEmail", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="input-box">
+                <input name="email" type="text" class="input-field" id="email" autocomplete="off" required />
+                <label for="email">Correo electrónico</label>
+            </div>
+            <div class="input-box">
+                <input type="submit" class="input-submit" value="Verificar" />
+            </div>
+        }
+    </div>
+</body>
+</html>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+@section Styles{
+    <link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />
+}

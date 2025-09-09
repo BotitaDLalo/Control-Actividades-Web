@@ -1,0 +1,76 @@
+﻿/* Panel superior de la materia */
+.materia-header-unique {
+    background: #666; /* Gris oscuro */
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+/* Título de la materia */
+.materia-nombre-unique {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Contenedor de la parte derecha */
+.materia-datos-unique {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Código de la materia */
+.materia-codigo-unique {
+    font-size: 16px;
+}
+
+/* Ícono de configuración */
+.materia-config-unique {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Contenedor principal */
+.materia-container-unique {
+    width: 100%;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Navegación de secciones */
+.materia-nav-unique {
+    display: flex;
+    border-bottom: 2px solid #ccc;
+}
+
+.materia-tab-unique {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: 0.3s;
+}
+
+    .materia-tab-unique.active {
+        color: #000;
+        font-weight: bold;
+        border-bottom: 3px solid #007bff;
+    }
+
+/* Contenedor de las vistas */
+.materia-content-unique {
+    padding: 20px;
+}
+
+/* Ocultar vistas inactivas */
+.materia-view-unique {
+    display: none;
+}
+
+    .materia-view-unique.active {
+        display: block;
+    }

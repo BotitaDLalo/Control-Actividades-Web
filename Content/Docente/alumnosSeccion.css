@@ -1,0 +1,130 @@
+﻿/* Estilo para el input y el contenedor del input */
+.input-group {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+/*boton, seleccion alumno etc.*/
+:root {
+    --color-principal: #007bff;
+    --color-hover: #0056b3;
+    --color-fondo: #fff;
+    --color-borde: #ccc;
+    --color-texto: #333;
+    --color-sombra: rgba(0, 0, 0, 0.1);
+    --radio-borde: 8px;
+}
+
+#btnAgregarAlumno {
+    background-color: var(--color-principal);
+    border: none;
+    padding: 10px 15px;
+    color: white;
+    font-size: 16px;
+    border-radius: var(--radio-borde);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out;
+}
+
+    #btnAgregarAlumno:hover {
+        background-color: var(--color-hover);
+        transform: scale(1.05); /* Aumenta ligeramente el tamaño del botón al pasar el ratón */
+    }
+
+    #btnAgregarAlumno:focus {
+        outline: 2px solid var(--color-principal);
+        outline-offset: 2px;
+    }
+
+#sugerenciasAlumnos {
+    position: absolute;
+    width: 90%;
+    max-width: 400px;
+    background: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    margin-top: 5px;
+    box-shadow: 0px 4px 15px var(--color-sombra); /* Sombra más suave */
+    overflow: hidden;
+    z-index: 1000;
+}
+
+    #sugerenciasAlumnos .list-group-item {
+        padding: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+        #sugerenciasAlumnos .list-group-item:hover {
+            background: var(--color-principal);
+            color: white;
+            transform: translateX(5px); /* Le da un pequeño desplazamiento para mayor interactividad */
+        }
+
+    #sugerenciasAlumnos .text-muted {
+        text-align: center;
+        font-style: italic;
+        color: #888;
+    }
+
+.list-group-item.active {
+    background-color: var(--color-principal);
+    color: white;
+}
+
+/* Foco en los elementos activos de la lista para mejorar la accesibilidad */
+#sugerenciasAlumnos .list-group-item:focus {
+    outline: 2px solid var(--color-principal);
+}
+
+
+/*Apartir de aqui se acomoda estilos*/
+
+
+
+/*Esto lo utiliza para mostrar la lista de alumnos------------------*/
+/* Estilo general para la lista de alumnos */
+.lista-alumnos {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.alumno-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.fila-uno {
+    background-color: #f9f9f9; /* Gris claro */
+}
+
+.fila-dos {
+    background-color: #ffffff; /* Blanco */
+}
+
+/* Estilo para los botones de acción */
+.acciones {
+    display: flex;
+    gap: 10px;
+}
+
+    .acciones button {
+        padding: 5px 10px;
+        font-size: 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        .acciones button:hover {
+            background-color: #0056b3;
+        }
+

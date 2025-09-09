@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "CrearActividadModal";
+}
+
+
+<div class="modal fade" id="crearActividadModal" tabindex="-1" aria-labelledby="crearActividadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearActividadModalLabel">Crear Actividad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="actividadesForm">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" class="form-control" autocomplete="off" autocorrect="off" spellcheck="false">
+
+                    <label for="descripcion">Descripción:</label>
+                    <textarea id="descripcion" class="form-control"></textarea>
+
+                    <label for="fechaLimite">Fecha y Hora Límite de Entrega:</label>
+                    <input type="datetime-local" id="fechaHoraLimite" class="form-control">
+
+                    <label for="puntaje">Puntaje:</label>
+                    <input type="number" id="puntaje" class="form-control" min="0" max="100">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="registrarActividad()">Publicar</button>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#sugerenciasModal" id="btnSugerencias">Sugerencias</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="sugerenciasModal" tabindex="-1" aria-labelledby="sugerenciasModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sugerenciasModalLabel">Sugerencias</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="sugerenciasLista" class="list-group">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnAplicarSugerencia">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

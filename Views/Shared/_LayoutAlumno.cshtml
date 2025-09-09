@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 layout">
+            <div class="container-fluid">
+
+                <a class="navbar-brand" href="@Url.Action("Index", "Alumno")">
+                    <img src="@Url.Content("~/Content/Iconos/LOGO HORIZONTAL-26.svg")" alt="ActivIA Logo" class="navbar-icon">
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="@Url.Action("Index", "Alumno")">
+                                <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/1-26.svg")" alt="Icono de Inicio" />
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a id="calendario-icono" class="nav-link text-dark" href="#">
+                                <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/AGENDA-26.svg")" alt="Icono de Calendario" />
+                            </a>
+                            <div id="calendario-panel" class="calendario-container">
+                                <input type="text" id="calendario-input">
+                            </div>
+                        </li>
+
+                        <li class="nav-item">
+                            <a id="notificaciones-icono" class="nav-link text-dark" href="#">
+                                <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/NOTIFICACIONES-26.svg")" alt="Icono de Notificaciones" />
+                            </a>
+                            <div id="notificaciones-panel" class="notificaciones-container">
+                                <p>🔔 No tienes nuevas notificaciones</p>
+                            </div>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link text-dark" id="user-icon" onclick="toggleMenu(event)">
+                                <img class="iconos-nav dropdown-toggle" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Icono de Usuario" />
+                            </a>
+                            <div class="dropdown-menu" id="user-menu">
+                                <div class="user-info">
+                                    <img class="iconos1-nav" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Icono de Usuario" />
+                                    <p class="dropdown-item">@User.Identity.Name</p>
+                                </div>
+                                @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { @class = "dropdown-item" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">Cerrar Sesión</button>
+                                }
+                            </div>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+
+            <br />
+            <br />
+        </main>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+    @RenderSection("styles", required: false)
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "GruposModal";
+}
+<div class="modal fade" id="gruposModal" tabindex="-1" aria-labelledby="gruposModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="gruposModalLabel">Gestión de Grupos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="gruposForm">
+                    <div class="mb-3">
+                        <label for="nombreGrupo" class="form-label">Nombre del Grupo <span class="text-danger">Campo Requerido*</span></label>
+                        <input type="text" class="form-control" id="nombreGrupo" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Ingrese el nombre del grupo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcionGrupo" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcionGrupo" rows="3" placeholder="Ingrese una descripción"></textarea>
+                    </div>
+
+                    <div id="materiasContainer" class="mb-3">
+                        <label class="form-label">Crear materias para este grupo</label>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-primary" onclick="agregarMateria()">+ Crear Materia</button>
+                        </div>
+                        <div id="listaMaterias">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Selecciona las Materias Disponibles</label>
+                        <div id="materiasLista">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarGrupo()">Guardar Grupo</button>
+            </div>
+        </div>
+    </div>
+</div>

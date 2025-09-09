@@ -1,0 +1,160 @@
+﻿/* Estilos para los avisos */
+.aviso-item {
+    border: 1px solid #007bff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    background: #ffffff;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+    .aviso-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+.aviso-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+
+.aviso-icono {
+    font-size: 30px;
+    color: #007bff;
+    margin-right: 15px;
+}
+
+.aviso-info {
+    flex-grow: 1;
+}
+
+    .aviso-info strong {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+
+.aviso-fecha-publicado {
+    font-size: 14px;
+    color: #888;
+}
+
+.aviso-fecha-entrega {
+    font-size: 14px;
+    text-align: right;
+    color: #555;
+}
+
+.aviso-puntaje {
+    font-size: 16px;
+    font-weight: bold;
+    color: #d35400;
+    margin-top: 10px;
+}
+
+.aviso-descripcion {
+    font-size: 16px;
+    color: #444;
+    margin-top: 15px;
+    line-height: 1.5;
+    max-height: 0; /* Inicialmente oculta */
+    overflow: hidden;
+    opacity: 0; /* Inicialmente oculta */
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+    .aviso-descripcion.visible {
+        max-height: 500px; /* Se ajusta según el contenido */
+        opacity: 1;
+    }
+/* Clase explícita para ocultar */
+.aviso-descripcion.oculto {
+    max-height: 0;
+    opacity: 0;
+}
+
+.aviso-ver-completo {
+    font-size: 14px;
+    color: #007bff;
+    cursor: pointer;
+    margin-top: 10px;
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+    .aviso-ver-completo:hover {
+        color: #0056b3;
+    }
+
+/* Estilos para los botones Editar, Eliminar e Ir a Actividades */
+.aviso-botones-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.aviso-editar-btn, .aviso-eliminar-btn, .aviso-btn-ir-aviso{
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 16px;
+}
+
+.aviso-editar-btn {
+    background-color: #f39c12;
+    color: white;
+}
+
+.aviso-eliminar-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.aviso-btn-ir-aviso {
+    background-color: #1abc9c;
+    color: white;
+}
+
+.aviso-editar-btn:hover {
+    background-color: #e67e22;
+    transform: scale(1.05);
+}
+
+.aviso-eliminar-btn:hover {
+    background-color: #c0392b;
+    transform: scale(1.05);
+}
+
+.aviso-btn-ir-aviso:hover {
+    background-color: #16a085;
+    transform: scale(1.05);
+}
+
+/* Mejorar la visibilidad del contenedor de actividades */
+#listaDeAvisosDeMateria {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Mejorar el fondo de la página de actividades */
+.aviso-item:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    z-index: -1;
+}

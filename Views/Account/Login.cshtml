@@ -1,0 +1,80 @@
+﻿@using ControlActividades.Models
+@model LoginViewModel
+@{
+    ViewBag.Title = "Iniciar sesión";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" href="@Url.Content("~/Content/Iconos/LOGO VERTICAL-26.svg")" type="image/x-icon" />
+
+    @*<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />*@
+
+    @*<link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />*@
+
+    <title>Iniciar Sesión</title>
+</head>
+<body>
+    <div class="logo">
+        <img src="@Url.Content("~/Content/Iconos/iconizer-LOGO HORIZONTAL-AzulF.svg")" alt="Logo" class="mx-auto d-block" />
+    </div>
+    <div class="login-box">
+
+        <div class="login-header">
+            <header>Iniciar Sesión</header>
+        </div>
+
+        @using (Html.BeginForm("Login", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("returnUrl", (object)ViewBag.ReturnUrl)
+            <div class="input-box">
+                <input type="text" class="input-field" id="email" name="email" autocomplete="off" required />
+                <label for="email">Correo electrónico</label>
+            </div>
+            <div class="input-box">
+                <input type="password" class="input-field" id="password" name="password" autocomplete="off" required />
+                <label for="password">Contraseña</label>
+            </div>
+            <div class="forgot">
+                <section>
+                    @Html.ActionLink("¿Olvidaste la contraseña?", "RestablecerContraseña", "Usuarios", null, new { @class = "forgot-link" })
+                </section>
+            </div>
+            <div class="input-box">
+                <input type="submit" class="input-submit" value="Iniciar Sesión" />
+            </div>
+        }
+
+        <div class="input-submit-signin  d-flex justify-content-center align-items-center ">
+            @Html.ActionLink(
+                                              "Registrarse",
+                                              "ValidateEmail",
+                                              "Account",
+                                              null,
+                                              new { @class = "text-decoration-none" })
+        </div>
+
+
+
+        <div class="middle-text">
+            <hr />
+            <p class="or-text">O</p>
+        </div>
+        <div class="social-sign-in ">
+            <button class="input-google d-flex justify-content-center align-items-center " type="button">
+                <img src="https://img.icons8.com/ios11/512/7950F2/google-logo.png" alt="Google Logo" />
+                Google
+            </button>
+        </div>
+    </div>
+</body>
+</html>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+@section Styles{
+    <link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />
+}

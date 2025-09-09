@@ -1,0 +1,40 @@
+﻿/* Contenedor principal */
+.materia-container {
+    width: 100%;
+    max-width: 1400px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* Encabezado de la materia */
+.materia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    color: white;
+    background-color: #3395d6;
+}
+
+.materia-info {
+    display: flex;
+    align-items: center;
+    font-size: 1.1em;
+}
+
+    .materia-info i {
+        margin-left: 10px;
+        cursor: pointer;
+    }
+
+#codigoAcceso {
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+
+
+
+

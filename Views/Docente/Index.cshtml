@@ -1,0 +1,52 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+
+
+    @Html.Partial("GruposModal");
+    @Html.Partial("MateriasModal");
+    int docenteId = ViewBag.DocenteId;
+}
+<div id="docente-datos" data-docenteid="@docenteId"></div>
+<div class="misCursos-header">
+    <h2 class="misCursos-titulo">
+        Mis cursos
+        <img src="@Url.Content("~/Content/Iconos/FILTRO-26.svg")"
+             alt="ActivIA Logo"
+             class="misCursos-icono">
+    </h2>
+
+    <div class="misCursos-dropdown">
+        <button class="misCursos-btn-crear" id="misCursos-dropdownBtn">CREAR</button>
+        <div class="misCursos-dropdown-menu" id="misCursos-dropdownMenu">
+            <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#materiasModal">Gestionar Materias</button>
+            <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#gruposModal" id="gestionarGruposBtn">Gestionar Grupos</button>
+        </div>
+    </div>
+</div>
+
+<br />
+<br />
+
+<div id="listaGrupos" class="mt-4"></div>
+
+<div id="contenedorMaterias"></div>
+
+<div class="divider"></div>
+
+<div class="section-title">
+    Materias sin grupo registrado
+</div>
+
+<div id="listaMateriasSinGrupo" class="mt-4"></div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/docente")
+    @Scripts.Render("~/bundles/docentegrupos")
+}
+
+@section Styles{
+    @Styles.Render("~/Content/Docente/css")
+}

@@ -1,0 +1,23 @@
+﻿.notificaciones-container {
+    position: absolute;
+    top: 50px; /* Ajusta según la ubicación del icono */
+    right: 10px; /* Ajusta según el diseño */
+    width: 250px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+    .notificaciones-container.mostrar {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+

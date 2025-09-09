@@ -1,0 +1,68 @@
+﻿.calendario-container {
+    position: absolute;
+    top: 65px; /* Ajustar según el layout */
+    right: 94px; /* Ajustar según el diseño */
+    width: 320px;
+    background: linear-gradient(135deg, #007bff, #0056b3); /* Fondo azul con degradado */
+    border-radius: 8px;
+    box-shadow: 10px 11px 36px rgba(0, 0, 0, 0.1);
+    padding: 7px;
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+    /* Animación de figuras geométricas */
+    .calendario-container::before,
+    .calendario-container::after {
+        content: "";
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        animation: float 6s infinite alternate ease-in-out;
+    }
+
+    .calendario-container::before {
+        top: -20px;
+        left: -20px;
+    }
+
+    .calendario-container::after {
+        bottom: -20px;
+        right: -20px;
+        width: 60px;
+        height: 60px;
+        animation-delay: 2s;
+    }
+
+@keyframes float {
+    0% {
+        transform: translateY(0) translateX(0);
+    }
+
+    100% {
+        transform: translateY(15px) translateX(15px);
+    }
+}
+
+.calendario-container.mostrar {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+#calendario-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+}

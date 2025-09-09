@@ -1,0 +1,119 @@
+﻿/*Estilo para la pre carga de detalle de la materia*/
+.materia-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.copiar-icono {
+    cursor: pointer;
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+    .copiar-icono:hover {
+        color: #fff;
+    }
+
+
+
+/* Contenedor de la barra de navegación */
+.materia-nav {
+    display: flex;
+    justify-content: center;
+    background-color: #f7f7f7;
+    border-bottom: 2px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 0 10px;
+    margin-bottom: 20px;
+}
+
+    /* Estilo de los botones de pestaña */
+    .materia-nav .tab-button {
+        background: transparent;
+        border: none;
+        padding: 12px 25px;
+        font-size: 16px;
+        color: #555;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+        position: relative;
+    }
+
+        /* Efecto hover para los botones */
+        .materia-nav .tab-button:hover {
+            background-color: #eaeaea;
+            color: #333;
+        }
+
+        /* Estilo para la pestaña activa */
+        .materia-nav .tab-button.active {
+            color: #d63384;
+            font-weight: bold;
+        }
+
+            /* Línea inferior para la pestaña activa */
+            .materia-nav .tab-button.active::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 50%;
+                border-bottom: 3px solid #d63384;
+            }
+
+/* Estilo del contenedor dropdown */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Estilo del botón principal */
+.btn-crear {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+    .btn-crear:hover {
+        background-color: #0056b3;
+    }
+
+/* Contenedor del menú desplegable */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 150px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+    z-index: 10;
+}
+
+    /* Estilo de los enlaces dentro del menú */
+    .dropdown-content a {
+        color: black;
+        padding: 10px 15px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+/* Mostrar el menú cuando el usuario pasa el mouse sobre el botón */
+.dropdown:hover .dropdown-content {
+    display: block;
+}

@@ -1,0 +1,182 @@
+﻿
+
+
+
+.materias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(303px, 1fr)); /* Ajusta el tamaño de los cuadrados */
+    gap: 30px;
+    margin-top: 10px;
+    padding: 24px;
+}
+
+.materia-card {
+    background: #f8f9fa; /* Color de fondo */
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .materia-card:hover {
+        transform: scale(1.05);
+        background: #e9ecef;
+    }
+
+.materia-nombre {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+
+
+
+
+
+
+/* Contenedor de todas las cards */
+.card-wrapper {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr); /* 3 columnas por fila */
+    gap: 15px; /* Espacio entre las cards */
+    margin: 20px; /* Espacio alrededor del contenedor */
+}
+
+/* Estilo para cada card */
+.card-container1 {
+    background-color: white; /* Gris de fondo */
+    padding: 0px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    /* Tamaño máximo para que las cards no se estiren demasiado en pantallas grandes */
+    max-width: 2800px;
+    width: 100%;
+    display: block;
+    min-height: 130px;
+    border: 2px solid #ccc;
+}
+
+.card-title {
+    font-size: 1.5em;
+    margin: 0;
+}
+
+/* Estilo para la línea de separación */
+.card-separator {
+    border: 1px solid #ccc;
+    margin: 10px 0;
+}
+
+/* Estilo para el botón */
+.card-button {
+    display: block;
+    margin-left: auto; /* Alineación a la derecha */
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    width: auto;
+}
+
+    .card-button:hover {
+        background-color: #0056b3;
+    }
+
+
+
+
+
+.card-etiqueta-container {
+    display: flex;
+    align-items: center; /* Alinea verticalmente la imagen y el texto */
+}
+
+
+.card-etiqueta {
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: white;
+    background-color: #007bffc6;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: flex; /* Usamos flexbox para alinear los elementos */
+    align-items: center; /* Alinea la imagen y el texto verticalmente */
+    cursor: pointer;
+    max-width: 500px; /* El ancho máximo será 500px */
+    width: 100%; /* El ancho será el 100% hasta llegar a 500px */
+}
+
+.iconos-nav2 {
+    width: 70px;
+    margin-right: -9px;
+    vertical-align: middle;
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Transición para el cambio de sombra y transformación */
+    height: auto; /* Mantiene la proporción de la imagen */
+    float: right; /* Alinea la imagen a la derecha */
+}
+
+    /* Estado cuando se pasa el cursor */
+    .iconos-nav2:hover {
+        transform: scale(1.1); /* Aumenta ligeramente el tamaño de la imagen */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+    }
+
+
+
+/*iconos Cursos*/
+/* Contenedor para el título y botón */
+.misCursos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Título y logo */
+.misCursos-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+}
+
+.misCursos-icono {
+    width: 110px;
+    height: auto;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+    .misCursos-icono:hover {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+
+/* Botón CREAR */
+.misCursos-btn-crear {
+    background-color: #007bff; /* Azul */
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+    .misCursos-btn-crear:hover {
+        background-color: #0056b3; /* Azul más oscuro */
+    }
+
+    .misCursos-btn-crear:active {
+        transform: scale(0.95);
+    }
+
+
+

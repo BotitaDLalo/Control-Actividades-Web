@@ -1,0 +1,117 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "EvaluarActividades";
+}
+
+<div class="container mt-5">
+    <div class="card mb-4 shadow-sm">
+        <div class="card actividad-card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Información de la Actividad</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Nombre de la Actividad:</strong> <span id="nombreActividad">Cargando...</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Descripción:</strong> <span id="descripcionActividad">Cargando...</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>Fecha de Creación:</strong> <span id="fechaCreacion">Cargando...</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Fecha Límite de Entrega:</strong> <span id="fechaLimite">Cargando...</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>Tipo de Actividad:</strong> <span id="tipoActividad">Cargando...</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Puntaje Máximo:</strong> <span id="puntajeMaximo">Cargando...</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <strong>Alumnos que han entregado:</strong> <span class="badge bg-success" id="alumnosEntregados">Cargando...</span>
+                        <br>
+                        <strong>Actividades Calificadas:</strong> <span class="badge bg-primary" id="actividadesCalificadas">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header" style="background-color: #4CAF50; color: white;">
+            <h5 class="mb-0">Alumnos que han entregado</h5>
+        </div>
+        <div class="card-body">
+            <div id="listaAlumnosEntregados" class="list-group"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header" style="background-color: #F44336; color: white;">
+            <h5 class="mb-0">Alumnos que no han entregado</h5>
+        </div>
+        <div class="card-body">
+            <div id="listaAlumnosSinEntregar" class="list-group"></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="calificarModal" tabindex="-1" aria-labelledby="calificarModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #2196F3; color: white;">
+                    <h5 class="modal-title" id="calificarModalLabel">Calificar Alumno</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCalificacion">
+                        <input type="hidden" id="entregaId">
+                        <div class="mb-3">
+                            <label for="calificacion" class="form-label">Calificación</label>
+                            <input type="number" class="form-control" id="calificacion" min="0" max="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comentario" class="form-label">Comentario</label>
+                            <textarea class="form-control" id="comentario" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Calificación</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="respuestaModal" tabindex="-1" aria-labelledby="respuestaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #2196F3; color: white;">
+                    <h5 class="modal-title" id="respuestaModalLabel">Respuesta del Alumno</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="respuesta-alumno">
+                        <p><strong>Respuesta recibida :</strong></p>
+                        <pre id="texto-respuesta">Texto de la respuesta del alumno.</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/docente")
+    @Scripts.Render("~/bundles/docentegrupos")
+}
+
+@section Styles{
+    @Styles.Render("~/Content/Docente/css")
+}

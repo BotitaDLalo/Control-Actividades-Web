@@ -1,0 +1,63 @@
+﻿/* Estilos personalizados para el modal */
+.custom-modal {
+    border-radius: 10px;
+}
+
+.modal-content22 {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #ffffff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, .2);
+    border-radius: .3rem;
+    outline: 0;
+    margin-left: -19%;
+}
+
+.custom-modal-header {
+    background-color: #007bff; /* Fondo azul */
+    color: white; /* Letras blancas */
+    position: relative;
+    padding: 20px;
+}
+
+    .custom-modal-header .modal-title {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+        .custom-modal-header .modal-title:hover {
+            transform: scale(1.1); /* Efecto de transición de tamaño */
+            opacity: 0.8; /* Efecto de opacidad al pasar el mouse */
+        }
+
+.custom-modal-body {
+    background-color: white;
+    padding: 20px;
+    color: #333;
+    font-size: 16px;
+}
+
+.custom-modal .modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #ddd;
+    padding: 10px;
+}
+
+.custom-modal .btn {
+    border-radius: 5px;
+}
+
+/* Opcional: animación para los botones */
+.custom-modal .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    transition: background-color 0.3s;
+}
+
+    .custom-modal .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }

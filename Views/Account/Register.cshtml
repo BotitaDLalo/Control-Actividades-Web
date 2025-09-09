@@ -1,0 +1,72 @@
+﻿@{ 
+    ViewBag.Title = "Registrarse";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Favicon -->
+    <link rel="icon" href="~/Iconos/LOGO VERTICAL-26.svg" type="image/x-icon" />
+
+    <!-- Google Fonts -->
+    @*<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">*@
+
+    <!-- CSS personalizado -->
+    @*<link href="~/css/InicioSesion/InicioSesion.css" rel="stylesheet" />*@
+
+    <title>Registrar</title>
+</head>
+<body>
+    <div class="logo">
+        <img src="@Url.Content("~/Content/Iconos/iconizer-LOGO HORIZONTAL-AzulF.svg")" alt="Logo" class="mx-auto d-block" />
+    </div>
+
+    <div class="signin-box">
+        <div class="login-header">
+            <header>Registrar</header>
+        </div>
+
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-signin" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="input-box">
+                <input name="ApellidoPaterno" type="text" class="input-field" autocomplete="off" required />
+                <label for="apellidoPaterno">Apellido Paterno</label>
+            </div>
+            <div class="input-box">
+                <input name="ApellidoMaterno" type="text" class="input-field" autocomplete="off" required />
+                <label for="apellidoMaterno">Apellido Materno</label>
+            </div>
+            <div class="input-box">
+                <input name="Nombres" type="text" class="input-field" autocomplete="off" required />
+                <label for="nombres">Nombres</label>
+            </div>
+            <div class="input-box">
+                <input name="Password" type="password" class="input-field" autocomplete="off" required />
+                <label for="password">Contraseña</label>
+            </div>
+
+            @*<select name="TipoUsuario" class="form-select form-select-lg mb-3" style="font-size:1em;color:#555;">*@
+            <select name="Role" class="form-control form-control-lg mb-3" style="font-size:1em;color:#555;">
+                <option selected>Elige tu rol</option>
+                <option value="Docente">Docente</option>
+                <option value="Alumno">Alumno</option>
+            </select>
+
+
+            <div class="input-box">
+                <input type="submit" class="input-submit" value="Registrarse" />
+            </div>
+        }
+    </div>
+</body>
+</html>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+@section Styles{
+    <link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />
+}

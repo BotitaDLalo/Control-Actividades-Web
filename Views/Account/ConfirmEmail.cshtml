@@ -1,0 +1,48 @@
+﻿@{
+    ViewBag.Title = "Confirmar Email";
+}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" href="~/Iconos/LOGO VERTICAL-26.svg" type="image/x-icon" />
+    <title>Registrar</title>
+</head>
+<body>
+    <div class="logo">
+        <img src="@Url.Content("~/Content/Iconos/iconizer-LOGO HORIZONTAL-AzulF.svg")" alt="Logo" class="logo-image">
+    </div>
+    <div class="verify-box">
+        <div class="login-header">
+            <header>Verificar Código</header>
+        </div>
+        @using (Html.BeginForm("ConfirmEmail", "Account", FormMethod.Post, new { @class = "form-signin" }))
+        {
+            @Html.AntiForgeryToken()
+            <form class="verificarCodigo-form">
+                <div class="input-box-code">
+                    <label for="email"></label>
+                    <input type="number" class="input-field" id="Code1" name="Code1" autocomplete="off" required>
+                    <input type="number" class="input-field" id="Code2" name="Code2" autocomplete="off" required>
+                    <input type="number" class="input-field" id="Code3" name="Code3" autocomplete="off" required>
+                    <input type="number" class="input-field" id="Code4" name="Code4" autocomplete="off" required>
+                    <input type="number" class="input-field" id="Code5" name="Code5" autocomplete="off" required>
+                </div>
+                <div class="input-box">
+                    <input type="submit" class="input-submit" value="Verificar">
+                </div>
+            </form>
+        }
+    </div>
+</body>
+
+</html>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+@section Styles{
+    <link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />
+}

@@ -1,0 +1,167 @@
+﻿/* Modal lateral para el chat */
+.chat-modal {
+    position: fixed;
+    right: -350px;
+    top: 0;
+    width: 350px;
+    height: 100%;
+    background-color: #f9f9f9;
+    box-shadow: -3px 0px 5px #358ce9;
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.titulo {
+    text-align: center; /* Centra el texto */
+    font-size: 25px; /* Tamaño de fuente de 10px */
+    color: #000000; /* Color negro muy encendido */
+    font-weight: bold; /* Hace el texto en negrita */
+
+    margin: 0; /* Elimina márgenes por defecto */
+}
+
+
+.Icono_IA {
+    display: block; /* Permite centrar la imagen usando márgenes automáticos */
+    margin: 0 auto; /* Centra la imagen horizontalmente */
+    max-width: 100%; /* Asegura que la imagen no exceda el ancho del contenedor */
+    height: auto; /* Mantiene la proporción de aspecto */
+    width: 200px; /* Ajusta el tamaño de la imagen (puedes cambiar este valor) */
+}
+
+
+/* Estilos para el encabezado y cierre */
+.chat-header {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+    /* Figuras animadas */
+    .chat-header::before,
+    .chat-header::after {
+        content: "";
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        background: #e0f7fa;
+        border-radius: 50%;
+        transition: transform 3s ease-in-out, opacity 1.5s ease-in-out;
+        opacity: 0.6;
+    }
+
+    /* Primera figura */
+    .chat-header::before {
+        top: -10px;
+        left: -10px;
+        animation: moveFigure1 6s infinite alternate;
+    }
+
+    /* Segunda figura */
+    .chat-header::after {
+        bottom: -10px;
+        right: -10px;
+        animation: moveFigure2 6s infinite alternate;
+    }
+
+/* Animaciones */
+@keyframes moveFigure1 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(20px, 20px) scale(1.2);
+    }
+}
+
+@keyframes moveFigure2 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(-20px, -20px) scale(1.2);
+    }
+}
+
+
+.close-chat {
+    position: absolute; /* Lo coloca en relación al contenedor padre */
+    top: 10px; /* Espaciado desde la parte superior */
+    right: 10px; /* Espaciado desde la derecha */
+    background: none;
+    border: none;
+    font-size: 34px;
+    color: #ff0000;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+    /* Efecto hover */
+    .close-chat:hover {
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        transform: scale(1.1);
+    }
+
+/* Contenido y mensajes */
+.chat-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.chat-input {
+    width: 100%;
+    padding: 10px;
+    border: 3px solid #007bff;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.send-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+/* Mostrar el modal cuando esté activo */
+.chat-modal.active {
+    right: 0;
+}
+
+
+
+
+.user-message, .bot-message {
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 5px;
+    max-width: 80%;
+}
+
+.user-message {
+    background-color: #e0f7fa;
+    align-self: flex-end;
+    color: #00796b;
+}
+
+.bot-message {
+    background-color: #e0e0e0;
+    align-self: flex-start;
+    color: #424242;
+}

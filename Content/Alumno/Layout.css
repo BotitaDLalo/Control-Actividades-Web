@@ -1,0 +1,158 @@
+﻿.layout {
+    background: #36D1DC; /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #16BFFD, #457fca); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #16BFFD, #457fca); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+    font-size: 16px;
+}
+
+body {
+    background-color: #f1f2f4;
+    /*background: #36D1DC;*/ /* fallback for old browsers */
+    /*background: -webkit-linear-gradient(to right,#2196f3, #3a7bd5);*/ /* Chrome 10-25, Safari 5.1-6 */
+    /*background: linear-gradient(to right,#2196f3, #3a7bd5);*/ /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+h1, h2, h3 {
+    font-family: 'Poppins', sans-serif; /* Para títulos */
+}
+
+p, body {
+    font-family: 'Roboto', sans-serif; /* Para texto */
+}
+
+.navbar-light .navbar-brand {
+    color: rgb(255 255 255);
+}
+
+
+.navbar-brand {
+    width: 208px; /* Fija el ancho del contenedor */
+    height: 56px; /* Fija el alto del contenedor */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centra el ícono */
+    overflow: hidden; /* Oculta cualquier desbordamiento */
+}
+
+.navbar-icon {
+    width: 112%; /* Se ajusta al 100% del contenedor */
+    height: 294%; /* Se ajusta al 100% del contenedor */
+    object-fit: contain; /* Escala internamente sin distorsionar */
+}
+
+.icon-nav {
+    width: 64px; /* Ajusta el tamaño según tus necesidades */
+    height: auto; /* Mantiene la proporción de aspecto */
+    margin-right: -9px; /* Espaciado a la derecha del ícono */
+    vertical-align: middle; /* Alineación vertical con el texto */
+}
+
+.iconos-nav {
+    width: 70px; /* Ajusta el tamaño según tus necesidades */
+    height: auto; /* Mantiene la proporción de aspecto */
+    margin-right: -9px; /* Espaciado a la derecha del ícono */
+    vertical-align: middle; /* Alineación vertical con el texto */
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Suaviza la animación */
+}
+
+    /* Efecto hover */
+    .iconos-nav:hover {
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Sombra alrededor del ícono */
+        transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el cursor */
+    }
+
+.navbar-nav {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+    justify-content: flex-end;
+}
+
+/*
+Estilos del submenu usuario*/
+
+
+/* Flecha dentro del contenedor de usuario */
+.nav-link .dropdown-arrow {
+    font-size: 14px;
+    margin-left: 8px;
+    color: #333;
+    vertical-align: middle;
+}
+
+/* Cambiar color de la flecha en hover */
+.nav-link:hover .dropdown-arrow {
+    color: #007bff;
+}
+
+/* Mantener el estilo del menú */
+.nav-item.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 10px 15px;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.nav-item.dropdown.show .dropdown-menu {
+    display: block;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Contenedor del ícono y el nombre */
+.user-info {
+    display: flex;
+    align-items: center;
+    
+    padding: 5px 0;
+}
+
+    /* Tamaño del ícono */
+    .user-info img.iconos1-nav {
+        width: 74px; /* Ajusta el tamaño según tus necesidades */
+        height: 34px; /* Asegura que el ícono sea cuadrado */
+ 
+    }
+
+    /* Nombre del usuario */
+    .user-info .dropdown-item {
+        margin: 0; /* Elimina márgenes del texto */
+        font-size: 13px; /* Ajusta el tamaño del texto */
+        color: #333; /* Color del texto */
+        font-weight: bold; /* Resalta el nombre */
+    }
+
+/* Botón de cerrar sesión */
+.dropdown-item button {
+    margin-top: 10px;
+}

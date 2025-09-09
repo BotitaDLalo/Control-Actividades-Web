@@ -1,0 +1,68 @@
+@{
+    Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
+    ViewData["Title"] = "Inicio - Alumno";
+
+    int alumnoId = ViewBag.AlumnoId;
+}
+
+
+@*@model ControlActividades.Models.db.tbGrupos;*@
+
+
+
+<div class="materia-container">
+    <div class="materia-header" id="materiaHeader">
+        <h2>@Model.NombreGrupo</h2>
+        <div class="materia-info">
+            <span>Código de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
+            <i class="fas fa-cog"></i>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs" id="grupoTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="avisos-tab" data-bs-toggle="tab" href="#avisos">Avisos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="actividades-tab" data-bs-toggle="tab" href="#actividades">Actividades</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="alumnos-tab" data-bs-toggle="tab" href="#alumnos">Alumnos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="calificaciones-tab" data-bs-toggle="tab" href="#calificaciones">Calificaciones</a>
+        </li>
+    </ul>
+
+
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="avisos">
+            <h3>Avisos</h3>
+            <div id="contenidoAvisos"></div>
+        </div>
+        <div class="tab-pane fade" id="actividades">
+            <h3>Actividades</h3>
+            <div id="contenidoActividades"></div>
+        </div>
+        <div class="tab-pane fade" id="alumnos">
+            <h3>Alumnos</h3>
+            <div id="contenidoAlumnos"></div>
+        </div>
+        <div class="tab-pane fade" id="calificaciones">
+            <h3>Calificaciones</h3>
+            <div id="contenidoCalificaciones"></div>
+        </div>
+    </div>
+
+</div>
+@section Scripts{
+    <script>
+        const alumnoIdGlobal = '@alumnoId';
+    </script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/alumno")
+}
+
+@section Styles{
+    @Styles.Render("~/Content/Alumno/css")
+}

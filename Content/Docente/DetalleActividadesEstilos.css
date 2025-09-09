@@ -1,0 +1,34 @@
+﻿.actividad-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+    .actividad-card .card-header {
+        background-color: #2196F3;
+        color: white;
+        padding: 15px;
+    }
+
+    .actividad-card .card-body {
+        padding: 20px;
+    }
+
+    .actividad-card .row {
+        margin-bottom: 10px;
+    }
+
+    .actividad-card strong {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .actividad-card span {
+        color: #555;
+    }
+
+    .actividad-card .badge {
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
