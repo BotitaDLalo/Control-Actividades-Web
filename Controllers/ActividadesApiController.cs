@@ -21,6 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/Actividades")]
     public class ActividadesApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -177,7 +178,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpGet]
-        [Route("api/Actividades/ObtenerActividadesPorMateria")]
+        [Route("ObtenerActividadesPorMateria")]
         public async Task<IHttpActionResult> ObtenerActividadesPorMateria(int materiaId)
         {
 
@@ -197,6 +198,7 @@ namespace ControlActividades.Controllers
 
         // El tipo de retorno debe ser IHttpActionResult<List<object>> porque estamos devolviendo una lista de objetos
         [HttpGet]
+        [Route("ObtenerActividades")]
         public async Task<IHttpActionResult> ObtenerActividades()
         {
             try
@@ -215,6 +217,7 @@ namespace ControlActividades.Controllers
 
         // Obtener una actividad específica
         [HttpGet]
+        [Route("ObtenerActividad")]
         public async Task<IHttpActionResult> ObtenerActividad(int id)
         {
             var activity = await Db.tbActividades.FindAsync(id);
@@ -224,7 +227,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Actividades/CrearActividad")]
+        [Route("CrearActividad")]
         public async Task<IHttpActionResult> CrearActividad([FromBody] tbActividades nuevaActividad)
         {
             try
@@ -280,6 +283,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPut]
+        [Route("ActualizarActividad")]
         public async Task<IHttpActionResult> ActualizarActividad(int id, tbActividades updatedActivity)
         {
             var dbActivity = await Db.tbActividades.FindAsync(id);
@@ -296,7 +300,7 @@ namespace ControlActividades.Controllers
 
         //[HttpDelete("EliminarActividad/{id}")]
         [HttpDelete]
-        [Route("api/Actividades/EliminarActividad/{id}")]
+        [Route("EliminarActividad")]
         public async Task<IHttpActionResult> EliminarActividad(int id)
         {
             try
@@ -349,7 +353,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpGet]
-        [Route("api/Actividades/ObtenerAlumnosEntregables")]
+        [Route("ObtenerAlumnosEntregables")]
         public async Task<IHttpActionResult> ObtenerAlumnosEntregables(int actividadId)
         {
             try
@@ -424,7 +428,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Actividades/AsignarCalificacion")]
+        [Route("AsignarCalificacion")]
         public async Task<IHttpActionResult> AsignarCalificacion([FromBody] AsignarCalificacionPeticion asignarCalificacion)
         {
             try

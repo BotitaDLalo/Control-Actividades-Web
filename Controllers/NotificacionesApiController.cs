@@ -16,6 +16,7 @@ using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/Notificaciones")]
     public class NotificacionesApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -119,7 +120,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Avisos/RegistrarNotificacion")]
+        [Route("RegistrarNotificacion")]
         public async Task<IHttpActionResult> RegistrarNotificacionRecibida([FromBody] Notificacion notificacion)
         {
             tbNotificaciones nuevaNotificacion = new tbNotificaciones

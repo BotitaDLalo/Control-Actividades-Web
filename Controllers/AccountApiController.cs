@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/Login")]
     public class AccountApiController : ApiController
     {
 
@@ -111,7 +112,7 @@ namespace ControlActividades.Controllers
         {
             get
             {
-                return _notifServ ?? (_notifServ = new NotificacionesService());
+                return _notifServ ?? (_notifServ = new NotificacionesService(Db,new FCMService()));
             }
             private set
             {
@@ -121,7 +122,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Login/VerificarTokenFcm")]
+        [Route("VerificarTokenFcm")]
         public async Task<IHttpActionResult> VerificarTokenFcm(int id, string fcmToken, string role)
         {
             try
@@ -162,7 +163,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Login/RegistroUsuario")]
+        [Route("RegistroUsuario")]
         public async Task<IHttpActionResult> RegistroUsuario([FromBody] UsuarioRegistro model)
         {
             try
@@ -287,7 +288,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Login/InicioSesionUsuario")]
+        [Route("InicioSesionUsuario")]
         public async Task<IHttpActionResult> InicioSesionUsuario([FromBody]UsuarioInicioSesion model)
         {
             try
@@ -379,7 +380,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Login/ValidarCodigoDocente")]
+        [Route("ValidarCodigoDocente")]
         public async Task<IHttpActionResult> ValidarCodigoDocente([FromBody] ValidarCodigoDocente datos)
         {
             try
@@ -444,7 +445,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpGet]
-        [Route("api/Login/VerificarToken")]
+        [Route("VerificarToken")]
         public IHttpActionResult VerificarToken(string token)
         {
             if (string.IsNullOrEmpty(token))
@@ -498,7 +499,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Login/VerificarEmailUsuario")]
+        [Route("VerificarEmailUsuario")]
         public async Task<IHttpActionResult> VerificarEmailUsuario([FromBody] string email)
         {
             try

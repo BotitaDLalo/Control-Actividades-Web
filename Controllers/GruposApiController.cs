@@ -19,6 +19,7 @@ using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/Grupos")]
     public class GruposApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -26,6 +27,11 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        
+        public GruposApiController()
+        {
+        }
+        
         public GruposApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
         {
             UserManager = userManager;
@@ -176,7 +182,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpGet]
-        [Route("api/Grupos/ObtenerGruposCreados")]
+        [Route("ObtenerGruposCreados")]
         public async Task<IHttpActionResult> ObtenerGruposCreados(int docenteId)
         {
             try
@@ -199,8 +205,8 @@ namespace ControlActividades.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("api/Grupos/ObtenerGruposMateriasDocente")]
+        [HttpGet]
+        [Route("ObtenerGruposMateriasDocente")]
         public async Task<IHttpActionResult> ObtenerGruposMateriasDocente(int docenteId)
         {
             try
@@ -249,7 +255,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Grupos/CrearGrupo")]
+        [Route("CrearGrupo")]
         public async Task<IHttpActionResult> CrearGrupo([FromBody] tbGrupos group)
         {
             try
@@ -269,7 +275,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Grupos/CrearGrupoMaterias")]
+        [Route("CrearGrupoMaterias")]
         public async Task<IHttpActionResult> CrearGrupoMaterias([FromBody] GrupoMateriasRegistro group)
         {
             try
@@ -333,7 +339,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPut]
-        [Route("api/Grupos/ActualizarGrupo")]
+        [Route("ActualizarGrupo")]
         public async Task<IHttpActionResult> ActualizarGrupo([FromBody] tbGrupos updatedGroup)
         {
             try
@@ -360,6 +366,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpDelete]
+        [Route("DeleteGroup")]
         public async Task<IHttpActionResult> DeleteGroup(int id)
         {
             var dbGroup = await Db.tbGrupos.FindAsync(id);
@@ -374,6 +381,7 @@ namespace ControlActividades.Controllers
 
         #region Alumno
         [HttpGet]
+        [Route("ObtenerGruposMateriasAlumno")]
         public async Task<IHttpActionResult> ObtenerGruposMateriasAlumno(int alumnoId)
         {
             try

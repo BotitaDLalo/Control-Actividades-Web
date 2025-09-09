@@ -22,6 +22,7 @@ using static ControlActividades.Controllers.AlumnoController;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/Alumnos")]
     public class AlumnoApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -110,6 +111,7 @@ namespace ControlActividades.Controllers
 
         // Endpoint para unirse a una clase con código de acceso
         [HttpPost]
+        [Route("UnirseAClase")]
         public async Task<IHttpActionResult> UnirseAClase([FromBody] UnirseAClaseRequest request)
         {
             if (string.IsNullOrEmpty(request.CodigoAcceso))
@@ -169,7 +171,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Alumnos/UnirseAClaseM")]
+        [Route("UnirseAClaseM")]
         public async Task<IHttpActionResult> UnirseAClaseM([FromBody] UnirseAClaseRequest request)
         {
             try
@@ -283,7 +285,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Alumnos/RegistrarEnvioActividadAlumno")]
+        [Route("RegistrarEnvioActividadAlumno")]
         public async Task<IHttpActionResult> RegistrarEnvioActividadAlumno([FromBody] EntregableAlumno entregable)
         {
             try
@@ -344,7 +346,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpGet]
-        [Route("api/Alumnos/ObtenerEnviosActividadesAlumno")]
+        [Route("ObtenerEnviosActividadesAlumno")]
         public async Task<IHttpActionResult> ObtenerEnviosActividadesAlumno(int ActividadId, int AlumnoId)
         {
             try
@@ -386,7 +388,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Alumnos/CancelarEnvioActividadAlumno")]
+        [Route("CancelarEnvioActividadAlumno")]
         public async Task<IHttpActionResult> CancelarEnvioActividadAlumno([FromBody] CancelarEnvioActividadAlumno datosCancelacion)
         {
             try
@@ -437,6 +439,7 @@ namespace ControlActividades.Controllers
 
         [HttpPost]
         //Registrar
+        [Route("AlumnoGrupoCodigo")]
         public async Task<IHttpActionResult> AlumnoGrupoCodigo([FromBody] AlumnoGMRegistroCodigo alumnoGrupoRegistro)
         {
             try
@@ -466,6 +469,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
+        [Route("AlumnoMateriaCodigo")]
         public async Task<IHttpActionResult> AlumnoMateriaCodigo([FromBody] AlumnoGMRegistroCodigo alumnoMateriaRegistro)
         {
             try
@@ -495,7 +499,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Alumnos/VerificarAlumnoEmail")]
+        [Route("VerificarAlumnoEmail")]
         public async Task<IHttpActionResult> VerificarAlumnoEmail([FromBody] EmailVerificadoAlumno verifyEmail)
         {
             try
@@ -525,7 +529,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Alumnos/RegistrarAlumnoGMDocente")]
+        [Route("RegistrarAlumnoGMDocente")]
         public async Task<IHttpActionResult> RegistrarAlumnoGMDocente([FromBody] AlumnoGMRegistroDocente alumnoGMRegistro)
         {
             bool alumnoRegistradoGrupo = false;
@@ -674,7 +678,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Alumnos/ObtenerListaAlumnosGrupo")]
+        [Route("ObtenerListaAlumnosGrupo")]
         public async Task<IHttpActionResult> ObtenerListaAlumnosGrupo([FromBody] Indices indice)
         {
             try
@@ -694,7 +698,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Alumnos/ObtenerListaAlumnosMateria")]
+        [Route("ObtenerListaAlumnosMateria")]
         public async Task<IHttpActionResult> ObtenerListaAlumnosMateria([FromBody] Indices indice)
         {
             try

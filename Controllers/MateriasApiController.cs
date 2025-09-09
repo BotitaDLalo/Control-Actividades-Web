@@ -18,6 +18,7 @@ using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/Materias")]
     public class MateriasApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -198,7 +199,7 @@ namespace ControlActividades.Controllers
 
         //ObtenerMateriasSinGrupoDocente
         [HttpGet]
-        [Route("api/Materias/ObtenerMateriasDocente")]
+        [Route("ObtenerMateriasDocente")]
         public async Task<IHttpActionResult> ObtenerMateriasDocente(int docenteId)
         {
             try
@@ -229,6 +230,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpGet]
+        [Route("ObtenerMaterias")]
         public async Task<IHttpActionResult> ObtenerMaterias()
         {
             try
@@ -251,6 +253,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpGet]
+        [Route("ObtenerMateriaUnica")]
         public async Task<IHttpActionResult> ObtenerMateriaUnica(int id)
         {
             var subject = await Db.tbMaterias.FindAsync(id);
@@ -261,7 +264,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Materias/CrearMateriaSinGrupo")]
+        [Route("CrearMateriaSinGrupo")]
         public async Task<IHttpActionResult> CrearMateriaSinGrupo([FromBody] tbMaterias materia)
         {
             try
@@ -286,7 +289,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpPost]
-        [Route("api/Materias/CrearMateriaGrupos")]
+        [Route("CrearMateriaGrupos")]
         public async Task<IHttpActionResult> CrearMateriaGrupos([FromBody] MateriaConGrupo materiaConGrupo)
         {
             try
@@ -348,6 +351,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPut]
+        [Route("UpdateSubject")]
         public async Task<IHttpActionResult> UpdateSubject(tbMaterias updatedSubject)
         {
             var dbSubject = await Db.tbMaterias.FindAsync(updatedSubject.MateriaId);
@@ -362,6 +366,7 @@ namespace ControlActividades.Controllers
         }
 
         [HttpDelete]
+        [Route("DeleteSubject")]
         public async Task<IHttpActionResult> DeleteSubject(int id)
         {
             var dbSubject = await Db.tbMaterias.FindAsync(id);
@@ -376,6 +381,7 @@ namespace ControlActividades.Controllers
         #region Alumno
 
         [HttpGet]
+        [Route("ObtenerMateriasAlumno")]
         public async Task<IHttpActionResult> ObtenerMateriasAlumno(int alumnoId)
         {
             try

@@ -16,6 +16,7 @@ using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/Avisos")]
     public class AvisosApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -117,7 +118,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Avisos/CrearAviso")]
+        [Route("CrearAviso")]
         public async Task<IHttpActionResult> CrearAviso([FromBody] PeticionCrearAviso crearAviso)
         {
             bool avisoCreado = false;
@@ -168,7 +169,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpGet]
-        [Route("api/Avisos/ConsultarAvisosCreados")]
+        [Route("ConsultarAvisosCreados")]
         public IHttpActionResult  ConsultarAvisos([FromBody] PeticionConsultarAvisos consultarAvisos)
         {
             try
@@ -224,7 +225,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/Avisos/EliminarAviso")]
+        [Route("EliminarAviso")]
         public async Task<IHttpActionResult> EliminarAviso(int avisoId)
         {
             try

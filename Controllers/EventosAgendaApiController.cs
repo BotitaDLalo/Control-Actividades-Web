@@ -18,6 +18,7 @@ using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Controllers
 {
+    [RoutePrefix("api/EventosAgenda")]
     public class EventosAgendaApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -134,7 +135,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpGet]
-        [Route("api/EventosAgenda/ObtenerEventos")]
+        [Route("ObtenerEventos")]
         public async Task<IHttpActionResult> ObtenerEventos(int docenteId)
         {
             try
@@ -159,7 +160,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("api/EventosAgenda/CrearEventos")]
+        [Route("CrearEventos")]
         public async Task<IHttpActionResult> CrearEventos([FromBody] tbEventosAgenda nuevoEvento)
         {
 
@@ -207,7 +208,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPatch]
-        [Route("api/EventosAgenda/ActualizarEvento/{id}")]
+        [Route("ActualizarEvento/{id}")]
         public async Task<IHttpActionResult> ActualizarEvento(int id, [FromBody] tbEventosAgenda eventoActualizado)
         {
             try
@@ -305,7 +306,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpDelete]
-        [Route("api/EventosAgenda/EliminarEvento")]
+        [Route("EliminarEvento")]
         public async Task<IHttpActionResult> EliminarEvento(int eventoId, int docenteId)
         {
             try
