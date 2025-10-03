@@ -13,7 +13,7 @@ namespace ControlActividades.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "202509091533032_InitialMigration"; }
+            get { return "202510031739067_InitialMigration"; }
         }
         
         string IMigrationMetadata.Source
