@@ -6,7 +6,8 @@
     <h2 id="title">@ViewBag.Title.</h2>
     <h3>Asocie su cuenta @ViewBag.LoginProvider.</h3>
 
-    @using (Html.BeginForm("ExternalLoginConfirmation", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { role = "form" }))
+    @using (Html.BeginForm("ExternalLoginConfirmation", "Account", new { ReturnUrl = ViewBag.ReturnUrl, LoginProvider = ViewBag.LoginProvider }, FormMethod.Post, new { role = "form" }))
+
     {
         @Html.AntiForgeryToken()
 
@@ -14,9 +15,8 @@
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         <p class="text-info">
-            Se autenticó correctamente con <strong>@ViewBag.LoginProvider</strong>.
-            Escriba un nombre de usuario para este sitio a continuación y haga clic en el botón Registrar para finalizar
-            el inicio de sesión.
+            Autenticado correctamente con <strong>@ViewBag.LoginProvider</strong>.
+            Llene los campos restantes y haga clic en el botón Registrar para finalizar el registro.
         </p>
         <div class="row">
             @Html.LabelFor(m => m.Email, new { @class = "col-md-2 col-form-label" })
@@ -25,6 +25,39 @@
                 @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
             </div>
         </div>
+        <div class="input-box">
+            @Html.LabelFor(m => m.Nombre, new { @class = "col-md-2 col-form-label " })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="input-box">
+            @Html.LabelFor(m => m.Paterno, new { @class = "col-md-2 col-form-label " })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Paterno, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="input-box">
+            @Html.LabelFor(m => m.Materno, new { @class = "col-md-2 col-form-label " })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Materno, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="input-box">
+            @Html.LabelFor(m => m.Password, new { @class = "col-md-2 col-form-label " })
+            <div class="col-md-10">
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @*<select name="TipoUsuario" class="form-select form-select-lg mb-3" style="font-size:1em;color:#555;">*@
+        <select name="Role" class="form-control form-control-lg mb-3" style="font-size:1em;color:#555;">
+            <option selected>Elige tu rol</option>
+            <option value="Docente">Docente</option>
+            <option value="Alumno">Alumno</option>
+        </select>
+
         <div class="row">
             <div class="offset-md-2 col-md-10">
                 <input type="submit" class="btn btn-outline-dark" value="Registrarse" />

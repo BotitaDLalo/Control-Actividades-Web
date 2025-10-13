@@ -56,18 +56,22 @@
                                               new { @class = "text-decoration-none" })
         </div>
 
-
-
         <div class="middle-text">
             <hr />
             <p class="or-text">O</p>
         </div>
-        <div class="social-sign-in ">
-            <button class="input-google d-flex justify-content-center align-items-center " type="button">
-                <img src="https://img.icons8.com/ios11/512/7950F2/google-logo.png" alt="Google Logo" />
-                Google
-            </button>
+
+        <div class="social-sign-in">
+            @using (Html.BeginForm("ExternalLogin", "Account", new { provider = "Google", returnUrl = Url.Content("~/") }, FormMethod.Post, new { id = "googleLoginForm" }))
+            {
+                <button class="input-google d-flex justify-content-center align-items-center" type="submit">
+                    <img src="https://img.icons8.com/ios11/512/7950F2/google-logo.png" alt="Google Logo" />
+                    Inicia sesión / Regístrate con Google
+                </button>
+            }
         </div>
+
+
     </div>
 </body>
 </html>

@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Security;
+using System.Web.UI.HtmlControls;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
@@ -130,8 +131,9 @@ namespace ControlActividades.Controllers
                 return View(model);
             }
 
+            //usuario registrado pero sin rol
             var getRole = await UserManager.GetRolesAsync(usuario.Id);
-            if (string.IsNullOrEmpty(getRole.FirstOrDefault()) && !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+            if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
             {
                 return View(model);
             }
@@ -514,7 +516,7 @@ namespace ControlActividades.Controllers
         // POST: /Account/ExternalLogin
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
             // Solicitar redireccionamiento al proveedor de inicio de sesión externo
@@ -569,21 +571,89 @@ namespace ControlActividades.Controllers
 
             // Si el usuario ya tiene un inicio de sesión, iniciar sesión del usuario con este proveedor de inicio de sesión externo
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
+
             switch (result)
             {
                 case SignInStatus.Success:
-                //return RedirectToLocal(returnUrl);
+                    
+                    var usuario = await UserManager.FindByEmailAsync(loginInfo.Email);
+                    if (usuario == null)
+                    {
+                        return RedirectToAction("Login");
+                    }
+
+                    var getRole = await UserManager.GetRolesAsync(usuario.Id);
+                    if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                    {
+                        return View("ExternalLoginFailure");
+                    }
+
+                    var role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+                    return RedirectToLocal(returnUrl, role);
+                    
+
+
                 case SignInStatus.LockedOut:
                     return View("Lockout");
+
                 case SignInStatus.RequiresVerification:
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
+                
                 case SignInStatus.Failure:
                 default:
+
+                    var email = loginInfo.Email;
+
+                    var existingUser = await UserManager.FindByEmailAsync(email);
+                    // ya hay cuenta pero sin vincular a google
+                    if(existingUser != null)
+                    {
+                        ViewBag.ReturnUrl = returnUrl;
+                        ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
+                        return View("ExternalLoginLink", new ExternalLoginLinkViewModel { Email = email, LoginProvider = loginInfo.Login.LoginProvider });
+                    }
+
                     // Si el usuario no tiene ninguna cuenta, solicitar que cree una
                     ViewBag.ReturnUrl = returnUrl;
                     ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
                     return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
             }
+        }
+
+        //
+        // POST: /Account/ExternalLoginLink
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ExternalLoginLink(ExternalLoginLinkViewModel model, string link, string returnUrl)
+        {
+            if (link == "no")
+            {
+                return RedirectToAction("Login");
+            }
+
+            var info = await AuthenticationManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return View("ExternalLoginFailure");
+            }
+
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var addLoginResult = await UserManager.AddLoginAsync(user.Id, info.Login);
+            if (addLoginResult.Succeeded)
+            {
+                await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+                var existingRole = (await UserManager.GetRolesAsync(user.Id)).FirstOrDefault();
+                return RedirectToLocal(returnUrl, (Role)Enum.Parse(typeof(Role), existingRole));
+            }
+
+            AddErrors(addLoginResult);
+            return View("ExternalLoginFailure");
         }
 
         //
@@ -593,11 +663,11 @@ namespace ControlActividades.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
         {
-            if (User.Identity.IsAuthenticated)
+            /*if (User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Manage");
-            }
-
+            }   
+            */
             if (ModelState.IsValid)
             {
                 // Obtener datos del usuario del proveedor de inicio de sesión externo
@@ -606,18 +676,75 @@ namespace ControlActividades.Controllers
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await UserManager.CreateAsync(user);
+
+                // Crear nuevo usuario en ApplicationUser
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email
+                };
+
+                
+                var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    result = await UserManager.AddLoginAsync(user.Id, info.Login);
-                    if (result.Succeeded)
+                    //Crear rol
+                    var rolstring = model.Role.ToString();
+                    if (!await RoleManager.RoleExistsAsync(rolstring))
+                    {
+                        await RoleManager.CreateAsync(new IdentityRole(rolstring));
+                    }
+                    await UserManager.AddToRoleAsync(user.Id, rolstring);
+
+                    // Crear usuario según rol
+                    switch (model.Role)
+                    {
+                        case Role.Docente:
+                            DateTime fechaExpiracionCodigo = DateTime.UtcNow.AddMinutes(59);
+                            string codigo = Fg.GenerarCodigoAleatorio();
+
+                            Db.tbDocentes.Add(new tbDocentes
+                            {
+                                ApellidoPaterno = model.Paterno,
+                                ApellidoMaterno = model.Materno,
+                                Nombre = model.Nombre,
+                                UserId = user.Id,
+                                CodigoAutorizacion = codigo,
+                                FechaExpiracionCodigo = fechaExpiracionCodigo,
+                            });
+
+                            user.LockoutEndDateUtc = DateTime.MaxValue;
+                            await UserManager.UpdateAsync(user);
+                            await Db.SaveChangesAsync();
+                            break;
+
+                        case Role.Alumno:
+                            Db.tbAlumnos.Add(new tbAlumnos
+                            {
+                                ApellidoPaterno = model.Paterno,
+                                ApellidoMaterno = model.Materno,
+                                Nombre = model.Nombre,
+                                UserId = user.Id
+                            });
+                            await Db.SaveChangesAsync();
+                            break;
+                    }
+
+                    // Asociar login externo
+                    var addLoginResult = await UserManager.AddLoginAsync(user.Id, info.Login);
+                    if (addLoginResult.Succeeded)
                     {
                         await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                        //return RedirectToLocal(returnUrl);
+                        return RedirectToLocal(returnUrl, (Role)Enum.Parse(typeof(Role), rolstring));
                     }
+
+                    AddErrors(addLoginResult);
+                    ViewBag.ReturnUrl = returnUrl;
+                    return View(model);
                 }
                 AddErrors(result);
+                ViewBag.ReturnUrl = returnUrl;
+                return View(model);
             }
 
             ViewBag.ReturnUrl = returnUrl;
@@ -696,7 +823,13 @@ namespace ControlActividades.Controllers
 
         private ActionResult RedirectToLocal(string returnUrl, Role role)
         {
-            if (Url.IsLocalUrl(returnUrl))
+           /* if (Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+           */
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) && returnUrl != "/")
             {
                 return Redirect(returnUrl);
             }

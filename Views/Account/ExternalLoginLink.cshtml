@@ -1,0 +1,27 @@
+﻿@model ControlActividades.Models.ExternalLoginLinkViewModel
+
+@{
+    ViewBag.Title = "Vincular cuenta existente";
+}
+
+<main aria-labelledby="title">
+    <h2 id="title">@ViewBag.Title</h2>
+    <p>
+        Ya existe una cuenta con el correo <strong>@Model.Email</strong>.
+    </p>
+    <p>
+        ¿Deseas vincular tu cuenta de <strong>@Model.LoginProvider</strong> con esta cuenta existente?
+    </p>
+
+    @using (Html.BeginForm("ExternalLoginLink", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Email)
+        @Html.HiddenFor(m => m.LoginProvider)
+
+        <div class="form-group">
+            <button type="submit" name="link" value="yes" class="btn btn-primary">Sí, vincular cuenta</button>
+            <button type="submit" name="link" value="no" class="btn btn-secondary">No</button>
+        </div>
+    }
+</main>
