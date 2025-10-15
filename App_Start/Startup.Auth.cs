@@ -67,8 +67,11 @@ namespace ControlActividades
 
             app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
             {
-                ClientId = ConfigurationManager.AppSettings["GoogleClientId"],
-                ClientSecret = ConfigurationManager.AppSettings["GoogleClientSecret"]
+                ClientId = Environment.GetEnvironmentVariable("GoogleClientId")
+                            ?? ConfigurationManager.AppSettings["GoogleClientId"],
+
+                ClientSecret = Environment.GetEnvironmentVariable("GoogleClientSecret")
+                            ?? ConfigurationManager.AppSettings["GoogleClientSecret"]
             });
         }
     }
