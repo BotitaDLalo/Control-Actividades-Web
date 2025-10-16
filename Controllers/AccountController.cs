@@ -451,11 +451,15 @@ namespace ControlActividades.Controllers
                 }
 
                 // Para obtener más información sobre cómo habilitar la confirmación de cuentas y el restablecimiento de contraseña, visite https://go.microsoft.com/fwlink/?LinkID=320771
-                // Enviar un correo electrónico con este vínculo
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Restablecer contraseña", "Para restablecer la contraseña, haga clic <a href=\"" + callbackUrl + "\">aquí</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                var token = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var resetlink = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = token }, protocol: Request.Url.Scheme);
+
+                var emailService = new Services.EmailService();
+                await emailService.SendEmailAsync(user.Email, "Restablecer contraseña", "Para restablecer la contraseña, haga clic <a href=\"" + resetlink + "\">aquí</a>");
+
+                // *usando identity* await UserManager.SendEmailAsync(user.Id, "Restablecer contraseña", "Para restablecer la contraseña, haga clic <a href=\"" + resetlink + "\">aquí</a>");
+
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // Si llegamos a este punto, es que se ha producido un error y volvemos a mostrar el formulario
@@ -473,9 +477,26 @@ namespace ControlActividades.Controllers
         //
         // GET: /Account/ResetPassword
         [AllowAnonymous]
-        public ActionResult ResetPassword(string code)
+        public async Task<ActionResult> ResetPassword(string userId, string code)
         {
-            return code == null ? View("Error") : View();
+            if (userId == null || code == null)
+            {
+                return View("Error");
+            }
+
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = user.Email,
+                Code = code
+            };
+
+            return View(model);
         }
 
         //

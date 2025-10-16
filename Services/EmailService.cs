@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
 
@@ -12,11 +14,11 @@ namespace ControlActividades.Services
         {
             try
             {
-                var fromConf = "";
-                var serverConf = "";
-                var portConf = "";
-                var passwordConf = "";
-             
+                var fromConf = Environment.GetEnvironmentVariable("SMTP_EMAIL");
+                var serverConf = Environment.GetEnvironmentVariable("SMTP_SERVER") ?? "smtp.gmail.com";
+                var portConf = Environment.GetEnvironmentVariable("SMTP_PORT") ?? "465"; //465 para SSL, 587 TLS
+                var passwordConf = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
+
                 if (serverConf == null || portConf == null)
                 {
                     throw new Exception("Hubo un error en el envio de correo");
@@ -30,7 +32,7 @@ namespace ControlActividades.Services
 
                 using (var smtp = new SmtpClient())
                 {
-                    smtp.Connect(serverConf, int.Parse(portConf), false);
+                    smtp.Connect(serverConf, int.Parse(portConf), SecureSocketOptions.SslOnConnect);
                     smtp.Authenticate(fromConf, passwordConf);
                     smtp.Send(emailGenerado);
                     smtp.Disconnect(true);
