@@ -1,10 +1,12 @@
-﻿using System.Data.Entity;
+﻿using ControlActividades.Models.db;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using System;
+using System.Configuration;
+using System.Data.Entity;
 using System.Reflection.Emit;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using ControlActividades.Models.db;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace ControlActividades.Models
 {
@@ -23,7 +25,7 @@ namespace ControlActividades.Models
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext()
-            : base("DefaultConnection", throwIfV1Schema: false)
+            : base(ConnectionHelper.GetSecureConnectionString(), throwIfV1Schema: false)
         {
         }
 
@@ -45,6 +47,22 @@ namespace ControlActividades.Models
         public DbSet<tbEventosGrupos> tbEventosGrupos { get; set; }
         public DbSet<tbEventosMaterias> tbEventosMaterias { get; set; }
         public DbSet<tbNotificaciones> tbNotificaciones { get; set; }
+
+        public static class ConnectionHelper
+        {
+            public static string GetSecureConnectionString()
+            {
+                string rawConnection = ConfigurationManager
+                    .ConnectionStrings["DefaultConnection"]
+                    .ConnectionString;
+
+                string dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+                // Reemplaza el marcador por la contraseña real
+                return rawConnection.Replace("{PASSWORD_PLACEHOLDER}", dbPassword);
+            }
+        }
+
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

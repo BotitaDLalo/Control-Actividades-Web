@@ -1,5 +1,6 @@
 ﻿using Microsoft.Owin;
 using Owin;
+using System;
 
 [assembly: OwinStartupAttribute(typeof(ControlActividades.Startup))]
 namespace ControlActividades
