@@ -22,7 +22,7 @@ using static ControlActividades.Controllers.AlumnoController;
 
 namespace ControlActividades.Controllers
 {
-    [RoutePrefix("api/Alumnos")]
+    [RoutePrefix("api/alumnos")]
     public class AlumnoApiController : ApiController
     {
         private ApplicationSignInManager _signInManager;
@@ -30,7 +30,25 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
-        public AlumnoApiController() { }
+        public AlumnoApiController() {
+            _db = new ApplicationDbContext();
+        }
+        // GET api/alumnos
+        [HttpGet]
+        [Route("miprueba")]
+        public IHttpActionResult GetAlumnos()
+        {
+            var alumnos = _db.tbAlumnos
+              .Select(a => new AlumnoDTO
+              {
+                  AlumnoId = a.AlumnoId,
+                  Nombre = a.Nombre,
+                  ApellidoPaterno = a.ApellidoPaterno,
+                  ApellidoMaterno = a.ApellidoMaterno,
+              }).ToList();
+            
+            return Ok(alumnos);
+        }
 
         public AlumnoApiController(
             ApplicationUserManager userManager,

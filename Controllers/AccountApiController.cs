@@ -286,7 +286,7 @@ namespace ControlActividades.Controllers
 
         }
 
-
+        [AllowAnonymous]
         [HttpPost]
         [Route("InicioSesionUsuario")]
         public async Task<IHttpActionResult> InicioSesionUsuario([FromBody]UsuarioInicioSesion model)
