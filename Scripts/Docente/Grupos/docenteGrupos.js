@@ -202,14 +202,14 @@ async function cargarGrupos() {
 
             // 📌 Sección del botón (Icono de engranaje)
             const ctaSection = document.createElement("div");
-            ctaSection.classList.add("cta-section");
+            ctaSection.classList.add("cta-section", "dropdown");
             ctaSection.style.maxWidth = "40%";
             ctaSection.style.display = "flex";
             ctaSection.style.flexDirection = "column";
             ctaSection.style.justifyContent = "center";
 
             const settingsButton = document.createElement("button");
-            settingsButton.classList.add("btn", "btn-link", "text-white", "p-0");
+            settingsButton.classList.add("btn", "btn-link", "text-white", "p-0", "dropdown-toggle");
             settingsButton.type = "button";
             settingsButton.setAttribute("data-bs-toggle", "dropdown");
             settingsButton.setAttribute("aria-expanded", "false");
@@ -231,7 +231,7 @@ async function cargarGrupos() {
             // ... (el código anterior hasta crear el settingsButton)
 
             // Crear el menú dropdown con clases de Bootstrap
-            const dropdownMenu = document.createElement("div");
+            const dropdownMenu = document.createElement("ul");
             dropdownMenu.classList.add("dropdown-menu");
 
             // Añadir items al dropdown
@@ -242,6 +242,7 @@ async function cargarGrupos() {
             ];
 
             dropdownItems.forEach(item => {
+                const li = document.createElement("li");
                 const dropdownItem = document.createElement("a");
                 dropdownItem.classList.add("dropdown-item");
                 dropdownItem.href = "#";
@@ -250,14 +251,28 @@ async function cargarGrupos() {
                     e.preventDefault();
                     item.action();
                 });
-                dropdownMenu.appendChild(dropdownItem);
+                li.appendChild(dropdownItem);
+                dropdownMenu.appendChild(li);
+            });
+
+
+            //Mostrar el menú
+            settingsButton.addEventListener("click", (event) => {
+                event.stopPropagation();                // evitar que se cierre inmediatamente
+                dropdownMenu.classList.toggle("show");
+            });
+            //Cerrar el menú
+            document.addEventListener("click", () => {
+                dropdownMenu.classList.remove("show");
             });
 
             // Ensamblar todos los elementos
             settingsButton.appendChild(settingsIcon);
             ctaSection.appendChild(settingsButton);
             ctaSection.appendChild(dropdownMenu);
-
+            const lista = document.getElementById('listaGrupos');
+            lista.appendChild(ctaSection);
+            document.getElementById("listaGrupos").appendChild(ctaSection);
 
             // 📌 Contenedor de materias (inicialmente oculto)
             const materiasContainer = document.createElement("div");
