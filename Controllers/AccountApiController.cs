@@ -123,11 +123,15 @@ namespace ControlActividades.Controllers
 
         [HttpPost]
         [Route("VerificarTokenFcm")]
-        public async Task<IHttpActionResult> VerificarTokenFcm(int id, string fcmToken, string role)
+        public async Task<IHttpActionResult> VerificarTokenFcm(TokenRequest request)
         {
             try
             {
                 //bool existeToken = await _context.tbAlumnosTokens.AnyAsync(a => a.Token == fcmToken);
+
+                var id = request.Id;
+                var fcmToken = request.Token;
+                var role = request.Role;
 
                 bool existeToken = Db.tbUsuariosFcmTokens.Any(a => a.Token == fcmToken);
                 if (existeToken)
@@ -158,7 +162,7 @@ namespace ControlActividades.Controllers
             catch (Exception)
             {
                 //return Content(HttpStatusCode.BadRequest(new { Mensaje = "No se pudo verificar el token." });
-                return Content(HttpStatusCode.BadRequest, new { Mensaje = "No se pudo verificar el token." });
+                return Content(HttpStatusCode.BadRequest, new { Mensaje = "No se pudo verificar el token."});
             }
         }
 
@@ -500,11 +504,12 @@ namespace ControlActividades.Controllers
 
         [HttpPost]
         [Route("VerificarEmailUsuario")]
-        public async Task<IHttpActionResult> VerificarEmailUsuario([FromBody] string email)
+        public async Task<IHttpActionResult> VerificarEmailUsuario([FromBody] ValidateEmailViewModel request)
         {
             try
             {
-                var emailEsValido = await UserManager.FindByEmailAsync(email);
+                var correo = request.Email;
+                var emailEsValido = await UserManager.FindByEmailAsync(correo);
 
                 if (emailEsValido == null)
                 {

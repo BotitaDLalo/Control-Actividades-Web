@@ -190,4 +190,11 @@ namespace ControlActividades.Models
         [Display(Name = "Correo electrónico")]
         public string Email { get; set; }
     }
+
+    public class TokenRequest
+    {
+        public int Id { get; set; }
+        public string Token { get; set; }
+        public string Role { get; set; }
+    }
 }
