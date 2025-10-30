@@ -141,6 +141,39 @@ img {
         border: 2px solid #3a7bd5;
     }
 
+/* Estilos añadidos para el botón ver/ocultar contraseña */
+.password-box {
+    position: relative;
+}
+
+.password-box .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 34px;
+    width: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    border-radius: 4px;
+}
+
+.password-box .toggle-password:hover svg,
+.password-box .toggle-password:focus svg {
+    stroke: #3a7bd5;
+}
+
+/* Ajuste del padding-right del input para que el botón no lo tape */
+.password-box .input-field {
+    padding-right: 48px;
+}
+
 .input-field:focus ~ label, .input-field:valid ~ label {
     top: -8px;
     left: 12px;
