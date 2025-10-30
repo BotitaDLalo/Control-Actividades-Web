@@ -282,3 +282,50 @@ button {
         margin: 15px;
     }
 }
+
+/* --- BOTÓN mostrar/ocultar contraseña --- */
+
+/* Espacio a la derecha del input para el botón */
+.input-box .input-field {
+    padding-right: 45px;
+}
+
+/* Wrapper para el input de contraseña + botón */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+
+/* Botón mostrar/ocultar */
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background .15s ease-in-out;
+}
+
+.password-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(58,123,213,0.15);
+}
+
+.password-toggle:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.password-toggle svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
