@@ -456,7 +456,6 @@
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
-    <Content Include="App_Data\push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -559,7 +558,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>57775</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://192.168.0.64:57775/</IISUrl>
+          <IISUrl>http://localhost:57775/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
