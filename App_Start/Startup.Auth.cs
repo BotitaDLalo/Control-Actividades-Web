@@ -2,12 +2,16 @@
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security.DataHandler.Encoder;
+using Microsoft.Owin.Security.Jwt;
 using Microsoft.Owin.Security.Google;
 using Owin;
 using System;
 using System.Configuration;
+using System.Text;
 
 namespace ControlActividades
 {
@@ -51,6 +55,32 @@ namespace ControlActividades
             // Cuando selecciona esta opción, el segundo paso de la verificación del proceso de inicio de sesión se recordará en el dispositivo desde el que ha iniciado sesión.
             // Es similar a la opción Recordarme al iniciar sesión.
             app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
+
+            // Configuración para validar tokens JWT
+            var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                            ?? ConfigurationManager.AppSettings["JWT_SECRET_KEY"];
+
+            var issuer = "https://controlactividades20251017143449sx.azurewebsites.net"; //dominio de app
+            var audience = "https://controlactividades20251017143449sx.azurewebsites.net"; // audiencia
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+
+            app.UseJwtBearerAuthentication(new Microsoft.Owin.Security.Jwt.JwtBearerAuthenticationOptions
+            {
+                AuthenticationMode = Microsoft.Owin.Security.AuthenticationMode.Active,
+                TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    IssuerSigningKey = key,
+                    ClockSkew = TimeSpan.Zero 
+                }
+            });
 
             // Quitar los comentarios de las siguientes líneas para habilitar el inicio de sesión con proveedores de inicio de sesión de terceros
             //app.UseMicrosoftAccountAuthentication(

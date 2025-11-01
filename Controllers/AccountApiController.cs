@@ -1,4 +1,13 @@
-﻿using System;
+﻿using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Google.Apis.Auth;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
@@ -7,14 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using ControlActividades.Services;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.IdentityModel.Tokens;
+
 
 namespace ControlActividades.Controllers
 {
@@ -330,7 +332,7 @@ namespace ControlActividades.Controllers
                 if (rolUsuario == "Docente")
                 {
 
-                    //idUsuario = _context.tbDocentes.Where(a => a.UserId == identityUserId).Select(a => a.DocenteId).FirstOrDefault();
+                    //idUsuario = Db.tbDocentes.Where(a => a.UserId == identityUserId).Select(a => a.DocenteId).FirstOrDefault();
                     var docente = Db.tbDocentes.Where(a => a.UserId == userFound.Id).FirstOrDefault();
                     if (docente != null)
                     {
@@ -542,12 +544,396 @@ namespace ControlActividades.Controllers
             }
         }
 
+        #region Login Google
+        [HttpPost]
+        [Route("IniciarSesionGoogle")]
+        [AllowAnonymous]
+        public async Task<IHttpActionResult> IniciarSesionGoogle([FromBody] RegistrarUsuarioGoogle usuario)
+        {
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(usuario.IdToken);
+
+                if (payload == null)
+                {
+                    return BadRequest("idToken inválido");
+                }
+
+                var userName = (payload.FamilyName ?? "") + (payload.GivenName ?? "");
+                var email = payload.Email;
+                var token = usuario.IdToken;
+
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(user.Id);
+                    var rolUsuario = roles.FirstOrDefault();
+
+                    if (rolUsuario == null)
+                    {
+                        return Ok(new AutenticacionRespuesta
+                        {
+                            Correo = email,
+                            Token = token,
+                            EstaAutorizado = EstatusAutorizacion.PENDIENTE,
+                            RequiereDatosAdicionales = RequiereDatosAdicionales.REQUERIDO
+                        });
+                    }
+
+                    if (rolUsuario == "Docente")
+                    {
+                        var docente = Db.tbDocentes.FirstOrDefault(a => a.UserId == user.Id);
+                        if (docente == null) return BadRequest();
+
+                        AutenticacionRespuesta respuesta;
+
+                        if (docente.estaAutorizado == null)
+                        {
+                            respuesta = new AutenticacionRespuesta
+                            {
+                                Id = docente.DocenteId,
+                                Correo = email,
+                                Token = token,
+                                EstaAutorizado = EstatusAutorizacion.PENDIENTE,
+                                RequiereDatosAdicionales = RequiereDatosAdicionales.NO_REQUERIDO
+                            };
+                        }
+                        else if (docente.estaAutorizado == false)
+                        {
+                            respuesta = new AutenticacionRespuesta
+                            {
+                                EstaAutorizado = EstatusAutorizacion.DENEGADO
+                            };
+                        }
+                        else
+                        {
+                            respuesta = new AutenticacionRespuesta
+                            {
+                                Id = docente.DocenteId,
+                                UserName = userName,
+                                Correo = email,
+                                Rol = rolUsuario,
+                                Token = token,
+                                EstaAutorizado = EstatusAutorizacion.AUTORIZADO,
+                                RequiereDatosAdicionales = RequiereDatosAdicionales.NO_REQUERIDO
+                            };
+                        }
+
+                        return Ok(respuesta);
+                    }
+                    else if (rolUsuario == "Alumno")
+                    {
+                        var alumno = Db.tbAlumnos.FirstOrDefault(a => a.UserId == user.Id);
+                        if (alumno == null) return BadRequest();
+
+                        return Ok(new AutenticacionRespuesta
+                        {
+                            Id = alumno.AlumnoId,
+                            UserName = userName,
+                            Correo = email,
+                            Rol = rolUsuario,
+                            Token = token,
+                            EstaAutorizado = EstatusAutorizacion.AUTORIZADO
+                        });
+                    }
+                }
+
+                // CREAR USUARIO NUEVO
+                var nuevoUsuario = new ApplicationUser
+                {
+                    UserName = userName,
+                    Email = email
+                };
+
+                var result = await _userManager.CreateAsync(nuevoUsuario);
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest("Error al crear el usuario");
+                }
+
+                return Ok(new AutenticacionRespuesta
+                {
+                    Correo = email,
+                    Token = token,
+                    EstaAutorizado = EstatusAutorizacion.PENDIENTE,
+                    RequiereDatosAdicionales = RequiereDatosAdicionales.REQUERIDO
+                });
 
 
+            }
 
+            catch (Exception ex)
+            {
+                // Puedes registrar el error en logs si lo deseas
+                return BadRequest(ex.Message);
+            }
+        }
 
+        [HttpPost]
+        [Route("RegistrarDatosFaltantesGoogle")]
+        public async Task<IHttpActionResult> RegistrarDatosFaltantesGoogle([FromBody] DatosFaltantesGoogle datos)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest();
 
+                int idUsuario = 0;
+                string nombres = datos.Nombres;
+                string apellidoPaterno = datos.ApellidoPaterno;
+                string apellidoMaterno = datos.ApellidoMaterno;
+                string role = datos.Role;
+                string token = datos.IdToken;
 
+                var payload = await GoogleJsonWebSignature.ValidateAsync(datos.IdToken);
+                if (payload == null)
+                    return BadRequest("idToken inválido");
+
+                string email = payload.Email;
+                string userName = payload.GivenName;
+
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                    return BadRequest("Usuario no encontrado");
+
+                // CREAR ROL SI NO EXISTE
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+                }
+
+                // ASIGNAR ROL
+                var tieneRol = await _userManager.IsInRoleAsync(user.Id, role);
+                if (!tieneRol)
+                {
+                    var asignarRol = await _userManager.AddToRoleAsync(user.Id, role);
+                    if (!asignarRol.Succeeded)
+                        return BadRequest(string.Join(", ", asignarRol.Errors));
+                }
+
+                // === SI ES DOCENTE ===
+                if (role == "Docente")
+                {
+                    var fcmToken = datos.FcmToken;
+                    if (string.IsNullOrEmpty(fcmToken))
+                        return BadRequest("FcmToken requerido");
+
+                    string identityUserId = user.Id;
+                    DateTime fechaExpiracionCodigo = DateTime.UtcNow.AddMinutes(59);
+                    string codigo = Fg.GenerarCodigoAleatorio();
+
+                    var docente = new tbDocentes
+                    {
+                        Nombre = nombres,
+                        ApellidoPaterno = apellidoPaterno,
+                        ApellidoMaterno = apellidoMaterno,
+                        UserId = identityUserId,
+                        CodigoAutorizacion = codigo,
+                        FechaExpiracionCodigo = fechaExpiracionCodigo
+                    };
+
+                    Db.tbDocentes.Add(docente);
+                    await Db.SaveChangesAsync();
+
+                    await Ns.RegistrarFcmTokenUsuario(identityUserId, fcmToken);
+
+                    return Ok(new
+                    {
+                        estaAutorizado = EstatusAutorizacion.PENDIENTE,
+                        requiereDatosAdicionales = RequiereDatosAdicionales.NO_REQUERIDO
+                    });
+                }
+
+                // === SI ES ALUMNO ===
+                else if (role == "Alumno")
+                {
+                    var fcmToken = datos.FcmToken;
+                    if (string.IsNullOrEmpty(fcmToken))
+                        return BadRequest("FcmToken requerido");
+
+                    string identityUserId = user.Id;
+
+                    var alumno = new tbAlumnos
+                    {
+                        Nombre = nombres,
+                        ApellidoPaterno = apellidoPaterno,
+                        ApellidoMaterno = apellidoMaterno,
+                        UserId = identityUserId
+                    };
+
+                    Db.tbAlumnos.Add(alumno);
+                    await Db.SaveChangesAsync();
+
+                    idUsuario = alumno.AlumnoId;
+
+                    await Ns.RegistrarFcmTokenUsuario(identityUserId, fcmToken);
+
+                    var emailEncontrado = await _userManager.FindByIdAsync(identityUserId);
+                    if (emailEncontrado == null)
+                        return BadRequest("Usuario no encontrado tras registro");
+
+                    return Ok(new AutenticacionRespuesta
+                    {
+                        Id = idUsuario,
+                        UserName = userName,
+                        Correo = email,
+                        Rol = role,
+                        Token = token,
+                        EstaAutorizado = EstatusAutorizacion.AUTORIZADO
+                    });
+                }
+
+                return BadRequest("Rol no válido");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("ValidarCodigoDocenteGoogle")]
+        public async Task<IHttpActionResult> ValidarCodigoAutorizacionDocente([FromBody] ValidarCodigoDocente datos)
+        {
+            try
+            {
+                string email = datos.Email;
+                string codigoValidar = datos.CodigoValidar;
+                string token = datos.IdToken ?? "";
+
+                var emailEncontrado = await _userManager.FindByEmailAsync(email);
+                if (emailEncontrado == null)
+                {
+                    return BadRequest(new
+                    {
+                        ErrorCode = ErrorCodigos.CredencialesInvalidas,
+                        ErrorMessage = Errores.GetMensajeError(ErrorCodigos.CredencialesInvalidas)
+                    }.ToString());
+                }
+
+                // Obtener rol del usuario
+                var roles = await _userManager.GetRolesAsync(emailEncontrado.Id);
+                var rolUsuario = roles.FirstOrDefault();
+                if (rolUsuario == null)
+                    throw new Exception("El usuario no posee un rol asignado");
+
+                string identityUserId = emailEncontrado.Id;
+
+                var docente = Db.tbDocentes.FirstOrDefault(a => a.UserId == identityUserId);
+                if (docente != null)
+                {
+                    int idUsuario = docente.DocenteId;
+
+                    // Validar código
+                    if (codigoValidar != docente.CodigoAutorizacion)
+                    {
+                        return BadRequest(new
+                        {
+                            ErrorCode = ErrorCodigos.codigoAutorizacionInvalido
+                        }.ToString());
+                    }
+
+                    // Validar expiración
+                    if (docente.FechaExpiracionCodigo < DateTime.Now)
+                    {
+                        return BadRequest(new
+                        {
+                            ErrorCode = ErrorCodigos.codigoAutorizacionExpirado
+                        }.ToString());
+                    }
+
+                    // Actualizar estado de autorización
+                    docente.FechaExpiracionCodigo = null;
+                    docente.CodigoAutorizacion = null;
+                    docente.estaAutorizado = true;
+                    Db.SaveChanges();
+
+                    var respuesta = new AutenticacionRespuesta
+                    {
+                        Id = idUsuario,
+                        UserName = emailEncontrado.UserName,
+                        Correo = emailEncontrado.Email,
+                        Rol = rolUsuario,
+                        Token = token,
+                        EstaAutorizado = EstatusAutorizacion.AUTORIZADO
+                    };
+
+                    return Ok(respuesta);
+                }
+
+                return BadRequest("El docente no existe.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("VerificarIdToken")]
+        public async Task<IHttpActionResult> VerificarGoogleIdToken([FromBody] VerificarGoogleIdToken token)
+        {
+            try
+            {
+                var idToken = token.IdToken;
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
+                if (payload != null && payload.ExpirationTimeSeconds > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+                {
+                    string name = payload.Name;
+                    string email = payload.Email;
+
+                    var user = await _userManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        return BadRequest("Usuario no encontrado");
+                    }
+
+                    int idUsuario = 0;
+                    string identityUserId = user.Id;
+                    var roles = await _userManager.GetRolesAsync(identityUserId);
+                    var rolUsuario = roles.FirstOrDefault();
+                    if (rolUsuario == null)
+                        throw new Exception("El usuario no posee un rol asignado");
+
+                    if (rolUsuario == "Docente")
+                    {
+                        idUsuario = Db.tbDocentes
+                            .Where(a => a.UserId == identityUserId)
+                            .Select(a => a.DocenteId)
+                            .FirstOrDefault();
+                    }
+                    else if (rolUsuario == "Alumno")
+                    {
+                        idUsuario = Db.tbAlumnos
+                            .Where(a => a.UserId == identityUserId)
+                            .Select(a => a.AlumnoId)
+                            .FirstOrDefault();
+                    }
+
+                    var respuesta = new AutenticacionRespuesta
+                    {
+                        Id = idUsuario,
+                        UserName = name,
+                        Correo = email,
+                        Rol = rolUsuario,
+                        Token = idToken
+                    };
+
+                    return Ok(respuesta);
+                }
+
+                return Content(HttpStatusCode.BadRequest, new { mensaje = "El token no es válido" });
+            }
+            catch (Exception)
+            {
+                return Content(HttpStatusCode.BadRequest, new { mensaje = "El token no es válido" });
+            }
+        }
+
+        #endregion
 
         protected override void Dispose(bool disposing)
         {

@@ -1,15 +1,17 @@
+using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Responses;
 using Microsoft.Owin.Mapping;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-
-using FirebaseAdmin;
 
 
 namespace ControlActividades
@@ -27,10 +29,15 @@ namespace ControlActividades
             string json = System.Configuration.ConfigurationManager.AppSettings["FIREBASE_SERVICE_JSON"];
             if (!string.IsNullOrEmpty(json))
             {
-                FirebaseApp.Create(new AppOptions
+                using (var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json)))
                 {
-                    Credential = GoogleCredential.FromJson(json)
-                });
+                    var credential = GoogleCredential.FromStream(stream);
+
+                    FirebaseApp.Create(new AppOptions
+                    {
+                        Credential = credential
+                    });
+                }
             }
         }
     }

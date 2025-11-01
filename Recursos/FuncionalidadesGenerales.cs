@@ -1,5 +1,11 @@
-﻿using System;
+﻿using ControlActividades.Models;
+using ControlActividades.Models.db;
+using Google.Apis.Auth;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -7,10 +13,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.IdentityModel.Tokens;
 
 namespace ControlActividades.Recursos
 {
@@ -28,14 +30,22 @@ namespace ControlActividades.Recursos
         public string GenerarJwt(int idUsuario, IdentityUser emailEncontrado, string rolUsuario)
         {
             var handler = new JwtSecurityTokenHandler();
-            var confSecretKey = "Token para verificar autenticacion del usuario";
+            var confSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+            if (string.IsNullOrEmpty(confSecretKey))
+            {
+                throw new Exception("JwtSecret no configurado en variables de entorno.");
+            }
+
             var jwt = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(confSecretKey ?? throw new ArgumentNullException(confSecretKey, "Token no configurado")));
             var credentials = new SigningCredentials(jwt, SecurityAlgorithms.HmacSha256);
 
+            var issuer = "https://controlactividades20251017143449sx.azurewebsites.net"; // Startup.Auth.cs
+            var audience = "https://controlactividades20251017143449sx.azurewebsites.net";
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Issuer = "Aprende_Mas",
-                Audience = "Aprende_Mas",
+                Issuer = issuer,
+                Audience = audience,
                 SigningCredentials = credentials,
                 Expires = DateTime.UtcNow.AddDays(7),
                 Subject = GenerarClaims(idUsuario, emailEncontrado, rolUsuario),
@@ -60,6 +70,27 @@ namespace ControlActividades.Recursos
 
             return claims;
         }
-        
+
+        public static async Task<GoogleJsonWebSignature.Payload> VerifyGoogleToken(string idToken)
+        {
+            try
+            {
+                var clientId = Environment.GetEnvironmentVariable("GoogleClientId")
+                ?? ConfigurationManager.AppSettings["GoogleClientId"];
+
+                // Verifica el token con las claves públicas de Google
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new[] { "GoogleClientId" }
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+                return payload;
+            }
+            catch
+            {
+                return null; // token inválido o expirado
+            }
+        }
     }
 }
