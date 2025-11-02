@@ -762,7 +762,7 @@ namespace ControlMaterias.Controllers
         }
 
 
-        [HttpPost]
+        [HttpDelete]
         public async Task<ActionResult> EliminarMateria(int id)
         {
             try
