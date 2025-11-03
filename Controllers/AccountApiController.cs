@@ -7,6 +7,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -506,22 +507,42 @@ namespace ControlActividades.Controllers
 
         [HttpPost]
         [Route("VerificarEmailUsuario")]
-        public async Task<IHttpActionResult> VerificarEmailUsuario([FromBody] ValidateEmailViewModel request)
+        public async Task<IHttpActionResult> VerificarEmailUsuario([FromBody] JObject jsondata)
         {
             try
             {
-                var correo = request.Email;
-                var emailEsValido = await UserManager.FindByEmailAsync(correo);
+
+                // Extraer el email del objeto JSON
+                string email = jsondata["email"]?.Value<string>();
+
+                Console.WriteLine($"Email recibido: '{email}'");
+                // 🔍 AGREGAR DEBUG PARA VER QUÉ ESTÁ PASANDO:
+                if (string.IsNullOrEmpty(email))
+                {
+                    Console.WriteLine("❌ Email está NULL o vacío");
+                    return BadRequest("Email no puede estar vacío");
+                }
+                // 🔍 VERIFICAR SI UserManager ESTÁ CONFIGURADO:
+                if (UserManager == null)
+                {
+                    Console.WriteLine("❌ UserManager es NULL");
+                    return BadRequest("Error de configuración del servidor");
+                }
+
+                //var correo = request.Email;
+                var emailEsValido = await UserManager.FindByEmailAsync(email);
+
+                Console.WriteLine($"🔍 Resultado FindByEmailAsync: {(emailEsValido != null ? "EXISTE" : "NO EXISTE")}");
 
                 if (emailEsValido == null)
                 {
                     // Aquí en Framework 4.8 no tienes HttpContext.Session como en Core
                     // Si necesitas session, deberías usar HttpContext.Current.Session
                     // HttpContext.Current.Session["Email"] = email;
-
+                    Console.WriteLine("✅ Email NO existe - retornando 200");
                     return Ok();
                 }
-
+                Console.WriteLine("❌ Email EXISTE - retornando 400");
                 var codigoError = ErrorCodigos.CorreoUsuarioExistente;
 
                 var problemDetails = new ProblemDetails
@@ -538,9 +559,17 @@ namespace ControlActividades.Controllers
 
                 return Content(HttpStatusCode.BadRequest, problemDetails);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return Content(HttpStatusCode.BadRequest, new { error = "Ocurrió un error inesperado." });
+
+                // 🔍 MOSTRAR LA EXCEPCIÓN REAL:
+                Console.WriteLine($"💥 EXCEPCIÓN CAPTURADA: {ex.Message}");
+                Console.WriteLine($"💥 STACK TRACE: {ex.StackTrace}");
+                return Content(HttpStatusCode.BadRequest, new
+                {
+                    error = "Error en verificación",
+                    details = ex.Message
+                });
             }
         }
 
