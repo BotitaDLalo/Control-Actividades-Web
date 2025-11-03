@@ -630,3 +630,38 @@ function crearAvisoGrupal(id) {
         }
     });
 }
+
+async function subirExcelAlumnos(grupoId, materiaId) {
+    const input = document.getElementById('excelFileInput');
+    if (!input || input.files.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'Seleccione un archivo', text: 'Adjunte un .xlsx o .xls' });
+        return;
+    }
+
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    if (grupoId) formData.append('GrupoId', grupoId);
+    if (materiaId) formData.append('MateriaId', materiaId);
+
+    try {
+        const resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await resp.json();
+
+        if (resp.ok) {
+            let mensaje = `Leídos: ${data.TotalLeidos}\nAgregados: ${data.Agregados.length}\nOmitidos: ${data.Omitidos.length}\nNo encontrados: ${data.NoEncontrados.length}`;
+            Swal.fire({ icon: 'success', title: 'Importación completada', text: mensaje });
+            // refrescar lista de alumnos si hace falta
+            // por ejemplo: cargarMaterias(); o cargarAlumnos del grupo si tienes función
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || 'Error al importar' });
+        }
+    } catch (err) {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo subir el archivo' });
+    }
+}
