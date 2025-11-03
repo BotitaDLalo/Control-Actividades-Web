@@ -631,10 +631,11 @@ function crearAvisoGrupal(id) {
     });
 }
 
+// Añadir al final del archivo (o en un sitio adecuado) la función para subir el Excel
 async function subirExcelAlumnos(grupoId, materiaId) {
     const input = document.getElementById('excelFileInput');
     if (!input || input.files.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'Seleccione un archivo', text: 'Adjunte un .xlsx o .xls' });
+        Swal.fire({ icon: 'warning', title: 'Seleccione un archivo', text: 'Adjunte un .xlsx o .xls', position: 'top-end' });
         return;
     }
 
@@ -645,7 +646,7 @@ async function subirExcelAlumnos(grupoId, materiaId) {
     if (materiaId) formData.append('MateriaId', materiaId);
 
     try {
-        const resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', {
+        const resp = await fetch('/api/CargaMasiva/ImportarAlumnosExcel', {
             method: 'POST',
             body: formData
         });
@@ -653,15 +654,15 @@ async function subirExcelAlumnos(grupoId, materiaId) {
         const data = await resp.json();
 
         if (resp.ok) {
-            let mensaje = `Leídos: ${data.TotalLeidos}\nAgregados: ${data.Agregados.length}\nOmitidos: ${data.Omitidos.length}\nNo encontrados: ${data.NoEncontrados.length}`;
-            Swal.fire({ icon: 'success', title: 'Importación completada', text: mensaje });
-            // refrescar lista de alumnos si hace falta
-            // por ejemplo: cargarMaterias(); o cargarAlumnos del grupo si tienes función
+            const mensaje = `Leídos: ${data.TotalLeidos}\nAgregados: ${data.Agregados.length}\nOmitidos: ${data.Omitidos.length}\nNo encontrados: ${data.NoEncontrados.length}`;
+            Swal.fire({ icon: 'success', title: 'Importación completada', text: mensaje, position: 'top-end' });
+            // Si quieres refrescar la lista de alumnos del grupo, llama aquí a la función correspondiente
+            // ejemplo: cargarMaterias(); o recargar lista de alumnos del grupo seleccionado
         } else {
-            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || 'Error al importar' });
+            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || 'Error al importar', position: 'top-end' });
         }
     } catch (err) {
         console.error(err);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo subir el archivo' });
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo subir el archivo', position: 'top-end' });
     }
 }

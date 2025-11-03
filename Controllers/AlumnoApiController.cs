@@ -19,10 +19,6 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.IdentityModel.Tokens;
 using static ControlActividades.Controllers.AlumnoController;
-using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
-using NPOI.HSSF.UserModel;
-using System.IO;
 
 namespace ControlActividades.Controllers
 {
