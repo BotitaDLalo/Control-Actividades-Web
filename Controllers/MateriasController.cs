@@ -824,8 +824,19 @@ namespace ControlMaterias.Controllers
                 }
 
                 await Db.SaveChangesAsync();
+                if (materiaDto == null)
+                {
+                    return Json(new { mensaje = "El objeto materiaDto llegó nulo." }, JsonRequestBehavior.AllowGet);
+                }
 
-                return Json(materiaExistente, JsonRequestBehavior.AllowGet);
+                return Json(new
+                {
+                    materiaExistente.MateriaId,
+                    materiaExistente.NombreMateria,
+                    materiaExistente.Descripcion
+                }, JsonRequestBehavior.AllowGet);
+
+                //return Json(materiaExistente, JsonRequestBehavior.AllowGet);
             }
             catch (System.Exception ex)
             {

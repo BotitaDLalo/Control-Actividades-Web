@@ -147,7 +147,7 @@ async function cargarMateriasSinGrupo() {
             const editLink = document.createElement("a");
             editLink.classList.add("dropdown-item");
             editLink.href = "#";
-            editLink.onclick = () => editarMateria(materia.MateriaId);
+            editLink.onclick = () => editarMateria(materia.MateriaId, materia.NombreMateria, materia.Descripcion);
             editLink.textContent = "Editar";
             editLi.appendChild(editLink);
 
@@ -269,18 +269,18 @@ async function cargarMateriasSinGrupo() {
 
 
 //Funcion para editar nombre y descripcion de una materia. Sin funcionar aun.
-async function editarMateria(materiaId, nombreActual, descripcionActual) {
+async function editarMateria(MateriaId, NombreMateria, Descripcion) {
     const { value: formValues } = await Swal.fire({
         title: "Editar Materia",
         html: `
             <div style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <label for="swal-nombre" style="width: 100px;">Materia</label>
-                    <input id="swal-nombre" class="swal2-input"  placeholder="Nombre" value="${nombreActual}">
+                    <input id="swal-nombre" class="swal2-input"  placeholder="Nombre" value="${NombreMateria}">
                 </div>
                 <div style="display: flex; align-items: center; gap: 5px;">
                     <label for="swal-descripcion" style="width: 100px;">Descripción</label>
-                    <input id="swal-descripcion" class="swal2-input" placeholder="Descripción" value="${descripcionActual}">
+                    <input id="swal-descripcion" class="swal2-input" placeholder="Descripción" value="${Descripcion}">
                 </div>
             </div>
         `,
@@ -298,11 +298,17 @@ async function editarMateria(materiaId, nombreActual, descripcionActual) {
 
     if (formValues) {
         // Enviar los datos al servidor para actualizar la materia
-        const response = await fetch(`/Materias/ActualizarMateria/${materiaId}`, {
-            method: "PUT",
+        const response = await fetch(`/Materias/ActualizarMateria?materiaId=${MateriaId}`, {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formValues)
         });
+        console.log("Código de respuesta:", response.status);
+        console.log("Tipo de contenido:", response.headers.get("content-type"));
+
+        const text = await response.text();
+        console.log("Respuesta del servidor:", text);
+
 
         if (response.ok) {
             Swal.fire({
