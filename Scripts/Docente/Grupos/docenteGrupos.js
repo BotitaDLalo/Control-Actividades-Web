@@ -631,7 +631,6 @@ function crearAvisoGrupal(id) {
     });
 }
 
-// Añadir al final del archivo (o en un sitio adecuado) la función para subir el Excel
 async function subirExcelAlumnos(grupoId, materiaId) {
     const input = document.getElementById('excelFileInput');
     if (!input || input.files.length === 0) {
@@ -656,8 +655,6 @@ async function subirExcelAlumnos(grupoId, materiaId) {
         if (resp.ok) {
             const mensaje = `Leídos: ${data.TotalLeidos}\nAgregados: ${data.Agregados.length}\nOmitidos: ${data.Omitidos.length}\nNo encontrados: ${data.NoEncontrados.length}`;
             Swal.fire({ icon: 'success', title: 'Importación completada', text: mensaje, position: 'top-end' });
-            // Si quieres refrescar la lista de alumnos del grupo, llama aquí a la función correspondiente
-            // ejemplo: cargarMaterias(); o recargar lista de alumnos del grupo seleccionado
         } else {
             Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || 'Error al importar', position: 'top-end' });
         }
