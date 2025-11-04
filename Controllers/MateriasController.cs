@@ -1,4 +1,13 @@
-﻿using System;
+﻿using ControlActividades;
+using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
@@ -9,15 +18,6 @@ using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Security;
-using ControlActividades;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin.Security;
-using Newtonsoft.Json;
 
 namespace ControlMaterias.Controllers
 {
@@ -102,6 +102,44 @@ namespace ControlMaterias.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<ActionResult> AsociarMateriasAGrupo(AsociarMateriasRequest request)
+        {
+
+            if (request == null || request.MateriaIds == null || !request.MateriaIds.Any())
+            {
+                return new HttpStatusCodeResult(400, "No se enviaron materias para asociar.");
+            }
+
+            try
+            {
+                foreach (var materiaId in request.MateriaIds)
+                {
+                    // Evita duplicados en la tabla intermedia
+                    var existeAsociacion = await Db.tbGruposMaterias
+                        .AnyAsync(gm => gm.GrupoId == request.GrupoId && gm.MateriaId == materiaId);
+
+                    if (!existeAsociacion)
+                    {
+                        Db.tbGruposMaterias.Add(new tbGruposMaterias
+                        {
+                            GrupoId = request.GrupoId,
+                            MateriaId = materiaId
+                        });
+                    }
+                }
+
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Materias asociadas correctamente al grupo." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al asociar materias: {ex.Message}");
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error interno al asociar materias al grupo." });
+            }
+        }
 
 
         [HttpGet]
@@ -684,7 +722,7 @@ namespace ControlMaterias.Controllers
         }
 
 
-
+       
         [HttpPost]
         public async Task<ActionResult> CrearMateria(tbMaterias materia)
         {
@@ -813,15 +851,20 @@ namespace ControlMaterias.Controllers
                     return Json(new { mensaje = "Materia no encontrada." }, JsonRequestBehavior.AllowGet);
                 }
 
-                if (!string.IsNullOrEmpty(materiaDto.NombreMateria))
+                if (string.IsNullOrWhiteSpace(materiaDto.NombreMateria))
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "El nombre de la materia no puede estar vacío." }, JsonRequestBehavior.AllowGet);
+                }
+                else
                 {
                     materiaExistente.NombreMateria = materiaDto.NombreMateria;
                 }
+                
+                materiaExistente.Descripcion = string.IsNullOrWhiteSpace(materiaDto.Descripcion)
+                    ? null
+                :materiaDto.Descripcion;
 
-                if (!string.IsNullOrEmpty(materiaDto.Descripcion))
-                {
-                    materiaExistente.Descripcion = materiaDto.Descripcion;
-                }
 
                 await Db.SaveChangesAsync();
                 if (materiaDto == null)
@@ -844,6 +887,7 @@ namespace ControlMaterias.Controllers
                 return Json(new { mensaje = "Error al actualizar la materia", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
 
 
         protected override void Dispose(bool disposing)

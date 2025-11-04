@@ -8,6 +8,7 @@ async function guardarGrupo() {
     const color = "#2196F3";
     const checkboxes = document.querySelectorAll(".materia-checkbox:checked");
 
+    
     if (nombre.trim() === '') {
         Swal.fire({
             position: "top-end",
@@ -43,7 +44,7 @@ async function guardarGrupo() {
             DocenteId: docenteIdGlobal
         })
     });
-
+    
     if (response.ok) {
         const grupoCreado = await response.json();
         const grupoId = grupoCreado.grupoId;
@@ -69,6 +70,8 @@ async function guardarGrupo() {
 
         // Asociar materias seleccionadas al grupo
         if (materiasSeleccionadas.length > 0) {
+            //console.log("Checkboxes seleccionados:"); Revisar que los ids se estén pasando
+            checkboxes.forEach(cb => console.log(cb.value, cb.checked));
             await asociarMateriasAGrupo(grupoId, materiasSeleccionadas);
         }
 
@@ -93,6 +96,29 @@ async function guardarGrupo() {
         });
     }
 }
+
+async function asociarMateriasAGrupo(grupoId, materiasSeleccionadas) {
+    try {
+        const response = await fetch('/Materias/AsociarMateriasAGrupo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                GrupoId: grupoId,
+                MateriaIds: materiasSeleccionadas
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data.mensaje || "Materias asociadas correctamente");
+        } else {
+            console.error("Error al asociar materias al grupo");
+        }
+    } catch (error) {
+        console.error("Error en la solicitud:", error);
+    }
+}
+
 
 //funcion que ayuda a agregar materias nuevas para el grupo
 function agregarMateria() {
