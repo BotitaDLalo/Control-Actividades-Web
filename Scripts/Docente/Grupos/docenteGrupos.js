@@ -414,7 +414,7 @@ async function handleCardClick(grupoId) {
                     const editLink = document.createElement("a");
                     editLink.classList.add("dropdown-item");
                     editLink.href = "#";
-                    editLink.onclick = () => editarMateria(materia.MateriaId);
+                    editLink.onclick = () => editarMateria(materia.MateriaId, materia.NombreMateria, materia.Descripcion);
                     editLink.textContent = "Editar";
                     editLi.appendChild(editLink);
 

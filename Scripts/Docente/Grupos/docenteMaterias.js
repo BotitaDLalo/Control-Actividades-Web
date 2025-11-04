@@ -329,6 +329,7 @@ async function editarMateria(MateriaId, NombreMateria, Descripcion) {
                 showConfirmButton: false,
                 timer: 2000
             });
+            cargarGrupos();
             cargarMaterias(); // Recargar la lista de materias
             cargarMateriasSinGrupo();
         } else {
