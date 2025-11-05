@@ -639,16 +639,17 @@ namespace ControlMaterias.Controllers
         {
             try
             {
-                var avisos = await Db.tbAvisos
+                var avisosDb = await Db.tbAvisos
                     .Where(a => a.MateriaId == IdMateria)
-                    .Select(a => new
-                    {
-                        a.AvisoId,
-                        a.Titulo,
-                        a.Descripcion,
-                        a.FechaCreacion
-                    })
                     .ToListAsync();
+
+                var avisos = avisosDb.Select(a => new
+                {
+                    a.AvisoId,
+                    a.Titulo,
+                    a.Descripcion,
+                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss")
+                });
                 return Json(avisos, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
