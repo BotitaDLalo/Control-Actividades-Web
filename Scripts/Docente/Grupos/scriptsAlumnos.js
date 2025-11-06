@@ -57,8 +57,51 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
         }
+
+        // Abrir selector de archivo al presionar Importar Alumnos
+        if (event.target.id === "btnImportarAlumnos") {
+            document.getElementById('fileImportarAlumnos').click();
+        }
     });
 
+    // Manejar selección de archivo y subir al servidor
+    const inputFile = document.getElementById('fileImportarAlumnos');
+    inputFile.addEventListener('change', async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        // Enviar parámetros opcionales: materiaId o grupoId
+        formData.append('MateriaId', materiaIdGlobal);
+        if (grupoIdGlobal && grupoIdGlobal !== '0') formData.append('GrupoId', grupoIdGlobal);
+
+        try {
+            const resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await resp.json();
+            if (!resp.ok) {
+                Swal.fire('Error', result.mensaje || 'Error al importar alumnos', 'error');
+                return;
+            }
+
+            // Mostrar resumen
+            let summary = `Total leídos: ${result.TotalLeidos}\nAgregados: ${result.Agregados.length}\nOmitidos: ${result.Omitidos.length}\nNo encontrados: ${result.NoEncontrados.length}`;
+            Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
+
+            // Recargar la lista de alumnos
+            cargarAlumnosAsignados(materiaIdGlobal);
+
+            // Limpiar input
+            inputFile.value = '';
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'Error al subir el archivo', 'error');
+        }
+    });
 
 
     // Funcionalidad de búsqueda de alumnos en tiempo real (sugerencias de correo)
@@ -150,7 +193,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
-
 
 //Carga los alumnos a la materia y los muestra en el div
 async function cargarAlumnosAsignados(materiaIdGlobal) {

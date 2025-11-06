@@ -118,32 +118,26 @@ namespace ControlActividades.Controllers
                 //Db.tbAvisos.Add(aviso); // Descomentar si deseas guardar el aviso
                 Db.SaveChanges();
 
-                //var message = new Message()
-                //{
-                //    Notification = new Notification
-                //    {
-                //        Title = aviso.Titulo,
-                //        Body = aviso.Descripcion
-                //    },
-                //    Topic = "avisos"
-                //};
-
-                //string response = FirebaseMessaging.DefaultInstance.SendAsync(message).GetAwaiter().GetResult();
-                //Console.WriteLine("Notificación enviada: " + response);
-
-                return RedirectToAction("MateriasDetalles");
+                return RedirectToAction("Index");
             }
 
             return View(aviso);
         }
 
-        public ActionResult MateriasDetalles(int materiaId)
+        // Accept nullable materiaId to avoid exception when parameter missing
+        public ActionResult MateriasDetalles(int? materiaId)
         {
+            if (!materiaId.HasValue)
+            {
+                // If no materiaId was provided, redirect to index (or show an error page)
+                return RedirectToAction("Index");
+            }
+
             string userId = User.Identity.GetUserId();
             var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
             ViewBag.DocenteId = docenteId;
-            ViewBag.MateriaId = materiaId;
+            ViewBag.MateriaId = materiaId.Value;
 
             return View();
         }
