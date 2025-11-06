@@ -1,5 +1,18 @@
-﻿using System;
+﻿using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.IdentityModel.Tokens;
+using NPOI.HSSF.UserModel;
+using NPOI.POIFS.FileSystem;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -10,15 +23,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using ControlActividades.Services;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.IdentityModel.Tokens;
 using static ControlActividades.Controllers.AlumnoController;
+using Microsoft.Owin.Security.Google;
+using Owin;
 
 namespace ControlActividades.Controllers
 {
@@ -933,12 +940,3 @@ namespace ControlActividades.Controllers
         }
     }
 }
-<div class="mb-3">
-    <label for="excelFileInput" class="form-label">Importar Excel (.xlsx / .xls)</label>
-    <input type="file" id="excelFileInput" accept=".xlsx,.xls" class="form-control" />
-</div>
-<div class="mb-3">
-    <button class="btn btn-primary" onclick="subirExcelAlumnos(localStorage.getItem('grupoIdSeleccionado'), 0)">
-        Importar y agregar al grupo seleccionado
-    </button>
-</div>

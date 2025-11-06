@@ -65,14 +65,27 @@ namespace ControlActividades
             //   appId: "",
             //   appSecret: "");
 
-            app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
-            {
-                ClientId = Environment.GetEnvironmentVariable("GoogleClientId")
-                            ?? ConfigurationManager.AppSettings["GoogleClientId"],
+            // Obtener ClientId/ClientSecret desde variables de entorno (mayúsculas/minúsculas) o appSettings
+            var googleClientId = Environment.GetEnvironmentVariable("GoogleClientId")
+                                 ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")
+                                 ?? ConfigurationManager.AppSettings["GoogleClientId"];
 
-                ClientSecret = Environment.GetEnvironmentVariable("GoogleClientSecret")
-                            ?? ConfigurationManager.AppSettings["GoogleClientSecret"]
-            });
+            var googleClientSecret = Environment.GetEnvironmentVariable("GoogleClientSecret")
+                                 ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET")
+                                 ?? ConfigurationManager.AppSettings["GoogleClientSecret"];
+
+            // Registrar el middleware SOLO si ambos valores están presentes y no vacíos
+            if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+            {
+                app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
+                {
+                    ClientId = googleClientId,
+                    ClientSecret = googleClientSecret
+                });
+            }
+            else
+            {
+            }
         }
     }
 }
