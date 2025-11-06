@@ -832,6 +832,19 @@ namespace ControlActividades.Controllers
                 string codigoValidar = datos.CodigoValidar;
                 string token = datos.IdToken ?? "";
 
+                if (datos == null)
+                    return BadRequest("El objeto 'datos' llegó como null.");
+
+                if (datos.Email == null)
+                    return BadRequest("El campo 'Email' llegó como null.");
+
+                if (datos.CodigoValidar == null)
+                    return BadRequest("El campo 'CodigoValidar' llegó como null.");
+
+                if (datos.IdToken == null)
+                    return BadRequest("El campo 'IdToken' llegó como null.");
+
+
                 var emailEncontrado = await _userManager.FindByEmailAsync(email);
                 if (emailEncontrado == null)
                 {
