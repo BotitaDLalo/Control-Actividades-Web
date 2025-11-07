@@ -884,9 +884,9 @@ namespace ControlActividades.Controllers
 
                     if (string.IsNullOrWhiteSpace(found)) continue;
 
-                    // normalizar: quitar espacios y convertir a minúsculas
+                    
                     var emailNormalized = found.Trim().ToLowerInvariant();
-                    // validación básica
+                    
                     if (!emailNormalized.Contains("@")) continue;
 
                     emails.Add(emailNormalized);

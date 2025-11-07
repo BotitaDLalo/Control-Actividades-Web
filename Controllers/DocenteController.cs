@@ -115,7 +115,7 @@ namespace ControlActividades.Controllers
             if (ModelState.IsValid)
             {
                 aviso.FechaCreacion = DateTime.Now;
-                //Db.tbAvisos.Add(aviso); // Descomentar si deseas guardar el aviso
+                //Db.tbAvisos.Add(aviso); 
                 Db.SaveChanges();
 
                 return RedirectToAction("Index");
@@ -124,12 +124,12 @@ namespace ControlActividades.Controllers
             return View(aviso);
         }
 
-        // Accept nullable materiaId to avoid exception when parameter missing
+        
         public ActionResult MateriasDetalles(int? materiaId)
         {
             if (!materiaId.HasValue)
             {
-                // If no materiaId was provided, redirect to index (or show an error page)
+                
                 return RedirectToAction("Index");
             }
 

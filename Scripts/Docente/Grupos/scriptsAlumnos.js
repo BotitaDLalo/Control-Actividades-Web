@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     cargarAlumnosAsignados();
 
     //Cargar actividades a la materia
-    //delegacion de evento 
+    
     document.addEventListener("click", async function (event) {
         if (event.target.id === "btnAsignarAlumno") {
             const correo = document.getElementById("buscarAlumno").value.trim();

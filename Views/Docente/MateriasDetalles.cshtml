@@ -60,7 +60,7 @@
                 <div class="input-group">
                     <input type="text" id="buscarAlumno" class="form-control" placeholder="Ingrese el correo del alumno..." autocomplete="off">
                     <button id="btnAsignarAlumno" class="btn btn-primary">Asignar Alumno</button>
-                    <!-- Nuevo botón para importar alumnos (solo visible a usuarios en rol Docente) -->
+                    
                     @if (User != null && User.IsInRole("Docente"))
                     {
                         <button id="btnImportarAlumnos" class="btn btn-secondary ms-2">Importar Alumnos</button>
