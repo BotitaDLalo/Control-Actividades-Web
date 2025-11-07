@@ -738,18 +738,19 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                List<EmailVerificadoAlumno> lsAlumnos = new List<EmailVerificadoAlumno>();
+                var lsAlumnos = new List<EmailVerificadoAlumno>();
                 foreach (var id in lsAlumnosId)
                 {
                     var alumnoDatos = Db.tbAlumnos.Where(a => a.AlumnoId == id).FirstOrDefault();
                     if (alumnoDatos != null)
                     {
-                        var userName = await _userManager.FindByIdAsync(alumnoDatos.UserId);
+                        // usar la propiedad que garantiza obtener el UserManager
+                        var user = await UserManager.FindByIdAsync(alumnoDatos.UserId);
 
-                        EmailVerificadoAlumno alumno = new EmailVerificadoAlumno()
+                        var alumno = new EmailVerificadoAlumno()
                         {
-                            Email = userName?.Email ?? "",
-                            UserName = userName?.UserName ?? "",
+                            Email = user?.Email ?? "",
+                            UserName = user?.UserName ?? "",
                             Nombre = alumnoDatos.Nombre,
                             ApellidoPaterno = alumnoDatos.ApellidoPaterno,
                             ApellidoMaterno = alumnoDatos.ApellidoMaterno,
@@ -757,9 +758,7 @@ namespace ControlActividades.Controllers
 
                         lsAlumnos.Add(alumno);
                     }
-
                 }
-
                 return lsAlumnos;
             }
             catch (Exception)
@@ -845,29 +844,56 @@ namespace ControlActividades.Controllers
                 bool hasHeader = false;
                 if (headerRow != null)
                 {
-                    var firstCell = headerRow.GetCell(0)?.ToString()?.ToLower() ?? "";
-                    if (firstCell.Contains("email")) hasHeader = true;
+                    // revisar todas las celdas del encabezado por si "email" está en otra columna
+                    var headerCells = headerRow.LastCellNum > 0 ? headerRow.LastCellNum : 1;
+                    for (int hc = 0; hc < headerCells; hc++)
+                    {
+                        var hCell = headerRow.GetCell(hc);
+                        var hText = hCell != null ? new DataFormatter().FormatCellValue(hCell)?.ToString()?.ToLower() : null;
+                        if (!string.IsNullOrEmpty(hText) && hText.Contains("email"))
+                        {
+                            hasHeader = true;
+                            break;
+                        }
+                    }
                 }
 
                 var emails = new List<string>();
+                var formatter = new DataFormatter();
                 for (int r = hasHeader ? startRow + 1 : startRow; r <= sheet.LastRowNum; r++)
                 {
                     var row = sheet.GetRow(r);
                     if (row == null) continue;
-                    var cell = row.GetCell(0);
-                    var text = cell?.ToString()?.Trim();
-                    if (string.IsNullOrWhiteSpace(text)) continue;
-                    // Validación simple de email
-                    if (!text.Contains("@"))
+
+                    string found = null;
+                    // recorrer celdas de la fila y buscar una que parezca un email
+                    var lastCell = row.LastCellNum > 0 ? row.LastCellNum : 1;
+                    for (int c = 0; c < lastCell; c++)
                     {
-                        // intentar si la celda contiene nombre|email u otros formatos, pero por ahora saltar
-                        continue;
+                        var cell = row.GetCell(c);
+                        if (cell == null) continue;
+                        var cellText = formatter.FormatCellValue(cell)?.Trim();
+                        if (string.IsNullOrWhiteSpace(cellText)) continue;
+                        // Si la celda contiene un correo, tomarla
+                        if (cellText.Contains("@"))
+                        {
+                            found = cellText;
+                            break;
+                        }
                     }
-                    emails.Add(text);
+
+                    if (string.IsNullOrWhiteSpace(found)) continue;
+
+                    // normalizar: quitar espacios y convertir a minúsculas
+                    var emailNormalized = found.Trim().ToLowerInvariant();
+                    // validación básica
+                    if (!emailNormalized.Contains("@")) continue;
+
+                    emails.Add(emailNormalized);
                 }
 
                 if (!emails.Any())
-                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se encontraron emails en la primera columna." });
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se encontraron emails en el archivo. Asegúrese que la primera fila tenga una columna con correos o que las celdas contengan emails." });
 
                 var added = new List<string>();
                 var skipped = new List<string>();
@@ -922,7 +948,17 @@ namespace ControlActividades.Controllers
 
                 await Db.SaveChangesAsync();
 
-                var alumnos = await ObtenerListaAlumnos(lsAlumnosId);
+                var alumnos = await (from a in Db.tbAlumnos
+                     where lsAlumnosId.Contains(a.AlumnoId)
+                     join u in Db.Users on a.UserId equals u.Id into uj
+                     from u in uj.DefaultIfEmpty()
+                     select new EmailVerificadoAlumno {
+                        Email = u.Email ?? "",
+                        UserName = u.UserName ?? "",
+                        Nombre = a.Nombre,
+                        ApellidoPaterno = a.ApellidoPaterno,
+                        ApellidoMaterno = a.ApellidoMaterno
+                     }).ToListAsync();
 
                 return Ok(new
                 {
