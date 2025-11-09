@@ -73,6 +73,7 @@ namespace ControlActividades
                  "~/Scripts/Alumno/Notificaciones.js",
                  "~/Scripts/Alumno/UnirseClase.js",
                  "~/Scripts/Alumno/VentanasDi.js",
+                 "~/Scripts/Componentes/componenteAvisos.js",
                  "~/Scripts/Alumno/Vistamaterias.js"
             ));
 

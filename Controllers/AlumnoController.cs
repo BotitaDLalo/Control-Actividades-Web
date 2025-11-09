@@ -214,11 +214,11 @@ namespace ControlActividades.Controllers
 
         public async Task<ActionResult> Avisos(int alumnoId)
         {
+            ViewBag.AlumnoId = alumnoId;
             var avisos = await Db.tbAvisos
                 .Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
                          || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId))
                 .ToListAsync();
-            ViewBag.AlumnoId = alumnoId;
             return PartialView("_Avisos", avisos);
         }
 
@@ -227,24 +227,41 @@ namespace ControlActividades.Controllers
         [HttpGet]
         public async Task<ActionResult> ObtenerAvisos(int alumnoId)
         {
-            var avisos = await Db.tbAvisos
-                .Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
-                         || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId))
-                .Select(a => new
+            try
+            {
+                var avisosDb = await Db.tbAvisos
+                    .Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
+                             || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId))
+                    .ToListAsync();
+
+                var avisos = avisosDb.Select(a => new
                 {
                     a.AvisoId,
                     a.Titulo,
                     a.Descripcion,
-                    a.FechaCreacion
-                })
-                .ToListAsync();
+                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss")
+                }).ToList();
 
-            if (!avisos.Any())
-            {
-                return HttpNotFound("No hay avisos para este alumno.");
+                return Json(avisos, JsonRequestBehavior.AllowGet);
+
+                /*
+                if (!avisos.Any())
+                {
+                    return HttpNotFound("No hay avisos para este alumno.");
+                }
+                */
+
             }
-
-            return Json(avisos, JsonRequestBehavior.AllowGet);
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new
+                {
+                    mensaje = "Error al obtener avisos",
+                    detalle = ex.Message,
+                    stack = ex.StackTrace
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
 
 
