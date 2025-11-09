@@ -559,11 +559,11 @@ namespace ControlActividades.Controllers
                 var email = payload.Email;
                 var token = usuario.IdToken;
 
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await UserManager.FindByEmailAsync(email);
 
                 if (user != null)
                 {
-                    var roles = await _userManager.GetRolesAsync(user.Id);
+                    var roles = await UserManager.GetRolesAsync(user.Id);
                     var rolUsuario = roles.FirstOrDefault();
 
                     if (rolUsuario == null)
@@ -642,7 +642,7 @@ namespace ControlActividades.Controllers
                     Email = email
                 };
 
-                var result = await _userManager.CreateAsync(nuevoUsuario);
+                var result = await UserManager.CreateAsync(nuevoUsuario);
 
                 if (!result.Succeeded)
                 {
@@ -688,21 +688,21 @@ namespace ControlActividades.Controllers
                 string email = payload.Email;
                 string userName = payload.GivenName;
 
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await UserManager.FindByEmailAsync(email);
                 if (user == null)
                     return BadRequest("Usuario no encontrado");
 
                 // CREAR ROL SI NO EXISTE
-                if (!await _roleManager.RoleExistsAsync(role))
+                if (!await RoleManager.RoleExistsAsync(role))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole(role));
+                    await RoleManager.CreateAsync(new IdentityRole(role));
                 }
 
                 // ASIGNAR ROL
-                var tieneRol = await _userManager.IsInRoleAsync(user.Id, role);
+                var tieneRol = await UserManager.IsInRoleAsync(user.Id, role);
                 if (!tieneRol)
                 {
-                    var asignarRol = await _userManager.AddToRoleAsync(user.Id, role);
+                    var asignarRol = await UserManager.AddToRoleAsync(user.Id, role);
                     if (!asignarRol.Succeeded)
                         return BadRequest(string.Join(", ", asignarRol.Errors));
                 }
@@ -764,7 +764,7 @@ namespace ControlActividades.Controllers
 
                     await Ns.RegistrarFcmTokenUsuario(identityUserId, fcmToken);
 
-                    var emailEncontrado = await _userManager.FindByIdAsync(identityUserId);
+                    var emailEncontrado = await UserManager.FindByIdAsync(identityUserId);
                     if (emailEncontrado == null)
                         return BadRequest("Usuario no encontrado tras registro");
 
@@ -798,7 +798,7 @@ namespace ControlActividades.Controllers
                 string codigoValidar = datos.CodigoValidar;
                 string token = datos.IdToken ?? "";
 
-                var emailEncontrado = await _userManager.FindByEmailAsync(email);
+                var emailEncontrado = await UserManager.FindByEmailAsync(email);
                 if (emailEncontrado == null)
                 {
                     return BadRequest(new
@@ -809,7 +809,7 @@ namespace ControlActividades.Controllers
                 }
 
                 // Obtener rol del usuario
-                var roles = await _userManager.GetRolesAsync(emailEncontrado.Id);
+                var roles = await UserManager.GetRolesAsync(emailEncontrado.Id);
                 var rolUsuario = roles.FirstOrDefault();
                 if (rolUsuario == null)
                     throw new Exception("El usuario no posee un rol asignado");
@@ -881,7 +881,7 @@ namespace ControlActividades.Controllers
                     string name = payload.Name;
                     string email = payload.Email;
 
-                    var user = await _userManager.FindByEmailAsync(email);
+                    var user = await UserManager.FindByEmailAsync(email);
                     if (user == null)
                     {
                         return BadRequest("Usuario no encontrado");
@@ -889,7 +889,7 @@ namespace ControlActividades.Controllers
 
                     int idUsuario = 0;
                     string identityUserId = user.Id;
-                    var roles = await _userManager.GetRolesAsync(identityUserId);
+                    var roles = await UserManager.GetRolesAsync(identityUserId);
                     var rolUsuario = roles.FirstOrDefault();
                     if (rolUsuario == null)
                         throw new Exception("El usuario no posee un rol asignado");
