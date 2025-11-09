@@ -9,10 +9,6 @@
 <head>
     <link rel="icon" href="@Url.Content("~/Content/Iconos/LOGO VERTICAL-26.svg")" type="image/x-icon" />
 
-    @*<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />*@
-
-    @*<link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />*@
-
     <title>Iniciar Sesión</title>
 </head>
 <body>
@@ -27,24 +23,32 @@
 
         @using (Html.BeginForm("Login", "Account", FormMethod.Post))
         {
-            @Html.AntiForgeryToken()
-            @Html.Hidden("returnUrl", (object)ViewBag.ReturnUrl)
-            <div class="input-box">
-                <input type="text" class="input-field" id="email" name="email" autocomplete="off" required />
-                <label for="email">Correo electrónico</label>
-            </div>
-            <div class="input-box">
+        @Html.AntiForgeryToken()
+        @Html.Hidden("returnUrl", (object)ViewBag.ReturnUrl)
+        <div class="input-box">
+            <input type="text" class="input-field" id="email" name="email" autocomplete="off" required />
+            <label for="email">Correo electrónico</label>
+        </div>
+        <div class="input-box">
+            <div class="password-wrapper">
                 <input type="password" class="input-field" id="password" name="password" autocomplete="off" required />
+                <button type="button" class="password-toggle" aria-label="Mostrar contraseña" aria-pressed="false">
+                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
                 <label for="password">Contraseña</label>
             </div>
-            <div class="forgot">
-                <section>
-                    @Html.ActionLink("¿Olvidaste la contraseña?", "ForgotPassword", "Account", null, new { @class = "forgot-link" })
-                </section>
-            </div>
-            <div class="input-box">
-                <input type="submit" class="input-submit" value="Iniciar Sesión" />
-            </div>
+        </div>
+        <div class="forgot">
+            <section>
+                @Html.ActionLink("¿Olvidaste la contraseña?", "ForgotPassword", "Account", null, new { @class = "forgot-link" })
+            </section>
+        </div>
+        <div class="input-box">
+            <input type="submit" class="input-submit" value="Iniciar Sesión" />
+        </div>
         }
 
         <div class="input-submit-signin  d-flex justify-content-center align-items-center ">
@@ -64,10 +68,10 @@
         <div class="social-sign-in">
             @using (Html.BeginForm("ExternalLogin", "Account", new { provider = "Google", returnUrl = Url.Content("~/") }, FormMethod.Post, new { id = "googleLoginForm" }))
             {
-                <button class="input-google d-flex justify-content-center align-items-center" type="submit">
-                    <img src="https://img.icons8.com/ios11/512/7950F2/google-logo.png" alt="Google Logo" />
-                    Inicia sesión / Regístrate con Google
-                </button>
+            <button class="input-google d-flex justify-content-center align-items-center" type="submit">
+                <img src="https://img.icons8.com/ios11/512/7950F2/google-logo.png" alt="Google Logo" />
+                Inicia sesión / Regístrate con Google
+            </button>
             }
         </div>
 
@@ -77,6 +81,28 @@
 </html>
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        (function () {
+            const pwd = document.getElementById('password');
+            const btn = document.querySelector('.password-toggle');
+
+            if (!pwd || !btn) return;
+
+            function setButtonState(isShown) {
+                btn.setAttribute('aria-pressed', String(isShown));
+                btn.setAttribute('aria-label', isShown ? 'Ocultar contraseña' : 'Mostrar contraseña');
+                const svg = btn.querySelector('svg');
+                if (svg) svg.style.stroke = isShown ? '#3a7bd5' : '#555';
+            }
+
+            btn.addEventListener('click', function () {
+                const isPassword = pwd.type === 'password';
+                pwd.type = isPassword ? 'text' : 'password';
+                setButtonState(isPassword);
+            });
+        })();
+    </script>
 }
 
 @section Styles{
