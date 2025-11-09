@@ -583,20 +583,6 @@ namespace ControlActividades.Controllers
         }
         #endregion
 
-        #region Login Google
-        [HttpPost]
-        [Route("IniciarSesionGoogle")]
-        [AllowAnonymous]
-        public async Task<IHttpActionResult> IniciarSesionGoogle([FromBody] RegistrarUsuarioGoogle usuario)
-        {
-            try
-            {
-                var payload = await GoogleJsonWebSignature.ValidateAsync(usuario.IdToken);
-
-                if (payload == null)
-                {
-                    return BadRequest("idToken inválido");
-                }
 
         #region Login Google
         [HttpPost]

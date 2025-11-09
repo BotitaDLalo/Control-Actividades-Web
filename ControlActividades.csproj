@@ -59,13 +59,14 @@
     </Reference>
     <Reference Include="FirebaseAdmin, Version=3.4.0.0, Culture=neutral, PublicKeyToken=97c8d00c348326ed, processorArchitecture=MSIL">
       <HintPath>packages\FirebaseAdmin.3.4.0\lib\net462\FirebaseAdmin.dll</HintPath>
+    </Reference>
     <Reference Include="Enums.NET, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7ea1c1650d506225, processorArchitecture=MSIL">
       <HintPath>packages\Enums.NET.5.0.0\lib\net461\Enums.NET.dll</HintPath>
     </Reference>
     <Reference Include="ExtendedNumerics.BigDecimal, Version=2025.1001.2.129, Culture=neutral, PublicKeyToken=65f1315a45ad8949, processorArchitecture=MSIL">
       <HintPath>packages\ExtendedNumerics.BigDecimal.2025.1001.2.129\lib\net48\ExtendedNumerics.BigDecimal.dll</HintPath>
     </Reference>
-    </Reference>
+    
     <Reference Include="Google.Api.Gax, Version=4.8.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
       <HintPath>packages\Google.Api.Gax.4.8.0\lib\net462\Google.Api.Gax.dll</HintPath>
     </Reference>
@@ -289,10 +290,10 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Net.Http">
-    </Reference>
-    <Reference Include="System.Net.Http.WebRequest">
-    </Reference>
+    <Reference Include="System.Net.Http" />
+    
+    <Reference Include="System.Net.Http.WebRequest" />
+    
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
