@@ -29,7 +29,7 @@ async function guardarMateriaSinGrupo() {
             DocenteId: docenteIdGlobal // Enviamos el docenteId obtenido previamente
         })
     });
-
+    
     if (response.ok) { // Verificamos si la respuesta es exitosa
         Swal.fire({
             position: "top-end",
@@ -73,11 +73,10 @@ async function cargarMaterias() {
                 const checkbox = document.createElement("input"); // Creamos un checkbox para cada materia
                 checkbox.type = "checkbox"; // Definimos que sea un checkbox
                 checkbox.className = "materia-checkbox"; // Asignamos una clase para identificarlos
-                checkbox.value = materia.materiaId; // Asignamos el ID de la materia como valor del checkbox
-
+                checkbox.value = materia.MateriaId; // Asignamos el ID de la materia como valor del checkbox  
                 const label = document.createElement("label"); // Creamos una etiqueta para el checkbox
                 label.appendChild(checkbox); // Añadimos el checkbox a la etiqueta
-                label.appendChild(document.createTextNode(" " + materia.nombreMateria)); // Añadimos el nombre de la materia a la etiqueta
+                label.appendChild(document.createTextNode(" " + (materia.nombreMateria || materia.NombreMateria))); // Añadimos el nombre de la materia a la etiqueta
 
                 const div = document.createElement("div"); // Creamos un contenedor div para cada materia
                 div.className = "form-check"; // Asignamos una clase para estilo
@@ -147,7 +146,7 @@ async function cargarMateriasSinGrupo() {
             const editLink = document.createElement("a");
             editLink.classList.add("dropdown-item");
             editLink.href = "#";
-            editLink.onclick = () => editarMateria(materia.MateriaId);
+            editLink.onclick = () => editarMateria(materia.MateriaId, materia.NombreMateria, materia.Descripcion);
             editLink.textContent = "Editar";
             editLi.appendChild(editLink);
 
@@ -268,19 +267,24 @@ async function cargarMateriasSinGrupo() {
 
 
 
-//Funcion para editar nombre y descripcion de una materia. Sin funcionar aun.
-async function editarMateria(materiaId, nombreActual, descripcionActual) {
+//Funcion para editar nombre y descripcion de una materia.
+async function editarMateria(MateriaId, NombreMateria, Descripcion) {
+
+    if (Descripcion === null || Descripcion === "null" || Descripcion === undefined) {
+        Descripcion = "";
+    }
+
     const { value: formValues } = await Swal.fire({
         title: "Editar Materia",
         html: `
             <div style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <label for="swal-nombre" style="width: 100px;">Materia</label>
-                    <input id="swal-nombre" class="swal2-input"  placeholder="Nombre" value="${nombreActual}">
+                    <input id="swal-nombre" class="swal2-input"  placeholder="Nombre" value="${NombreMateria}">
                 </div>
                 <div style="display: flex; align-items: center; gap: 5px;">
                     <label for="swal-descripcion" style="width: 100px;">Descripción</label>
-                    <input id="swal-descripcion" class="swal2-input" placeholder="Descripción" value="${descripcionActual}">
+                    <input id="swal-descripcion" class="swal2-input" placeholder="Descripción" value="${Descripcion}">
                 </div>
             </div>
         `,
@@ -289,6 +293,13 @@ async function editarMateria(materiaId, nombreActual, descripcionActual) {
         confirmButtonText: "Guardar",
         cancelButtonText: "Cancelar",
         preConfirm: () => {
+            const nombre = document.getElementById("swal-nombre").value.trim();
+
+            if(!nombre) {
+                Swal.showValidationMessage("Por favor, ingresa un nombre para la materia.");
+                return false;
+            }
+
             return {
                 NombreMateria: document.getElementById("swal-nombre").value, // Nombre correcto
                 Descripcion: document.getElementById("swal-descripcion").value // Nombre correcto
@@ -298,11 +309,17 @@ async function editarMateria(materiaId, nombreActual, descripcionActual) {
 
     if (formValues) {
         // Enviar los datos al servidor para actualizar la materia
-        const response = await fetch(`/Materias/ActualizarMateria/${materiaId}`, {
-            method: "PUT",
+        const response = await fetch(`/Materias/ActualizarMateria?materiaId=${MateriaId}`, {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formValues)
         });
+        console.log("Código de respuesta:", response.status);
+        console.log("Tipo de contenido:", response.headers.get("content-type"));
+
+        const text = await response.text();
+        console.log("Respuesta del servidor:", text);
+
 
         if (response.ok) {
             Swal.fire({
@@ -312,7 +329,9 @@ async function editarMateria(materiaId, nombreActual, descripcionActual) {
                 showConfirmButton: false,
                 timer: 2000
             });
+            cargarGrupos();
             cargarMaterias(); // Recargar la lista de materias
+            cargarMateriasSinGrupo();
         } else {
             Swal.fire({
                 position: "top-end",

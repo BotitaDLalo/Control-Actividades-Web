@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
@@ -17,6 +17,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Google.Apis.Auth;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace ControlActividades.Controllers
@@ -123,14 +132,14 @@ namespace ControlActividades.Controllers
             }
         }
 
-
+        #region Login
         [HttpPost]
         [Route("VerificarTokenFcm")]
         public async Task<IHttpActionResult> VerificarTokenFcm(TokenRequest request)
         {
             try
             {
-                //bool existeToken = await _context.tbAlumnosTokens.AnyAsync(a => a.Token == fcmToken);
+                //bool existeToken = await Db.tbAlumnosTokens.AnyAsync(a => a.Token == fcmToken);
 
                 var id = request.Id;
                 var fcmToken = request.Token;
@@ -572,6 +581,7 @@ namespace ControlActividades.Controllers
                 });
             }
         }
+        #endregion
 
         #region Login Google
         [HttpPost]
@@ -588,15 +598,29 @@ namespace ControlActividades.Controllers
                     return BadRequest("idToken inválido");
                 }
 
+        #region Login Google
+        [HttpPost]
+        [Route("IniciarSesionGoogle")]
+        public async Task<IHttpActionResult> IniciarSesionGoogle([FromBody] RegistrarUsuarioGoogle usuario)
+        {
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(usuario.IdToken);
+
+                if (payload == null)
+                {
+                    return BadRequest("idToken inválido");
+                }
+
                 var userName = (payload.FamilyName ?? "") + (payload.GivenName ?? "");
                 var email = payload.Email;
                 var token = usuario.IdToken;
 
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await UserManager.FindByEmailAsync(email);
 
                 if (user != null)
                 {
-                    var roles = await _userManager.GetRolesAsync(user.Id);
+                    var roles = await UserManager.GetRolesAsync(user.Id);
                     var rolUsuario = roles.FirstOrDefault();
 
                     if (rolUsuario == null)
@@ -675,7 +699,7 @@ namespace ControlActividades.Controllers
                     Email = email
                 };
 
-                var result = await _userManager.CreateAsync(nuevoUsuario);
+                var result = await UserManager.CreateAsync(nuevoUsuario);
 
                 if (!result.Succeeded)
                 {
@@ -689,16 +713,14 @@ namespace ControlActividades.Controllers
                     EstaAutorizado = EstatusAutorizacion.PENDIENTE,
                     RequiereDatosAdicionales = RequiereDatosAdicionales.REQUERIDO
                 });
-
-
             }
-
             catch (Exception ex)
             {
                 // Puedes registrar el error en logs si lo deseas
                 return BadRequest(ex.Message);
             }
         }
+
 
         [HttpPost]
         [Route("RegistrarDatosFaltantesGoogle")]
@@ -723,21 +745,21 @@ namespace ControlActividades.Controllers
                 string email = payload.Email;
                 string userName = payload.GivenName;
 
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await UserManager.FindByEmailAsync(email);
                 if (user == null)
                     return BadRequest("Usuario no encontrado");
 
                 // CREAR ROL SI NO EXISTE
-                if (!await _roleManager.RoleExistsAsync(role))
+                if (!await RoleManager.RoleExistsAsync(role))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole(role));
+                    await RoleManager.CreateAsync(new IdentityRole(role));
                 }
 
                 // ASIGNAR ROL
-                var tieneRol = await _userManager.IsInRoleAsync(user.Id, role);
+                var tieneRol = await UserManager.IsInRoleAsync(user.Id, role);
                 if (!tieneRol)
                 {
-                    var asignarRol = await _userManager.AddToRoleAsync(user.Id, role);
+                    var asignarRol = await UserManager.AddToRoleAsync(user.Id, role);
                     if (!asignarRol.Succeeded)
                         return BadRequest(string.Join(", ", asignarRol.Errors));
                 }
@@ -799,7 +821,7 @@ namespace ControlActividades.Controllers
 
                     await Ns.RegistrarFcmTokenUsuario(identityUserId, fcmToken);
 
-                    var emailEncontrado = await _userManager.FindByIdAsync(identityUserId);
+                    var emailEncontrado = await UserManager.FindByIdAsync(identityUserId);
                     if (emailEncontrado == null)
                         return BadRequest("Usuario no encontrado tras registro");
 
@@ -822,6 +844,7 @@ namespace ControlActividades.Controllers
             }
         }
 
+
         [HttpPost]
         [Route("ValidarCodigoDocenteGoogle")]
         public async Task<IHttpActionResult> ValidarCodigoAutorizacionDocente([FromBody] ValidarCodigoDocente datos)
@@ -832,20 +855,7 @@ namespace ControlActividades.Controllers
                 string codigoValidar = datos.CodigoValidar;
                 string token = datos.IdToken ?? "";
 
-                if (datos == null)
-                    return BadRequest("El objeto 'datos' llegó como null.");
-
-                if (datos.Email == null)
-                    return BadRequest("El campo 'Email' llegó como null.");
-
-                if (datos.CodigoValidar == null)
-                    return BadRequest("El campo 'CodigoValidar' llegó como null.");
-
-                if (datos.IdToken == null)
-                    return BadRequest("El campo 'IdToken' llegó como null.");
-
-
-                var emailEncontrado = await _userManager.FindByEmailAsync(email);
+                var emailEncontrado = await UserManager.FindByEmailAsync(email);
                 if (emailEncontrado == null)
                 {
                     return BadRequest(new
@@ -856,7 +866,7 @@ namespace ControlActividades.Controllers
                 }
 
                 // Obtener rol del usuario
-                var roles = await _userManager.GetRolesAsync(emailEncontrado.Id);
+                var roles = await UserManager.GetRolesAsync(emailEncontrado.Id);
                 var rolUsuario = roles.FirstOrDefault();
                 if (rolUsuario == null)
                     throw new Exception("El usuario no posee un rol asignado");
@@ -913,6 +923,7 @@ namespace ControlActividades.Controllers
             }
         }
 
+
         [HttpPost]
         [Route("VerificarIdToken")]
         public async Task<IHttpActionResult> VerificarGoogleIdToken([FromBody] VerificarGoogleIdToken token)
@@ -927,7 +938,7 @@ namespace ControlActividades.Controllers
                     string name = payload.Name;
                     string email = payload.Email;
 
-                    var user = await _userManager.FindByEmailAsync(email);
+                    var user = await UserManager.FindByEmailAsync(email);
                     if (user == null)
                     {
                         return BadRequest("Usuario no encontrado");
@@ -935,7 +946,7 @@ namespace ControlActividades.Controllers
 
                     int idUsuario = 0;
                     string identityUserId = user.Id;
-                    var roles = await _userManager.GetRolesAsync(identityUserId);
+                    var roles = await UserManager.GetRolesAsync(identityUserId);
                     var rolUsuario = roles.FirstOrDefault();
                     if (rolUsuario == null)
                         throw new Exception("El usuario no posee un rol asignado");
@@ -975,7 +986,10 @@ namespace ControlActividades.Controllers
             }
         }
 
+
         #endregion
+
+
 
         protected override void Dispose(bool disposing)
         {

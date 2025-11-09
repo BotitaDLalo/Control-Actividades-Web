@@ -125,6 +125,11 @@ namespace ControlActividades.Controllers
 
             Role role;
 
+            //buscar registro si existe, bool
+           // var engoogle = Db.UsersLogins.Where(u => u.Email == model.Email && u.LoginProvider == "Google").Any();
+
+
+
             var usuario = await UserManager.FindByEmailAsync(model.Email);
             if (usuario == null)
             {

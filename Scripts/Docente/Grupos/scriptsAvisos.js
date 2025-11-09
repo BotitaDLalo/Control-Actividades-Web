@@ -110,6 +110,7 @@ function renderizarAvisos(avisos) {
         return;
     }
     avisos.reverse();
+    
 
     avisos.forEach(aviso => {
         const avisoItem = document.createElement("div");
@@ -121,8 +122,7 @@ function renderizarAvisos(avisos) {
                 <div class="aviso-icono">📢</div>
                 <div class="aviso-info">
                     <strong>${aviso.Titulo}</strong>
-                    <p class="aviso-fecha-publicado">Publicado: ${formatearFecha(aviso.FechaCreacion)}</p>
-                    
+                    <p class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion}</p>
                     <p class="ver-completo">Ver completo</p>
                 </div>
                 <div class="aviso-botones-container">
@@ -130,12 +130,15 @@ function renderizarAvisos(avisos) {
                     <button class="aviso-eliminar-btn" data-id="${aviso.AvisoId}">Eliminar</button>
                 </div>
             </div>
+            <div>
+                <p class="actividad-descripcion oculto">${aviso.Descripcion}</p>
+            </div>
         `;
 
         // Mostrar/ocultar descripción al hacer clic en "Ver completo"
         const verCompleto = avisoItem.querySelector(".ver-completo");
         const descripcion = avisoItem.querySelector(".actividad-descripcion");
-
+        
         verCompleto.addEventListener("click", () => {
             // Alternar entre mostrar y ocultar la descripción
             if (descripcion.classList.contains("oculto")) {
@@ -151,8 +154,8 @@ function renderizarAvisos(avisos) {
         const btnEliminar = avisoItem.querySelector(".aviso-eliminar-btn");
         const btnEditar = avisoItem.querySelector(".aviso-editar-btn");
 
-        btnEliminar.addEventListener("click", () => eliminarAviso(aviso.avisoId));
-        btnEditar.addEventListener("click", () => editarAviso(aviso.avisoId));
+        btnEliminar.addEventListener("click", () => eliminarAviso(aviso.AvisoId));
+        btnEditar.addEventListener("click", () => editarAviso(aviso.AvisoId));
 
         listaAvisos.appendChild(avisoItem);
     });
@@ -227,8 +230,8 @@ async function editarAviso(avisoId) {
         const { value: formValues } = await Swal.fire({
             title: "Editar Aviso",
             html: `
-                <input id="swal-titulo" class="swal2-input" placeholder="Título" value="${aviso.titulo}">
-                <textarea id="swal-descripcion" class="swal2-textarea" placeholder="Descripción">${aviso.descripcion}</textarea>
+                <input id="swal-titulo" class="swal2-input" placeholder="Título" value="${aviso.Titulo}">
+                <textarea id="swal-descripcion" class="swal2-textarea" placeholder="Descripción">${aviso.Descripcion}</textarea>
             `,
             focusConfirm: false,
             showCancelButton: true,

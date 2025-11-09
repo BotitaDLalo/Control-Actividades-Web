@@ -1,15 +1,27 @@
 @model List<ControlActividades.Models.db.tbAvisos>
-@{ 
+@{
     int alumnoId = ViewBag.AlumnoId;
 }
 
-<div class="alert alert-info">
-    <h4>Últimos Avisos</h4>
-    <ul id="avisos-container" class="list-group">
-        <li class="list-group-item">Cargando avisos...</li>
-    </ul>
+<div class="alert alert-info mt-3">
+    <h4>Ãšltimos Avisos</h4>
+    <div id="avisos-container" class="list-group">
+        <div class="list-group-item text-center text-muted">Cargando avisos...</div>
+    </div>
 </div>
 
 <script>
-    let alumnoIdGlobal = '@alumnoId';
+    //let alumnoIdGlobal = '@alumnoId';
+    //window.alumnoIdGlobal = @alumnoId;
 </script>
+
+@section Scripts {
+    <script>
+        const alumnoIdGlobal = '@alumnoId';
+    </script>
+    <script src="~/Scripts/sweetalert2.all.min.js"></script>
+    <script src="~/Scripts/Componentes/componenteAvisos.js"></script>
+    <script src="~/Scripts/Avisos.js"></script>
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/alumno")
+}
