@@ -1,0 +1,24 @@
+@{
+    Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
+    ViewBag.Title = "Actividades";
+    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId : 0;
+    var materiaId = Request.QueryString["materiaId"] ?? "0";
+}
+
+<div class="container">
+    <h2>Actividades</h2>
+    <div id="infoMateria" class="mb-3">Cargando actividades de la materia...</div>
+    <div id="listaActividadesAlumno"></div>
+</div>
+
+@section Scripts {
+    <script>
+        var alumnoIdGlobal = @alumnoId;
+        var materiaIdGlobal = @Html.Raw(materiaId);
+    </script>
+    <script src="~/Scripts/Alumno/actividades.js"></script>
+}
+
+@section Styles{
+    @Styles.Render("~/Content/Alumno/css")
+}

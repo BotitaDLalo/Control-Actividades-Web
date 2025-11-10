@@ -1,5 +1,5 @@
 ﻿var div = document.getElementById("docente-datos");
-var docenteIdGlobal = div.dataset.docenteid;
+var docenteIdGlobal = div ? div.dataset.docenteid : null;
 
 // Esperar a que el DOM esté completamente cargado antes de ejecutar el código
 document.addEventListener("DOMContentLoaded", function () {
@@ -14,6 +14,10 @@ async function registrarActividad() {
     let descripcion = document.getElementById("descripcion").value.trim();
     let fechaHoraLimite = document.getElementById("fechaHoraLimite").value;
     let puntaje = parseInt(document.getElementById("puntaje").value, 10);
+
+    // Referencia al botón para mostrar estado
+    var btn = document.querySelector('#crearActividadModal .btn-primary');
+    var originalBtnHtml = btn ? btn.innerHTML : null;
 
     // Validaciones básicas
     if (!nombre || !descripcion || !fechaHoraLimite || isNaN(puntaje)) {
@@ -38,35 +42,41 @@ async function registrarActividad() {
     }
 
     // Validar materiaIdGlobal
-    if (!materiaIdGlobal) {
-        Swal.fire({
-            icon: "error",
-            title: "Error en materia",
-            text: "No se ha identificado la materia seleccionada."
-        });
+    if (typeof materiaIdGlobal === 'undefined' || !materiaIdGlobal) {
+        Swal.fire({ icon: 'error', title: 'Error en materia', text: 'No se ha identificado la materia seleccionada.' });
         return;
     }
 
     let actividad = {
-        nombreActividad: nombre,
-        descripcion: descripcion,
-        fechaLimite: fechaHoraLimite,
-        tipoActividadId: 1, // Cambiar si se obtiene dinámicamente
-        puntaje: puntaje,
-        materiaId: materiaIdGlobal
+        NombreActividad: nombre,
+        Descripcion: descripcion,
+        FechaLimite: fechaHoraLimite,
+        TipoActividadId: 1, // Cambiar si se obtiene dinámicamente
+        Puntaje: puntaje,
+        MateriaId: parseInt(materiaIdGlobal, 10)
     };
 
     try {
+        // Deshabilitar botón y mostrar spinner
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Publicando...';
+        }
+
         let response = await fetch("/Materias/CrearActividad", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(actividad)
         });
 
-        let data = await response.json();
+        // Leer respuesta como texto y tratar de parsear JSON (más robusto ante respuestas HTML)
+        const text = await response.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
 
         if (!response.ok) {
-            throw new Error(data.mensaje || `Error HTTP: ${response.status}`);
+            const mensaje = data && data.mensaje ? data.mensaje : (text || `Error HTTP: ${response.status}`);
+            throw new Error(mensaje);
         }
 
         Swal.fire({
@@ -74,14 +84,26 @@ async function registrarActividad() {
             title: "Actividad creada",
             text: "La actividad ha sido publicada correctamente.",
             icon: "success",
-            timer: 3000,
+            timer: 1500,
             showConfirmButton: false
         });
 
-        setTimeout(() => {
-            document.getElementById("actividadesForm").reset();
-            cargarActividadesDeMateria(); // Recargar las actividades
-        }, 2500);
+        // Cerrar modal si está abierto (Bootstrap 4/5)
+        try {
+            if (window.jQuery && $('#crearActividadModal').modal) {
+                $('#crearActividadModal').modal('hide');
+            } else if (window.bootstrap) {
+                var modalEl = document.getElementById('crearActividadModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+        } catch (e) { console.warn('No se pudo cerrar el modal:', e); }
+
+        // limpiar formulario
+        try { document.getElementById("actividadesForm").reset(); } catch (e) { }
+
+        // recargar lista de actividades
+        setTimeout(function () { cargarActividadesDeMateria(); }, 300);
 
     } catch (error) {
         console.error("Error:", error);
@@ -90,22 +112,30 @@ async function registrarActividad() {
             title: "Error al crear la actividad",
             text: error.message || "Ocurrió un problema al crear la actividad.",
             icon: "error",
-            timer: 3000,
-            showConfirmButton: false
+            timer: 4000,
+            showConfirmButton: true
         });
+    } finally {
+        // Rehabilitar botón
+        if (btn) {
+            btn.disabled = false;
+            if (originalBtnHtml) btn.innerHTML = originalBtnHtml;
+        }
     }
 }
-
 
 
 
 // Funcion que carga las actividades a la vista.
 async function cargarActividadesDeMateria() {
     const listaActividades = document.getElementById("listaActividadesDeMateria");
+    if (!listaActividades) return;
     listaActividades.innerHTML = "<p>Cargando actividades...</p>"; // Mostrar mensaje de carga
 
     try {
-        const response = await fetch(`/Materias/ObtenerActividadesPorMateria?materiaId=${materiaIdGlobal}`);
+        const mid = typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : (window.materiaIdGlobal || null);
+        if (!mid) throw new Error('Materia no definida');
+        const response = await fetch(`/Materias/ObtenerActividadesPorMateria?materiaId=${mid}`);
         if (!response.ok) throw new Error("No se encontraron actividades.");
         const actividades = await response.json();
         renderizarActividades(actividades);
@@ -116,9 +146,10 @@ async function cargarActividadesDeMateria() {
 //Renderiza actividades despues de confirmar existencia
 function renderizarActividades(actividades) {
     const listaActividades = document.getElementById("listaActividadesDeMateria");
+    if (!listaActividades) return;
     listaActividades.innerHTML = ""; // Limpiar el contenedor
 
-    if (actividades.length === 0) {
+    if (!actividades || actividades.length === 0) {
         listaActividades.innerHTML = "<p>No hay actividades registradas para esta materia.</p>";
         return;
     }
@@ -156,7 +187,6 @@ function renderizarActividades(actividades) {
         const descripcion = actividadItem.querySelector(".actividad-descripcion");
 
         verCompleto.addEventListener("click", () => {
-            // Alternar entre mostrar y ocultar la descripción
             if (descripcion.classList.contains("oculto")) {
                 descripcion.classList.remove("oculto");
                 descripcion.classList.add("visible");
@@ -189,7 +219,6 @@ async function IrAActividad(actividadIdSeleccionada) {
 // Funciones para manejar los botones
 
 async function eliminarActividad(id) {
-    // Confirmación con SweetAlert
     const result = await Swal.fire({
         title: '¿Estás seguro?',
         text: "¡Esta acción no se puede deshacer!",
@@ -201,56 +230,45 @@ async function eliminarActividad(id) {
     });
 
     if (result.isConfirmed) {
-        // Alerta de confirmación antes de la eliminación
-        Swal.fire(
-            'Eliminado!',
-            `La actividad con ID: ${id} ha sido eliminada.`,
-            'success'
-        );
+        Swal.fire('Eliminado!', `La actividad con ID: ${id} ha sido eliminada.`, 'success');
 
         try {
-            // Realizar la petición para eliminar la actividad
-            const response = await fetch(`/Materias/EliminarActividad/${id}`, {
+            const response = await fetch(`/Materias/EliminarActividad?id=${id}`, {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: { 'Content-Type': 'application/json' }
             });
 
-            const data = await response.json();
+            const dataText = await response.text();
+            let data = null; try { data = dataText ? JSON.parse(dataText) : null; } catch (e) { data = null; }
 
-            if (data.message) {
-                Swal.fire({
-                    title: 'Éxito',
-                    text: data.message,
-                    icon: 'success',
-                    timer: 1500,  // Tiempo en milisegundos (1500ms = 1.5 segundos)
-                    showConfirmButton: false  // Esto es opcional, para que no aparezca el botón de "OK"
-                });
-                cargarActividadesDeMateria();// Recargar las actividades.
+            if (response.ok) {
+                cargarActividadesDeMateria();
             } else {
-                Swal.fire(
-                    'Error',
-                    'No se pudo eliminar la actividad. Intenta nuevamente.',
-                    'error'
-                );
+                Swal.fire('Error', data && data.mensaje ? data.mensaje : (dataText || 'No se pudo eliminar la actividad.'), 'error');
             }
         } catch (error) {
-            Swal.fire(
-                'Error',
-                'Hubo un error en la solicitud. Intenta nuevamente.',
-                'error'
-            );
+            Swal.fire('Error', 'Hubo un error en la solicitud. Intenta nuevamente.', 'error');
             console.error('Error al eliminar la actividad:', error);
         }
     } else {
-        Swal.fire({
-            title: 'Cancelado',
-            text: 'La actividad no fue eliminada.',
-            icon: 'info',
-            timer: 1500,  // El tiempo que se mostrará la alerta (1500ms = 1.5 segundos)
-            showConfirmButton: false  // Esto es opcional, para que no aparezca el botón "OK"
-        });
-
+        Swal.fire({ title: 'Cancelado', text: 'La actividad no fue eliminada.', icon: 'info', timer: 1500, showConfirmButton: false });
     }
+}
+
+
+function formatearFecha(fechaStr) {
+    try {
+        const d = new Date(fechaStr);
+        return d.toLocaleString();
+    } catch (e) { return fechaStr; }
+}
+
+function convertirUrlsEnEnlaces(texto) {
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    return (texto || '').replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+}
+
+function editarActividad(id) {
+    // abrir modal editar (pendiente implementar)
+    alert('Editar actividad ' + id);
 }

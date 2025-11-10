@@ -21,13 +21,18 @@
                     <label for="fechaLimite">Fecha y Hora Límite de Entrega:</label>
                     <input type="datetime-local" id="fechaHoraLimite" class="form-control">
 
+                    <label for="tipoActividad">Tipo de actividad:</label>
+                    <select id="tipoActividad" class="form-select">
+                        <option value="">Cargando...</option>
+                    </select>
+
                     <label for="puntaje">Puntaje:</label>
                     <input type="number" id="puntaje" class="form-control" min="0" max="100">
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="registrarActividad()">Publicar</button>
+                <button type="button" class="btn btn-primary" id="btnPublicarActividad" onclick="registrarActividad()">Publicar</button>
                 <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#sugerenciasModal" id="btnSugerencias">Sugerencias</button>
             </div>
         </div>
@@ -55,5 +60,42 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Cargar tipos de actividades cuando se abra el modal
+    document.addEventListener('DOMContentLoaded', function () {
+        var crearModal = document.getElementById('crearActividadModal');
+        if (crearModal) {
+            crearModal.addEventListener('show.bs.modal', function () {
+                cargarTiposActividad();
+            });
+        }
+    });
+
+    async function cargarTiposActividad() {
+        var select = document.getElementById('tipoActividad');
+        if (!select) return;
+        select.innerHTML = '<option value="">Cargando...</option>';
+        try {
+            const resp = await fetch('/Actividades/ObtenerTiposActividades');
+            if (!resp.ok) throw new Error('No se pudieron cargar los tipos');
+            const tipos = await resp.json();
+            if (!tipos || tipos.length === 0) {
+                select.innerHTML = '<option value="">(Sin tipos disponibles)</option>';
+                return;
+            }
+            select.innerHTML = '';
+            tipos.forEach(function (t) {
+                var opt = document.createElement('option');
+                opt.value = t.TipoActividadId;
+                opt.textContent = t.Nombre;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            select.innerHTML = '<option value="">Error al cargar</option>';
+            console.error(e);
+        }
+    }
+</script>
 
 

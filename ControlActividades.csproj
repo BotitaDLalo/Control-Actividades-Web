@@ -440,6 +440,8 @@
     <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Scripts\Alumno\actividadDetalle.js" />
+    <Content Include="Scripts\Alumno\actividades.js" />
     <Content Include="Scripts\Alumno\alumno.js" />
     <Content Include="Scripts\Alumno\Avisos.js" />
     <Content Include="Scripts\Alumno\Calendario.js" />
@@ -521,6 +523,8 @@
     <Content Include="Views\Account\ExternalLoginLink.cshtml" />
     <Content Include="Views\Account\Error.cshtml" />
     <Content Include="Views\Shared\_Sidebar.cshtml" />
+    <Content Include="Views\Alumno\Actividades.cshtml" />
+    <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Images\" />
