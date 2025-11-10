@@ -10,16 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
-
 </head>
 <body>
 
-    <div>
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - Control Actividades</p>
-        </footer>
+    <div class="app-main" style="display:flex; min-height:100vh;">
+        <main class="app-content" style="flex:1; padding:20px;">
+            @RenderBody()
+            <hr />
+            <footer>
+                <p>&copy; @DateTime.Now.Year - Control Actividades</p>
+            </footer>
+        </main>
     </div>
 
     @Scripts.Render("~/bundles/jquery")

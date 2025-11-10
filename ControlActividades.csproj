@@ -436,6 +436,7 @@
     <Content Include="Content\Iconos\WORD-26.svg" />
     <Content Include="Content\Iconos\x.svg" />
     <Content Include="Content\Login\Login.css" />
+    <Content Include="Content\sidebar.css" />
     <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
@@ -507,6 +508,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\sidebar.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -518,6 +520,7 @@
     <Content Include="Views\Shared\_LayoutAdministrador.cshtml" />
     <Content Include="Views\Account\ExternalLoginLink.cshtml" />
     <Content Include="Views\Account\Error.cshtml" />
+    <Content Include="Views\Shared\_Sidebar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Images\" />

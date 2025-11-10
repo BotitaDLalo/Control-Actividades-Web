@@ -1,0 +1,110 @@
+@* Partial sidebar responsivo para Alumno / Docente *@
+@using System.Security.Principal
+@{
+    var isDocente = User.IsInRole("Docente");
+    var isAlumno = User.IsInRole("Alumno");
+}
+<nav class="app-sidebar" id="appSidebar" role="navigation" aria-label="Sidebar">
+    <div class="sidebar-left">
+        <button id="sidebarToggle" class="sidebar-toggle" aria-label="Alternar menú">
+            <span class="hamburger"></span>
+        </button>
+
+        <ul class="sidebar-icons">
+            <li class="icon-item active" data-target="menu-home" title="Inicio" tabindex="0">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+            </li>
+            <li class="icon-item" data-target="menu-actividades" title="Actividades" tabindex="0">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zM13 21h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            </li>
+            <li class="icon-item" data-target="menu-ia" title="IA" tabindex="0">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M12 3C7.03 3 3 6.69 3 11c0 2.28 1.14 4.34 3 5.7V21l4.06-2.03c.63.08 1.28.13 1.94.13 4.97 0 9-3.69 9-8.99S16.97 3 12 3zM9 11H7v-2h2v2zm6 0h-4v-2h4v2z"/></svg>
+            </li>
+            <li class="icon-item" data-target="menu-notificaciones" title="Notificaciones" tabindex="0">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2zm6-6V11c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            </li>
+            <li class="icon-item" data-target="menu-perfil" title="Perfil" tabindex="0">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/><path d="M2 22c0-4 4-6 10-6s10 2 10 6v1H2v-1z"/></svg>
+            </li>
+        </ul>
+    </div>
+
+    <div class="sidebar-content" id="sidebarContent">
+        <div class="sidebar-header">
+            <h4>ControlActividades</h4>
+        </div>
+
+        <div class="menu-section open" id="menu-home">
+            <h5 class="menu-title" role="button" aria-expanded="true" data-toggle="collapse">
+                <span>Inicio</span>
+                <span class="chev">&gt;</span>
+            </h5>
+            <ul class="menu-list">
+                @* Dashboard eliminado *@
+                @if (isDocente)
+                {
+                    @* Mis Materias y Crear Grupo eliminados del sidebar *@
+                }
+                @if (isAlumno)
+                {
+                    <li>@Html.ActionLink("Mis Clases", "Index", "Alumno")</li>
+                    <li>@Html.ActionLink("Unirse a Clase", "Unirse", "Alumno")</li>
+                }
+            </ul>
+        </div>
+
+        <div class="menu-section" id="menu-actividades">
+            <h5 class="menu-title" role="button" aria-expanded="false" data-toggle="collapse">
+                <span>Actividades</span>
+                <span class="chev">&gt;</span>
+            </h5>
+            <ul class="menu-list">
+                @if (isDocente)
+                {
+                    <li>@Html.ActionLink("Crear Actividad", "Crear", "Actividad")</li>
+                    <li>@Html.ActionLink("Gestionar Entregas", "Entregas", "Docente")</li>
+                }
+                else if (isAlumno)
+                {
+                    <li>@Html.ActionLink("Ver Actividades", "Index", "Actividad")</li>
+                    <li>@Html.ActionLink("Mis Entregas", "MisEntregas", "Alumno")</li>
+                }
+            </ul>
+        </div>
+
+        @* Calendario eliminado del sidebar *@
+
+        <div class="menu-section" id="menu-ia">
+            <h5 class="menu-title" role="button" aria-expanded="false" data-toggle="collapse">
+                <span>IA</span>
+                <span class="chev">&gt;</span>
+            </h5>
+            <ul class="menu-list">
+                <li>@Html.ActionLink("Chat IA", "Chat", "IA")</li>
+                <li>@Html.ActionLink("Historial IA", "Historial", "IA")</li>
+            </ul>
+        </div>
+
+        <div class="menu-section" id="menu-notificaciones">
+            <h5 class="menu-title" role="button" aria-expanded="false" data-toggle="collapse">
+                <span>Notificaciones</span>
+                <span class="chev">&gt;</span>
+            </h5>
+            <ul class="menu-list">
+                <li>@Html.ActionLink("Ver Notificaciones", "Index", "Notificaciones")</li>
+                <li>@Html.ActionLink("Ajustes de Notificaciones", "Settings", "Notificaciones")</li>
+            </ul>
+        </div>
+
+        <div class="menu-section" id="menu-perfil">
+            <h5 class="menu-title" role="button" aria-expanded="false" data-toggle="collapse">
+                <span>Cuenta</span>
+                <span class="chev">&gt;</span>
+            </h5>
+            <ul class="menu-list">
+                <li>@Html.ActionLink("Perfil", "Index", "Manage")</li>
+                <li>@Html.ActionLink("Cerrar sesión", "LogOff", "Account")</li>
+            </ul>
+        </div>
+    </div>
+</nav>
