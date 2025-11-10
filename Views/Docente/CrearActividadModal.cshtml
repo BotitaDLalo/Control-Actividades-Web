@@ -32,7 +32,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnPublicarActividad" onclick="registrarActividad()">Publicar</button>
+                <button type="button" class="btn btn-primary" id="btnPublicarActividad">Publicar</button>
                 <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#sugerenciasModal" id="btnSugerencias">Sugerencias</button>
             </div>
         </div>
@@ -69,6 +69,32 @@
             crearModal.addEventListener('show.bs.modal', function () {
                 cargarTiposActividad();
             });
+
+            // Cuando se oculta el modal, restablecer al modo de creación
+            crearModal.addEventListener('hidden.bs.modal', function () {
+                try {
+                    // limpiar formulario
+                    var form = document.getElementById('actividadesForm');
+                    if (form) form.reset();
+
+                    // restaurar texto y comportamiento del botón publicar
+                    var btn = document.getElementById('btnPublicarActividad');
+                    if (btn) {
+                        btn.textContent = 'Publicar';
+                        // quitar listeners previos
+                        var newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        newBtn.addEventListener('click', registrarActividad);
+                    }
+
+                    // limpiar variable global de edición si existe
+                    if (window.editingActividadId) window.editingActividadId = null;
+                } catch (e) { console.warn(e); }
+            });
+
+            // asociar el comportamiento por default al botón (crear)
+            var defaultBtn = document.getElementById('btnPublicarActividad');
+            if (defaultBtn) defaultBtn.addEventListener('click', registrarActividad);
         }
     });
 

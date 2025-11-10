@@ -53,8 +53,8 @@
             <ul class="menu-list">
                 @if (isDocente)
                 {
-                    @* Abrir modal de creación si existe; navegar a EvaluarActividades para la vista docente *@
-                    <li><a href="#" data-bs-toggle="modal" data-bs-target="#crearActividadModal">Crear Actividad</a></li>
+                    @* Reemplazamos el enlace directo por un modal que permita elegir materia antes de crear actividad *@
+                    <li><a href="#" id="openSeleccionarMateria">Crear Actividad</a></li>
                     <li>@Html.ActionLink("Evaluar Actividades", "EvaluarActividades", "Docente")</li>
                 }
                 else if (isAlumno)
@@ -81,3 +81,114 @@
         </div>
     </div>
 </nav>
+
+@* Modal para seleccionar materia antes de crear actividad *@
+<div class="modal fade" id="seleccionarMateriaModal" tabindex="-1" aria-labelledby="seleccionarMateriaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="seleccionarMateriaLabel">Seleccionar Materia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Selecciona la materia donde quieres crear la actividad:</p>
+                <select id="selectMateriaCrear" class="form-select">
+                    <option value="">Cargando materias...</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnCrearParaMateria">Crear en esta materia</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function(){
+            // Abrir modal cuando se haga click en el link
+            var openLink = document.getElementById('openSeleccionarMateria');
+            if (openLink) {
+                openLink.addEventListener('click', function(e){
+                    e.preventDefault();
+                    // cargar materias antes de abrir modal
+                    cargarMateriasDocente();
+                    var modalEl = document.getElementById('seleccionarMateriaModal');
+                    if (modalEl && window.bootstrap) {
+                        var modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    }
+                });
+            }
+
+            async function cargarMateriasDocente(){
+                var select = document.getElementById('selectMateriaCrear');
+                if (!select) return;
+                select.innerHTML = '<option value="">Cargando materias...</option>';
+                try{
+                    // Intentamos obtener docenteId desde un elemento global si existe
+                    var docenteId = null;
+                    var docenteDiv = document.getElementById('docente-datos');
+                    if (docenteDiv) docenteId = docenteDiv.dataset.docenteid;
+
+                    var url = docenteId ? '/api/Materias/ObtenerMateriasDocente?docenteId=' + docenteId : '/api/Materias/ObtenerMaterias';
+
+                    var resp = await fetch(url);
+                    if (!resp.ok) throw new Error('No se pudieron cargar las materias');
+                    var materias = await resp.json();
+                    if (!materias || materias.length === 0){
+                        select.innerHTML = '<option value="">(Sin materias)</option>';
+                        return;
+                    }
+                    select.innerHTML = '';
+                    materias.forEach(function(m){
+                        var opt = document.createElement('option');
+                        opt.value = m.MateriaId || m.materiaId || m.MateriaId || m.materiaId || m.MateriaId; // soporta distintos nombres
+                        opt.textContent = m.NombreMateria || m.nombreMateria || m.NombreMateria || m.nombreMateria || m.NombreMateria;
+                        select.appendChild(opt);
+                    });
+                }catch(err){
+                    console.error(err);
+                    select.innerHTML = '<option value="">Error al cargar</option>';
+                }
+            }
+
+            // Botón que genera la acción: cerrar selector y abrir modal crear actividad con la materia seleccionada
+            var btnCrear = document.getElementById('btnCrearParaMateria');
+            if (btnCrear){
+                btnCrear.addEventListener('click', function(){
+                    var select = document.getElementById('selectMateriaCrear');
+                    if (!select) return;
+                    var selected = select.value;
+                    if (!selected){
+                        if (window.Swal) Swal.fire({ icon: 'warning', title: 'Selecciona una materia', text: 'Debes elegir una materia para crear la actividad.' });
+                        return;
+                    }
+
+                    // Guardar en variable global usada por scripts de crear actividad
+                    window.materiaIdGlobal = selected;
+                    try{
+                        // Abrir modal crear actividad si existe en DOM
+                        var crearModalEl = document.getElementById('crearActividadModal');
+                        if (crearModalEl && window.bootstrap){
+                            var crearModal = new bootstrap.Modal(crearModalEl);
+                            crearModal.show();
+                        } else if (window.jQuery && $('#crearActividadModal').modal){
+                            $('#seleccionarMateriaModal').modal('hide');
+                            $('#crearActividadModal').modal('show');
+                        }
+                    }catch(e){ console.warn(e); }
+
+                    // Cerrar selector modal manualmente si sigue abierto
+                    var selModalEl = document.getElementById('seleccionarMateriaModal');
+                    if (selModalEl && window.bootstrap){
+                        var instance = bootstrap.Modal.getInstance(selModalEl);
+                        if (instance) instance.hide();
+                    }
+                });
+            }
+
+        })();
+    </script>
+}
