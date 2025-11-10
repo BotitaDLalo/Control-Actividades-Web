@@ -27,23 +27,8 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" href="@Url.Action("Index", "Alumno")">
-                                <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/1-26.svg")" alt="Icono de Inicio" />
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a id="calendario-icono" class="nav-link text-dark" href="#">
-                                <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/AGENDA-26.svg")" alt="Icono de Calendario" />
-                            </a>
-                            <div id="calendario-panel" class="calendario-container">
-                                <input type="text" id="calendario-input">
-                            </div>
-                        </li>
-
-                        <li class="nav-item">
-                            <a id="notificaciones-icono" class="nav-link text-dark" href="#">
+                        <li class="nav-item ms-auto">
+                            <a id="notificaciones-icono" class="nav-link text-dark" href="@Url.Action("Index","Notificaciones")" title="Notificaciones">
                                 <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/NOTIFICACIONES-26.svg")" alt="Icono de Notificaciones" />
                             </a>
                             <div id="notificaciones-panel" class="notificaciones-container">
