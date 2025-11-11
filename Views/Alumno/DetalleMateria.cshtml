@@ -4,9 +4,6 @@
     ViewData["Title"] = "Inicio - Alumno";
 
     int alumnoId = ViewBag.AlumnoId;
-
-    int materiaId = ViewBag.MateriId;
-
     int grupoId = ViewBag.GrupoId ?? 0;
 }
 
@@ -19,7 +16,7 @@
             <i class="fas fa-cog"></i>
         </div>
     </div>
-    <!--
+
     <ul class="nav nav-tabs" id="grupoTabs">
         <li class="nav-item">
             <a class="nav-link active" id="avisos-tab" data-bs-toggle="tab" href="#avisos">Avisos</a>
@@ -33,7 +30,7 @@
     </ul>
 
 
-    <!-- Contenido de cada pestaña
+    <!--Contenido de cada pestaña-->
     <div class="tab-content mt-3">
         <div class="tab-pane fade show active" id="avisos">
             <h3>Avisos</h3>
@@ -52,13 +49,13 @@
             <div id="contenidoCalificaciones"></div>
         </div>
     </div>
-    -->
-    <nav class="materia-nav">
-        <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
-        <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
-        <button class="tab-button" onclick="cambiarSeccion('calificaciones')">Calificaciones</button>
-    </nav>
 
+    <!-- <nav class="materia-nav">
+         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
+         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
+         <button class="tab-button" onclick="cambiarSeccion('calificaciones')">Calificaciones</button>
+     </nav>
+        -->
     <div id="contenedor-dinamico" class="materia-content">
         <div id="seccion-avisos" class="seccion">
             <div id="listaDeAvisosDeMateria"></div>
@@ -78,7 +75,6 @@
 @section Scripts{
     <script>
         let alumnoIdGlobal = '@alumnoId';
-        let materiaIdGlobal = '@materiaId';
     </script>
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/alumno")

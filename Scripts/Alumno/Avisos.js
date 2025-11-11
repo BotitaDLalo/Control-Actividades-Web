@@ -1,4 +1,6 @@
-﻿/*$(document).ready(function () {
+﻿function inicializarAvisos() {
+    console.log("✅ inicializarAvisos() fue llamada");
+    console.log("alumnoIdGlobal:", alumnoIdGlobal);
     if (!alumnoIdGlobal) {
         console.error("alumnoIdGlobal no está definido.");
         $("#avisos-container").html("<p>Error al obtener los avisos.</p>");
@@ -7,14 +9,15 @@
 
     $.get("/Alumno/ObtenerAvisos?alumnoId=" + alumnoIdGlobal, function (data) {
         var avisosHtml = "";
+        data.reverse();
         if (data.length > 0) {
             data.forEach(function (aviso) {
                 avisosHtml += `
-                        <li class="list-group-item">
-                            <h5>${aviso.Titulo}</h5>
-                            <p>${aviso.Descripcion}</p>
-                            <small class="text-muted">Publicado el ${new Date(aviso.FechaCreacion).toLocaleString()}</small>
-                        </li>`;
+                    <li class="list-group-item">
+                        <h5>${aviso.Titulo}</h5>
+                        <p>${aviso.Descripcion}</p>
+                        <small class="text-muted">${aviso.FechaCreacion}</small>
+                    </li>`;
             });
         } else {
             avisosHtml = "<p>No hay avisos disponibles.</p>";
@@ -23,8 +26,8 @@
     }).fail(function () {
         $("#avisos-container").html("<p>Error al cargar los avisos.</p>");
     });
-});
-*/
+}
+
 /*
 //AVISO COMPONENTE
 $(document).ready(function () {
@@ -52,7 +55,7 @@ $(document).ready(function () {
 
 
 */
-// Esperamos a que el DOM exista
+/* Esperamos a que el DOM exista
 function inicializarAvisos() {
     var div = document.getElementById("alumno-datos");
     console.log("Tu id es:  " + alumnoIdGlobal)

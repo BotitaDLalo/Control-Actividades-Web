@@ -102,7 +102,7 @@ async function cargarClases() {
     }
 }
 
-// Agregar clase a la vista
+//l45 Agregar clase a la vista
 function agregarCardClase(clase) {
 
     let id = clase.Id;
@@ -130,7 +130,7 @@ function agregarCardClase(clase) {
             </p>
     `;
 
-    // Si la clase es una materia, hacer clic para ir a su página
+    //72 Si la clase es una materia, hacer clic para ir a su página
     if (!clase.esGrupo) {
         card.addEventListener("click", function () {
             window.location.href = `/Alumno/Clase?tipo=materia&id=${id}`;
