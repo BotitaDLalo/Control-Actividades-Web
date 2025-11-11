@@ -429,11 +429,11 @@ namespace ControlActividades.Controllers
                     return Ok(new
                     {
                         Id = idUsuario,
-                        userName = userFound.UserName,
-                        correo = userFound.Email,
-                        rol = rolUsuario,
-                        token = tokenString,
-                        estaAutorizado = EstatusAutorizacion.AUTORIZADO,
+                        UserName = userFound.UserName,
+                        Correo = userFound.Email,
+                        Rol = rolUsuario,
+                        Token = tokenString,
+                        EstaAutorizado = EstatusAutorizacion.AUTORIZADO,
                     });
                 }
 
