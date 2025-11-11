@@ -385,7 +385,39 @@ namespace ControlActividades.Controllers
             }
         }
 
+        // Endpoint to return tipos de actividades for populating select in modal
+        [HttpGet]
+        public async Task<ActionResult> ObtenerTiposActividades()
+        {
+            try
+            {
+                var existe = await Db.cTiposActividades.AnyAsync();
+                if (!existe)
+                {
+                    // Insertar tipos por defecto
+                    var porDefecto = new List<cTiposActividades>
+                    {
+                        new cTiposActividades { Nombre = "Tarea" },
+                        new cTiposActividades { Nombre = "Examen" },
+                        new cTiposActividades { Nombre = "Cuestionario" }
+                    };
 
+                    Db.cTiposActividades.AddRange(porDefecto);
+                    await Db.SaveChangesAsync();
+                }
+
+                var tipos = await Db.cTiposActividades
+                    .Select(t => new { t.TipoActividadId, t.Nombre })
+                    .ToListAsync();
+
+                return Json(tipos, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {

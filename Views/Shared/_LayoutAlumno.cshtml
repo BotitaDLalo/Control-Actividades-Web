@@ -6,9 +6,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     @Styles.Render("~/Content/css")
+    <link href="~/Content/sidebar.css" rel="stylesheet" />
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
+    @Html.Partial("_Sidebar")
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 layout">
             <div class="container-fluid">
@@ -25,23 +27,8 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" href="@Url.Action("Index", "Alumno")">
-                                <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/1-26.svg")" alt="Icono de Inicio" />
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a id="calendario-icono" class="nav-link text-dark" href="#">
-                                <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/AGENDA-26.svg")" alt="Icono de Calendario" />
-                            </a>
-                            <div id="calendario-panel" class="calendario-container">
-                                <input type="text" id="calendario-input">
-                            </div>
-                        </li>
-
-                        <li class="nav-item">
-                            <a id="notificaciones-icono" class="nav-link text-dark" href="#">
+                        <li class="nav-item ms-auto">
+                            <a id="notificaciones-icono" class="nav-link text-dark" href="@Url.Action("Index","Notificaciones")" title="Notificaciones">
                                 <img class="iconos-nav" src="@Url.Content("~/Content/Iconos/NOTIFICACIONES-26.svg")" alt="Icono de Notificaciones" />
                             </a>
                             <div id="notificaciones-panel" class="notificaciones-container">
@@ -84,6 +71,7 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/sidebar.js"></script>
     @RenderSection("scripts", required: false)
     @RenderSection("styles", required: false)
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

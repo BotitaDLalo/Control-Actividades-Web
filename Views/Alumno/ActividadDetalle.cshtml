@@ -1,0 +1,30 @@
+@{
+    Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
+    ViewBag.Title = "ActividadDetalle";
+    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId : 0;
+    int actividadId = Request.QueryString["actividadId"] != null ? int.Parse(Request.QueryString["actividadId"]) : 0;
+}
+
+<div class="container">
+    <h2 id="tituloActividad">Cargando...</h2>
+    <p id="descripcionActividad"></p>
+    <p>Fecha límite: <span id="fechaLimite"></span></p>
+
+    <div id="estadoEntrega"></div>
+
+    <div id="entregaForm">
+        <label for="respuesta">Respuesta:</label>
+        <textarea id="respuesta" class="form-control" rows="6"></textarea>
+        <button class="btn btn-primary mt-2" id="btnEnviar">Enviar entrega</button>
+    </div>
+
+    <div id="calificacionAlumno" style="margin-top:20px;"></div>
+</div>
+
+@section Scripts {
+    <script>
+        var alumnoIdGlobal = @alumnoId;
+        var actividadIdGlobal = @actividadId;
+    </script>
+    <script src="~/Scripts/Alumno/actividadDetalle.js"></script>
+}

@@ -1,0 +1,157 @@
+/* Estilos básicos sidebar y topbar (header) */
+:root{
+  --sidebar-left-width:60px;
+  --sidebar-expanded-width:260px; /* reduce a 260 para que no ocupe tanto espacio */
+  --header-height:64px;
+  --brand-color: #2f9fff;
+  --accent: #2f9fff;
+  --muted: #7a7f87;
+  --bg: #f5f7f8;
+}
+
+/* Reset ligero para que la sidebar "case" con el resto */
+body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: var(--bg); color: #222; }
+
+/* Top header visible en todas las vistas */
+.app-header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:var(--header-height);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  background:linear-gradient(90deg,var(--brand-color),#6b6ff8);
+  color:#fff;
+  z-index:1001;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+}
+.app-header .brand{display:flex;align-items:center;gap:12px}
+.app-header .brand h3{margin:0;font-size:18px;font-weight:700;letter-spacing:0.3px}
+.app-header .header-actions{display:flex;align-items:center;gap:12px}
+.app-header .header-actions .action{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);color:#fff}
+
+/* Sidebar fijado debajo del header */
+.app-sidebar {
+  position:fixed;
+  top: var(--header-height); /* justo debajo del header */
+  left:0;
+  bottom:0;
+  display:flex;
+  height: calc(100vh - var(--header-height));
+  background: #ffffff;
+  border-right: 1px solid rgba(0,0,0,0.04);
+  overflow:auto;
+  width: var(--sidebar-expanded-width);
+  transition: none;
+  z-index:900;
+  box-shadow: 2px 0 6px rgba(18,38,63,0.03);
+}
+
+/* Asegurar que el header esté por encima visualmente */
+.app-header{ z-index: 1001 }
+
+/* Ajustar margen del main para coincidir con el header */
+.app-main { margin-top: var(--header-height); }
+
+/* Pequeño ajuste para el logo pequeño de la columna izquierda para no sobresalir */
+.sidebar-left .small-logo { display:block; margin:6px 0 8px 0; }
+.sidebar-left .small-logo img{ display:block; max-height:32px; }
+
+.app-sidebar .sidebar-left {
+  width: var(--sidebar-left-width);
+  min-width: var(--sidebar-left-width);
+  background: transparent;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding-top:14px;
+}
+
+/* Icons column: smaller, muted */
+.app-sidebar .sidebar-icons { list-style:none; padding:0; margin:6px 0; width:100%; }
+.app-sidebar .icon-item { width:100%; display:flex; justify-content:center; padding:10px 0; cursor:pointer; color:var(--muted); }
+.app-sidebar .icon-item:hover{ background: rgba(47,159,255,0.04); color: var(--brand-color); }
+.app-sidebar .icon-item.active{ color: var(--brand-color); }
+.app-sidebar .icon { width:20px; height:20px; fill: currentColor; }
+
+.app-sidebar .sidebar-content {
+  width: calc(var(--sidebar-expanded-width) - var(--sidebar-left-width));
+  padding: 18px 14px;
+  overflow:auto;
+}
+
+/* Cabecera de la sidebar: logo + texto, integrado con header */
+.sidebar-header{
+  display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,0.04);
+}
+.sidebar-header .brand-link img{height:36px;border-radius:6px;background:linear-gradient(180deg, #4fc3ff22, transparent);} 
+.sidebar-header .brand-link strong{color:#111;font-size:15px}
+.sidebar-header .brand-link small{color:var(--muted);font-size:11px}
+
+/* acciones (notificaciones + usuario) alineadas a la derecha de la cabecera */
+.sidebar-header .actions{margin-left:auto;display:flex;align-items:center;gap:12px}
+.sidebar-header .notif{display:inline-flex;align-items:center;gap:8px}
+.sidebar-header .notif svg{width:20px;height:20px;color:var(--muted)}
+.sidebar-header .logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px}
+.sidebar-header .logout-btn:hover{color:var(--brand-color);background:rgba(47,159,255,0.04)}
+
+/* Ajuste del contenido principal cuando hay sidebar */
+.app-main {
+  margin-top: calc(var(--header-height) + 6px);
+  margin-left: var(--sidebar-expanded-width);
+  transition: margin-left .25s ease;
+  min-height: calc(100vh - var(--header-height));
+  padding: 24px 28px;
+}
+
+/* panel principal interior: mantener fondo claro para las tarjetas */
+.app-content-inner{background:transparent}
+.card-custom{background:#fff;border-radius:8px;padding:18px;box-shadow:0 1px 3px rgba(20,40,60,0.04);border:1px solid rgba(0,0,0,0.04)}
+
+/* menu items: list simple, con icono y texto alineado */
+.menu-title { font-size:13px; margin:12px 0 8px 0; color:#333; display:block }
+.menu-list { list-style:none; padding-left:0; margin:0; }
+.menu-list li { padding:10px 8px; border-radius:6px; }
+.menu-list li a { color:#2b2b2b; text-decoration:none; display:flex; align-items:center; gap:10px; padding:6px 8px }
+.menu-list li a .menu-icon{width:18px;height:18px;color:var(--muted)}
+.menu-list li:hover{ background: rgba(47,159,255,0.03);} 
+.menu-list li.active, .menu-list li a.active{ color:var(--brand-color); font-weight:600; }
+
+/* pequeños badges */
+.badge { background:var(--brand-color); color:#fff; font-size:11px; padding:2px 6px; border-radius:999px }
+
+/* responsive: en pantallas pequeñas la sidebar puede ocultarse (el header puede manejar toggle) */
+@media (max-width: 992px) {
+  :root{ --sidebar-expanded-width:220px }
+  .app-main{ margin-left: var(--sidebar-expanded-width); }
+}
+@media (max-width: 768px) {
+  .app-sidebar { transform: translateX(-100%); position:fixed; z-index:999; }
+  .app-sidebar.open { transform: translateX(0); }
+  .app-main { margin-left: 0; }
+}
+
+/* Submenu styles for mini-dropdown */
+.menu-list.submenu { padding-left:12px; }
+.menu-list.submenu li { padding:8px 6px; border-radius:6px; display:block }
+.menu-list.submenu li.username { font-weight:700; color:#333; padding-top:6px }
+.menu-list.submenu li .logout-btn { background:none;border:none;color:var(--muted);cursor:pointer;padding:6px 0 }
+
+/* Make the submenu collapsed by default and expandable */
+.menu-list.submenu { max-height:0; overflow:hidden; transition: max-height .22s ease; }
+.menu-section.open .menu-list.submenu { max-height:800px; }
+
+/* Adjust icon column spacing */
+.app-sidebar .sidebar-left { padding-top:8px }
+.app-sidebar .sidebar-icons { margin:12px 0 }
+
+/* style for items inside submenu to look like a dropdown */
+.menu-list.submenu li a { padding-left:4px }
+
+/* small tweak for username/logout */
+.menu-list.submenu li.username { padding-left:4px; color:#111 }
+.menu-list.submenu li form .logout-btn{ color:var(--muted) }
+.menu-list.submenu li form .logout-btn:hover{ color:var(--brand-color) }
