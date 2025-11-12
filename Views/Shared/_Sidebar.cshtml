@@ -1,194 +1,87 @@
-@* Partial sidebar responsivo para Alumno / Docente *@
+@* Redesigned sidebar: visual style like the provided reference (layout and interactions), content kept as existing ActionLinks *@
 @using System.Security.Principal
 @{
     var isDocente = User.IsInRole("Docente");
     var isAlumno = User.IsInRole("Alumno");
 }
-<nav class="app-sidebar" id="appSidebar" role="navigation" aria-label="Sidebar">
-    <div class="sidebar-left">
-        <button id="sidebarToggle" class="sidebar-toggle" aria-label="Alternar menú">
-            <span class="hamburger"></span>
-        </button>
-
-        <ul class="sidebar-icons">
-            <li class="icon-item" data-target="menu-home" title="Inicio">
-                <svg viewBox="0 0 24 24" class="icon"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
-            </li>
-            <li class="icon-item" data-target="menu-actividades" title="Actividades">
-                <svg viewBox="0 0 24 24" class="icon"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zM13 21h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-            </li>
-            <li class="icon-item" data-target="menu-calendario" title="Calendario">
-                <svg viewBox="0 0 24 24" class="icon"><path d="M7 10h5v5H7z"/><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM5 20V9h14l.002 11H5z"/></svg>
-            </li>
-            <li class="icon-item" data-target="menu-perfil" title="Perfil">
-                <svg viewBox="0 0 24 24" class="icon"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/><path d="M2 22c0-4 4-6 10-6s10 2 10 6v1H2v-1z"/></svg>
-            </li>
-        </ul>
-    </div>
-
-    <div class="sidebar-content" id="sidebarContent">
-        <div class="sidebar-header">
-            <h4>ControlActividades</h4>
+<aside class="app-sidebar new-sidebar" id="appSidebar" role="navigation" aria-label="Sidebar">
+    <div class="sidebar-inner">
+        <div class="sidebar-top">
+            <a class="brand-link" href="@Url.Action("Index","Home")">
+                <img src="@Url.Content("~/Content/Iconos/LOGO HORIZONTAL-26.svg")" alt="Logo" class="sidebar-logo" />
+            </a>
+            <button id="sidebarToggle" class="sidebar-toggle" aria-label="Alternar menú">
+                <span class="hamburger"></span>
+            </button>
         </div>
 
-        <div class="menu-section" id="menu-home">
-            <h5 class="menu-title">Inicio</h5>
-            <ul class="menu-list">
-                <li>@Html.ActionLink("Dashboard", "Index", "Home")</li>
-                @if (isDocente)
-                {
-                    <li>@Html.ActionLink("Mis Materias", "Index", "Docente")</li>
-                    <li>@Html.ActionLink("Crear Grupo", "CrearGrupo", "Docente")</li>
-                }
-                @if (isAlumno)
-                {
-                    <li>@Html.ActionLink("Mis Clases", "Index", "Alumno")</li>
-                    <li>@Html.ActionLink("Unirse a Clase", "Unirse", "Alumno")</li>
-                }
+        <div class="sidebar-cta">
+            <button class="btn btn-cta" id="btnSidebarCrear" data-bs-toggle="modal" data-bs-target="#materiasModal">Crear</button>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+            <ul class="nav-sections">
+                <li class="nav-section" id="section-inicio">
+                    <button class="section-btn" data-target="#menu-home" aria-expanded="false">
+                        <i class="fas fa-home"></i>
+                        <span class="section-label">Inicio</span>
+                        <i class="caret fas fa-chevron-right"></i>
+                    </button>
+                    <ul class="section-submenu menu-list submenu" id="menu-home" aria-hidden="true">
+                        <li><a href="@Url.Action("Index", "Home")"><i class="menu-icon fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-section" id="section-actividades">
+                    <button class="section-btn" data-target="#menu-actividades" aria-expanded="false">
+                        <i class="fas fa-th-large"></i>
+                        <span class="section-label">Actividades</span>
+                        <i class="caret fas fa-chevron-right"></i>
+                    </button>
+                    <ul class="section-submenu" id="menu-actividades" aria-hidden="true">
+                        @if (isDocente)
+                        {
+                            <li>@Html.ActionLink("Evaluar Actividades", "EvaluarActividades", "Docente", null, new { @class = "submenu-link" })</li>
+                        }
+                        else if (isAlumno)
+                        {
+                            <li>@Html.ActionLink("Ver Actividades", "Actividades", "Alumno", null, new { @class = "submenu-link" })</li>
+                            <li>@Html.ActionLink("Mis Entregas", "MisEntregas", "Alumno", null, new { @class = "submenu-link" })</li>
+                        }
+                    </ul>
+                </li>
+
+                <li class="nav-section" id="section-calendario">
+                    <button class="section-btn" data-target="#menu-calendario" aria-expanded="false">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span class="section-label">Calendario</span>
+                        <i class="caret fas fa-chevron-right"></i>
+                    </button>
+                    <ul class="section-submenu menu-list submenu" id="menu-calendario" aria-hidden="true">
+                        <li><a href="@Url.Action("Calendario", "Home")"><i class="menu-icon fas fa-calendar-alt"></i> Calendario</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-section" id="section-config">
+                    <button class="section-btn" data-target="#menu-perfil" aria-expanded="false">
+                        <i class="fas fa-user"></i>
+                        <span class="section-label">Cuenta</span>
+                        <i class="caret fas fa-chevron-right"></i>
+                    </button>
+                    <ul class="section-submenu" id="menu-perfil" aria-hidden="true">
+                        <li>@Html.ActionLink("Perfil", "Index", "Manage", null, new { @class = "submenu-link" })</li>
+                        <li>@Html.ActionLink("Cerrar sesión", "LogOff", "Account", null, new { @class = "submenu-link" })</li>
+                    </ul>
+                </li>
             </ul>
-        </div>
+        </nav>
 
-        <div class="menu-section" id="menu-actividades">
-            <h5 class="menu-title">Actividades</h5>
-            <ul class="menu-list">
-                @if (isDocente)
-                {
-                    @* Reemplazamos el enlace directo por un modal que permita elegir materia antes de crear actividad *@
-                    <li><a href="#" id="openSeleccionarMateria">Crear Actividad</a></li>
-                    <li>@Html.ActionLink("Evaluar Actividades", "EvaluarActividades", "Docente")</li>
-                }
-                else if (isAlumno)
-                {
-                    <li>@Html.ActionLink("Ver Actividades", "Actividades", "Alumno")</li>
-                    <li>@Html.ActionLink("Mis Entregas", "MisEntregas", "Alumno")</li>
-                }
-            </ul>
-        </div>
-
-        <div class="menu-section" id="menu-calendario">
-            <h5 class="menu-title">Calendario</h5>
-            <ul class="menu-list">
-                <li>@Html.ActionLink("Calendario", "Calendario", "Home")</li>
-            </ul>
-        </div>
-
-        <div class="menu-section" id="menu-perfil">
-            <h5 class="menu-title">Cuenta</h5>
-            <ul class="menu-list">
-                <li>@Html.ActionLink("Perfil", "Index", "Manage")</li>
-                <li>@Html.ActionLink("Cerrar sesión", "LogOff", "Account")</li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
-@* Modal para seleccionar materia antes de crear actividad *@
-<div class="modal fade" id="seleccionarMateriaModal" tabindex="-1" aria-labelledby="seleccionarMateriaLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="seleccionarMateriaLabel">Seleccionar Materia</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <p>Selecciona la materia donde quieres crear la actividad:</p>
-                <select id="selectMateriaCrear" class="form-select">
-                    <option value="">Cargando materias...</option>
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnCrearParaMateria">Crear en esta materia</button>
-            </div>
+        <div class="sidebar-footer">
+            <small class="muted">© @DateTime.Now.Year</small>
         </div>
     </div>
-</div>
+</aside>
 
 @section Scripts {
-    <script>
-        (function(){
-            // Abrir modal cuando se haga click en el link
-            var openLink = document.getElementById('openSeleccionarMateria');
-            if (openLink) {
-                openLink.addEventListener('click', function(e){
-                    e.preventDefault();
-                    // cargar materias antes de abrir modal
-                    cargarMateriasDocente();
-                    var modalEl = document.getElementById('seleccionarMateriaModal');
-                    if (modalEl && window.bootstrap) {
-                        var modal = new bootstrap.Modal(modalEl);
-                        modal.show();
-                    }
-                });
-            }
-
-            async function cargarMateriasDocente(){
-                var select = document.getElementById('selectMateriaCrear');
-                if (!select) return;
-                select.innerHTML = '<option value="">Cargando materias...</option>';
-                try{
-                    // Intentamos obtener docenteId desde un elemento global si existe
-                    var docenteId = null;
-                    var docenteDiv = document.getElementById('docente-datos');
-                    if (docenteDiv) docenteId = docenteDiv.dataset.docenteid;
-
-                    var url = docenteId ? '/api/Materias/ObtenerMateriasDocente?docenteId=' + docenteId : '/api/Materias/ObtenerMaterias';
-
-                    var resp = await fetch(url);
-                    if (!resp.ok) throw new Error('No se pudieron cargar las materias');
-                    var materias = await resp.json();
-                    if (!materias || materias.length === 0){
-                        select.innerHTML = '<option value="">(Sin materias)</option>';
-                        return;
-                    }
-                    select.innerHTML = '';
-                    materias.forEach(function(m){
-                        var opt = document.createElement('option');
-                        opt.value = m.MateriaId || m.materiaId || m.MateriaId || m.materiaId || m.MateriaId; // soporta distintos nombres
-                        opt.textContent = m.NombreMateria || m.nombreMateria || m.NombreMateria || m.nombreMateria || m.NombreMateria;
-                        select.appendChild(opt);
-                    });
-                }catch(err){
-                    console.error(err);
-                    select.innerHTML = '<option value="">Error al cargar</option>';
-                }
-            }
-
-            // Botón que genera la acción: cerrar selector y abrir modal crear actividad con la materia seleccionada
-            var btnCrear = document.getElementById('btnCrearParaMateria');
-            if (btnCrear){
-                btnCrear.addEventListener('click', function(){
-                    var select = document.getElementById('selectMateriaCrear');
-                    if (!select) return;
-                    var selected = select.value;
-                    if (!selected){
-                        if (window.Swal) Swal.fire({ icon: 'warning', title: 'Selecciona una materia', text: 'Debes elegir una materia para crear la actividad.' });
-                        return;
-                    }
-
-                    // Guardar en variable global usada por scripts de crear actividad
-                    window.materiaIdGlobal = selected;
-                    try{
-                        // Abrir modal crear actividad si existe en DOM
-                        var crearModalEl = document.getElementById('crearActividadModal');
-                        if (crearModalEl && window.bootstrap){
-                            var crearModal = new bootstrap.Modal(crearModalEl);
-                            crearModal.show();
-                        } else if (window.jQuery && $('#crearActividadModal').modal){
-                            $('#seleccionarMateriaModal').modal('hide');
-                            $('#crearActividadModal').modal('show');
-                        }
-                    }catch(e){ console.warn(e); }
-
-                    // Cerrar selector modal manualmente si sigue abierto
-                    var selModalEl = document.getElementById('seleccionarMateriaModal');
-                    if (selModalEl && window.bootstrap){
-                        var instance = bootstrap.Modal.getInstance(selModalEl);
-                        if (instance) instance.hide();
-                    }
-                });
-            }
-
-        })();
-    </script>
+    <script src="~/Scripts/sidebar.js"></script>
 }
