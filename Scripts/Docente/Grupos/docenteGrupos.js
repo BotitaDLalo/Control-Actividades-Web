@@ -195,7 +195,7 @@ async function cargarGrupos() {
             cardBody.style.justifyContent = "space-between";
             cardBody.style.alignItems = "center";
             cardBody.style.flex = "1";
-            cardBody.style.overflow = "hidden";
+            cardBody.style.overflow = "visible";
 
             // 📌 Sección de texto
             const textSection = document.createElement("div");

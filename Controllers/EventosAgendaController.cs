@@ -107,6 +107,12 @@ namespace ControlActividades.Controllers
                 return new HttpStatusCodeResult(400, "Datos inválidos.");
             }
 
+            if (evento.FechaFinal < evento.FechaInicio)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "La fecha final no puede ser anterior a la fecha de inicio" });
+            }
+
             if (evento.Color != "azul" && evento.Color != "gris")
             {
                 return new HttpStatusCodeResult(400, "Solo se permiten los colores azul y gris.");
@@ -150,7 +156,7 @@ namespace ControlActividades.Controllers
             return Json(eventos, JsonRequestBehavior.AllowGet);
         }
 
-
+        //[Authorize]
         [HttpPut]
         public async Task<ActionResult> EditarEvento(EventoEditarDTO model)
         {
@@ -189,6 +195,31 @@ namespace ControlActividades.Controllers
             {
                 Response.StatusCode = 500; //Internal Server Error
                 return Json(new { mensaje = "Error al actualizar el evento ", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        //[Authorize]
+        [HttpDelete]
+        public async Task<ActionResult> EliminarEvento(int id)
+        {
+            try
+            {
+                var eventoEliminar = await Db.tbEventosAgenda.FindAsync(id);
+                if (eventoEliminar == null)
+                {
+                    Response.StatusCode = 400; // Bad Request
+                    return Json(new { mensaje = "Evento no encontrado" }, JsonRequestBehavior.AllowGet);
+                }
+
+                Db.tbEventosAgenda.Remove(eventoEliminar);
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Evento eliminado" }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500; //Internal Server Error
+                return Json(new { mensaje = "Error al eliminar el evento ", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
