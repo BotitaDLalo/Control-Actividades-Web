@@ -14,10 +14,18 @@
             data.forEach(function (aviso) {
                 avisosHtml += `
                     <li class="list-group-item">
-                        <h5>${aviso.Titulo}</h5>
-                        <p>${aviso.Descripcion}</p>
-                        <small class="text-muted">${aviso.FechaCreacion}</small>
+                    <div class="aviso-header">
+                        <div class="aviso-icono">📢</div>
+                        <div class="aviso-info">
+                            <strong>${aviso.Titulo}</strong>
+                            <p>${aviso.Descripcion}</p>
+                            <p class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion}</p>
+                        </div>
+                    </div>
                     </li>`;
+
+
+               
             });
         } else {
             avisosHtml = "<p>No hay avisos disponibles.</p>";

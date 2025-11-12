@@ -151,6 +151,46 @@ namespace ControlActividades.Controllers
         }
 
 
+        [HttpPut]
+        public async Task<ActionResult> EditarEvento(EventoEditarDTO model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    Response.StatusCode = 400; // Bad Request
+                    return Json(new { mensaje = "Datos inválidos" });
+                }
+
+                var eventoEditar = await Db.tbEventosAgenda.FindAsync(model.EventoId);
+                if (eventoEditar == null) {
+                    Response.StatusCode = 404; // Not Found
+                    return Json(new { mensaje = "Evento no encontrado" });
+                }
+
+                if (model.FechaFinal < model.FechaInicio)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "La fecha final no puede ser anterior a la fecha de inicio" });
+                }
+
+                eventoEditar.Titulo = model.Titulo;
+                eventoEditar.Descripcion = model.Descripcion;
+                eventoEditar.FechaInicio = model.FechaInicio;
+                eventoEditar.FechaFinal = model.FechaFinal;
+                eventoEditar.Color = model.Color;
+                
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Evento actualizado correctamente" });
+
+            }
+            catch(Exception ex) 
+            {
+                Response.StatusCode = 500; //Internal Server Error
+                return Json(new { mensaje = "Error al actualizar el evento ", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {

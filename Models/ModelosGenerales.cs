@@ -437,6 +437,26 @@ namespace ControlActividades.Models
         public string ApellidoMaterno { get; set; }
     }
 
+    public class EventoEditarDTO
+    {
+        public int EventoId { get; set; }
+
+        [Required]
+        public string Titulo { get; set; }
+
+        [Required]
+        public string Descripcion { get; set; }
+
+        [Required]
+        public DateTime FechaInicio { get; set; }
+
+        [Required]
+        public DateTime FechaFinal { get; set; }
+
+        [Required]
+        public string Color { get; set; }
+    }
+
     public class AsociarMateriasRequest
     {
         public int GrupoId { get; set; }
