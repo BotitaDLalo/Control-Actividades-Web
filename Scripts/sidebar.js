@@ -1,4 +1,4 @@
-// Manejo del sidebar: navegación por íconos, y submenus desplegables
+// Manejo del sidebar: navegación por botones de sección y submenus
 (function () {
     'use strict';
 
@@ -119,6 +119,8 @@
         var sidebar = document.getElementById('appSidebar');
         if (!sidebar) return;
         sidebar.classList.toggle('collapsed');
+        // after toggling, sync the main margin so content doesn't go behind the sidebar
+        syncMainMargin();
     }
 
     function openSidebarMobile() {
@@ -127,6 +129,7 @@
         if (!sidebar) return;
         sidebar.classList.add('mobile-open');
         if (backdrop) backdrop.classList.add('show');
+        syncMainMargin();
     }
 
     function closeSidebarMobile() {
@@ -135,6 +138,22 @@
         if (!sidebar) return;
         sidebar.classList.remove('mobile-open');
         if (backdrop) backdrop.classList.remove('show');
+        syncMainMargin();
+    }
+
+    // Ensure main content margin matches sidebar width so nothing goes behind it
+    function syncMainMargin() {
+        try {
+            var sidebar = document.getElementById('appSidebar');
+            var main = document.querySelector('.app-main');
+            if (!sidebar || !main) return;
+            var rect = sidebar.getBoundingClientRect();
+            // use the computed width in pixels
+            var widthPx = Math.ceil(rect.width);
+            main.style.marginLeft = widthPx + 'px';
+        } catch (e) {
+            console.warn('syncMainMargin failed', e);
+        }
     }
 
     // Automatically adjust sidebar when zoom or small viewport detected
@@ -144,28 +163,27 @@
         if (!sidebar) return;
         var dpr = window.devicePixelRatio || 1;
         var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        // More aggressive collapse: if DPR indicates zoom >= ~140% or viewport width small => collapse
+        // Collapse if DPR indicates zoom >= ~140% or viewport width small
         var shouldCollapse = (dpr >= 1.4) || (vw < 1200);
         if (shouldCollapse) {
             sidebar.classList.add('collapsed');
-            // also ensure main content margin is reduced by applying collapsed class effect
             document.documentElement.classList.add('sidebar-collapsed-active');
         } else {
             sidebar.classList.remove('collapsed');
             document.documentElement.classList.remove('sidebar-collapsed-active');
         }
 
+        // sync main margin to current sidebar width so content never sits under sidebar
+        syncMainMargin();
+
         // Adjust root font-size so UI scales inversely to page zoom (so sidebar doesn't cover content)
         try {
-            // compute percent scale: when DPR >1 (zoom in) we reduce font-size, when DPR <1 (zoom out) we increase
             var scalePercent = Math.round((1 / dpr) * 100);
-            // clamp to avoid extreme sizes
             var minPct = 75; // 75%
             var maxPct = 120; // 120%
             if (scalePercent < minPct) scalePercent = minPct;
             if (scalePercent > maxPct) scalePercent = maxPct;
             if (Math.abs(scalePercent - 100) <= 2) {
-                // near default, remove inline override to keep browser default behavior
                 document.documentElement.style.fontSize = '';
                 delete document.documentElement.dataset.uiScale;
             } else {
@@ -173,7 +191,6 @@
                 document.documentElement.dataset.uiScale = scalePercent;
             }
         } catch (e) {
-            // silent fail if any environment blocks changing root font size
             console.warn('Zoom scaling adjust failed', e);
         }
     }
@@ -193,7 +210,6 @@
 
     // MAIN UI behaviour
     function initSidebar() {
-        // find our section buttons and section containers matching the markup in _Sidebar.cshtml
         var toggles = Array.prototype.slice.call(document.querySelectorAll('.section-btn'));
         var sections = Array.prototype.slice.call(document.querySelectorAll('.nav-section'));
 
@@ -202,49 +218,54 @@
             return;
         }
 
-        function closeAllExcept(targetId) {
+        function closeAllExcept(id) {
             sections.forEach(function (s) {
-                var submenu = s.querySelector('.section-submenu');
-                var btn = s.querySelector('.section-btn');
-                if (!submenu || !btn) return;
-                if (targetId && s.id === targetId) return;
+                if (s.id === id) return;
                 s.classList.remove('open');
-                submenu.setAttribute('aria-hidden', 'true');
-                btn.setAttribute('aria-expanded', 'false');
-                try { s.dataset.manual = 'false'; } catch (e) { /* ignore */ }
+                s.dataset.manual = 'false';
+                var submenu = s.querySelector('.section-submenu');
+                if (submenu) submenu.setAttribute('aria-hidden', 'true');
+                var btn = s.querySelector('.section-btn'); if (btn) btn.setAttribute('aria-expanded', 'false');
             });
         }
 
         toggles.forEach(function (btn) {
-            btn.addEventListener('click', function (ev) {
-                ev.preventDefault();
-                // find the parent nav-section for this button
-                var parentSection = btn.closest('.nav-section');
-                if (!parentSection) return;
-                var submenu = parentSection.querySelector('.section-submenu');
-                if (!submenu) return;
+            btn.addEventListener('click', function (e) {
+                // if button has data-href and click was not on the caret, navigate
+                try {
+                    var href = btn.getAttribute('data-href');
+                    // detect if click target is the caret icon
+                    var isCaret = e.target.closest && e.target.closest('.caret');
+                    if (href && !isCaret) {
+                        window.location.href = href;
+                        return;
+                    }
+                } catch (err) { /* ignore */ }
 
-                var isOpen = parentSection.classList.contains('open');
-                if (isOpen) {
-                    // close
-                    parentSection.classList.remove('open');
-                    parentSection.querySelector('.section-btn').setAttribute('aria-expanded', 'false');
+                // otherwise toggle submenu
+                var parent = btn.closest('.nav-section');
+                if (!parent) return;
+                var submenu = parent.querySelector('.section-submenu');
+                if (!submenu) return;
+                var open = parent.classList.contains('open');
+                if (open) {
+                    parent.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
                     submenu.setAttribute('aria-hidden', 'true');
-                    try { parentSection.dataset.manual = 'false'; } catch (e) { }
+                    try { parent.dataset.manual = 'false'; } catch (e) { }
                 } else {
-                    // open this and close others
-                    closeAllExcept(parentSection.id);
-                    parentSection.classList.add('open');
-                    parentSection.querySelector('.section-btn').setAttribute('aria-expanded', 'true');
+                    closeAllExcept(parent.id);
+                    parent.classList.add('open');
+                    btn.setAttribute('aria-expanded', 'true');
                     submenu.setAttribute('aria-hidden', 'false');
-                    try { parentSection.dataset.manual = 'true'; } catch (e) { }
+                    try { parent.dataset.manual = 'true'; } catch (e) { }
                 }
             });
 
-            btn.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { btn.click(); e.preventDefault(); } });
+            btn.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { btn.click(); ev.preventDefault(); } });
         });
 
-        // hover behaviour for desktop: show submenu on hover if not manually opened
+        // hover behaviour for desktop
         if (!('ontouchstart' in window) && window.innerWidth > 768) {
             sections.forEach(function (sec) {
                 var submenu = sec.querySelector('.section-submenu');
@@ -266,45 +287,41 @@
             });
         }
 
-        // initial open state: restore last opened section or open first
-        var last = null; try { last = localStorage.getItem('sidebar.lastSection'); } catch (e) { last = null; }
-        var targetSection = null;
-        if (last) targetSection = document.getElementById(last);
-        if (!targetSection) {
-            // pick first section's submenu
-            var firstSection = sections[0];
-            if (firstSection) targetSection = firstSection;
+        // initial state
+        sections.forEach(function (s) { var sub = s.querySelector('.section-submenu'); if (sub) sub.setAttribute('aria-hidden', 'true'); s.classList.remove('open'); var b = s.querySelector('.section-btn'); if (b) b.setAttribute('aria-expanded', 'false'); try { s.dataset.manual = 'false'; } catch (e) {} });
+
+        // wire collapse toggle
+        var toggleBtn = document.getElementById('sidebarToggle'); if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebarCollapsed);
+
+        // backdrop for mobile
+        var backdrop = document.createElement('div'); backdrop.id = 'sidebar-backdrop'; document.body.appendChild(backdrop); backdrop.addEventListener('click', closeSidebarMobile);
+
+        // mobile open triggers
+        var mobileOpenBtn = document.querySelector('[data-toggle="sidebar-mobile"]'); if (mobileOpenBtn) mobileOpenBtn.addEventListener('click', function (e) { e.preventDefault(); openSidebarMobile(); });
+
+        // wire create button to header create
+        var sideCreateBtn = document.getElementById('btnSidebarCrear');
+        if (sideCreateBtn) {
+            sideCreateBtn.addEventListener('click', function (e) {
+                try { e.preventDefault(); } catch (ex) { }
+                var rightBtn = document.getElementById('misCursos-dropdownBtn');
+                var rightMenu = document.getElementById('misCursos-dropdownMenu');
+                if (rightBtn) { rightBtn.click(); return; }
+                if (rightMenu) { rightMenu.style.display = rightMenu.style.display === 'block' ? 'none' : 'block'; return; }
+                var target = sideCreateBtn.getAttribute('data-bs-target');
+                if (target) {
+                    try {
+                        if (window.jQuery && jQuery.fn && jQuery.fn.modal) jQuery(target).modal('show'); else { var modalEl = document.querySelector(target); if (modalEl) modalEl.style.display = 'block'; }
+                    } catch (err) { console.warn('No se pudo abrir modal', err); }
+                }
+            });
         }
 
-        // close all, then open the chosen
-        sections.forEach(function (s) { var sub = s.querySelector('.section-submenu'); if (sub) { sub.setAttribute('aria-hidden', 'true'); } s.classList.remove('open'); var b = s.querySelector('.section-btn'); if (b) b.setAttribute('aria-expanded', 'false'); try { s.dataset.manual = 'false'; } catch (e) {} });
-        if (targetSection) {
-            var parent = (targetSection.classList && targetSection.classList.contains('nav-section')) ? targetSection : targetSection.closest('.nav-section');
-            if (parent) {
-                parent.classList.add('open');
-                var pb = parent.querySelector('.section-btn'); if (pb) pb.setAttribute('aria-expanded', 'true');
-                var ps = parent.querySelector('.section-submenu'); if (ps) ps.setAttribute('aria-hidden', 'false');
-                try { parent.dataset.manual = 'true'; } catch (e) {}
-            }
-        }
-
-        // wire collapse toggle if exists
-        var toggleBtn = document.getElementById('sidebarToggle');
-        if (toggleBtn) toggleBtn.addEventListener('click', function () { toggleSidebarCollapsed(); });
-
-        // create mobile backdrop and wire open/close
-        var backdrop = document.createElement('div'); backdrop.id = 'sidebar-backdrop'; document.body.appendChild(backdrop);
-        backdrop.addEventListener('click', function () { closeSidebarMobile(); });
-
-        // open mobile via adding class to body button (if user has a hamburger elsewhere)
-        var mobileOpenBtn = document.querySelector('[data-toggle="sidebar-mobile"]');
-        if (mobileOpenBtn) mobileOpenBtn.addEventListener('click', function (e) { e.preventDefault(); openSidebarMobile(); });
-
-        // perform initial zoom/viewport check
+        // initial adjustments
         checkZoomAndAdjust();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSidebar); else initSidebar();
     window.populateCursos = populateCursos;
 
-})();})();
+})();
