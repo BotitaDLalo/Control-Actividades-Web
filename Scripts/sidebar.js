@@ -154,6 +154,28 @@
             sidebar.classList.remove('collapsed');
             document.documentElement.classList.remove('sidebar-collapsed-active');
         }
+
+        // Adjust root font-size so UI scales inversely to page zoom (so sidebar doesn't cover content)
+        try {
+            // compute percent scale: when DPR >1 (zoom in) we reduce font-size, when DPR <1 (zoom out) we increase
+            var scalePercent = Math.round((1 / dpr) * 100);
+            // clamp to avoid extreme sizes
+            var minPct = 75; // 75%
+            var maxPct = 120; // 120%
+            if (scalePercent < minPct) scalePercent = minPct;
+            if (scalePercent > maxPct) scalePercent = maxPct;
+            if (Math.abs(scalePercent - 100) <= 2) {
+                // near default, remove inline override to keep browser default behavior
+                document.documentElement.style.fontSize = '';
+                delete document.documentElement.dataset.uiScale;
+            } else {
+                document.documentElement.style.fontSize = scalePercent + '%';
+                document.documentElement.dataset.uiScale = scalePercent;
+            }
+        } catch (e) {
+            // silent fail if any environment blocks changing root font size
+            console.warn('Zoom scaling adjust failed', e);
+        }
     }
 
     function scheduleZoomCheck(delay) {
@@ -171,69 +193,99 @@
 
     // MAIN UI behaviour
     function initSidebar() {
-        var icons = Array.prototype.slice.call(document.querySelectorAll('.sidebar-icons .icon-item'));
-        var sections = Array.prototype.slice.call(document.querySelectorAll('.menu-section'));
+        // find our section buttons and section containers matching the markup in _Sidebar.cshtml
+        var toggles = Array.prototype.slice.call(document.querySelectorAll('.section-btn'));
+        var sections = Array.prototype.slice.call(document.querySelectorAll('.nav-section'));
 
-        if (!icons.length || !sections.length) {
-            console.warn('Sidebar: no icons or sections found');
+        if (!toggles.length || !sections.length) {
+            console.warn('Sidebar: no section buttons or nav sections found');
             return;
         }
 
-        function closeAllExcept(id) {
+        function closeAllExcept(targetId) {
             sections.forEach(function (s) {
-                if (s.id === id) return;
+                var submenu = s.querySelector('.section-submenu');
+                var btn = s.querySelector('.section-btn');
+                if (!submenu || !btn) return;
+                if (targetId && s.id === targetId) return;
                 s.classList.remove('open');
-                s.style.display = 'none';
-                s.dataset.manual = 'false';
+                submenu.setAttribute('aria-hidden', 'true');
+                btn.setAttribute('aria-expanded', 'false');
+                try { s.dataset.manual = 'false'; } catch (e) { /* ignore */ }
             });
         }
 
-        icons.forEach(function (it) {
-            it.addEventListener('click', function () {
-                icons.forEach(function (i) { i.classList.remove('active'); });
-                it.classList.add('active');
-                var targetId = it.getAttribute('data-target');
-                var el = document.getElementById(targetId);
-                if (!el) return;
-                var isOpen = el.classList.contains('open');
+        toggles.forEach(function (btn) {
+            btn.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                // find the parent nav-section for this button
+                var parentSection = btn.closest('.nav-section');
+                if (!parentSection) return;
+                var submenu = parentSection.querySelector('.section-submenu');
+                if (!submenu) return;
+
+                var isOpen = parentSection.classList.contains('open');
                 if (isOpen) {
-                    el.classList.remove('open'); el.style.display = 'none'; el.dataset.manual = 'false';
+                    // close
+                    parentSection.classList.remove('open');
+                    parentSection.querySelector('.section-btn').setAttribute('aria-expanded', 'false');
+                    submenu.setAttribute('aria-hidden', 'true');
+                    try { parentSection.dataset.manual = 'false'; } catch (e) { }
                 } else {
-                    closeAllExcept(targetId);
-                    el.style.display = 'block';
-                    window.requestAnimationFrame(function () { el.classList.add('open'); });
-                    el.dataset.manual = 'true';
-                    if (targetId === 'menu-cursos') populateCursos();
+                    // open this and close others
+                    closeAllExcept(parentSection.id);
+                    parentSection.classList.add('open');
+                    parentSection.querySelector('.section-btn').setAttribute('aria-expanded', 'true');
+                    submenu.setAttribute('aria-hidden', 'false');
+                    try { parentSection.dataset.manual = 'true'; } catch (e) { }
                 }
             });
 
-            it.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { it.click(); e.preventDefault(); } });
+            btn.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { btn.click(); e.preventDefault(); } });
         });
 
-        // hover behaviour for desktop
+        // hover behaviour for desktop: show submenu on hover if not manually opened
         if (!('ontouchstart' in window) && window.innerWidth > 768) {
             sections.forEach(function (sec) {
+                var submenu = sec.querySelector('.section-submenu');
+                var btn = sec.querySelector('.section-btn');
+                if (!submenu || !btn) return;
                 sec.addEventListener('mouseenter', function () {
                     if (sec.dataset.manual === 'true') return;
                     closeAllExcept(sec.id);
-                    sec.style.display = 'block';
-                    window.requestAnimationFrame(function () { sec.classList.add('open'); });
+                    sec.classList.add('open');
+                    submenu.setAttribute('aria-hidden', 'false');
+                    btn.setAttribute('aria-expanded', 'true');
                 });
                 sec.addEventListener('mouseleave', function () {
                     if (sec.dataset.manual === 'true') return;
-                    sec.classList.remove('open'); sec.style.display = 'none';
+                    sec.classList.remove('open');
+                    submenu.setAttribute('aria-hidden', 'true');
+                    btn.setAttribute('aria-expanded', 'false');
                 });
             });
         }
 
-        // initial open
+        // initial open state: restore last opened section or open first
         var last = null; try { last = localStorage.getItem('sidebar.lastSection'); } catch (e) { last = null; }
-        var targetEl = null; if (last) targetEl = document.getElementById(last);
-        if (!targetEl) targetEl = sections[0];
-        sections.forEach(function (s) { s.style.display = 'none'; s.classList.remove('open'); s.dataset.manual = 'false'; });
-        if (targetEl) { targetEl.style.display = 'block'; targetEl.classList.add('open'); targetEl.dataset.manual = 'true';
-            var iconFor = document.querySelector('.sidebar-icons .icon-item[data-target="' + (targetEl ? targetEl.id : '') + '"]');
-            if (iconFor) { document.querySelectorAll('.sidebar-icons .icon-item').forEach(function (i) { i.classList.remove('active'); }); iconFor.classList.add('active'); }
+        var targetSection = null;
+        if (last) targetSection = document.getElementById(last);
+        if (!targetSection) {
+            // pick first section's submenu
+            var firstSection = sections[0];
+            if (firstSection) targetSection = firstSection;
+        }
+
+        // close all, then open the chosen
+        sections.forEach(function (s) { var sub = s.querySelector('.section-submenu'); if (sub) { sub.setAttribute('aria-hidden', 'true'); } s.classList.remove('open'); var b = s.querySelector('.section-btn'); if (b) b.setAttribute('aria-expanded', 'false'); try { s.dataset.manual = 'false'; } catch (e) {} });
+        if (targetSection) {
+            var parent = (targetSection.classList && targetSection.classList.contains('nav-section')) ? targetSection : targetSection.closest('.nav-section');
+            if (parent) {
+                parent.classList.add('open');
+                var pb = parent.querySelector('.section-btn'); if (pb) pb.setAttribute('aria-expanded', 'true');
+                var ps = parent.querySelector('.section-submenu'); if (ps) ps.setAttribute('aria-hidden', 'false');
+                try { parent.dataset.manual = 'true'; } catch (e) {}
+            }
         }
 
         // wire collapse toggle if exists
@@ -255,4 +307,4 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSidebar); else initSidebar();
     window.populateCursos = populateCursos;
 
-})();
+})();})();

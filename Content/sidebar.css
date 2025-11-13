@@ -1,12 +1,13 @@
 /* Estilos básicos sidebar y topbar (header) */
 :root{
   --sidebar-left-width: clamp(56px, 6vw, 80px); /* 60px default */
-  --sidebar-expanded-width: clamp(200px, 22vw, 320px); /* responsive: min 220px, preferred 18vw, max 360px */
+  --sidebar-expanded-width: clamp(200px, 22vw, 320px); /* responsive: min 200px, preferred 22vw, max 320px */
   --header-height: 4rem; /* 64px */
   --brand-color: #2f9fff;
   --accent: #2f9fff;
   --muted: #7a7f87;
   --bg: #f5f7f8;
+  /* single source of truth for sidebar width used by layout (responsive and zoom-friendly) */
   --sidebar-width: clamp(14rem, 18vw, 24rem);
   --sidebar-compact: 3.75rem;
   --brand: #ff7b00; /* orange accent similar to reference */
@@ -49,7 +50,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
   background: #ffffff;
   border-right: 1px solid rgba(0,0,0,0.04);
   overflow:auto;
-  width: var(--sidebar-expanded-width);
+  width: var(--sidebar-width); /* use unified variable */
   transition: width .18s ease, transform .18s ease;
   z-index:900;
   box-shadow: 2px 0 6px rgba(18,38,63,0.03);
@@ -63,7 +64,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
   left: 0;
   top: 0;
   bottom: 0;
-  width: var(--sidebar-width);
+  width: var(--sidebar-width); /* use unified variable */
   background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
   border-right: 1px solid rgba(0,0,0,0.04);
   box-shadow: 2px 0 12px rgba(0,0,0,0.04);
@@ -112,6 +113,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 
 /* responsive: collapse to compact icon-only */
 @media (max-width: 880px) {
+  :root { --sidebar-width: var(--sidebar-compact); } /* ensure layout uses compact width on small screens */
   .new-sidebar{ width: var(--sidebar-compact); }
   .new-sidebar .sidebar-inner{ padding:0.5rem }
   .btn-cta{ display:none }
@@ -142,7 +144,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 .icon-popover::before {
   content: '';
   position: absolute;
-  left: calc(var(--sidebar-left-width) - 6px);
+  left: calc(var(--sidebar-width) - 6px); /* align with current sidebar width */
   top: 8px;
   width: 10px;
   height: 10px;
@@ -177,7 +179,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 /* Smooth transitions */
 .app-sidebar {
   transition: width .22s ease, transform .2s ease;
-  width: var(--sidebar-expanded-width);
+  width: var(--sidebar-width);
   min-width: var(--sidebar-left-width);
   overflow-y: auto;
 }
@@ -197,13 +199,14 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 
 /* Hidden by default for mobile (off-canvas to left) */
 @media (max-width: 992px) {
+  :root { --sidebar-width: var(--sidebar-expanded-width); } /* allow larger off-canvas width on tablet */
   .app-sidebar {
     transform: translateX(-100%);
     position: fixed;
     left: 0;
     top: var(--header-height);
     height: calc(100vh - var(--header-height));
-    width: var(--sidebar-expanded-width);
+    width: var(--sidebar-width);
     background: #fff;
   }
 
@@ -214,9 +217,9 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
   .app-main { margin-left: 0; }
 }
 
-/* Desktop layout: main content has left margin equal to sidebar width, but use max() to avoid overlap on zoom */
+/* Desktop layout: main content has left margin equal to sidebar width, keep it in sync so zoom doesn't cause overlap */
 @media (min-width: 993px) {
-  .app-main { margin-left: max(var(--sidebar-expanded-width), var(--sidebar-left-width)); transition: margin-left .25s ease; }
+  .app-main { margin-left: var(--sidebar-width); transition: margin-left .25s ease; }
 }
 
 /* Provide a backdrop when sidebar is open on mobile */
@@ -258,7 +261,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 
 /* If user zooms (viewport becomes narrow) force sidebar to collapse to icon only to avoid covering content */
 @media (max-width: 1200px) and (min-width: 993px) {
-  .app-sidebar { width: min(var(--sidebar-expanded-width), 28vw); }
+  .app-sidebar { width: min(var(--sidebar-width), 28vw); }
 }
 
 /* accessibility focus */
