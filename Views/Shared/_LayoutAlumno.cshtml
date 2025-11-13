@@ -60,12 +60,14 @@
     </header>
 
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-
-            <br />
-            <br />
+    <!-- Wrap the main content in .app-main so CSS can apply the left margin to avoid overlapping the sidebar -->
+    <div class="app-main" style="display:flex; min-height:100vh;">
+        <main class="app-content" style="flex:1; padding:20px;">
+            <div class="container">
+                @RenderBody()
+                <br />
+                <br />
+            </div>
         </main>
     </div>
 

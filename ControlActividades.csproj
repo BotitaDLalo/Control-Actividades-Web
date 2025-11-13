@@ -311,6 +311,7 @@
     <Compile Include="Controllers\AlumnoApiController.cs" />
     <Compile Include="Controllers\AlumnoController.cs" />
     <Compile Include="Controllers\AvisosApiController.cs" />
+    <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\DocenteApiController.cs" />
     <Compile Include="Controllers\DocenteController.cs" />
     <Compile Include="Controllers\EventosAgendaApiController.cs" />
@@ -325,6 +326,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="HashGen.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>

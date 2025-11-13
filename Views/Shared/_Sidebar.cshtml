@@ -3,12 +3,18 @@
 @{
     var isDocente = User.IsInRole("Docente");
     var isAlumno = User.IsInRole("Alumno");
-    var inicioUrl = isDocente ? Url.Action("Index", "Docente") : Url.Action("Index", "Home");
+    // also detect alumno by route or ViewBag in case role claims are not present in the principal
+    var currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
+    if (!isAlumno && (string.Equals(currentController, "Alumno", StringComparison.OrdinalIgnoreCase) || ViewBag.AlumnoId != null))
+    {
+        isAlumno = true;
+    }
+    var inicioUrl = isDocente ? Url.Action("Index", "Docente") : (isAlumno ? Url.Action("Index", "Alumno") : Url.Action("Index", "Home"));
 }
 <aside class="app-sidebar new-sidebar" id="appSidebar" role="navigation" aria-label="Sidebar">
     <div class="sidebar-inner">
         <div class="sidebar-top">
-            <a class="brand-link" href="@Url.Action("Index","Home")">
+            <a class="brand-link" href="@inicioUrl">
                 <img src="@Url.Content("~/Content/Iconos/LOGO HORIZONTAL-26.svg")" alt="Logo" class="sidebar-logo" />
             </a>
             <button id="sidebarToggle" class="sidebar-toggle" aria-label="Alternar menú">
@@ -23,7 +29,7 @@
         <nav class="sidebar-nav" aria-label="Main navigation">
             <ul class="nav-sections">
                 <li class="nav-section" id="section-inicio">
-                    <!-- Inicio: el botón tiene data-href para navegar; el caret controla el submenu -->
+                    <!-- Inicio: el botón tiene data-href para navegar; el caret controls the submenu -->
                     <button class="section-btn" data-target="#menu-home" aria-expanded="false" data-href="@inicioUrl">
                         <i class="fas fa-home"></i>
                         <span class="section-label">Inicio</span>
@@ -72,7 +78,13 @@
                     </button>
                     <ul class="section-submenu" id="menu-perfil" aria-hidden="true">
                         <li>@Html.ActionLink("Perfil", "Index", "Manage", null, new { @class = "submenu-link" })</li>
-                        <li>@Html.ActionLink("Cerrar sesión", "LogOff", "Account", null, new { @class = "submenu-link" })</li>
+                        <li>
+                            @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { @class = "logout-form" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="submenu-link btn-link" style="border:none;background:none;padding:0;color:inherit;text-align:left;">Cerrar sesión</button>
+                            }
+                        </li>
                     </ul>
                 </li>
             </ul>
