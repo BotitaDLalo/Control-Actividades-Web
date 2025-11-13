@@ -161,14 +161,14 @@
     function checkZoomAndAdjust() {
         var sidebar = document.getElementById('appSidebar');
         if (!sidebar) return;
-        var dpr = window.devicePixelRatio || 1;
+        // Collapse only when viewport is small (mobile), do not collapse based on devicePixelRatio (zoom)
         var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        // Collapse if DPR indicates zoom >= ~140% or viewport width small
-        var shouldCollapse = (dpr >= 1.4) || (vw < 1200);
+        var shouldCollapse = (vw < 992); // mobile breakpoint
         if (shouldCollapse) {
             sidebar.classList.add('collapsed');
             document.documentElement.classList.add('sidebar-collapsed-active');
         } else {
+            // keep sidebar expanded by default on larger viewports regardless of zoom
             sidebar.classList.remove('collapsed');
             document.documentElement.classList.remove('sidebar-collapsed-active');
         }
@@ -176,11 +176,12 @@
         // sync main margin to current sidebar width so content never sits under sidebar
         syncMainMargin();
 
-        // Adjust root font-size so UI scales inversely to page zoom (so sidebar doesn't cover content)
+        // Optionally adjust root font-size for zoom visual smoothing (does not affect collapse)
         try {
+            var dpr = window.devicePixelRatio || 1;
             var scalePercent = Math.round((1 / dpr) * 100);
-            var minPct = 75; // 75%
-            var maxPct = 120; // 120%
+            var minPct = 75;
+            var maxPct = 120;
             if (scalePercent < minPct) scalePercent = minPct;
             if (scalePercent > maxPct) scalePercent = maxPct;
             if (Math.abs(scalePercent - 100) <= 2) {
