@@ -1,4 +1,4 @@
-/* Estilos básicos sidebar y topbar (header) */
+/* Estilos b?sicos sidebar y topbar (header) */
 :root{
   --sidebar-left-width: clamp(56px, 6vw, 80px); /* 60px default */
   --sidebar-expanded-width: clamp(200px, 22vw, 320px); /* responsive: min 200px, preferred 22vw, max 320px */
@@ -10,7 +10,8 @@
   /* single source of truth for sidebar width used by layout (responsive and zoom-friendly) */
   --sidebar-width: clamp(14rem, 18vw, 24rem);
   --sidebar-compact: 3.75rem;
-  --brand: #ff7b00; /* orange accent similar to reference */
+  /* Replaced orange with requested hex #283043 */
+  --brand: #283043; /* was #ff7b00 */
   --panel-bg: #f7f8fa;
 }
 
@@ -82,7 +83,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 .sidebar-toggle{ margin-left:auto; background:none; border:none; cursor:pointer }
 
 .sidebar-cta{ margin: 1rem 0; }
-.btn-cta{ width:100%; background:var(--brand); color:#fff; border:none; padding:0.6rem 0.8rem; border-radius:8px; font-weight:600; box-shadow: 0 6px 18px rgba(255,123,0,0.12); }
+.btn-cta{ width:100%; background:var(--brand); color:#fff; border:none; padding:0.6rem 0.8rem; border-radius:8px; font-weight:600; box-shadow: 0 6px 18px rgba(40,48,67,0.12); }
 .btn-cta:hover{ filter: brightness(.98); }
 
 .sidebar-nav{ margin-top:0.5rem; flex:1; }
@@ -95,7 +96,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 
 /* active section header visual like the reference (orange pill) */
 .nav-section.open > .section-btn, .nav-section .section-btn.active {
-  background: linear-gradient(90deg, var(--brand), #ff9b3d);
+  background: linear-gradient(90deg, var(--brand), #394152);
   color:#fff;
 }
 
@@ -232,7 +233,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
   width:100%;
   margin:12px 0;
   padding:10px 12px;
-  background: linear-gradient(90deg,#ff8a00,#ff5c00);
+  background: linear-gradient(90deg,var(--brand),#394152);
   color:#fff;
   border-radius:8px;
   text-align:center;
@@ -242,7 +243,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 
 /* Menu item active highlight */
 .menu-list li.active, .menu-list li a.active {
-  background: linear-gradient(90deg,#ff8a00,#ff5c00);
+  background: linear-gradient(90deg,var(--brand),#394152);
   color: #fff !important;
 }
 
