@@ -110,7 +110,7 @@ function renderizarAvisos(avisos) {
         return;
     }
     avisos.reverse();
-    
+
 
     avisos.forEach(aviso => {
         const avisoItem = document.createElement("div");

@@ -108,14 +108,24 @@
                     <button type="submit">Guardar</button>
                 </form>
             </div>
-    
-    </div>
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    <script src="~/Scripts/sidebar.js"></script>
-    @RenderSection("scripts", required: false)
-    @RenderSection("styles", required: false)
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        </div>
+
+        @Scripts.Render("~/bundles/jquery")
+        @Scripts.Render("~/bundles/bootstrap")
+        <script src="~/Scripts/sidebar.js"></script>
+
+        <!--SPINNER DE CARGA-->
+        <div id="loader" class="carga">
+            <div class="spinner"></div>
+            <div class="texto-carga">Cargando...</div>
+        </div>
+        <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
+        <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
+
+
+        @RenderSection("scripts", required: false)
+        @RenderSection("styles", required: false)
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
