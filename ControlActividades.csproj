@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -388,6 +388,7 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\Componentes\carga.css" />
     <Content Include="Content\Docente\actividadesSeccion.css" />
     <Content Include="Content\Docente\alumnosSeccion.css" />
     <Content Include="Content\Docente\avisosSeccion.css" />
@@ -460,6 +461,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\Componentes\componenteAvisos.js" />
     <Content Include="Scripts\Docente\Agenda.js" />
     <Content Include="Scripts\Docente\Confirmacion.js" />
     <Content Include="Scripts\Docente\footer.js" />
@@ -499,7 +501,6 @@
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
-    <Content Include="App_Data\push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <None Include="Scripts\jquery-3.7.0-vsdoc.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
@@ -591,6 +592,12 @@
     <EmbeddedResource Include="Migrations\202510031833068_InitialMigration.resx">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\Componentes\PantallaCarga.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

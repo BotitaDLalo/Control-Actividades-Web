@@ -8,6 +8,7 @@ async function guardarGrupo() {
     const color = "#2196F3";
     const checkboxes = document.querySelectorAll(".materia-checkbox:checked");
 
+    
     if (nombre.trim() === '') {
         Swal.fire({
             position: "top-end",
@@ -43,7 +44,7 @@ async function guardarGrupo() {
             DocenteId: docenteIdGlobal
         })
     });
-
+    
     if (response.ok) {
         const grupoCreado = await response.json();
         const grupoId = grupoCreado.grupoId;
@@ -69,6 +70,8 @@ async function guardarGrupo() {
 
         // Asociar materias seleccionadas al grupo
         if (materiasSeleccionadas.length > 0) {
+            //console.log("Checkboxes seleccionados:"); Revisar que los ids se estén pasando
+            checkboxes.forEach(cb => console.log(cb.value, cb.checked));
             await asociarMateriasAGrupo(grupoId, materiasSeleccionadas);
         }
 
@@ -93,6 +96,29 @@ async function guardarGrupo() {
         });
     }
 }
+
+async function asociarMateriasAGrupo(grupoId, materiasSeleccionadas) {
+    try {
+        const response = await fetch('/Materias/AsociarMateriasAGrupo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                GrupoId: grupoId,
+                MateriaIds: materiasSeleccionadas
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data.mensaje || "Materias asociadas correctamente");
+        } else {
+            console.error("Error al asociar materias al grupo");
+        }
+    } catch (error) {
+        console.error("Error en la solicitud:", error);
+    }
+}
+
 
 //funcion que ayuda a agregar materias nuevas para el grupo
 function agregarMateria() {
@@ -169,7 +195,7 @@ async function cargarGrupos() {
             cardBody.style.justifyContent = "space-between";
             cardBody.style.alignItems = "center";
             cardBody.style.flex = "1";
-            cardBody.style.overflow = "hidden";
+            cardBody.style.overflow = "visible";
 
             // 📌 Sección de texto
             const textSection = document.createElement("div");
@@ -201,19 +227,21 @@ async function cargarGrupos() {
             textSection.appendChild(description);
 
             // 📌 Sección del botón (Icono de engranaje)
+            const lista = document.getElementById('listaGrupos');
+
             const ctaSection = document.createElement("div");
-            ctaSection.classList.add("cta-section");
+            ctaSection.classList.add("cta-section", "dropdown", "dropend");
             ctaSection.style.maxWidth = "40%";
             ctaSection.style.display = "flex";
             ctaSection.style.flexDirection = "column";
             ctaSection.style.justifyContent = "center";
+            ctaSection.style.position = "relative";
 
             const settingsButton = document.createElement("button");
             settingsButton.classList.add("btn", "btn-link", "text-white", "p-0");
             settingsButton.type = "button";
             settingsButton.setAttribute("data-bs-toggle", "dropdown");
             settingsButton.setAttribute("aria-expanded", "false");
-            settingsButton.onclick = (event) => event.stopPropagation();
             settingsButton.style.width = "3em";
             settingsButton.style.height = "3em";
             settingsButton.style.display = "flex";
@@ -228,11 +256,12 @@ async function cargarGrupos() {
             settingsIcon.style.fontSize = "1.5em";
 
 
+
             // ... (el código anterior hasta crear el settingsButton)
 
             // Crear el menú dropdown con clases de Bootstrap
-            const dropdownMenu = document.createElement("div");
-            dropdownMenu.classList.add("dropdown-menu");
+            const dropdownMenu = document.createElement("ul");
+            dropdownMenu.classList.add("dropdown-menu", "dropdown-menu-end", "mt-2");
 
             // Añadir items al dropdown
             const dropdownItems = [
@@ -242,6 +271,7 @@ async function cargarGrupos() {
             ];
 
             dropdownItems.forEach(item => {
+                const li = document.createElement("li");
                 const dropdownItem = document.createElement("a");
                 dropdownItem.classList.add("dropdown-item");
                 dropdownItem.href = "#";
@@ -250,14 +280,15 @@ async function cargarGrupos() {
                     e.preventDefault();
                     item.action();
                 });
-                dropdownMenu.appendChild(dropdownItem);
+                li.appendChild(dropdownItem);
+                dropdownMenu.appendChild(li);
             });
 
             // Ensamblar todos los elementos
             settingsButton.appendChild(settingsIcon);
             ctaSection.appendChild(settingsButton);
             ctaSection.appendChild(dropdownMenu);
-
+            lista.appendChild(ctaSection);
 
             // 📌 Contenedor de materias (inicialmente oculto)
             const materiasContainer = document.createElement("div");
@@ -383,7 +414,7 @@ async function handleCardClick(grupoId) {
                     const editLink = document.createElement("a");
                     editLink.classList.add("dropdown-item");
                     editLink.href = "#";
-                    editLink.onclick = () => editarMateria(materia.MateriaId);
+                    editLink.onclick = () => editarMateria(materia.MateriaId, materia.NombreMateria, materia.Descripcion);
                     editLink.textContent = "Editar";
                     editLi.appendChild(editLink);
 

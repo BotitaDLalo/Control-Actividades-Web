@@ -4,13 +4,15 @@
     ViewData["Title"] = "Inicio - Alumno";
 
     int alumnoId = ViewBag.AlumnoId;
+    int grupoId = ViewBag.GrupoId ?? 0;
 }
 
+<div id="alumno-datos" data-alumnoid="@alumnoId"></div>
 <div class="materia-container">
     <div class="materia-header" id="materiaHeader">
         <h2>@Model.NombreMateria</h2>
         <div class="materia-info">
-            <span>Código de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
+            <span>CÃ³digo de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
             <i class="fas fa-cog"></i>
         </div>
     </div>
@@ -28,7 +30,7 @@
     </ul>
 
 
-    <!-- Contenido de cada pestaña -->
+    <!--Contenido de cada pestaÃ±a-->
     <div class="tab-content mt-3">
         <div class="tab-pane fade show active" id="avisos">
             <h3>Avisos</h3>
@@ -48,11 +50,31 @@
         </div>
     </div>
 
+    <!-- <nav class="materia-nav">
+         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
+         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
+         <button class="tab-button" onclick="cambiarSeccion('calificaciones')">Calificaciones</button>
+     </nav>
+        -->
+    <div id="contenedor-dinamico" class="materia-content">
+        <div id="seccion-avisos" class="seccion">
+            <div id="listaDeAvisosDeMateria"></div>
+        </div>
+
+        <div id="seccion-actividades" class="seccion" style="display: none;">
+            <div class="divider"></div>
+            <div id="listaActividadesDeMateria"></div>
+        </div>
+
+        <div id="seccion-calificaciones" class="seccion" style="display: none;">
+            <h2>Calificaciones</h2>
+        </div>
+    </div>
 </div>
 
 @section Scripts{
     <script>
-        const alumnoIdGlobal = '@alumnoId';
+        let alumnoIdGlobal = '@alumnoId';
     </script>
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/alumno")

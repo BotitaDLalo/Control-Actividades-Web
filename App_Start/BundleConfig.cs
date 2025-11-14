@@ -20,7 +20,7 @@ namespace ControlActividades
                         "~/Scripts/modernizr-*"));
 
             bundles.Add(new Bundle("~/bundles/bootstrap").Include(
-                      "~/Scripts/bootstrap.js"));
+                      "~/Scripts/bootstrap.bundle.min.js"));
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
@@ -76,6 +76,7 @@ namespace ControlActividades
                  "~/Scripts/Alumno/Notificaciones.js",
                  "~/Scripts/Alumno/UnirseClase.js",
                  "~/Scripts/Alumno/VentanasDi.js",
+                 "~/Scripts/Componentes/componenteAvisos.js",
                  "~/Scripts/Alumno/Vistamaterias.js"
             ));
 
