@@ -210,12 +210,22 @@ namespace ControlActividades.Controllers
 
                 lsMateriasId = lsMateriasId.Where(a => !lsGruposMateriasId.Contains(a)).ToList();
 
-                var lsMaterias = await Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(a => new
+                var lsMaterias = Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(a => new
                 {
                     a.MateriaId,
                     a.NombreMateria,
-                    actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).ToList()
-                }).ToListAsync();
+                    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b=> new
+                    {
+                        b.ActividadId,
+                        b.NombreActividad,
+                        b.Descripcion,
+                        b.FechaCreacion,
+                        b.FechaLimite,
+                        b.TipoActividadId,
+                        b.Puntaje,
+                        b.MateriaId,
+                    }).ToList()
+                }).ToList();
 
                 return Ok(lsMaterias);
             }

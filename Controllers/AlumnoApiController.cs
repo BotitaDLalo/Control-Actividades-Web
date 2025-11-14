@@ -507,7 +507,7 @@ namespace ControlActividades.Controllers
                 var email = verifyEmail.Email;
                 if (!string.IsNullOrEmpty(email))
                 {
-                    var user = await _userManager.FindByEmailAsync(email);
+                    var user = await UserManager.FindByEmailAsync(email);
                     if (user != null)
                     {
                         var alumnoExiste = Db.tbAlumnos.Any(a => a.UserId == user.Id);
@@ -542,7 +542,7 @@ namespace ControlActividades.Controllers
 
                 foreach (var email in lsEmails)
                 {
-                    var user = await _userManager.FindByEmailAsync(email);
+                    var user = await UserManager.FindByEmailAsync(email);
 
                     if (user != null)
                     {
@@ -737,7 +737,7 @@ namespace ControlActividades.Controllers
                     var alumnoDatos = Db.tbAlumnos.Where(a => a.AlumnoId == id).FirstOrDefault();
                     if (alumnoDatos != null)
                     {
-                        var userName = await _userManager.FindByIdAsync(alumnoDatos.UserId);
+                        var userName = await UserManager.FindByIdAsync(alumnoDatos.UserId);
 
                         EmailVerificadoAlumno alumno = new EmailVerificadoAlumno()
                         {
