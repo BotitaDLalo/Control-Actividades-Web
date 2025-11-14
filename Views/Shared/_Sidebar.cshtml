@@ -59,6 +59,22 @@
                     </ul>
                 </li>
 
+                @* Nueva sección: Grupos y Materias visible solo para Alumnos *@
+                @if (isAlumno)
+                {
+                    <li class="nav-section" id="section-grupos-materias">
+                        <button class="section-btn" data-target="#menu-grupos-materias" aria-expanded="false">
+                            <i class="fas fa-layer-group"></i>
+                            <span class="section-label">Grupos y Materias</span>
+                            <i class="caret fas fa-chevron-right"></i>
+                        </button>
+                        <ul class="section-submenu" id="menu-grupos-materias" aria-hidden="true">
+                            <li>@Html.ActionLink("Grupo", "Grupos", "Alumno", null, new { @class = "submenu-link" })</li>
+                            <li>@Html.ActionLink("Materias sin grupo", "MateriasSinGrupo", "Alumno", null, new { @class = "submenu-link" })</li>
+                        </ul>
+                    </li>
+                }
+
                 <li class="nav-section" id="section-calendario">
                     <button class="section-btn" data-target="#menu-calendario" aria-expanded="false">
                         <i class="fas fa-calendar-alt"></i>

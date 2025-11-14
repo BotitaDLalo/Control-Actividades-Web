@@ -529,6 +529,8 @@
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
     <Content Include="Views\Home\Calendario.cshtml" />
+    <Content Include="Views\Alumno\_GruposPartial.cshtml" />
+    <Content Include="Views\Alumno\_MateriasSinGrupoPartial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Images\" />

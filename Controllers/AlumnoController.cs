@@ -297,6 +297,37 @@ namespace ControlActividades.Controllers
             return View();
         }
 
+        // GET: /Alumno/Grupos
+        [HttpGet]
+        public ActionResult Grupos()
+        {
+            string userId = User.Identity.GetUserId();
+            var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
+            ViewBag.AlumnoId = alumnoId;
+
+            if (Request.IsAjaxRequest() || (Request.Headers["X-Requested-With"] == "XMLHttpRequest"))
+            {
+                return PartialView("_GruposPartial");
+            }
+
+            return View();
+        }
+
+        // GET: /Alumno/MateriasSinGrupo
+        [HttpGet]
+        public ActionResult MateriasSinGrupo()
+        {
+            string userId = User.Identity.GetUserId();
+            var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
+            ViewBag.AlumnoId = alumnoId;
+
+            if (Request.IsAjaxRequest() || (Request.Headers["X-Requested-With"] == "XMLHttpRequest"))
+            {
+                return PartialView("_MateriasSinGrupoPartial");
+            }
+
+            return View();
+        }
 
         public class ModeloNotif
         {
