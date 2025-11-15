@@ -356,7 +356,15 @@ namespace ControlActividades.Controllers
 
                 await Db.SaveChangesAsync();
 
-                var grupoActualizado = Db.tbGrupos.Where(a => a.GrupoId == grupoId).FirstOrDefault();
+                var grupoActualizado = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => new
+                {
+                    a.GrupoId,
+                    a.NombreGrupo,
+                    a.Descripcion,
+                    a.CodigoAcceso,
+                    a.CodigoColor,
+                    a.DocenteId
+                }).FirstOrDefault();
                 return Ok(grupoActualizado);
             }
             catch (Exception)
