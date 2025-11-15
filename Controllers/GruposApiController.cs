@@ -140,18 +140,18 @@ namespace ControlActividades.Controllers
                         m.NombreMateria,
                         m.Descripcion,
                         //m.CodigoColor,
-                        actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
+                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
                     }).ToListAsync();
 
 
                     listaGruposMaterias.Add(new
                     {
-                        grupoId = grupo.GrupoId,
-                        nombreGrupo = grupo.NombreGrupo,
-                        descripcion = grupo.Descripcion,
-                        codigoAcceso = grupo.CodigoAcceso,
-                        codigoColor = grupo.CodigoColor,
-                        materias = lsMaterias
+                        GrupoId = grupo.GrupoId,
+                        NombreGrupo = grupo.NombreGrupo,
+                        Descripcion = grupo.Descripcion,
+                        CodigoAcceso = grupo.CodigoAcceso,
+                        CodigoColor = grupo.CodigoColor,
+                        Materias = lsMaterias
                     });
                 }
 
