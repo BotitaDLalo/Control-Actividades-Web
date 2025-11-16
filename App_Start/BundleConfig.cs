@@ -34,7 +34,8 @@ namespace ControlActividades
                 .Include("~/Scripts/Docente/*.js")
                 );
 
-            bundles.Add(new ScriptBundle("~/bundles/docentegrupos").Include(
+            // Use a plain Bundle here to avoid the default Microsoft Ajax minifier parsing ES6+ syntax which can throw NullReferenceException
+            var docenteGruposBundle = new Bundle("~/bundles/docentegrupos").Include(
                 "~/Scripts/Docente/Grupos/ActividadIA.js",
                 "~/Scripts/Docente/Grupos/Calendario.js",
                 "~/Scripts/Docente/Grupos/DetalleActividad.js",
@@ -50,7 +51,9 @@ namespace ControlActividades
                 "~/Scripts/Docente/Grupos/scriptsAlumnos.js",
                 "~/Scripts/Docente/Grupos/scriptsAvisos.js",
                 "~/Scripts/Docente/Grupos/VistaMateriasD.js"
-            ));
+            );
+
+            bundles.Add(docenteGruposBundle);
 
 
             bundles.Add(new StyleBundle("~/Content/Docente/css").Include(

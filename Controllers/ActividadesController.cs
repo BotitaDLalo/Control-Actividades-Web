@@ -16,6 +16,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using System.Net;
 
 
 namespace ControlActividades.Controllers
@@ -416,6 +417,89 @@ namespace ControlActividades.Controllers
             {
                 Response.StatusCode = 500;
                 return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Nuevo: actualizar actividad (compatible con fetch PUT desde JS)
+        [HttpPut]
+        public async Task<ActionResult> ActualizarActividad(int id, tbActividades model)
+        {
+            if (model == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var actividad = await Db.tbActividades.FindAsync(id);
+                if (actividad == null)
+                {
+                    Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return Json(new { mensaje = "Actividad no encontrada." }, JsonRequestBehavior.AllowGet);
+                }
+
+                actividad.NombreActividad = model.NombreActividad ?? actividad.NombreActividad;
+                actividad.Descripcion = model.Descripcion ?? actividad.Descripcion;
+                actividad.FechaLimite = model.FechaLimite != default(DateTime) ? model.FechaLimite : actividad.FechaLimite;
+                actividad.Puntaje = model.Puntaje;
+
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Actividad actualizada correctamente." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                return Json(new { mensaje = "Error al actualizar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Nuevo: eliminar actividad (compatible con fetch DELETE desde JS)
+        [HttpDelete]
+        public async Task<ActionResult> EliminarActividad(int id)
+        {
+            try
+            {
+                var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
+                if (activity == null)
+                {
+                    Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return Json(new { mensaje = "Actividad no encontrada." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var alumnoActividad = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == activity.ActividadId);
+
+                if (alumnoActividad != null)
+                {
+                    var entrega = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividad.AlumnoActividadId).FirstOrDefaultAsync();
+                    if (entrega != null)
+                    {
+                        var calificacion = await Db.tbCalificaciones.FirstOrDefaultAsync(a => a.EntregaId == entrega.EntregaId);
+
+                        if (calificacion != null)
+                        {
+                            Db.tbCalificaciones.Remove(calificacion);
+                            Db.tbEntregablesAlumno.Remove(entrega);
+                            Db.tbAlumnosActividades.Remove(alumnoActividad);
+                        }
+                        else
+                        {
+                            Db.tbEntregablesAlumno.Remove(entrega);
+                            Db.tbAlumnosActividades.Remove(alumnoActividad);
+                        }
+                    }
+                }
+
+                Db.tbActividades.Remove(activity);
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Actividad eliminada correctamente." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 

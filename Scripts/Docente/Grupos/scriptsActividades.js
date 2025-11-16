@@ -218,6 +218,21 @@ async function IrAActividad(actividadIdSeleccionada) {
 }
 // Funciones para manejar los botones
 
+// helper para intentar una lista de endpoints en secuencia
+async function tryEndpoints(endpoints, fetchOptions) {
+    for (let i = 0; i < endpoints.length; i++) {
+        try {
+            const res = await fetch(endpoints[i], fetchOptions);
+            if (res.ok) return res;
+            // if server returned JSON with message, continue to next but remember last response
+            console.warn('Endpoint failed', endpoints[i], res.status);
+        } catch (e) {
+            console.warn('Fetch error for', endpoints[i], e);
+        }
+    }
+    throw new Error('Ningún endpoint respondió correctamente.');
+}
+
 async function eliminarActividad(id) {
     const result = await Swal.fire({
         title: '¿Estás seguro?',
@@ -229,29 +244,31 @@ async function eliminarActividad(id) {
         reverseButtons: true
     });
 
-    if (result.isConfirmed) {
-        Swal.fire('Eliminado!', `La actividad con ID: ${id} ha sido eliminada.`, 'success');
-
-        try {
-            const response = await fetch(`/Materias/EliminarActividad?id=${id}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            const dataText = await response.text();
-            let data = null; try { data = dataText ? JSON.parse(dataText) : null; } catch (e) { data = null; }
-
-            if (response.ok) {
-                cargarActividadesDeMateria();
-            } else {
-                Swal.fire('Error', data && data.mensaje ? data.mensaje : (dataText || 'No se pudo eliminar la actividad.'), 'error');
-            }
-        } catch (error) {
-            Swal.fire('Error', 'Hubo un error en la solicitud. Intenta nuevamente.', 'error');
-            console.error('Error al eliminar la actividad:', error);
-        }
-    } else {
+    if (!result.isConfirmed) {
         Swal.fire({ title: 'Cancelado', text: 'La actividad no fue eliminada.', icon: 'info', timer: 1500, showConfirmButton: false });
+        return;
+    }
+
+    Swal.fire({ title: 'Eliminando...', text: `Eliminando actividad ${id}`, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+    const endpoints = [
+        `/api/Actividades/EliminarActividad?id=${id}`,
+        `/api/Actividades/EliminarActividad/${id}`,
+        `/Materias/EliminarActividad?id=${id}`,
+        `/Materias/EliminarActividad/${id}`
+    ];
+
+    try {
+        const resp = await tryEndpoints(endpoints, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
+        const text = await resp.text();
+        let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+        Swal.close();
+        Swal.fire('Eliminado!', data && data.mensaje ? data.mensaje : `La actividad ${id} fue eliminada.`, 'success');
+        cargarActividadesDeMateria();
+    } catch (error) {
+        console.error('Error al eliminar la actividad:', error);
+        Swal.close();
+        Swal.fire('Error', 'No se pudo eliminar la actividad. Revisa la consola para más detalles.', 'error');
     }
 }
 
@@ -264,11 +281,131 @@ function formatearFecha(fechaStr) {
 }
 
 function convertirUrlsEnEnlaces(texto) {
-    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    var urlRegex = /(https?:\/\/[^\n\s]+)/g;
     return (texto || '').replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
 }
 
-function editarActividad(id) {
-    // abrir modal editar (pendiente implementar)
-    alert('Editar actividad ' + id);
+// ------------------ EDITAR ACTIVIDAD ------------------
+function toInputDateTimeValue(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    // get local offset ISO without seconds
+    var pad = function (n) { return n < 10 ? '0' + n : n; };
+    var year = d.getFullYear();
+    var month = pad(d.getMonth() + 1);
+    var day = pad(d.getDate());
+    var hours = pad(d.getHours());
+    var minutes = pad(d.getMinutes());
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+async function editarActividad(id) {
+    try {
+        // Obtener datos de la actividad
+        const resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${id}`);
+        if (!resp.ok) throw new Error('No se pudo obtener la actividad');
+        const data = await resp.json();
+
+        // llenar formulario
+        document.getElementById('nombre').value = data.NombreActividad || '';
+        document.getElementById('descripcion').value = data.Descripcion || '';
+        document.getElementById('fechaHoraLimite').value = toInputDateTimeValue(data.FechaLimite || data.FechaCreacion);
+        document.getElementById('puntaje').value = data.Puntaje || 0;
+
+        // establecer materia global si no existe
+        if (!materiaIdGlobal && window.materiaIdGlobal) materiaIdGlobal = window.materiaIdGlobal;
+
+        // marcar que estamos editando
+        window.editingActividadId = id;
+
+        // preparar botón publicar para actualizar
+        var btn = document.getElementById('btnPublicarActividad');
+        if (btn) {
+            btn.textContent = 'Guardar cambios';
+            // quitar listeners previos
+            var newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.addEventListener('click', async function () {
+                await actualizarActividad(id);
+            });
+        }
+
+        // abrir modal
+        try {
+            var crearModalEl = document.getElementById('crearActividadModal');
+            if (crearModalEl && window.bootstrap) {
+                var crearModal = new bootstrap.Modal(crearModalEl);
+                crearModal.show();
+            } else if (window.jQuery && $('#crearActividadModal').modal) {
+                $('#crearActividadModal').modal('show');
+            }
+        } catch (e) { console.warn(e); }
+
+    } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'No se pudo cargar la actividad para edición', 'error');
+    }
+}
+
+async function actualizarActividad(id) {
+    // leer campos
+    let nombre = document.getElementById('nombre').value.trim();
+    let descripcion = document.getElementById('descripcion').value.trim();
+    let fechaHoraLimite = document.getElementById('fechaHoraLimite').value;
+    let puntaje = parseInt(document.getElementById('puntaje').value, 10) || 0;
+
+    if (!nombre || !descripcion || !fechaHoraLimite) {
+        Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Completa todos los campos.' });
+        return;
+    }
+
+    const body = {
+        NombreActividad: nombre,
+        Descripcion: descripcion,
+        FechaLimite: fechaHoraLimite,
+        Puntaje: puntaje,
+        TipoActividadId: 1
+    };
+
+    const endpoints = [
+        `/api/Actividades/ActualizarActividad?id=${id}`,
+        `/api/Actividades/ActualizarActividad/${id}`,
+        `/Actividades/ActualizarActividad?id=${id}`,
+        `/Actividades/ActualizarActividad/${id}`
+    ];
+
+    Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+    try {
+        const resp = await tryEndpoints(endpoints, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const text = await resp.text();
+        let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+
+        Swal.close();
+        Swal.fire({ icon: 'success', title: 'Actividad actualizada' });
+
+        // cerrar modal
+        try {
+            if (window.jQuery && $('#crearActividadModal').modal) {
+                $('#crearActividadModal').modal('hide');
+            } else if (window.bootstrap) {
+                var modalEl = document.getElementById('crearActividadModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+        } catch (e) { }
+
+        // limpiar estado
+        window.editingActividadId = null;
+        try { document.getElementById('actividadesForm').reset(); } catch (e) { }
+
+        // recargar lista
+        setTimeout(cargarActividadesDeMateria, 300);
+
+    } catch (e) {
+        console.error(e);
+        Swal.close();
+        Swal.fire('Error', e.message || 'No se pudo actualizar la actividad', 'error');
+    }
 }

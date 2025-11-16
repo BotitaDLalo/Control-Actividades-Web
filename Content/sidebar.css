@@ -1,16 +1,23 @@
-/* Estilos básicos sidebar y topbar (header) */
+/* Estilos b?sicos sidebar y topbar (header) */
 :root{
-  --sidebar-left-width:60px;
-  --sidebar-expanded-width:260px; /* reduce a 260 para que no ocupe tanto espacio */
-  --header-height:64px;
+  --sidebar-left-width: clamp(56px, 6vw, 80px); /* 60px default */
+  --sidebar-expanded-width: clamp(200px, 22vw, 320px); /* responsive: min 200px, preferred 22vw, max 320px */
+  --header-height: 4rem; /* 64px */
   --brand-color: #2f9fff;
   --accent: #2f9fff;
   --muted: #7a7f87;
   --bg: #f5f7f8;
+  /* single source of truth for sidebar width used by layout (responsive and zoom-friendly) */
+  --sidebar-width: clamp(14rem, 18vw, 24rem);
+  --sidebar-compact: 3.75rem;
+  /* Replaced orange with requested hex #283043 */
+  --brand: #283043; /* was #ff7b00 */
+  --panel-bg: #f7f8fa;
 }
 
 /* Reset ligero para que la sidebar "case" con el resto */
-body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: var(--bg); color: #222; }
+html,body{height:100%;}
+body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: var(--bg); color: #222; font-size: 16px; }
 
 /* Top header visible en todas las vistas */
 .app-header{
@@ -22,11 +29,11 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 18px;
+  padding:0 1.125rem;
   background:linear-gradient(90deg,var(--brand-color),#6b6ff8);
   color:#fff;
   z-index:1001;
-  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+  box-shadow:0 0.125rem 0.375rem rgba(0,0,0,0.06);
 }
 .app-header .brand{display:flex;align-items:center;gap:12px}
 .app-header .brand h3{margin:0;font-size:18px;font-weight:700;letter-spacing:0.3px}
@@ -36,7 +43,7 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
 /* Sidebar fijado debajo del header */
 .app-sidebar {
   position:fixed;
-  top: var(--header-height); /* justo debajo del header */
+  top: var(--header-height);
   left:0;
   bottom:0;
   display:flex;
@@ -44,114 +51,219 @@ body { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hel
   background: #ffffff;
   border-right: 1px solid rgba(0,0,0,0.04);
   overflow:auto;
-  width: var(--sidebar-expanded-width);
-  transition: none;
+  width: var(--sidebar-width); /* use unified variable */
+  transition: width .18s ease, transform .18s ease;
   z-index:900;
   box-shadow: 2px 0 6px rgba(18,38,63,0.03);
+  will-change: width, transform;
 }
 
-/* Asegurar que el header esté por encima visualmente */
-.app-header{ z-index: 1001 }
+/* Redesigned sidebar styles inspired by reference layout */
 
-/* Ajustar margen del main para coincidir con el header */
-.app-main { margin-top: var(--header-height); }
+.new-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--sidebar-width); /* use unified variable */
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
+  border-right: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 2px 0 12px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transition: width .18s ease;
+  overflow: auto;
+}
 
-/* Pequeño ajuste para el logo pequeño de la columna izquierda para no sobresalir */
-.sidebar-left .small-logo { display:block; margin:6px 0 8px 0; }
-.sidebar-left .small-logo img{ display:block; max-height:32px; }
+.new-sidebar .sidebar-inner { padding: 1rem; display:flex; flex-direction:column; height:100%; }
 
-.app-sidebar .sidebar-left {
+.sidebar-top { display:flex; align-items:center; gap:0.5rem; }
+.sidebar-logo{ max-height: 34px; display:block }
+.sidebar-toggle{ margin-left:auto; background:none; border:none; cursor:pointer }
+
+.sidebar-cta{ margin: 1rem 0; }
+.btn-cta{ width:100%; background:var(--brand); color:#fff; border:none; padding:0.6rem 0.8rem; border-radius:8px; font-weight:600; box-shadow: 0 6px 18px rgba(40,48,67,0.12); }
+.btn-cta:hover{ filter: brightness(.98); }
+
+.sidebar-nav{ margin-top:0.5rem; flex:1; }
+.nav-sections{ list-style:none; margin:0; padding:0; }
+.nav-section{ margin-bottom:0.5rem; }
+.section-btn{ width:100%; display:flex; align-items:center; gap:0.75rem; padding:0.6rem; border-radius:8px; border:none; background:transparent; cursor:pointer; color:var(--muted); font-weight:500; }
+.section-btn .section-label{ flex:1; text-align:left }
+.section-btn .caret{ opacity:0.6 }
+.section-btn:hover{ background:#f3f5f6; color:#333 }
+
+/* active section header visual like the reference (orange pill) */
+.nav-section.open > .section-btn, .nav-section .section-btn.active {
+  background: linear-gradient(90deg, var(--brand), #394152);
+  color:#fff;
+}
+
+.section-submenu{ list-style:none; padding:0.5rem 0 0.5rem 0.5rem; margin:0; background:transparent; border-radius:6px; }
+.section-submenu li{ padding:0.45rem 0.6rem; border-radius:6px; }
+.submenu-link{ color: #333; display:block; text-decoration:none; padding:0.25rem 0.5rem; border-radius:6px }
+.section-submenu li:hover .submenu-link{ background:#f3f5f6 }
+
+/* foldable: hide submenu by default, open when parent has class 'open' */
+.section-submenu{ max-height: 0; overflow: hidden; transition: max-height .28s ease; }
+.nav-section.open .section-submenu{ max-height: 20rem; }
+
+.sidebar-footer{ margin-top: auto; padding-top: 0.5rem; }
+.muted{ color:#9aa0a6 }
+
+/* responsive: collapse to compact icon-only */
+@media (max-width: 880px) {
+  :root { --sidebar-width: var(--sidebar-compact); } /* ensure layout uses compact width on small screens */
+  .new-sidebar{ width: var(--sidebar-compact); }
+  .new-sidebar .sidebar-inner{ padding:0.5rem }
+  .btn-cta{ display:none }
+  .section-label, .section-submenu, .sidebar-footer, .sidebar-top .brand-link{ display:none }
+}
+
+/* ensure zoom-friendliness */
+:root{ font-size: 1rem; }
+
+/* Popover shown when clicking icon (cloned menu) */
+.icon-popover {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 6px 18px rgba(8,35,71,0.08);
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.icon-popover .menu-list { margin: 0; padding: 0.25rem 0; }
+.icon-popover .menu-list li { padding: 0.45rem 0.6rem; white-space: nowrap; }
+.icon-popover .menu-list li a { color: #333; display:block; }
+.icon-popover .menu-list li:hover { background: rgba(0,0,0,0.03); }
+
+/* small arrow hint to connect icon and popover */
+.icon-popover::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--sidebar-width) - 6px); /* align with current sidebar width */
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  background: #fff;
+  border-left: 1px solid rgba(0,0,0,0.06);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  box-shadow: -2px -2px 6px rgba(8,35,71,0.02);
+  border-radius: 2px;
+}
+
+/* Responsive: ensure popover doesn't overflow viewport */
+@media (max-width: 900px) {
+  .icon-popover { display: none; }
+}
+
+/* Responsive and improved sidebar styles */
+
+/* Collapsed state: show only icon column */
+.app-sidebar.collapsed {
   width: var(--sidebar-left-width);
+}
+
+.app-sidebar.collapsed .sidebar-content {
+  display: none;
+}
+
+.app-sidebar.collapsed .sidebar-left {
+  width: 100%;
+}
+
+/* Smooth transitions */
+.app-sidebar {
+  transition: width .22s ease, transform .2s ease;
+  width: var(--sidebar-width);
   min-width: var(--sidebar-left-width);
-  background: transparent;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding-top:14px;
+  overflow-y: auto;
 }
 
-/* Icons column: smaller, muted */
-.app-sidebar .sidebar-icons { list-style:none; padding:0; margin:6px 0; width:100%; }
-.app-sidebar .icon-item { width:100%; display:flex; justify-content:center; padding:10px 0; cursor:pointer; color:var(--muted); }
-.app-sidebar .icon-item:hover{ background: rgba(47,159,255,0.04); color: var(--brand-color); }
-.app-sidebar .icon-item.active{ color: var(--brand-color); }
-.app-sidebar .icon { width:20px; height:20px; fill: currentColor; }
+/* Ensure sidebar content scrolls internally and doesn't push layout */
+.app-sidebar .sidebar-content { overflow-y: auto; max-height: calc(100vh - var(--header-height)); }
 
-.app-sidebar .sidebar-content {
-  width: calc(var(--sidebar-expanded-width) - var(--sidebar-left-width));
-  padding: 18px 14px;
-  overflow:auto;
+/* Overlay mode for small screens */
+.app-sidebar.mobile-open {
+  position: fixed;
+  transform: translateX(0);
+  left: 0;
+  top: var(--header-height);
+  z-index: 2000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-/* Cabecera de la sidebar: logo + texto, integrado con header */
-.sidebar-header{
-  display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,0.04);
-}
-.sidebar-header .brand-link img{height:36px;border-radius:6px;background:linear-gradient(180deg, #4fc3ff22, transparent);} 
-.sidebar-header .brand-link strong{color:#111;font-size:15px}
-.sidebar-header .brand-link small{color:var(--muted);font-size:11px}
-
-/* acciones (notificaciones + usuario) alineadas a la derecha de la cabecera */
-.sidebar-header .actions{margin-left:auto;display:flex;align-items:center;gap:12px}
-.sidebar-header .notif{display:inline-flex;align-items:center;gap:8px}
-.sidebar-header .notif svg{width:20px;height:20px;color:var(--muted)}
-.sidebar-header .logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px}
-.sidebar-header .logout-btn:hover{color:var(--brand-color);background:rgba(47,159,255,0.04)}
-
-/* Ajuste del contenido principal cuando hay sidebar */
-.app-main {
-  margin-top: calc(var(--header-height) + 6px);
-  margin-left: var(--sidebar-expanded-width);
-  transition: margin-left .25s ease;
-  min-height: calc(100vh - var(--header-height));
-  padding: 24px 28px;
-}
-
-/* panel principal interior: mantener fondo claro para las tarjetas */
-.app-content-inner{background:transparent}
-.card-custom{background:#fff;border-radius:8px;padding:18px;box-shadow:0 1px 3px rgba(20,40,60,0.04);border:1px solid rgba(0,0,0,0.04)}
-
-/* menu items: list simple, con icono y texto alineado */
-.menu-title { font-size:13px; margin:12px 0 8px 0; color:#333; display:block }
-.menu-list { list-style:none; padding-left:0; margin:0; }
-.menu-list li { padding:10px 8px; border-radius:6px; }
-.menu-list li a { color:#2b2b2b; text-decoration:none; display:flex; align-items:center; gap:10px; padding:6px 8px }
-.menu-list li a .menu-icon{width:18px;height:18px;color:var(--muted)}
-.menu-list li:hover{ background: rgba(47,159,255,0.03);} 
-.menu-list li.active, .menu-list li a.active{ color:var(--brand-color); font-weight:600; }
-
-/* pequeños badges */
-.badge { background:var(--brand-color); color:#fff; font-size:11px; padding:2px 6px; border-radius:999px }
-
-/* responsive: en pantallas pequeñas la sidebar puede ocultarse (el header puede manejar toggle) */
+/* Hidden by default for mobile (off-canvas to left) */
 @media (max-width: 992px) {
-  :root{ --sidebar-expanded-width:220px }
-  .app-main{ margin-left: var(--sidebar-expanded-width); }
-}
-@media (max-width: 768px) {
-  .app-sidebar { transform: translateX(-100%); position:fixed; z-index:999; }
-  .app-sidebar.open { transform: translateX(0); }
+  :root { --sidebar-width: var(--sidebar-expanded-width); } /* allow larger off-canvas width on tablet */
+  .app-sidebar {
+    transform: translateX(-100%);
+    position: fixed;
+    left: 0;
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    width: var(--sidebar-width);
+    background: #fff;
+  }
+
+  /* When collapsed on small screens keep hidden until mobile-open */
+  .app-sidebar.collapsed { transform: translateX(-100%); }
+
+  /* main content fills full width when sidebar is off-canvas */
   .app-main { margin-left: 0; }
 }
 
-/* Submenu styles for mini-dropdown */
-.menu-list.submenu { padding-left:12px; }
-.menu-list.submenu li { padding:8px 6px; border-radius:6px; display:block }
-.menu-list.submenu li.username { font-weight:700; color:#333; padding-top:6px }
-.menu-list.submenu li .logout-btn { background:none;border:none;color:var(--muted);cursor:pointer;padding:6px 0 }
+/* Desktop layout: main content has left margin equal to sidebar width, keep it in sync so zoom doesn't cause overlap */
+@media (min-width: 993px) {
+  .app-main { margin-left: var(--sidebar-width); transition: margin-left .25s ease; }
+}
 
-/* Make the submenu collapsed by default and expandable */
-.menu-list.submenu { max-height:0; overflow:hidden; transition: max-height .22s ease; }
-.menu-section.open .menu-list.submenu { max-height:800px; }
+/* Provide a backdrop when sidebar is open on mobile */
+#sidebar-backdrop { display:none; position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.35); z-index:1500; }
+#sidebar-backdrop.show { display:block; }
 
-/* Adjust icon column spacing */
-.app-sidebar .sidebar-left { padding-top:8px }
-.app-sidebar .sidebar-icons { margin:12px 0 }
+/* Sidebar header / create button styling */
+.sidebar-header .create-btn {
+  display:block;
+  width:100%;
+  margin:12px 0;
+  padding:10px 12px;
+  background: linear-gradient(90deg,var(--brand),#394152);
+  color:#fff;
+  border-radius:8px;
+  text-align:center;
+  font-weight:600;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+}
 
-/* style for items inside submenu to look like a dropdown */
-.menu-list.submenu li a { padding-left:4px }
+/* Menu item active highlight */
+.menu-list li.active, .menu-list li a.active {
+  background: linear-gradient(90deg,var(--brand),#394152);
+  color: #fff !important;
+}
 
-/* small tweak for username/logout */
-.menu-list.submenu li.username { padding-left:4px; color:#111 }
-.menu-list.submenu li form .logout-btn{ color:var(--muted) }
-.menu-list.submenu li form .logout-btn:hover{ color:var(--brand-color) }
+/* Make submenu items slightly indented and lighter */
+.menu-list.submenu li a { padding-left: 18px; color:#444 }
+
+/* Minor visual adjustments */
+.app-sidebar .icon-item { transition: background .12s ease, color .12s ease; border-radius:6px; }
+.app-sidebar .icon-item:hover{ background: #ececec; color: #333; }
+
+/* Ensure content area responsive and doesn't get hidden behind sidebar on zoom */
+@media (min-width: 1200px) {
+  /* allow wider screens to keep a comfortable margin */
+  .app-main { padding-left: 36px; }
+}
+
+/* If user zooms (viewport becomes narrow) force sidebar to collapse to icon only to avoid covering content */
+@media (max-width: 1200px) and (min-width: 993px) {
+  .app-sidebar { width: min(var(--sidebar-width), 28vw); }
+}
+
+/* accessibility focus */
+.menu-list li:focus-within, .menu-list li:focus { outline: none; box-shadow: inset 0 0 0 2px rgba(47,159,255,0.06); }

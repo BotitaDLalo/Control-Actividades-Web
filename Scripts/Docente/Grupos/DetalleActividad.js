@@ -1,10 +1,64 @@
-
 var actividadesData = {};
 var docenteIdGlobal = localStorage.getItem("docenteId");
 var materiaIdGlobal = localStorage.getItem("materiaIdSeleccionada");
 var grupoIdGlobal = localStorage.getItem("grupoIdSeleccionado");
 var actividadIdGlobal = localStorage.getItem("actividadSeleccionada");
 var puntajeMaximo = null;
+
+function parseServerDate(dateVal) {
+    if (!dateVal) return null;
+    // If already a Date
+    if (dateVal instanceof Date) return dateVal;
+    // If number (milliseconds or ticks)
+    if (typeof dateVal === 'number') return new Date(dateVal);
+
+    if (typeof dateVal === 'string') {
+        // Trim
+        var s = dateVal.trim();
+        // If string looks like /Date(1620000000000)/
+        var msMatch = s.match(/\\/?Date\\(([-\\d]+)(?:[-+][0-9]+)?\\)\\/?/);
+        if (msMatch) {
+            var ms = parseInt(msMatch[1], 10);
+            if (!isNaN(ms)) return new Date(ms);
+        }
+
+        // If string is a plain number in quotes
+        if (/^\d+$/.test(s)) {
+            var n = parseInt(s, 10);
+            return new Date(n);
+        }
+
+        // Try ISO parse
+        var dIso = new Date(s);
+        if (!isNaN(dIso.getTime())) return dIso;
+
+        // Try replacing space between date and time
+        var s2 = s.replace(' ', 'T');
+        var dIso2 = new Date(s2);
+        if (!isNaN(dIso2.getTime())) return dIso2;
+
+        // Last resort: try Date.parse and create
+        var parsed = Date.parse(s);
+        if (!isNaN(parsed)) return new Date(parsed);
+    }
+
+    return null;
+}
+
+function formatDateToLocale(dateVal) {
+    var d = parseServerDate(dateVal);
+    if (!d) {
+        // if value exists, return raw so it's visible for debugging
+        if (dateVal) return String(dateVal);
+        return 'No disponible';
+    }
+    try {
+        return d.toLocaleString('es-ES');
+    } catch (e) {
+        return d.toString();
+    }
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
     if (actividadIdGlobal != null && materiaIdGlobal != null) {
@@ -16,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return response.json();
             })
             .then(function (data) {
+                console.log('Actividad raw data:', data);
                 if (data) {
                     var nombreElem = document.getElementById("nombreActividad");
                     var descElem = document.getElementById("descripcionActividad");
@@ -28,10 +83,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (nombreElem) nombreElem.innerText = data.NombreActividad || "No disponible";
                     if (descElem) descElem.innerText = data.Descripcion || "No disponible";
-                    if (fechaCreacionElem) fechaCreacionElem.innerText = data.FechaCreacion ? new Date(data.FechaCreacion).toLocaleDateString("es-ES") : "No disponible";
-                    if (fechaLimiteElem) fechaLimiteElem.innerText = data.FechaLimite ? new Date(data.FechaLimite).toLocaleDateString("es-ES") : "No disponible";
+
+                    // Log raw date values for debugging
+                    console.log('FechaCreacion raw:', data.FechaCreacion);
+                    console.log('FechaLimite raw:', data.FechaLimite);
+
+                    if (fechaCreacionElem) fechaCreacionElem.innerText = data.FechaCreacion ? formatDateToLocale(data.FechaCreacion) : "No disponible";
+                    if (fechaLimiteElem) fechaLimiteElem.innerText = data.FechaLimite ? formatDateToLocale(data.FechaLimite) : "No disponible";
+
                     if (tipoElem) tipoElem.innerText = data.TipoActividad || "No disponible";
-                    if (puntajeElem) puntajeElem.innerText = data.Puntaje || "0";
+                    if (puntajeElem) puntajeElem.innerText = (data.Puntaje !== undefined && data.Puntaje !== null) ? data.Puntaje : "0";
                     puntajeMaximo = data.Puntaje;
                     if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = data.AlumnosEntregados || "0 de 0";
                     if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = data.ActividadesCalificadas || "0 de 0";
@@ -108,8 +169,8 @@ function renderizarAlumnos(data) {
 
     if (data.entregados && listaEntregados) {
         data.entregados.forEach(function (alumno) {
-            var fechaEntrega = alumno.FechaEntrega ? new Date(alumno.FechaEntrega).toLocaleDateString("es-ES") : "Sin entregar";
-            var fechaCalificacion = alumno.Entrega && alumno.Entrega.FechaCalificacionAsignada ? new Date(alumno.Entrega.FechaCalificacionAsignada).toLocaleDateString("es-ES") : "Sin calificar";
+            var fechaEntrega = alumno.FechaEntrega ? (parseServerDate(alumno.FechaEntrega) ? parseServerDate(alumno.FechaEntrega).toLocaleDateString('es-ES') : 'Sin entregar') : 'Sin entregar';
+            var fechaCalificacion = alumno.Entrega && alumno.Entrega.FechaCalificacionAsignada ? (parseServerDate(alumno.Entrega.FechaCalificacionAsignada) ? parseServerDate(alumno.Entrega.FechaCalificacionAsignada).toLocaleDateString('es-ES') : 'Sin calificar') : 'Sin calificar';
 
             var alumnoHTML =
                 '<div class="list-group-item d-flex justify-content-between align-items-center">' +
