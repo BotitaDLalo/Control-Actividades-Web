@@ -14,6 +14,7 @@ using System.Web.Http;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using Microsoft.Ajax.Utilities;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -153,20 +154,22 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var listaActividades = await Db.tbActividades
+                var actividades = await Db.tbActividades
                     .Where(a => a.MateriaId == materiaId)
-                    .Select(a => new
-                    {
-                        actividadId = a.ActividadId,
-                        nombreActividad = a.NombreActividad,
-                        descripcionActividad = a.Descripcion,
-                        fechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        fechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        tipoActividadId = a.TipoActividadId,
-                        puntaje = a.Puntaje,
-                        materiaId = a.MateriaId
-                    })
                     .ToListAsync();
+
+                var listaActividades = actividades.Select(a => new
+                {
+                    ActividadId = a.ActividadId,
+                    NombreActividad = a.NombreActividad,
+                    DescripcionActividad = a.Descripcion,
+                    FechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    TipoActividadId = a.TipoActividadId,
+                    Puntaje = a.Puntaje,
+                    MateriaId = a.MateriaId
+                }).ToList();
+
 
                 return Ok(listaActividades);
             }
@@ -390,7 +393,7 @@ namespace ControlActividades.Controllers
                         var nombres = alumno.Nombre;
                         var apellidoPaterno = alumno.ApellidoPaterno;
                         var apellidoMaterno = alumno.ApellidoMaterno;
-                        var user = await _userManager.FindByIdAsync(userId ?? "");
+                        var user = await UserManager.FindByIdAsync(userId ?? "");
 
                         if (user != null)
                         {

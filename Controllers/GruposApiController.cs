@@ -140,18 +140,18 @@ namespace ControlActividades.Controllers
                         m.NombreMateria,
                         m.Descripcion,
                         //m.CodigoColor,
-                        actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
+                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
                     }).ToListAsync();
 
 
                     listaGruposMaterias.Add(new
                     {
-                        grupoId = grupo.GrupoId,
-                        nombreGrupo = grupo.NombreGrupo,
-                        descripcion = grupo.Descripcion,
-                        codigoAcceso = grupo.CodigoAcceso,
-                        codigoColor = grupo.CodigoColor,
-                        materias = lsMaterias
+                        GrupoId = grupo.GrupoId,
+                        NombreGrupo = grupo.NombreGrupo,
+                        Descripcion = grupo.Descripcion,
+                        CodigoAcceso = grupo.CodigoAcceso,
+                        CodigoColor = grupo.CodigoColor,
+                        Materias = lsMaterias
                     });
                 }
 
@@ -224,18 +224,18 @@ namespace ControlActividades.Controllers
                         m.MateriaId,
                         m.NombreMateria,
                         m.Descripcion,
-                        actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
+                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
                     }).ToListAsync();
 
 
                     listaGruposMaterias.Add(new
                     {
-                        grupoId = grupo.GrupoId,
-                        nombreGrupo = grupo.NombreGrupo,
-                        descripcion = grupo.Descripcion,
-                        codigoAcceso = grupo.CodigoAcceso,
-                        codigoColor = grupo.CodigoColor,
-                        materias = lsMaterias
+                        GrupoId = grupo.GrupoId,
+                        NombreGrupo = grupo.NombreGrupo,
+                        Descripcion = grupo.Descripcion,
+                        CodigoAcceso = grupo.CodigoAcceso,
+                        CodigoColor = grupo.CodigoColor,
+                        Materias = lsMaterias
                     });
                 }
 
@@ -356,7 +356,15 @@ namespace ControlActividades.Controllers
 
                 await Db.SaveChangesAsync();
 
-                var grupoActualizado = Db.tbGrupos.Where(a => a.GrupoId == grupoId).FirstOrDefault();
+                var grupoActualizado = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => new
+                {
+                    a.GrupoId,
+                    a.NombreGrupo,
+                    a.Descripcion,
+                    a.CodigoAcceso,
+                    a.CodigoColor,
+                    a.DocenteId
+                }).FirstOrDefault();
                 return Ok(grupoActualizado);
             }
             catch (Exception)
