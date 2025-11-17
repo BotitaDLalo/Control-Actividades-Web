@@ -30,6 +30,7 @@ body {
     background: #FFF;
     border: 1px solid #ddd;
     border-radius: 10px;
+    max-width: calc(100vw - 40px);
 }
 
 .signin-box {
@@ -40,6 +41,7 @@ body {
     background: #FFF;
     border: 1px solid #ddd;
     border-radius: 10px;
+    max-width: calc(100vw - 40px);
 }
 
 .restablecer-box {
@@ -50,6 +52,7 @@ body {
     background: #FFF;
     border: 1px solid #ddd;
     border-radius: 10px;
+    max-width: calc(100vw - 40px);
 }
 
 .verify-box {
@@ -60,6 +63,37 @@ body {
     background: #FFF;
     border: 1px solid #ddd;
     border-radius: 10px;
+    max-width: calc(100vw - 40px);
+}
+
+/* Ensure auth boxes are centered in the viewport even if layout adds left margin */
+.login-box,
+.signin-box,
+.restablecer-box,
+.verify-box {
+    /* Fix to viewport center so login never appears shifted by surrounding layout */
+    position: fixed !important;
+    /* Use viewport units so centering is based on viewport even when an ancestor creates a containing block */
+    left: 50vw !important;
+    top: 50vh !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    z-index: 1100;
+}
+
+/* For very small screens use normal flow so box can scroll */
+@media (max-width: 600px) {
+    .login-box,
+    .signin-box,
+    .restablecer-box,
+    .verify-box {
+        position: static !important;
+        transform: none !important;
+        left: auto !important;
+        top: auto !important;
+        margin: 20px auto !important;
+        max-width: calc(100% - 40px);
+    }
 }
 
 .input-box-code {
