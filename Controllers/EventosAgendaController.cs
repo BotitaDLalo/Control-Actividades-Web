@@ -98,6 +98,10 @@ namespace ControlActividades.Controllers
             }
         }
 
+        public ActionResult Calendario()
+        {
+            return View();
+        }
 
         [HttpPost]
         public async Task<ActionResult> CrearEvento(tbEventosAgenda evento)

@@ -531,6 +531,7 @@
     <Content Include="Views\Home\Calendario.cshtml" />
     <Content Include="Views\Alumno\_GruposPartial.cshtml" />
     <Content Include="Views\Alumno\_MateriasSinGrupoPartial.cshtml" />
+    <Content Include="Views\EventosAgenda\Calendario.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Images\" />

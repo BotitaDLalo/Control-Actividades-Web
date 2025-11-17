@@ -748,8 +748,8 @@ namespace ControlActividades.Controllers
 
                         var alumno = new EmailVerificadoAlumno()
                         {
-                            Email = user?.Email ?? "",
-                            UserName = user?.UserName ?? "",
+                            Email = userName?.Email ?? "",
+                            UserName = userName?.UserName ?? "",
                             Nombre = alumnoDatos.Nombre,
                             ApellidoPaterno = alumnoDatos.ApellidoPaterno,
                             ApellidoMaterno = alumnoDatos.ApellidoMaterno,
