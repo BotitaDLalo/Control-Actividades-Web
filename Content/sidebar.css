@@ -358,3 +358,42 @@ div .sub-item {
   padding: 20px;
   background: #e0e6ff;
 }
+
+/* Hide expansion chevrons/arrows inside the sidebar only (keeps Bootstrap toggles elsewhere) */
+.new-sidebar .caret,
+.app-sidebar .caret,
+.new-sidebar .section-btn .caret,
+.app-sidebar .section-btn .caret,
+.new-sidebar .nav-link .dropdown-toggle::after,
+.app-sidebar .nav-link .dropdown-toggle::after {
+    display: none !important;
+    content: '' !important;
+}
+
+/* Some implementations use pseudo-elements on links — ensure they're removed in the sidebar */
+.new-sidebar .nav-link::after,
+.app-sidebar .nav-link::after {
+    display: none !important;
+    content: '' !important;
+}
+
+/* Extra: hide common FontAwesome chevrons/arrows inside the sidebar to catch all variants */
+.new-sidebar .fa-chevron-right,
+.new-sidebar .fa-chevron-left,
+.new-sidebar .fa-angle-right,
+.new-sidebar .fa-angle-left,
+.new-sidebar .fa-angle-down,
+.new-sidebar .fa-caret-right,
+.new-sidebar .fa-caret-left,
+.new-sidebar .fa-chevron-circle-right,
+.new-sidebar .fa-chevron-circle-left {
+    display: none !important;
+}
+
+/* Also ensure any pseudo-element generated arrows are removed for submenu buttons */
+.new-sidebar .section-btn::after,
+.new-sidebar .section-btn .caret,
+.new-sidebar .section-btn i.caret {
+    display: none !important;
+    content: '' !important;
+}

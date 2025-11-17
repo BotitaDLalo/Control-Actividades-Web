@@ -12,10 +12,13 @@
 }
 
 body {
+    /* Center login both horizontally and vertically */
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 750px;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
     background-color: #f1f2f4;
 }
 
