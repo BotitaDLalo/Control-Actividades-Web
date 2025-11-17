@@ -100,16 +100,34 @@ namespace ControlActividades.Controllers
 
         public ActionResult Calendario()
         {
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes
+                .Where(d => d.UserId == userId)
+                .Select(d => d.DocenteId)
+                .FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
             return View();
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult> CrearEvento(tbEventosAgenda evento)
         {
             if (evento == null)
-            {
                 return new HttpStatusCodeResult(400, "Datos inválidos.");
-            }
+
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes
+                .Where(d => d.UserId == userId)
+                .Select(d => d.DocenteId)
+                .FirstOrDefault();
+
+            if (docenteId == 0)
+                return new HttpStatusCodeResult(400, "No se pudo identificar al docente.");
+
+            // Asignar DocenteId al evento antes de guardar
+            evento.DocenteId = docenteId;
 
             if (evento.FechaFinal < evento.FechaInicio)
             {
@@ -125,12 +143,36 @@ namespace ControlActividades.Controllers
             Db.tbEventosAgenda.Add(evento);
             await Db.SaveChangesAsync();
 
-            return Json(new { mensaje = "Evento guardado exitosamente" }, JsonRequestBehavior.AllowGet);
+            return Json(new { mensaje = "Evento guardado exitosamente" },
+                        JsonRequestBehavior.AllowGet);
         }
 
+        [Authorize]
+        [HttpGet]
+        public ActionResult ObtenerEventosDocente()
+        {
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(d => d.UserId == userId).Select(d => d.DocenteId).FirstOrDefault();
 
+            if (docenteId == 0) return Json(new object[0], JsonRequestBehavior.AllowGet);
 
+            var eventos = Db.tbEventosAgenda
+                .Where(e => e.DocenteId == docenteId)
+                .Select(e => new
+                {
+                    eventoId = e.EventoId,
+                    titulo = e.Titulo,
+                    descripcion = e.Descripcion,
+                    fechaInicio = e.FechaInicio,
+                    fechaFinal = e.FechaFinal,
+                    color = e.Color
+                })
+                .ToList();
 
+            return Json(eventos, JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
         [HttpGet]
         public ActionResult ObtenerEventosPorFecha(string fecha)
         {
@@ -160,7 +202,7 @@ namespace ControlActividades.Controllers
             return Json(eventos, JsonRequestBehavior.AllowGet);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPut]
         public async Task<ActionResult> EditarEvento(EventoEditarDTO model)
         {
@@ -202,7 +244,7 @@ namespace ControlActividades.Controllers
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpDelete]
         public async Task<ActionResult> EliminarEvento(int id)
         {

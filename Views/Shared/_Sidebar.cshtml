@@ -17,7 +17,7 @@
             <a class="brand-link" href="@inicioUrl">
                 <img src="@Url.Content("~/Content/Iconos/LOGO HORIZONTAL-26.svg")" alt="Logo" class="sidebar-logo" />
             </a>
-            <button id="sidebarToggle" class="sidebar-toggle" aria-label="Alternar menú">
+            <button id="sidebarToggle" class="sidebar-toggle" aria-label="Alternar menï¿½">
                 <span class="hamburger"></span>
             </button>
         </div>
@@ -29,7 +29,7 @@
         <nav class="sidebar-nav" aria-label="Main navigation">
             <ul class="nav-sections">
                 <li class="nav-section" id="section-inicio">
-                    <!-- Inicio: el botón tiene data-href para navegar; el caret controls the submenu -->
+                    <!-- Inicio: el botÃ³n tiene data-href para navegar; el caret controls the submenu -->
                     <button class="section-btn" data-target="#menu-home" aria-expanded="false" data-href="@inicioUrl">
                         <i class="fas fa-home"></i>
                         <span class="section-label">Inicio</span>
@@ -59,7 +59,7 @@
                     </ul>
                 </li>
 
-                @* Nueva sección: Grupos y Materias visible solo para Alumnos *@
+                @* Nueva secciÃ³n: Grupos y Materias visible solo para Alumnos *@
                 @if (isAlumno)
                 {
                     <li class="nav-section" id="section-grupos-materias">
@@ -82,7 +82,7 @@
                         <i class="caret fas fa-chevron-right"></i>
                     </button>
                     <ul class="section-submenu menu-list submenu" id="menu-calendario" aria-hidden="true">
-                        <li><a href="@Url.Action("Calendario", "Home")"><i class="menu-icon fas fa-calendar-alt"></i> Calendario</a></li>
+                        <li><a href="@Url.Action("Calendario", "EventosAgenda")"><i class="menu-icon fas fa-calendar-alt"></i> Calendario</a></li>
                     </ul>
                 </li>
 
@@ -98,7 +98,7 @@
                             @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { @class = "logout-form" }))
                             {
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="submenu-link btn-link" style="border:none;background:none;padding:0;color:inherit;text-align:left;">Cerrar sesión</button>
+                                <button type="submit" class="submenu-link btn-link" style="border:none;background:none;padding:0;color:inherit;text-align:left;">Cerrar sesiï¿½n</button>
                             }
                         </li>
                     </ul>
@@ -107,7 +107,7 @@
         </nav>
 
         <div class="sidebar-footer">
-            <small class="muted">© @DateTime.Now.Year</small>
+            <small class="muted">ï¿½ @DateTime.Now.Year</small>
         </div>
     </div>
 </aside>
