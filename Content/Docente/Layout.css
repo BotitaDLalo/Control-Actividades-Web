@@ -1,9 +1,14 @@
-﻿.layout {
+﻿/* Layout base styles for Docente views */
+.layout {
+    /* Removed page-wide gradient to avoid applying large blue banner to elements that use the generic `layout` class (e.g., nav). */
+    font-size: 16px;
+}
+
+/* If you want a hero/banner gradient in specific pages, add the class `docente-hero` to a container and style it here */
+.docente-hero {
     background: #36D1DC; /* fallback for old browsers */
     background: -webkit-linear-gradient(to right, #16BFFD, #457fca); /* Chrome 10-25, Safari 5.1-6 */
     background: linear-gradient(to right, #16BFFD, #457fca); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-
-    font-size: 16px;
 }
 
 
@@ -29,62 +34,41 @@ p, body {
     color: rgb(255 255 255);
 }
 
+
 .navbar-brand {
-    width: 208px;
-    height: 56px;
+    width: 208px; /* Fija el ancho del contenedor */
+    height: 56px; /* Fija el alto del contenedor */
     display: flex;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    justify-content: center; /* Centra el ícono */
+    overflow: hidden; /* Oculta cualquier desbordamiento */
 }
 
 .navbar-icon {
-    width: 112%;
-    height: 294%;
-    object-fit: contain;
+    width: 112%; /* Se ajusta al 100% del contenedor */
+    height: 294%; /* Se ajusta al 100% del contenedor */
+    object-fit: contain; /* Escala internamente sin distorsionar */
 }
-
-.iconos1-nav {
-    display: block;
-    margin: 0 auto; /* Centra horizontalmente */
-    width: 5rem;
-    height: 5rem;
-    object-fit: cover;
-    transition: transform 0.3s ease, filter 0.3s ease;
-    cursor: pointer;
-}
-
-
-    /* Efecto al pasar el cursor */
-    .iconos1-nav:hover {
-        transform: scale(1.1); /* Aumenta ligeramente el tamaño */
-        filter: brightness(1.2); /* Hace que la imagen se vea más clara */
-    }
-
-    /* Efecto al hacer clic */
-    .iconos1-nav:active {
-        transform: scale(0.95); /* Hace un pequeño efecto de presión */
-    }
-
 
 .icon-nav {
-    width: 64px;
-    height: auto;
-    margin-right: -9px;
-    vertical-align: middle;
+    width: 64px; /* Ajusta el tamaño según tus necesidades */
+    height: auto; /* Mantiene la proporción de aspecto */
+    margin-right: -9px; /* Espaciado a la derecha del ícono */
+    vertical-align: middle; /* Alineación vertical con el texto */
 }
 
 .iconos-nav {
-    width: 70px;
-    height: auto;
-    margin-right: -9px;
-    vertical-align: middle;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    width: 70px; /* Ajusta el tamaño según tus necesidades */
+    height: auto; /* Mantiene la proporción de aspecto */
+    margin-right: -9px; /* Espaciado a la derecha del ícono */
+    vertical-align: middle; /* Alineación vertical con el texto */
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Suaviza la animación */
 }
 
+    /* Efecto hover */
     .iconos-nav:hover {
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-        transform: scale(1.1);
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Sombra alrededor del ícono */
+        transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el cursor */
     }
 
 .navbar-nav {
@@ -96,6 +80,11 @@ p, body {
     justify-content: flex-end;
 }
 
+/*
+Estilos del submenu usuario*/
+
+
+/* Flecha dentro del contenedor de usuario */
 .nav-link .dropdown-arrow {
     font-size: 14px;
     margin-left: 8px;
@@ -103,24 +92,26 @@ p, body {
     vertical-align: middle;
 }
 
+/* Cambiar color de la flecha en hover */
 .nav-link:hover .dropdown-arrow {
     color: #007bff;
 }
 
+/* Mantener el estilo del menú */
 .nav-item.dropdown {
     position: relative;
 }
 
 .dropdown-menu {
-    display: none; 
-    position: relative; 
+    display: none; /* Oculto por defecto */
+    position: absolute;
     right: 0;
     top: 100%;
     background-color: #fff;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     padding: 10px 15px;
-    z-index: 1000; 
+    z-index: 1000;
     animation: fadeIn 0.3s ease;
 }
 
@@ -128,6 +119,7 @@ p, body {
     display: block;
 }
 
+/* Animaciones */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -140,156 +132,31 @@ p, body {
     }
 }
 
-.section-title {
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-}
-/*Linea divisora color roja*/
-
-.divider {
-    height: 3px;
-    background: linear-gradient(to right, #ff4b4b, #ff0000); /* Degradado rojo */
-    border-radius: 2px;
-    margin: 20px 0;
-    opacity: 0.8; /* Un poco de transparencia */
-}
-
-/*Css para darle estilo a las actividades en la card materia*/
-/*Orden de las cards */
-.container-cards {
+/* Contenedor del ícono y el nombre */
+.user-info {
     display: flex;
-/*    flex-wrap: wrap;*/
-    gap: 15px;
-    justify-content: flex-start;
-}
-
-
-/* Estilos generales de la tarjeta */
-.card-body-custom {
-    font-family: "Arial", sans-serif; /* Cambia el tipo de letra */
-    font-size: 16px; /* Cambia el tamaño de la fuente */
-    background-color: #e0e0e0; /* Un gris más oscuro que #e0e0e0 */
-    padding: 15px;
-    border-radius: 5px;
-}
-
-    .card-body-custom p {
-        font-size: 14px; /* Tamaño del texto dentro de los párrafos */
-        color: #333; /* Color del texto */
-    }
-
-    .card-body-custom a {
-        font-size: 14px;
-        font-weight: bold;
-        text-decoration: none;
-        color: #0056b3;
-    }
-
-        .card-body-custom a:hover {
-            color: #003d80;
-            text-decoration: underline;
-        }
-/*Tamaño de cards y efectos*/
-.card-custom {
-    width: 250px; /*Tamaño de la card*/
-    overflow: visible !important; /*Se cambio de hidden a visible !important */
-    background-color: #f8f9fa;
-    border-radius: 10px; /* Esquinas redondeadas */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave */
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
-}
-
-/* 🔹 Adaptación para tablets (pantallas medianas) */
-@media (max-width: 768px) {
-    .card-custom {
-        width: 200px; /* Reduce el tamaño */
-    }
-
-    .container-cards {
-        justify-content: flex-start; /* Mantiene alineación a la izquierda */
-    }
-}
-
-/* 🔹 Adaptación para celulares (pantallas pequeñas) */
-@media (max-width: 480px) {
-    .card-custom {
-        width: 100%; /* Ocupa todo el ancho disponible */
-    }
-
-    .container-cards {
-        flex-direction: column; /* Las pone en una sola columna */
-        align-items: flex-start; /* Mantiene alineación a la izquierda */
-    }
-}
-
-    .card-custom:hover {
-        transform: translateY(-8px); /* Hace que la tarjeta suba un poco más */
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35); /* Sombra más notoria */
-    }
-
-
-.card-header-custom {
-    padding: 10px; /* Agrega espacio interno de 10px alrededor del contenido */
-    color: white; /* Cambia el color del texto a blanco */
-    font-weight: bold; /* Hace que el texto sea en negrita */
-}
-
-
-.card-footer-custom {
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    background-color: #e9ecef;
-    border-top: 1px solid #ccc;
-}
-/* Contenedor de cada actividad */
-.actividad-item {
+    
     padding: 5px 0;
-    border-bottom: 1px solid #ccc; /* Línea separadora entre actividades */
 }
 
-    .actividad-item:last-child {
-        border-bottom: none; /* Quita la línea del último elemento */
+    /* Tamaño del ícono */
+    .user-info img.iconos1-nav {
+        width: 74px; /* Ajusta el tamaño según tus necesidades */
+        height: 34px; /* Asegura que el ícono sea cuadrado */
+ 
     }
 
-/* Enlace de la actividad */
-.actividad-link {
-    display: block;
-    font-weight: bold;
-    color: #0056b3;
-    text-decoration: none;
-    transition: color 0.2s ease-in-out;
-}
-
-    .actividad-link:hover {
-        color: #003d80; /* Azul más oscuro al pasar el mouse */
-        text-decoration: underline;
+    /* Nombre del usuario */
+    .user-info .dropdown-item {
+        margin: 0; /* Elimina márgenes del texto */
+        font-size: 13px; /* Ajusta el tamaño del texto */
+        color: #333; /* Color del texto */
+        font-weight: bold; /* Resalta el nombre */
     }
 
-/* Estilo de la fecha de la actividad */
-.actividad-fecha {
-    font-size: 0.85rem;
-    color: #555;
-    margin-top: 2px;
+/* Botón de cerrar sesión */
+.dropdown-item button {
+    margin-top: 10px;
 }
-
-/* Estilos para cuando no hay actividades */
-.sin-actividades {
-    font-style: italic;
-    color: #777;
-}
-/*Icono de pie de la card*/
-.icon-action {
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-    .icon-action:hover {
-        transform: scale(1.2);
-    }
 
