@@ -22,9 +22,11 @@ namespace ControlActividades
             bundles.Add(new Bundle("~/bundles/bootstrap").Include(
                       "~/Scripts/bootstrap.bundle.min.js"));
 
+            // Keep only global site CSS in the main bundle. Dashboard-specific CSS should not be bundled globally to avoid layout conflicts (e.g. ".layout" rule).
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
-                      "~/Content/site.css"));
+                      "~/Content/site.css",
+                      "~/Content/sidebar.css"));
 
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")
@@ -61,7 +63,6 @@ namespace ControlActividades
 
 
 
-
             //bundles.Add(new ScriptBundle("~/bundles/alumno").Include(
             //    "~/Scripts/Alumno/*.js"));
 
@@ -83,6 +84,8 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Alumno/css").Include(
                 "~/Content/Alumno/*.css"));
 
+            // Disable optimizations in development to load files directly
+            BundleTable.EnableOptimizations = false;
         }
     }
 }

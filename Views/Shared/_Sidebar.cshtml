@@ -33,7 +33,6 @@
                     <button class="section-btn" data-target="#menu-home" aria-expanded="false" data-href="@inicioUrl">
                         <i class="fas fa-home"></i>
                         <span class="section-label">Inicio</span>
-                        <i class="caret fas fa-chevron-right"></i>
                     </button>
                     <ul class="section-submenu menu-list submenu" id="menu-home" aria-hidden="true">
                         <li><a href="@inicioUrl"><i class="menu-icon fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -44,7 +43,6 @@
                     <button class="section-btn" data-target="#menu-actividades" aria-expanded="false">
                         <i class="fas fa-th-large"></i>
                         <span class="section-label">Actividades</span>
-                        <i class="caret fas fa-chevron-right"></i>
                     </button>
                     <ul class="section-submenu" id="menu-actividades" aria-hidden="true">
                         @if (isDocente)
@@ -66,7 +64,6 @@
                         <button class="section-btn" data-target="#menu-grupos-materias" aria-expanded="false">
                             <i class="fas fa-layer-group"></i>
                             <span class="section-label">Grupos y Materias</span>
-                            <i class="caret fas fa-chevron-right"></i>
                         </button>
                         <ul class="section-submenu" id="menu-grupos-materias" aria-hidden="true">
                             <li>@Html.ActionLink("Grupo", "Grupos", "Alumno", null, new { @class = "submenu-link" })</li>
@@ -79,7 +76,6 @@
                     <button class="section-btn" data-target="#menu-calendario" aria-expanded="false">
                         <i class="fas fa-calendar-alt"></i>
                         <span class="section-label">Calendario</span>
-                        <i class="caret fas fa-chevron-right"></i>
                     </button>
                     <ul class="section-submenu menu-list submenu" id="menu-calendario" aria-hidden="true">
                         <li><a href="@Url.Action("Calendario", "EventosAgenda")"><i class="menu-icon fas fa-calendar-alt"></i> Calendario</a></li>
@@ -90,7 +86,6 @@
                     <button class="section-btn" data-target="#menu-perfil" aria-expanded="false">
                         <i class="fas fa-user"></i>
                         <span class="section-label">Cuenta</span>
-                        <i class="caret fas fa-chevron-right"></i>
                     </button>
                     <ul class="section-submenu" id="menu-perfil" aria-hidden="true">
                         <li>@Html.ActionLink("Perfil", "Index", "Manage", null, new { @class = "submenu-link" })</li>
