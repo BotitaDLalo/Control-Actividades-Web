@@ -4,6 +4,10 @@
 
     const calendarEl = document.getElementById("calendar");
 
+    //Modal de creación
+    const modalCrear = document.getElementById("modalCrearEvento");
+    const btnCerrarCrear = document.querySelector(".close-crear");
+
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
         locale: "es",
@@ -73,9 +77,124 @@
         formContainer.style.display = "none";
     });
 
+    // Modal de creación. Agregar nuevo evento
     btnAgregar.addEventListener("click", () => {
-        formContainer.style.display = "block";
+        modalCrear.style.display = "flex";
+        cargarGruposMaterias();
     });
+
+    btnCerrarCrear.addEventListener("click", () => {
+        modalCrear.style.display = "none";
+        limpiarFormularioEvento();
+    });
+
+    window.addEventListener("click", function (e) {
+        if (e.target === modalCrear) {
+            modalCrear.style.display = "none";
+            limpiarFormularioEvento();
+        }
+
+        if (e.target === modal) {
+            modal.style.display = "none";
+            listaEventos.innerHTML = "";
+        }
+    });
+
+    //Obtener materias y grupos
+    async function cargarGruposMaterias() {
+        try {
+            const resp = await fetch("/EventosAgenda/ObtenerGruposYMaterias");
+            const data = await resp.json();
+
+            const contenedor = document.getElementById("contenedorGruposMaterias");
+            contenedor.innerHTML = ""; // limpiar
+
+            // Grupos
+            data.grupos.forEach(grupo => {
+
+                const divGrupo = document.createElement("div");
+                divGrupo.classList.add("grupo-item");
+
+                divGrupo.innerHTML = `
+                <label>
+                    <input type="checkbox" class="chk-grupo" data-grupo="${grupo.GrupoId}">
+                    <strong>${grupo.NombreGrupo}</strong>
+                </label>
+                <div class="materias-del-grupo" style="margin-left: 20px;"></div>
+            `;
+
+                const contMaterias = divGrupo.querySelector(".materias-del-grupo");
+
+                grupo.Materias.forEach(mat => {
+                    const divMat = document.createElement("div");
+                    divMat.innerHTML = `
+                    <label>
+                        <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
+                        ${mat.NombreMateria}
+                    </label>
+                `;
+                    contMaterias.appendChild(divMat);
+                });
+
+                contenedor.appendChild(divGrupo);
+            });
+
+            // Materias sin grupos
+            if (data.materiasSueltas.length > 0) {
+                const titulo = document.createElement("h4");
+                titulo.textContent = "Materias sin grupo";
+                contenedor.appendChild(titulo);
+
+                data.materiasSueltas.forEach(mat => {
+                    const divMat = document.createElement("div");
+                    divMat.innerHTML = `
+                    <label>
+                        <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
+                        ${mat.NombreMateria}
+                    </label>
+                `;
+                    contenedor.appendChild(divMat);
+                });
+            }
+
+            activarLogicaCheckBoxes();
+        }
+        catch (err) {
+            console.error("Error cargando grupos y materias:", err);
+        }
+    }
+
+    function activarLogicaCheckBoxes() {
+
+        // Marcar un grupo marca todas sus materias
+        document.querySelectorAll(".chk-grupo").forEach(chkGrupo => {
+            chkGrupo.addEventListener("change", function () {
+                const grupoId = this.dataset.grupo;
+
+                document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]`)
+                    .forEach(chk => chk.checked = this.checked);
+            });
+        });
+
+        // Al desmarcar todas las materias se desmarca el grupo
+        document.querySelectorAll(".chk-materia").forEach(chk => {
+            chk.addEventListener("change", function () {
+                const grupoId = this.dataset.grupo;
+
+                const todas = document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]`);
+                const marcadas = document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]:checked`);
+
+                const chkGrupo = document.querySelector(`.chk-grupo[data-grupo="${grupoId}"]`);
+
+                // si todas las materias están marcadas se marca el grupo
+                if (marcadas.length === todas.length) chkGrupo.checked = true;
+
+                // si se desmarca alguna materia se desmarca el grupo
+                if (marcadas.length < todas.length) chkGrupo.checked = false;
+            });
+        });
+    }
+
 
 
     // CREAR

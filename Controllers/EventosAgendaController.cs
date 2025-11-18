@@ -111,6 +111,65 @@ namespace ControlActividades.Controllers
         }
 
         [Authorize]
+        [HttpGet]
+        public ActionResult ObtenerGruposYMaterias()
+        {
+            try
+            {
+                string userId = User.Identity.GetUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Json(new { grupos = new object[0], materiasSueltas = new object[0] }, JsonRequestBehavior.AllowGet);
+
+                var docenteId = Db.tbDocentes
+                                  .Where(d => d.UserId == userId)
+                                  .Select(d => d.DocenteId)
+                                  .FirstOrDefault();
+
+                if (docenteId == 0)
+                    return Json(new { grupos = new object[0], materiasSueltas = new object[0] }, JsonRequestBehavior.AllowGet);
+
+                // Grupos con materias
+                var grupos = Db.tbGrupos
+                    .Where(g => g.DocenteId == docenteId)
+                    .Select(g => new
+                    {
+                        GrupoId = g.GrupoId,
+                        NombreGrupo = g.NombreGrupo,
+                        Materias = Db.tbGruposMaterias
+                                     .Where(gm => gm.GrupoId == g.GrupoId)
+                                     .Join(
+                                        Db.tbMaterias,
+                                        gm => gm.MateriaId,
+                                        m => m.MateriaId,
+                                        (gm, m) => new {
+                                            MateriaId = m.MateriaId,
+                                            NombreMateria = m.NombreMateria
+                                        }
+                                     )
+                                     .ToList()
+                    })
+                    .ToList();
+
+                // Materias sin grupo
+                var materiasEnGrupos = Db.tbGruposMaterias
+                    .Select(gm => gm.MateriaId)
+                    .Distinct();
+
+                var materiasSueltas = Db.tbMaterias
+                    .Where(m => m.DocenteId == docenteId && !materiasEnGrupos.Contains(m.MateriaId))
+                    .Select(m => new { MateriaId = m.MateriaId, NombreMateria = m.NombreMateria })
+                    .ToList();
+
+                return Json(new { grupos = grupos, materiasSueltas = materiasSueltas }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { error = "Error al obtener datos", detail = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult> CrearEvento(tbEventosAgenda evento)
         {
