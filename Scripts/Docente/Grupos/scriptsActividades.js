@@ -13,18 +13,23 @@ async function registrarActividad() {
     let nombre = document.getElementById("nombre").value.trim();
     let descripcion = document.getElementById("descripcion").value.trim();
     let fechaHoraLimite = document.getElementById("fechaHoraLimite").value;
-    let puntaje = parseInt(document.getElementById("puntaje").value, 10);
+    let puntajeInput = document.getElementById("puntaje");
+    let sinPuntajeCheckbox = document.getElementById("sinPuntaje");
+    let puntaje = null;
+    if (puntajeInput && !puntajeInput.disabled && puntajeInput.value !== '') {
+        puntaje = parseInt(puntajeInput.value, 10);
+    }
 
     // Referencia al botón para mostrar estado
     var btn = document.querySelector('#crearActividadModal .btn-primary');
     var originalBtnHtml = btn ? btn.innerHTML : null;
 
     // Validaciones básicas
-    if (!nombre || !descripcion || !fechaHoraLimite || isNaN(puntaje)) {
+    if (!nombre || !descripcion || !fechaHoraLimite || (puntaje === null && !sinPuntajeCheckbox.checked)) {
         Swal.fire({
             icon: "warning",
             title: "Campos incompletos",
-            text: "Por favor, completa todos los campos antes de continuar."
+            text: "Por favor, completa todos los campos antes de continuar. Si la actividad no tiene puntaje marca 'Sin puntaje'."
         });
         return;
     }
@@ -52,7 +57,7 @@ async function registrarActividad() {
         Descripcion: descripcion,
         FechaLimite: fechaHoraLimite,
         TipoActividadId: 1, // Cambiar si se obtiene dinámicamente
-        Puntaje: puntaje,
+        Puntaje: sinPuntajeCheckbox && sinPuntajeCheckbox.checked ? (intNull()) : puntaje,
         MateriaId: parseInt(materiaIdGlobal, 10)
     };
 
@@ -130,7 +135,7 @@ async function registrarActividad() {
 async function cargarActividadesDeMateria() {
     const listaActividades = document.getElementById("listaActividadesDeMateria");
     if (!listaActividades) return;
-    listaActividades.innerHTML = "<p>Cargando actividades...</p>"; // Mostrar mensaje de carga
+    listaActividades.innerHTML = "<p>Cargando actividades...</p>";
 
     try {
         const mid = typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : (window.materiaIdGlobal || null);
@@ -141,32 +146,27 @@ async function cargarActividadesDeMateria() {
         try { payload = text ? JSON.parse(text) : null; } catch (e) { payload = null; }
 
         if (!response.ok) {
-            // si el servidor devolvió un JSON con mensaje, mostrarlo; si no, usar el texto crudo
             const mensaje = payload && (payload.mensaje || payload.message) ? (payload.mensaje || payload.message) : (text || `Error HTTP: ${response.status}`);
             console.warn('Error fetching actividades:', response.status, mensaje);
             listaActividades.innerHTML = `<p class="mensaje-error">${mensaje}</p>`;
             return;
         }
 
-        // Si el payload es un objeto con una propiedad mensaje, puede ser un error aunque response.ok
         if (payload == null) {
             listaActividades.innerHTML = `<p class="mensaje-error">Respuesta inválida del servidor.</p>`;
             console.warn('Respuesta inválida al obtener actividades:', text);
             return;
         }
 
-        // Si el servidor devuelve un objeto con 'mensaje' y no es lista, mostrar mensaje
         if (!Array.isArray(payload)) {
             if (payload.mensaje || payload.message) {
                 listaActividades.innerHTML = `<p class="mensaje-error">${payload.mensaje || payload.message}</p>`;
                 return;
             }
-            // A veces el payload viene envuelto en { resultado: [...] }
             if (payload.resultado && Array.isArray(payload.resultado)) {
                 renderizarActividades(payload.resultado);
                 return;
             }
-            // intentar extraer array si existe alguna propiedad que sea array
             const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
             if (arr) {
                 renderizarActividades(arr);
@@ -390,12 +390,19 @@ async function editarActividad(id) {
     }
 }
 
+function intNull() { return null; }
+
 async function actualizarActividad(id) {
     // leer campos
     let nombre = document.getElementById('nombre').value.trim();
     let descripcion = document.getElementById('descripcion').value.trim();
     let fechaHoraLimite = document.getElementById('fechaHoraLimite').value;
-    let puntaje = parseInt(document.getElementById('puntaje').value, 10) || 0;
+    let puntajeInput = document.getElementById("puntaje");
+    let sinPuntajeCheckbox = document.getElementById("sinPuntaje");
+    let puntaje = null;
+    if (puntajeInput && !puntajeInput.disabled && puntajeInput.value !== '') {
+        puntaje = parseInt(puntajeInput.value, 10);
+    }
 
     if (!nombre || !descripcion || !fechaHoraLimite) {
         Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Completa todos los campos.' });
@@ -406,7 +413,7 @@ async function actualizarActividad(id) {
         NombreActividad: nombre,
         Descripcion: descripcion,
         FechaLimite: fechaHoraLimite,
-        Puntaje: puntaje,
+        Puntaje: sinPuntajeCheckbox && sinPuntajeCheckbox.checked ? null : puntaje,
         TipoActividadId: 1
     };
 
