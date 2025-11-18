@@ -1,8 +1,8 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutDocente.cshtml";
     ViewBag.Title = "MateriasDetalles";
-    @Html.Partial("~/Views/Docente/CrearActividadModal.cshtml")
-    @Html.Partial("~/Views/Docente/crearAvisoMateriaModal.cshtml")
+    Html.RenderPartial("~/Views/Docente/CrearActividadModal.cshtml");
+    Html.RenderPartial("~/Views/Docente/crearAvisoMateriaModal.cshtml");
 
     int docenteId = ViewBag.DocenteId != null ? (int)ViewBag.DocenteId : 0;
 

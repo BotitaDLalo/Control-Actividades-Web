@@ -136,13 +136,55 @@ async function cargarActividadesDeMateria() {
         const mid = typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : (window.materiaIdGlobal || null);
         if (!mid) throw new Error('Materia no definida');
         const response = await fetch(`/Materias/ObtenerActividadesPorMateria?materiaId=${mid}`);
-        if (!response.ok) throw new Error("No se encontraron actividades.");
-        const actividades = await response.json();
-        renderizarActividades(actividades);
+        const text = await response.text();
+        let payload = null;
+        try { payload = text ? JSON.parse(text) : null; } catch (e) { payload = null; }
+
+        if (!response.ok) {
+            // si el servidor devolvió un JSON con mensaje, mostrarlo; si no, usar el texto crudo
+            const mensaje = payload && (payload.mensaje || payload.message) ? (payload.mensaje || payload.message) : (text || `Error HTTP: ${response.status}`);
+            console.warn('Error fetching actividades:', response.status, mensaje);
+            listaActividades.innerHTML = `<p class="mensaje-error">${mensaje}</p>`;
+            return;
+        }
+
+        // Si el payload es un objeto con una propiedad mensaje, puede ser un error aunque response.ok
+        if (payload == null) {
+            listaActividades.innerHTML = `<p class="mensaje-error">Respuesta inválida del servidor.</p>`;
+            console.warn('Respuesta inválida al obtener actividades:', text);
+            return;
+        }
+
+        // Si el servidor devuelve un objeto con 'mensaje' y no es lista, mostrar mensaje
+        if (!Array.isArray(payload)) {
+            if (payload.mensaje || payload.message) {
+                listaActividades.innerHTML = `<p class="mensaje-error">${payload.mensaje || payload.message}</p>`;
+                return;
+            }
+            // A veces el payload viene envuelto en { resultado: [...] }
+            if (payload.resultado && Array.isArray(payload.resultado)) {
+                renderizarActividades(payload.resultado);
+                return;
+            }
+            // intentar extraer array si existe alguna propiedad que sea array
+            const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
+            if (arr) {
+                renderizarActividades(arr);
+                return;
+            }
+
+            listaActividades.innerHTML = `<p class="mensaje-error">No se encontraron actividades.</p>`;
+            console.warn('Payload no es array:', payload);
+            return;
+        }
+
+        renderizarActividades(payload);
     } catch (error) {
+        console.error('Error en cargarActividadesDeMateria:', error);
         listaActividades.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
     }
 }
+
 //Renderiza actividades despues de confirmar existencia
 function renderizarActividades(actividades) {
     const listaActividades = document.getElementById("listaActividadesDeMateria");
@@ -156,8 +198,8 @@ function renderizarActividades(actividades) {
     actividades.reverse();
 
     actividades.forEach(actividad => {
-        const actividadItem = document.createElement("div");
-        actividadItem.classList.add("actividad-item");
+        const actividadItem = document.createElement('div');
+        actividadItem.classList.add('actividad-item');
         const descripcionActividadConEnlace = convertirUrlsEnEnlaces(actividad.Descripcion);
 
         actividadItem.innerHTML = `
