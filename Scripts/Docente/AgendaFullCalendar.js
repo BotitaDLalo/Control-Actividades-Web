@@ -147,6 +147,7 @@
 
                 data.materiasSueltas.forEach(mat => {
                     const divMat = document.createElement("div");
+                    divMat.classList.add("materia-suelta-item");
                     divMat.innerHTML = `
                     <label>
                         <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
