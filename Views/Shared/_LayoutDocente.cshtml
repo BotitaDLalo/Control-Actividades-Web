@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -12,6 +12,7 @@
     <style>
         html, body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     @Html.Partial("_Sidebar")
@@ -79,57 +80,22 @@
         </div>
     </div>
 
-    <!-- Modal de Agenda -->
-    <div id="modalEvento" class="modal-evento">
-        <div class="modal-content">
-            <span class="close-modal12">&times;</span>
-            <h2>Eventos del <span id="fechaSeleccionadaTexto"></span></h2>
-
-            <div id="listaEventos"></div>
-
-            <button id="btnAgregarEvento">Agregar Evento</button>
-
-            <div id="formEventoContainer" style="display: none;">
-                <form id="formEvento">
-                    <label for="titulo">Título:</label>
-                    <input type="text" id="titulo" name="titulo" required>
-
-                    <label for="descripcion">Descripción:</label>
-                    <textarea id="descripcion" name="descripcion" required></textarea>
-
-                    <label for="fechaInicio">Fecha Inicio:</label>
-                    <input type="datetime-local" id="fechaInicio" name="fechaInicio" required>
-
-                    <label for="fechaFinal">Fecha Final:</label>
-                    <input type="datetime-local" id="fechaFinal" name="fechaFinal" required>
-
-                    <label for="color">Color:</label>
-                    <select id="color" name="color" required>
-                        <option value="azul">Azul</option>
-                        <option value="gris">Gris</option>
-                    </select>
-
-                    <button type="submit">Guardar</button>
-                </form>
-            </div>
-        </div>
-
-        @Scripts.Render("~/bundles/jquery")
-        @Scripts.Render("~/bundles/bootstrap")
-        <script src="~/Scripts/sidebar.js"></script>
-
-        <!--SPINNER DE CARGA-->
-        <div id="loader" class="carga">
-            <div class="spinner"></div>
-            <div class="texto-carga">Cargando...</div>
-        </div>
-        <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
-        <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
 
 
-        @RenderSection("scripts", required: false)
-        @RenderSection("styles", required: false)
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/sidebar.js"></script>
+
+    <!--SPINNER DE CARGA-->
+    <div id="loader" class="carga">
+        <div class="spinner"></div>
+    </div>
+    <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
+    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
+
+
+    @RenderSection("scripts", required: false)
+    @RenderSection("styles", required: false)
+
 </body>
 </html>

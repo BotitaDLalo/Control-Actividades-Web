@@ -108,7 +108,7 @@ namespace ControlActividades.Controllers
         {
             get
             {
-                return _notifServ ?? (_notifServ = new NotificacionesService());
+                return _notifServ ?? (_notifServ = new NotificacionesService(Db, new FCMService()));
             }
             private set
             {
@@ -147,10 +147,31 @@ namespace ControlActividades.Controllers
 
                 Db.tbAvisos.Add(avisos);
                 await Db.SaveChangesAsync();
+                avisoCreado = true;
 
                 var nuevoAviso = Db.tbAvisos.Where(a => a.AvisoId == avisos.AvisoId).FirstOrDefault();
-                avisoCreado = true;
-                return Ok(nuevoAviso);
+
+                var docenteNombre = Db.tbDocentes.Where(a => a.DocenteId == nuevoAviso.DocenteId).Select(a => new
+                {
+                    a.ApellidoPaterno,
+                    a.ApellidoMaterno,
+                    a.Nombre
+                }).FirstOrDefault();
+
+                var res = new
+                {
+                    AvisoId = nuevoAviso.AvisoId,
+                    Titulo = nuevoAviso.Titulo,
+                    Descripcion = nuevoAviso.Descripcion,
+                    ApePaternoDocente = docenteNombre.ApellidoPaterno,
+                    ApeMaternoDocente = docenteNombre.ApellidoMaterno,
+                    NombresDocente = docenteNombre.Nombre,
+                    FechaCreacion = nuevoAviso.FechaCreacion,
+                    GrupoId = nuevoAviso.GrupoId,
+                    MateriaId = nuevoAviso.MateriaId
+                };
+                
+                return Ok(res);
             }
             catch (Exception)
             {

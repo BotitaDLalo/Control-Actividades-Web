@@ -468,6 +468,7 @@
     <Content Include="Scripts\Componentes\componenteAvisos.js" />
     <Content Include="Scripts\dashboard\sidebar.js" />
     <Content Include="Scripts\Docente\Agenda.js" />
+    <Content Include="Scripts\Docente\AgendaFullCalendar.js" />
     <Content Include="Scripts\Docente\Confirmacion.js" />
     <Content Include="Scripts\Docente\footer.js" />
     <Content Include="Scripts\Docente\Grupos\ActividadIA.js" />
@@ -541,6 +542,7 @@
     <Content Include="Views\Home\Calendario.cshtml" />
     <Content Include="Views\Alumno\_GruposPartial.cshtml" />
     <Content Include="Views\Alumno\_MateriasSinGrupoPartial.cshtml" />
+    <Content Include="Views\EventosAgenda\Calendario.cshtml" />
     <Content Include="Views\Dashboard\Index.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
   </ItemGroup>

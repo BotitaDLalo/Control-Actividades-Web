@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
@@ -514,7 +514,7 @@ namespace ControlActividades.Controllers
                 var email = verifyEmail.Email;
                 if (!string.IsNullOrEmpty(email))
                 {
-                    var user = await _userManager.FindByEmailAsync(email);
+                    var user = await UserManager.FindByEmailAsync(email);
                     if (user != null)
                     {
                         var alumnoExiste = Db.tbAlumnos.Any(a => a.UserId == user.Id);
@@ -549,7 +549,7 @@ namespace ControlActividades.Controllers
 
                 foreach (var email in lsEmails)
                 {
-                    var user = await _userManager.FindByEmailAsync(email);
+                    var user = await UserManager.FindByEmailAsync(email);
 
                     if (user != null)
                     {
@@ -744,13 +744,12 @@ namespace ControlActividades.Controllers
                     var alumnoDatos = Db.tbAlumnos.Where(a => a.AlumnoId == id).FirstOrDefault();
                     if (alumnoDatos != null)
                     {
-                        // usar la propiedad que garantiza obtener el UserManager
-                        var user = await UserManager.FindByIdAsync(alumnoDatos.UserId);
+                        var userName = await UserManager.FindByIdAsync(alumnoDatos.UserId);
 
                         var alumno = new EmailVerificadoAlumno()
                         {
-                            Email = user?.Email ?? "",
-                            UserName = user?.UserName ?? "",
+                            Email = userName?.Email ?? "",
+                            UserName = userName?.UserName ?? "",
                             Nombre = alumnoDatos.Nombre,
                             ApellidoPaterno = alumnoDatos.ApellidoPaterno,
                             ApellidoMaterno = alumnoDatos.ApellidoMaterno,

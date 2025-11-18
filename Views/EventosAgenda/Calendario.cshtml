@@ -1,0 +1,71 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "Calendario";
+    int docenteId = ViewBag.DocenteId ?? 0;
+}
+
+<div class="calendario-wrapper" style="padding:20px;">
+    <div id="calendar" style="max-width: 1200px; margin: 0 auto;"></div>
+
+    <!-- MODAL DE EVENTOS -->
+    <div id="modalEvento" class="modal-evento">
+        <div class="modal-content">
+            <span class="close-modal12">&times;</span>
+            <h2>Eventos del <span id="fechaSeleccionadaTexto"></span></h2>
+
+            <div id="listaEventos"></div>
+
+            <button id="btnAgregarEvento">Agregar Evento</button>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA CREAR EVENTO -->
+<div id="modalCrearEvento" class="modal-evento">
+    <div class="modal-crear-content">
+        <span class="close-crear">&times;</span>
+        <h2>Crear nuevo evento</h2>
+
+        <form id="formEvento">
+            <label for="titulo">Título:</label>
+            <input type="text" id="titulo" name="Titulo" required>
+
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="Descripcion" required></textarea>
+
+            <label for="FechaInicio">Fecha Inicio:</label>
+            <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
+
+            <label for="FechaFinal">Fecha Final:</label>
+            <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+
+            <label for="color">Color:</label>
+            <select id="color" name="Color" required>
+                <option value="azul">Azul</option>
+                <option value="gris">Gris</option>
+            </select>
+
+            <button type="submit">Guardar</button>
+        </form>
+
+        <h3>Grupos y Materias</h3>
+        <div id="contenedorGruposMaterias"></div>
+
+    </div>
+</div>
+
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+    <script>
+        var docenteIdGlobal = @docenteId;
+    </script>
+    <script src="~/Scripts/Docente/AgendaFullCalendar.js"></script>
+}
+
+@section styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
+    <link href="~/Content/Docente/Calendario.css" rel="stylesheet" />
+}

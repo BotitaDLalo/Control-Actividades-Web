@@ -4,7 +4,6 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.7);
     z-index: 9999;
     display: flex;
     flex-direction: column;
@@ -30,15 +29,6 @@
     animation: spin 1s linear infinite;
 }
 
-.texto-carga {
-    margin-top: 20px;
-    font-family: "Segoe UI", Arial, sans-serif;
-    font-size: 1.2em;
-    color: #333;
-    font-weight: 500;
-    animation: fadeText 1.5s ease-in-out infinite alternate;
-}
-
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -46,15 +36,5 @@
 
     100% {
         transform: rotate(360deg);
-    }
-}
-
-@keyframes fadeText {
-    from {
-        opacity: 0.4;
-    }
-
-    to {
-        opacity: 1;
     }
 }
