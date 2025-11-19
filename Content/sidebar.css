@@ -432,3 +432,9 @@ nav.layout, nav.navbar.layout {
 
 /* If any remaining blue backgrounds appear on the top, force white text for header elements */
 header, header nav, .navbar, .navbar-brand, .app-header { color: #fff !important; }
+/* Hide deprecated 'Crear' CTA in sidebar - removed per user request */
+.sidebar-cta, #btnSidebarCrear, .btn-cta {
+  display: none !important;
+}
+
+/* End of hide rule */
