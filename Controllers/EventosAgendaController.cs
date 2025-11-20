@@ -177,6 +177,7 @@ namespace ControlActividades.Controllers
                 return new HttpStatusCodeResult(400, "Datos inválidos.");
 
             string userId = User.Identity.GetUserId();
+
             var docenteId = Db.tbDocentes
                 .Where(d => d.UserId == userId)
                 .Select(d => d.DocenteId)
@@ -185,7 +186,6 @@ namespace ControlActividades.Controllers
             if (docenteId == 0)
                 return new HttpStatusCodeResult(400, "No se pudo identificar al docente.");
 
-            // Asignar DocenteId al evento antes de guardar
             evento.DocenteId = docenteId;
 
             if (evento.FechaFinal < evento.FechaInicio)
@@ -199,7 +199,69 @@ namespace ControlActividades.Controllers
                 return new HttpStatusCodeResult(400, "Solo se permiten los colores azul y gris.");
             }
 
+            // Crear evento principal (obligatorio) Evento personal del docente
             Db.tbEventosAgenda.Add(evento);
+            await Db.SaveChangesAsync();
+
+            int eventoId = evento.EventoId;
+
+            string gruposString = Request.Form["GruposSeleccionados"];
+            string materiasString = Request.Form["MateriasSeleccionadas"];
+
+            List<int> gruposIds = new List<int>();
+            if (!string.IsNullOrWhiteSpace(gruposString))
+            {
+                gruposIds = gruposString
+                    .Split(',')
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(int.Parse)
+                    .ToList();
+            }
+
+            List<int> materiasIds = new List<int>();
+            if (!string.IsNullOrWhiteSpace(materiasString))
+            {
+                materiasIds = materiasString
+                    .Split(',')
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(int.Parse)
+                    .ToList();
+            }
+
+            //Agregar materias de los grupos seleccionados
+            if (gruposIds.Count > 0)
+            {
+                var materiasDeGrupos = Db.tbGruposMaterias
+                    .Where(gm => gruposIds.Contains(gm.GrupoId))
+                    .Select(gm => gm.MateriaId)
+                    .ToList();
+
+                materiasIds.AddRange(materiasDeGrupos);
+            }
+
+            // Quitar duplicados
+            materiasIds = materiasIds.Distinct().ToList();
+
+            // guardado de grupos
+            foreach (var grupoId in gruposIds)
+            {
+                Db.tbEventosGrupos.Add(new tbEventosGrupos
+                {
+                    FechaId = eventoId,
+                    GrupoId = grupoId
+                });
+            }
+
+            // guardado de materias
+            foreach (var materiaId in materiasIds)
+            {
+                Db.tbEventosMaterias.Add(new tbEventosMaterias
+                {
+                    FechaId = eventoId,
+                    MateriaId = materiaId
+                });
+            }
+
             await Db.SaveChangesAsync();
 
             return Json(new { mensaje = "Evento guardado exitosamente" },
