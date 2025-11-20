@@ -1,4 +1,10 @@
-﻿/*Estilo para la pre carga de detalle de la materia*/
+﻿@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap');
+
+/* Usar la fuente Inter incluida globalmente en _Layout (no reimportar otras fuentes) */
+
+/* Estilos previos (conservados) */
+/*Estilo para la pre carga de detalle de la materia*/
 .materia-info {
     display: flex;
     align-items: center;
@@ -15,8 +21,6 @@
         color: #fff;
     }
 
-
-
 /* Contenedor de la barra de navegación */
 .materia-nav {
     display: flex;
@@ -28,48 +32,41 @@
     margin-bottom: 20px;
 }
 
-    /* Estilo de los botones de pestaña */
-    .materia-nav .tab-button {
-        background: transparent;
-        border: none;
-        padding: 12px 25px;
-        font-size: 16px;
-        color: #555;
-        cursor: pointer;
-        transition: background-color 0.3s, color 0.3s;
-        position: relative;
-    }
-
-        /* Efecto hover para los botones */
-        .materia-nav .tab-button:hover {
-            background-color: #eaeaea;
-            color: #333;
-        }
-
-        /* Estilo para la pestaña activa */
-        .materia-nav .tab-button.active {
-            color: #d63384;
-            font-weight: bold;
-        }
-
-            /* Línea inferior para la pestaña activa */
-            .materia-nav .tab-button.active::after {
-                content: "";
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 50%;
-                border-bottom: 3px solid #d63384;
-            }
-
-/* Estilo del contenedor dropdown */
-.dropdown {
+/* Estilo de los botones de pestaña */
+.materia-nav .tab-button {
+    background: transparent;
+    border: none;
+    padding: 12px 25px;
+    font-size: 16px;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
     position: relative;
-    display: inline-block;
 }
 
-/* Estilo del botón principal */
+.materia-nav .tab-button:hover {
+    background-color: #eaeaea;
+    color: #333;
+}
+
+.materia-nav .tab-button.active {
+    color: #d63384;
+    font-weight: bold;
+}
+
+.materia-nav .tab-button.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    border-bottom: 3px solid #d63384;
+}
+
+/* Dropdown principal */
+.dropdown { position: relative; display: inline-block; }
+
 .btn-crear {
     background-color: #007bff;
     color: white;
@@ -81,39 +78,102 @@
     transition: background 0.3s;
 }
 
-    .btn-crear:hover {
-        background-color: #0056b3;
-    }
+.btn-crear:hover { background-color: #0056b3; }
 
-/* Contenedor del menú desplegable */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 150px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+.dropdown-content { display: none; position: absolute; background-color: white; min-width: 150px; box-shadow: 0px 4px 8px rgba(0,0,0,0.2); border-radius: 5px; overflow: hidden; z-index: 10; }
+.dropdown-content a { color: black; padding: 10px 15px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: background 0.2s; }
+.dropdown-content a:hover { background-color: #f1f1f1; }
+.dropdown:hover .dropdown-content { display: block; }
+
+/* ---------- NUEVAS TARJETAS MEJORADAS PARA MATERIAS (USANDO INTER) ---------- */
+
+.materia-grid { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+.materia-card-custom {
+    --radius: 12px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 22px;
+    min-height: 150px;
+    color: #fff;
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(13,38,59,0.12);
     overflow: hidden;
-    z-index: 10;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-    /* Estilo de los enlaces dentro del menú */
-    .dropdown-content a {
-        color: black;
-        padding: 10px 15px;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        transition: background 0.2s;
-    }
+.materia-card-custom:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(13,38,59,0.18);
+}
 
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
+.materia-card-custom .txt {
+    z-index: 2;
+}
 
-/* Mostrar el menú cuando el usuario pasa el mouse sobre el botón */
-.dropdown:hover .dropdown-content {
-    display: block;
+.materia-card-custom .txt h1 {
+    font-size: 18px;
+    margin: 0 0 6px 0;
+    line-height: 1.05;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.materia-card-custom .txt p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.95;
+    color: rgba(255,255,255,0.95);
+}
+
+.materia-card-custom .ver-materia-btn {
+    display: inline-block;
+    align-self: flex-start;
+    background: rgba(255,255,255,0.14);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 13px;
+    z-index: 3;
+}
+
+.materia-card-custom .ico-card {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    font-size: 36px;
+    opacity: 0.14;
+    z-index: 1;
+}
+
+/* Gradientes agradables para las variantes */
+.materia-card-custom.gr-1 { background: linear-gradient(170deg, #01E4F8 0%, #1D3EDE 100%); }
+.materia-card-custom.gr-2 { background: linear-gradient(170deg, #B4EC51 0%, #429321 100%); }
+.materia-card-custom.gr-3 { background: linear-gradient(170deg, #C86DD7 0%, #3023AE 100%); }
+
+/* Responsive: en pantallas pequeñas usar ancho completo */
+@media (max-width: 767px) {
+    .materia-card-custom { min-height: 130px; padding: 16px; }
+    .materia-card-custom .txt h1 { font-size: 16px; }
+}
+
+/* Si quieres que el icono sea más grande de fondo (opcional) */
+.materia-card-custom .ico-card i { font-size: 64px; opacity: 0.06; }
+
+/* Mantener compatibilidad con estilos previos del listado */
+#listaMateriasSinGrupo .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+#listaMateriasSinGrupo .col-md-3 { flex: 0 1 calc(25% - 1rem); max-width: calc(25% - 1rem); }
+
+@media (max-width: 991px) {
+    #listaMateriasSinGrupo .col-md-3 { flex: 0 1 calc(50% - 1rem); max-width: calc(50% - 1rem); }
+}
+
+@media (max-width: 575px) {
+    #listaMateriasSinGrupo .col-md-3 { flex: 0 1 100%; max-width: 100%; }
 }

@@ -63,7 +63,7 @@
                     
                     @if (User != null && User.IsInRole("Docente"))
                     {
-                        <button id="btnImportarAlumnos" class="btn btn-secondary ms-2">Importar Alumnos</button>
+                        <button id="btnImportarAlumnos" class="btn btn-success ms-2" title="Importar desde Excel"><i class="fas fa-file-excel" style="margin-right:8px"></i>Importar Alumnos</button>
                         <input type="file" id="fileImportarAlumnos" accept=".xlsx,.xls" style="display:none" />
                     }
                 </div>

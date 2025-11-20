@@ -111,134 +111,49 @@ async function cargarMateriasSinGrupo() {
             return;
         }
 
-        materiasSinGrupo.forEach(materia => {
+        // Nueva implementación: usar tarjetas personalizadas (sin animaciones) para mostrar la materia
+        materiasSinGrupo.forEach((materia, index) => {
             const col = document.createElement("div");
             col.classList.add("col-md-3"); // Ajusta el tamaño de la tarjeta en la fila
 
             const card = document.createElement("div");
-            card.classList.add("card", "bg-light", "mb-3", "shadow-sm");
-            card.style.maxWidth = "100%";
+            // Usamos clases personalizadas para poder aplicar el estilo entregado por el usuario
+            const gradientClass = `gr-${(index % 3) + 1}`; // gr-1, gr-2, gr-3 en ciclo
+            card.className = `materia-card-custom card ${gradientClass}`;
 
-            // Header
-            const header = document.createElement("div");
-            header.classList.add("card-header", "bg-primary", "text-white", "fs-4");
-            header.style.display = "flex";
-            header.style.justifyContent = "space-between";
-            header.textContent = materia.NombreMateria;
+            // Estructura interna: título, descripción, enlace y un icono
+            card.innerHTML = `
+                <div class="txt">
+                    <h1>${materia.NombreMateria}</h1>
+                    <p>${materia.Descripcion || ''}</p>
+                </div>
+                <a href="#" class="ver-materia-btn">Ver Materia</a>
+                <div class="ico-card"><i class="fas fa-book"></i></div>
+            `;
 
-            // Crear el dropdown
-            const dropdown = document.createElement("div");
-            dropdown.classList.add("dropdown");
-
-            const button = document.createElement("button");
-            button.classList.add("btn", "btn-link", "p-0", "text-white");
-            button.setAttribute("data-bs-toggle", "dropdown");
-            button.setAttribute("aria-expanded", "false");
-
-            const icon = document.createElement("i");
-            icon.classList.add("fas", "fa-ellipsis-v");
-            button.appendChild(icon);
-
-            const ul = document.createElement("ul");
-            ul.classList.add("dropdown-menu", "dropdown-menu-end");
-
-            const editLi = document.createElement("li");
-            const editLink = document.createElement("a");
-            editLink.classList.add("dropdown-item");
-            editLink.href = "#";
-            editLink.onclick = () => editarMateria(materia.MateriaId, materia.NombreMateria, materia.Descripcion);
-            editLink.textContent = "Editar";
-            editLi.appendChild(editLink);
-
-            const deleteLi = document.createElement("li");
-            const deleteLink = document.createElement("a");
-            deleteLink.classList.add("dropdown-item");
-            deleteLink.href = "#";
-            deleteLink.onclick = () => eliminarMateria(materia.MateriaId);
-            deleteLink.textContent = "Eliminar";
-            deleteLi.appendChild(deleteLink);
-
-            // Añadir los elementos al menú desplegable
-            ul.appendChild(editLi);
-            ul.appendChild(deleteLi);
-
-            // Añadir el botón y el menú al dropdown
-            dropdown.appendChild(button);
-            dropdown.appendChild(ul);
-
-            // Añadir el dropdown al header
-            header.appendChild(dropdown);
-
-            // Body
-            const body = document.createElement("div");
-            body.classList.add("card-body");
-
-            const title = document.createElement("h5");
-            title.classList.add("card-title");
-
-            const description = document.createElement("p");
-            description.classList.add("card-text");
-            description.textContent = materia.Descripcion || "Sin descripción";
-
-            body.appendChild(title);
-            body.appendChild(description);
-
-            // Actividades Recientes - Crear una sección para las actividades
-            if (materia.actividadesRecientes && materia.actividadesRecientes.length > 0) {
-                const actividadesContainer = document.createElement("div");
-                actividadesContainer.classList.add("mt-3"); // Margen superior para separar las actividades
-
-                materia.actividadesRecientes.forEach(actividad => {
-                    const actividadItem = document.createElement("div");
-                    actividadItem.classList.add("actividad-item");
-
-                    const fechaFormateada = new Date(actividad.fechaCreacion).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    });
-
-                    const actividadLink = document.createElement("a");
-                    actividadLink.href = "#";
-                    actividadLink.classList.add("actividad-link");
-                    actividadLink.textContent = actividad.nombreActividad;
-                    actividadLink.setAttribute("data-id", actividad.ActividadId, materia.MateriaId);
-
-                    const actividadFecha = document.createElement("p");
-                    actividadFecha.classList.add("actividad-fecha");
-                    actividadFecha.textContent = `Asignada: ${fechaFormateada}`;
-
-                    actividadItem.appendChild(actividadLink);
-                    actividadItem.appendChild(actividadFecha);
-
-                    actividadesContainer.appendChild(actividadItem);
+            // Hacer que el botón o la tarjeta lleve a la materia
+            const enlace = card.querySelector('.ver-materia-btn');
+            if (enlace) {
+                enlace.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    irAMateria(materia.MateriaId);
                 });
-
-                body.appendChild(actividadesContainer); // Agregar actividades al cuerpo de la tarjeta
             }
 
-            // Footer
-            const footer = document.createElement("div");
-            footer.classList.add("card-footer", "d-flex", "justify-content-between", "align-items-center");
+            // También permitir que al hacer clic en la tarjeta completa se vaya a la materia
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', function (e) {
+                // evitar doble disparo si se clickea el enlace
+                if (e.target && e.target.classList && e.target.classList.contains('ver-materia-btn')) return;
+                irAMateria(materia.MateriaId);
+            });
 
-            const btnVerMateria = document.createElement("button");
-            btnVerMateria.classList.add("btn", "btn-sm", "btn-primary");
-            btnVerMateria.textContent = "Ver Materia";
-            btnVerMateria.onclick = () => irAMateria(materia.MateriaId);
-
-            footer.appendChild(btnVerMateria);
-
-            // Construcción de la card
-            card.appendChild(header);
-            card.appendChild(body);
-            card.appendChild(footer);
+            const colWrapper = document.createElement('div');
+            colWrapper.classList.add('mb-3');
             col.appendChild(card);
-
-            // Agregar la columna al contenedor de la fila
             rowContainer.appendChild(col);
         });
 
-        // Agregar todas las tarjetas dentro del contenedor de filas
         listaMateriasSinGrupo.appendChild(rowContainer);
 
     } else {
@@ -263,7 +178,6 @@ async function cargarMateriasSinGrupo() {
         });
     }
 }
-
 
 
 
