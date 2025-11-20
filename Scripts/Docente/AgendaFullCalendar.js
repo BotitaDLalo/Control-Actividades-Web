@@ -65,8 +65,8 @@
         modal.style.display = "flex";
 
         //Fecha en el formulario al momento de crear evento
-        document.getElementById("FechaInicio").value = fecha + "T08:00";
-        document.getElementById("fechaFinal").value = fecha + "T09:00";
+        document.getElementById("FechaInicio").value = fecha + "T00:00";
+        document.getElementById("fechaFinal").value = fecha + "T23:59";
 
         cargarEventosDia(fecha);
     }
@@ -74,7 +74,7 @@
     btnCerrar.addEventListener("click", () => {
         modal.style.display = "none";
         listaEventos.innerHTML = "";
-        formContainer.style.display = "none";
+        modalEvento.style.display = "none";
     });
 
     // Modal de creación. Agregar nuevo evento
@@ -199,13 +199,32 @@
 
 
     // CREAR
-
     document.getElementById("formEvento").addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const formData = new FormData(this);
 
+        // Obtener grupos seleccionados
+        const grupos = [...document.querySelectorAll('.chk-grupo:checked')]
+            .map(x => x.dataset.grupo)
+            .join(',');
+
+        // Obtener materias seleccionadas
+        const materias = [...document.querySelectorAll('.chk-materia:checked')]
+            .map(x => x.dataset.materia);
+
+        // Obtener materias sin grupo
+        const materiasSueltas = [...document.querySelectorAll('.chk-materia-suelta:checked')]
+            .map(x => x.dataset.materia);
+
+        const todasLasMaterias = [...materias, ...materiasSueltas].join(',');
+
+        // Agregar al FormData
+        formData.append("GruposSeleccionados", grupos);
+        formData.append("MateriasSeleccionadas", todasLasMaterias);
+
         try {
+
             const response = await fetch("/EventosAgenda/CrearEvento", {
                 method: "POST",
                 body: formData
@@ -217,7 +236,7 @@
                 alert(data.mensaje);
                 limpiarFormularioEvento();
 
-                document.getElementById("formEventoContainer").style.display = "none"; //oculta el modal
+                document.getElementById("modalCrearEvento").style.display = "none"; //oculta el modal
                 calendar.refetchEvents(); // Recargar eventos
 
             } else {
@@ -235,6 +254,14 @@
         $("#FechaInicio").val("");
         $("#FechaFinal").val("");
     }
+
+    //VER EN CONSOLA LOS DATOS DE LOS CHECKBOXES AL HACER CLIC
+    document.addEventListener("change", e => {
+        if (e.target.matches(".chk-grupo, .chk-materia, .chk-materia-suelta")) {
+            console.log("Click:", e.target);
+            console.log("dataset:", e.target.dataset);
+        }
+    });
 
 
     // Cargar eventos del día para el modal
