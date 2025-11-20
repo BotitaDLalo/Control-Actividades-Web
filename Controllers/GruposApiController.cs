@@ -224,7 +224,17 @@ namespace ControlActividades.Controllers
                         m.MateriaId,
                         m.NombreMateria,
                         m.Descripcion,
-                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
+                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(b => new
+                        {
+                            b.ActividadId,
+                            b.NombreActividad,
+                            b.Descripcion,
+                            b.FechaCreacion,
+                            b.FechaLimite,
+                            b.TipoActividadId,
+                            b.Puntaje,
+                            b.MateriaId,
+                        }).ToList()
                     }).ToListAsync();
 
 
@@ -409,7 +419,17 @@ namespace ControlActividades.Controllers
                         m.MateriaId,
                         m.NombreMateria,
                         m.Descripcion,
-                        actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
+                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(b => new
+                        {
+                            b.ActividadId,
+                            b.NombreActividad,
+                            b.Descripcion,
+                            b.FechaCreacion,
+                            b.FechaLimite,
+                            b.TipoActividadId,
+                            b.Puntaje,
+                            b.MateriaId,
+                        }).ToList()
                     }).ToListAsync();
 
 
