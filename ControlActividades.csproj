@@ -507,6 +507,10 @@
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
+    <Content Include="Views\Alumno\Grupos.cshtml.txt" />
+    <Content Include="Views\Alumno\Materias.cshtml.txt" />
+    <Content Include="Views\Docente\Grupos.cshtml.txt" />
+    <Content Include="Views\Docente\MateriasSinGrupo.cshtml.txt" />
     <Content Include="wwwroot\css\dashboard\content.css" />
     <Content Include="wwwroot\css\dashboard\nav-bar.css" />
     <Content Include="wwwroot\css\dashboard\sidebar.css" />
@@ -545,6 +549,11 @@
     <Content Include="Views\EventosAgenda\Calendario.cshtml" />
     <Content Include="Views\Dashboard\Index.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Docente\Grupos.cshtml" />
+    <Content Include="Views\Docente\MateriasSinGrupo.cshtml" />
+    <Content Include="Views\Alumno\Grupos.cshtml" />
+    <Content Include="Views\Alumno\Materias.cshtml" />
+    <Content Include="Views\Docente\GruposStandalone.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Alumno\css\" />

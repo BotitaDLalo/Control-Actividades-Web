@@ -100,6 +100,8 @@ namespace ControlActividades.Controllers
             var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
             ViewBag.DocenteId = docenteId;
+            // Propagar la sección solicitada (si viene en query string) para que la vista la pueda usar
+            ViewBag.Seccion = Request.QueryString["seccion"] ?? string.Empty;
 
             return View();
         }
@@ -149,6 +151,27 @@ namespace ControlActividades.Controllers
 
             ViewBag.DocenteId = docenteId;
             return View();
+        }
+
+        // GET: /Docente/Grupos -> mostrar vista independiente GruposStandalone
+        [HttpGet]
+        public ActionResult Grupos()
+        {
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            // Devolver la vista independiente que no choque con otros archivos Grupos.cshtml
+            return View("GruposStandalone");
+        }
+
+        // GET: /Docente/MateriasSinGrupo -> redirige al Index y muestra Materias sin grupo
+        [HttpGet]
+        public ActionResult MateriasSinGrupo()
+        {
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+            return RedirectToAction("Index", new { seccion = "materiasSinGrupo", docenteId = docenteId });
         }
 
         [HttpPost]
