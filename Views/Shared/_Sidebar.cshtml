@@ -57,17 +57,16 @@
                     </ul>
                 </li>
 
-                @* Nueva sección: Grupos y Materias visible solo para Alumnos *@
+                @* Grupos y Materias para Alumno (existente) *@
                 @if (isAlumno)
                 {
                     <li class="nav-section" id="section-grupos-materias">
                         <button class="section-btn" data-target="#menu-grupos-materias" aria-expanded="false">
                             <i class="fas fa-layer-group"></i>
-                            <span class="section-label">Grupos y Materias</span>
                         </button>
-                        <ul class="section-submenu" id="menu-grupos-materias" aria-hidden="true">
-                            <li>@Html.ActionLink("Grupo", "Grupos", "Alumno", null, new { @class = "submenu-link" })</li>
-                            <li>@Html.ActionLink("Materias sin grupo", "MateriasSinGrupo", "Alumno", null, new { @class = "submenu-link" })</li>
+                        <ul class="section-submenu" id="menu-grupos-materias-docente" aria-hidden="true">
+                            <li>@Html.ActionLink("Grupo", "Grupos", "Docente", null, new { @class = "submenu-link" })</li>
+                            <li>@Html.ActionLink("Materias sin grupo", "MateriasSinGrupo", "Docente", null, new { @class = "submenu-link" })</li>
                         </ul>
                     </li>
                 }

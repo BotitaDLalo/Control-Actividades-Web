@@ -1,16 +1,19 @@
-﻿.layout {
+﻿/* Layout base styles for Alumno views */
+.layout {
+    /* Removed page-wide gradient to avoid applying a large blue banner to the nav/header.
+       Use a specific hero class (.alumno-hero) when you need a banner on specific pages. */
+    font-size: 16px;
+}
+
+/* Specific hero/banner class for pages that require the gradient */
+.alumno-hero {
     background: #36D1DC; /* fallback for old browsers */
     background: -webkit-linear-gradient(to right, #16BFFD, #457fca); /* Chrome 10-25, Safari 5.1-6 */
     background: linear-gradient(to right, #16BFFD, #457fca); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-
-    font-size: 16px;
 }
 
 body {
     background-color: #f1f2f4;
-    /*background: #36D1DC;*/ /* fallback for old browsers */
-    /*background: -webkit-linear-gradient(to right,#2196f3, #3a7bd5);*/ /* Chrome 10-25, Safari 5.1-6 */
-    /*background: linear-gradient(to right,#2196f3, #3a7bd5);*/ /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
     margin: 0;
     padding: 0;
     width: 100%;
@@ -77,8 +80,7 @@ p, body {
     justify-content: flex-end;
 }
 
-/*
-Estilos del submenu usuario*/
+/* Estilos del submenu usuario*/
 
 
 /* Flecha dentro del contenedor de usuario */

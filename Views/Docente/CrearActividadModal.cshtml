@@ -26,8 +26,16 @@
                         <option value="">Cargando...</option>
                     </select>
 
-                    <label for="puntaje">Puntaje:</label>
-                    <input type="number" id="puntaje" class="form-control" min="0" max="100">
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="checkbox" id="sinPuntaje">
+                            <label class="form-check-label" for="sinPuntaje">Sin puntaje (participación)</label>
+                        </div>
+                        <div style="flex:1">
+                            <label for="puntaje">Puntaje:</label>
+                            <input type="number" id="puntaje" class="form-control" min="0" max="100">
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -38,7 +46,6 @@
         </div>
     </div>
 </div>
-
 
 <div class="modal fade" id="sugerenciasModal" tabindex="-1" aria-labelledby="sugerenciasModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -89,12 +96,32 @@
 
                     // limpiar variable global de edición si existe
                     if (window.editingActividadId) window.editingActividadId = null;
+
+                    // restablecer puntaje
+                    var puntaje = document.getElementById('puntaje');
+                    var sinP = document.getElementById('sinPuntaje');
+                    if (puntaje) { puntaje.disabled = false; puntaje.value = ''; }
+                    if (sinP) sinP.checked = false;
                 } catch (e) { console.warn(e); }
             });
 
             // asociar el comportamiento por default al botón (crear)
             var defaultBtn = document.getElementById('btnPublicarActividad');
             if (defaultBtn) defaultBtn.addEventListener('click', registrarActividad);
+
+            // toggle puntaje when checkbox changes
+            var sinP = document.getElementById('sinPuntaje');
+            var puntaje = document.getElementById('puntaje');
+            if (sinP && puntaje) {
+                sinP.addEventListener('change', function () {
+                    if (sinP.checked) {
+                        puntaje.value = '';
+                        puntaje.disabled = true;
+                    } else {
+                        puntaje.disabled = false;
+                    }
+                });
+            }
         }
     });
 

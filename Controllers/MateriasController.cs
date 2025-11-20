@@ -440,33 +440,27 @@ namespace ControlMaterias.Controllers
         {
             try
             {
-                var actividades = await Db.tbActividades
+                // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
+                var actividadesEntities = await Db.tbActividades
                     .Where(a => a.MateriaId == materiaId)
-                    .Select(a => new
-                    {
-                        a.ActividadId,
-                        a.NombreActividad,
-                        a.Descripcion,
-                        a.FechaCreacion,
-                        a.FechaLimite,
-                        a.Puntaje
-                    })
                     .ToListAsync();
 
-                if (actividades == null || actividades.Count == 0)
+                if (actividadesEntities == null || actividadesEntities.Count == 0)
                 {
                     Response.StatusCode = 404; // Not Found
                     return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
                 }
-                var resultado = actividades.Select(a => new
+
+                var resultado = actividadesEntities.Select(a => new
                 {
                     a.ActividadId,
                     a.NombreActividad,
                     a.Descripcion,
-                    a.FechaCreacion,
-                    a.FechaLimite,
+                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                     a.Puntaje
                 }).ToList();
+
                 return Json(resultado, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
