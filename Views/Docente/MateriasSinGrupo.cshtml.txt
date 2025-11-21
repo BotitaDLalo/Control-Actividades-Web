@@ -1,0 +1,20 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "MateriasSinGrupo";
+    int docenteId = ViewBag.DocenteId != null ? (int)ViewBag.DocenteId : 0;
+}
+
+<div class="container mt-4">
+    <h2>Materias sin grupo</h2>
+    <p>Estas son las materias que aún no están asociadas a ningún grupo.</p>
+
+    <div id="listaMateriasSinGrupo"></div>
+</div>
+
+@section Scripts{
+    <script>
+        var docenteIdGlobal = '@docenteId';
+    </script>
+    @Scripts.Render("~/bundles/docente")
+    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
+}

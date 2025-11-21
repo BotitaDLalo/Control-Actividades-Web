@@ -1,0 +1,44 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "Grupos";
+    int docenteId = ViewBag.DocenteId != null ? (int)ViewBag.DocenteId : 0;
+}
+
+<div id="docente-datos" data-docenteid="@docenteId" style="display:none"></div>
+
+<link href="~/Content/cards.css" rel="stylesheet" />
+
+@using (Html.BeginForm()) { @Html.AntiForgeryToken() }
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-center" style="flex:1;">Gestionar Grupos</h2>
+        <div class="ms-3">
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#gruposModal">Crear Grupo</button>
+            <button class="btn btn-secondary" onclick="if(typeof cargarGrupos === 'function') cargarGrupos();">Refrescar</button>
+        </div>
+    </div>
+
+    <div id="listaGrupos" class="content"></div>
+
+    <div class="divider"></div>
+
+    <h4 class="mt-4">Materias sin grupo</h4>
+    <div id="listaMateriasSinGrupo" class="content"></div>
+
+    @Html.Partial("GruposModal")
+    @Html.Partial("MateriasModal")
+</div>
+
+@section Scripts{
+    <script>
+        // no declarar docenteIdGlobal aquí — lo toma el script desde #docente-datos
+        document.addEventListener('DOMContentLoaded', function(){
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+        });
+    </script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/docente")
+    @Scripts.Render("~/bundles/docentegrupos")
+}
