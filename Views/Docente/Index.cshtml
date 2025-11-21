@@ -3,63 +3,107 @@
     Layout = "~/Views/Shared/_LayoutDocente.cshtml";
 
 
-    @Html.Partial("GruposModal");
-    @Html.Partial("MateriasModal");
+    @*@Html.Partial("GruposModal");
+        @Html.Partial("MateriasModal");*@
+
     int docenteId = ViewBag.DocenteId;
 }
-<div id="docente-datos" data-docenteid="@docenteId"></div>
+@*<div id="docente-datos" data-docenteid="@docenteId"></div>*@
 
-@* Mensaje de bienvenida *@       
-<div class="misCursos-welcome">
-    @if (User != null && User.Identity.IsAuthenticated)
-    {
-        <h3>Bienvenido, @User.Identity.Name</h3>
-    }
-    else
-    {
-        <h3>Bienvenido</h3>
-    }
-</div>
+@*<h3>Bienvenido</h3>*@
 
-<div class="misCursos-header">
-    <h2 class="misCursos-titulo">
-        Mis cursos
-        <img src="@Url.Content("~/Content/Iconos/FILTRO-26.svg")"
-             alt="ActivIA Logo"
-             class="misCursos-icono">
-    </h2>
+@*<div class="misCursos-header">
+        <h2 class="misCursos-titulo">
+            Mis cursos
+            <img src="@Url.Content("~/Content/Iconos/FILTRO-26.svg")"
+                 alt="ActivIA Logo"
+                 class="misCursos-icono">
+        </h2>
 
-    <div class="misCursos-dropdown">
-        <button class="misCursos-btn-crear" id="misCursos-dropdownBtn">CREAR</button>
-        <div class="misCursos-dropdown-menu" id="misCursos-dropdownMenu">
-            <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#materiasModal">Gestionar Materias</button>
-            <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#gruposModal" id="gestionarGruposBtn">Gestionar Grupos</button>
+        <div class="misCursos-dropdown">
+            <button class="misCursos-btn-crear" id="misCursos-dropdownBtn">CREAR</button>
+            <div class="misCursos-dropdown-menu" id="misCursos-dropdownMenu">
+                <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#materiasModal">Gestionar Materias</button>
+                <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#gruposModal" id="gestionarGruposBtn">Gestionar Grupos</button>
+            </div>
         </div>
+    </div>
+
+    <br />
+    <br />
+
+    <div id="listaGrupos" class="mt-4"></div>
+
+    <div id="contenedorMaterias"></div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">
+        Materias sin grupo registrado
+    </div>
+
+    <div id="listaMateriasSinGrupo" class="mt-4"></div>*@
+
+
+
+<div class="inputs-content">
+    <div class="input-buscar">
+        <input type="text" placeholder="Buscar..." class="form-control" />
+        <!-- <button class="btn btn-primary">Buscar</button> -->
     </div>
 </div>
 
-<br />
-<br />
+<div class="content">
+    @*
+        Base para cards
+        <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    *@
 
-<div id="listaGrupos" class="mt-4"></div>
-
-<div id="contenedorMaterias"></div>
-
-<div class="divider"></div>
-
-<div class="section-title">
-    Materias sin grupo registrado
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
+    <div class="rounded card-layout">
+        <div class="card-title">Matematicas discretas</div>
+    </div>
 </div>
-
-<div id="listaMateriasSinGrupo" class="mt-4"></div>
-        
-
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/docente")
-    @Scripts.Render("~/bundles/docentegrupos")
-}
-
-@section Styles{
-    @Styles.Render("~/Content/Docente/css")
-}

@@ -389,10 +389,10 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Componentes\carga.css" />
-    <Content Include="Content\dashboard\content.css" />
-    <Content Include="Content\dashboard\nav-bar.css" />
-    <Content Include="Content\dashboard\sidebar.css" />
-    <Content Include="Content\dashboard\style.css" />
+    <Content Include="Content\Dashboard\cards.css" />
+    <Content Include="Content\Dashboard\content.css" />
+    <Content Include="Content\Dashboard\nav-bar.css" />
+    <Content Include="Content\Dashboard\sidebar.css" />
     <Content Include="Content\Docente\actividadesSeccion.css" />
     <Content Include="Content\Docente\alumnosSeccion.css" />
     <Content Include="Content\Docente\avisosSeccion.css" />
@@ -466,7 +466,6 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\Componentes\componenteAvisos.js" />
-    <Content Include="Scripts\dashboard\sidebar.js" />
     <Content Include="Scripts\Docente\Agenda.js" />
     <Content Include="Scripts\Docente\AgendaFullCalendar.js" />
     <Content Include="Scripts\Docente\Confirmacion.js" />
@@ -516,6 +515,7 @@
     <Content Include="wwwroot\css\dashboard\sidebar.css" />
     <Content Include="wwwroot\css\dashboard\style.css" />
     <Content Include="wwwroot\js\dashboard\sidebar.js" />
+    <Content Include="App_Data\push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <None Include="Scripts\jquery-3.7.0-vsdoc.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
@@ -541,6 +541,7 @@
     <Content Include="Views\Account\ExternalLoginLink.cshtml" />
     <Content Include="Views\Account\Error.cshtml" />
     <Content Include="Views\Shared\_Sidebar.cshtml" />
+    <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
     <Content Include="Views\Home\Calendario.cshtml" />
@@ -603,6 +604,7 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_LayoutAlumno.cshtml" />
     <Content Include="Views\Shared\_LayoutDocente.cshtml" />
+    <None Include="Views\Shared\_LayoutDocente.cshtml.bak" />
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />

@@ -1,0 +1,20 @@
+﻿.card-layout {
+    /* background-color: #1db7f7;
+  color: white; */
+    /* color: white; */
+    /* background-color: #1db7f7; */
+
+    background-color:white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    padding: 20px;
+    height: 225px;
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
