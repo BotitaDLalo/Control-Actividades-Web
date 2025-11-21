@@ -10,16 +10,18 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Materias sin grupo</h2>
-        <div style="min-width:320px;">
-            <input id="buscarMateria" class="form-control" placeholder="Buscar..." />
+        <h2 class="text-center" style="flex:1;">Materias sin grupo</h2>
+        <div class="ms-3 d-flex align-items-center" style="gap:8px;">
+            <input id="buscarMateria" class="form-control" placeholder="Buscar..." style="min-width:240px;" />
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#materiasModal">Crear Materia</button>
+            <button class="btn btn-secondary" onclick="if(typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();">Refrescar</button>
         </div>
     </div>
 
-    <div id="listaMateriasSinGrupo" class="content">
-        <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
+    <div id="listaMateriasSinGrupo" class="content">        <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
     </div>
-</div>
+
+@Html.Partial("MateriasModal")
 
 @section Scripts{
     <script>
