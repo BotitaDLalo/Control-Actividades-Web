@@ -281,15 +281,167 @@
                 const div = document.createElement("div");
                 div.classList.add("evento-item");
                 div.innerHTML = `
-                    <h3 class="evento-titulo">${ev.titulo}</h3>
+                    <h3 class="evento-titulo" data-id="${ev.eventoId}">${ev.titulo}</h3>
                     <p>${ev.descripcion}</p>
                 `;
                 listaEventos.appendChild(div);
             });
 
+            listaEventos.querySelectorAll(".evento-titulo").forEach(titulo => {
+                titulo.addEventListener("click", function () {
+                    const id = this.dataset.id;
+                    if (id) {
+                        abrirModalDetalle(id);
+                    }
+                });
+            });
         } catch (e) {
             console.error("Error cargando eventos:", e);
         }
     }
 
+});
+
+// ---------- MODAL DE DETALLES DEL EVENTO ----------
+const modalDetalle = document.getElementById("modalDetalleEvento");
+const btnCerrarDetalle = document.querySelector(".close-detalle");
+const btnCerrarDetalle2 = document.getElementById("btnCerrarDetalle");
+const btnEditarEvento = document.getElementById("btnEditarEvento");
+const btnEliminarEvento = document.getElementById("btnEliminarEvento");
+
+async function abrirModalDetalle(eventoId) {
+    try {
+        
+        const resp = await fetch(`/EventosAgenda/ObtenerEventoPorId?id=${eventoId}`);
+        if (!resp.ok) {
+            const txt = await resp.text();
+            console.error("Error fetching detalle:", txt);
+            alert("No se pudo obtener los detalles del evento.");
+            return;
+        }
+        const payload = await resp.json();
+        console.log("DEBUG ObtenerEventoPorId payload:", payload);
+        if (payload.mensaje) {
+            alert(payload.mensaje || "Evento no encontrado");
+            return;
+        }
+
+        const evento = payload.evento;
+        const gruposConMaterias = payload.gruposConMaterias || [];
+        const materiasSueltas = payload.materiasSueltas || [];
+        const esPersonal = payload.esPersonal;
+
+        // Rellenar campos
+        document.getElementById("detalle-titulo").textContent = evento.titulo;
+        document.getElementById("detalle-descripcion").textContent = evento.descripcion || "";
+
+        // Fechas
+        const opciones = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+        document.getElementById("detalle-fecha-inicio").textContent = new Date(evento.fechaInicio).toLocaleString('es-MX', opciones);
+        document.getElementById("detalle-fecha-final").textContent = new Date(evento.fechaFinal).toLocaleString('es-MX', opciones);
+
+        document.getElementById("detalle-color").textContent = evento.color;
+
+        // Contenedor
+        const contDest = document.getElementById("detalle-destinatarios");
+        const contGrupos = document.getElementById("detalle-grupos");
+        const contMaterias = document.getElementById("detalle-materias");
+        const ulGrupos = document.getElementById("lista-grupos");
+        const ulMaterias = document.getElementById("lista-materias");
+
+        ulGrupos.innerHTML = "";
+        ulMaterias.innerHTML = "";
+
+        if (esPersonal || (gruposConMaterias.length === 0 && materiasSueltas.length === 0)) {
+            contDest.style.display = "none";
+        } else {
+            contDest.style.display = "block";
+
+            // Grupos con sus materias (todas las materias del grupo)
+            if (gruposConMaterias.length > 0) {
+                contGrupos.style.display = "block";
+                gruposConMaterias.forEach(g => {
+                    const liGrupo = document.createElement("li");
+                    liGrupo.classList.add("grupo-item-detalle");
+                    // nombre del grupo
+                    const grpTitle = document.createElement("div");
+                    grpTitle.classList.add("grupo-titulo-detalle");
+                    grpTitle.textContent = g.nombre;
+                    liGrupo.appendChild(grpTitle);
+
+                    // lista de materias del grupo
+                    const ulMat = document.createElement("ul");
+                    ulMat.classList.add("materias-grupo-detalle");
+
+                    (g.materias || []).forEach(m => {
+                        const liMat = document.createElement("li");
+                        liMat.classList.add("materia-item-detalle");
+                        if (m.isSelected) {
+                            liMat.textContent = m.nombre;
+                            liMat.classList.add("materia-selected");
+                        } else {
+                            liMat.textContent = m.nombre;
+                            liMat.classList.add("materia-not-selected"); // gris/tachado
+                        }
+                        ulMat.appendChild(liMat);
+                    });
+
+                    liGrupo.appendChild(ulMat);
+                    ulGrupos.appendChild(liGrupo);
+                });
+            } else {
+                contGrupos.style.display = "none";
+            }
+
+            // Materias sin grupo que tienen el evento
+            if (materiasSueltas.length > 0) {
+                contMaterias.style.display = "block";
+
+                materiasSueltas.forEach(ms => {
+                    const li = document.createElement("li");
+                    li.textContent = ms.nombre;
+                    li.classList.add("materia-suelta-detalle");
+                    ulMaterias.appendChild(li);
+                });
+
+            } else {
+                contMaterias.style.display = "none";
+            }
+        }
+
+
+        // Abrir modal detalle
+        modalDetalle.style.display = "flex";
+
+        modalDetalle.dataset.eventoId = evento.eventoId;
+
+    } catch (err) {
+        console.error("Error abrirModalDetalle:", err);
+        alert("Ocurrió un error al cargar los detalles del evento.");
+    }
+}
+
+// Cerrar modal detalles
+if (btnCerrarDetalle) btnCerrarDetalle.addEventListener("click", () => { modalDetalle.style.display = "none"; });
+if (btnCerrarDetalle2) btnCerrarDetalle2.addEventListener("click", () => { modalDetalle.style.display = "none"; });
+
+// Cerrar click fuera del contenido
+window.addEventListener("click", function (e) {
+    if (e.target === modalDetalle) {
+        modalDetalle.style.display = "none";
+    }
+});
+
+// Editar / Eliminar (SOLO OBTIENE ID DE EVENTO)
+if (btnEditarEvento) btnEditarEvento.addEventListener("click", function () {
+    const id = modalDetalle.dataset.eventoId;
+    console.log("Editar evento:", id);
+     
+    
+});
+
+if (btnEliminarEvento) btnEliminarEvento.addEventListener("click", function () {
+    const id = modalDetalle.dataset.eventoId;
+    console.log("Eliminar evento:", id);
+    //llamada a endpoint para eliminar
 });

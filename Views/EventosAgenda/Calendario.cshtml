@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<!-- MODAL PARA CREAR EVENTO -->
+
 <div id="modalCrearEvento" class="modal-evento">
     <div class="modal-crear-content">
         <span class="close-crear">&times;</span>
@@ -53,6 +53,46 @@
 
         </form>
 
+    </div>
+</div>
+
+
+
+<div id="modalDetalleEvento" class="modal-evento" style="display:none;">
+    <div class="modal-detalle-content">
+        <span class="close-detalle">&times;</span>
+        <h3 id="detalle-titulo">Título del evento</h3>
+
+        <div class="detalle-meta">
+            <p><strong>Inicio:</strong> <span id="detalle-fecha-inicio"></span></p>
+            <p><strong>Fin:</strong> <span id="detalle-fecha-final"></span></p>
+            <p><strong>Color:</strong> <span id="detalle-color"></span></p>
+        </div>
+
+        <div class="detalle-descripcion">
+            <h4>Descripción</h4>
+            <p id="detalle-descripcion"></p>
+        </div>
+
+        <div id="detalle-destinatarios" style="display:none;">
+            <h4>Destinatarios</h4>
+
+            <div id="detalle-grupos" style="display:none;">
+                <strong>Grupos:</strong>
+                <ul id="lista-grupos"></ul>
+            </div>
+
+            <div id="detalle-materias" style="display:none;">
+                <strong>Materias sin grupo:</strong>
+                <ul id="lista-materias"></ul>
+            </div>
+        </div>
+
+        <div class="detalle-acciones" style="margin-top:15px;">
+            <button id="btnEditarEvento" class="btn btn-primary">Editar</button>
+            <button id="btnEliminarEvento" class="btn btn-danger">Eliminar</button>
+            <button id="btnCerrarDetalle" class="btn btn-secondary">Cerrar</button>
+        </div>
     </div>
 </div>
 

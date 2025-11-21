@@ -295,6 +295,97 @@ namespace ControlActividades.Controllers
 
         [Authorize]
         [HttpGet]
+        public ActionResult ObtenerEventoPorId(int id)
+        {
+            // Buscar evento principal
+            var eventoEntity = Db.tbEventosAgenda
+                .FirstOrDefault(e => e.EventoId == id);
+
+            if (eventoEntity == null)
+            {
+                Response.StatusCode = 404;
+                return Json(new { mensaje = "Evento no encontrado" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var evento = new
+            {
+                eventoId = eventoEntity.EventoId,
+                titulo = eventoEntity.Titulo,
+                descripcion = eventoEntity.Descripcion,
+                fechaInicio = eventoEntity.FechaInicio.ToString("o"), // ISO 8601
+                fechaFinal = eventoEntity.FechaFinal.ToString("o"),
+                color = eventoEntity.Color
+            };
+
+            // Materias asociadas al evento (ids)
+            var materiasEventoIds = Db.tbEventosMaterias
+                .Where(em => em.FechaId == id)
+                .Select(em => em.MateriaId)
+                .ToList();
+
+            // Grupos asociados al evento (ids)
+            var gruposEventoIds = Db.tbEventosGrupos
+                .Where(eg => eg.FechaId == id)
+                .Select(eg => eg.GrupoId)
+                .ToList();
+
+            // Grupos que contienen alguna de las materias del evento
+            var gruposPorMateriasIds = Db.tbGruposMaterias
+                .Where(gm => materiasEventoIds.Contains(gm.MateriaId))
+                .Select(gm => gm.GrupoId)
+                .ToList();
+            
+            // Unión de ambos sin repetir
+            var gruposMostrarIds = gruposEventoIds
+                .Union(gruposPorMateriasIds)
+                .Distinct()
+                .ToList();
+
+            // Cargar grupos con todas sus materias
+            var gruposConMaterias = Db.tbGrupos
+                .Where(g => gruposMostrarIds.Contains(g.GrupoId))
+                .Select(g => new
+                {
+                    grupoId = g.GrupoId,
+                    nombre = g.NombreGrupo,
+                    materias = Db.tbGruposMaterias
+                        .Where(gm => gm.GrupoId == g.GrupoId)
+                        .Join(Db.tbMaterias,
+                              gm => gm.MateriaId,
+                              m => m.MateriaId,
+                              (gm, m) => new
+                              {
+                                  materiaId = m.MateriaId,
+                                  nombre = m.NombreMateria,
+                                  isSelected = materiasEventoIds.Contains(m.MateriaId)
+                              })
+                        .ToList()
+                })
+                .ToList();
+
+            // Materias sin grupos asociadas al evento:
+            // materias que están en tbEventosMaterias pero no en tbGruposMaterias (no pertenecen a ningún grupo)
+            var materiasSueltas = Db.tbMaterias
+                .Where(m => materiasEventoIds.Contains(m.MateriaId)
+                            && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
+                .Select(m => new { materiaId = m.MateriaId, nombre = m.NombreMateria })
+                .ToList();
+
+            bool esPersonal = !gruposConMaterias.Any() && !materiasSueltas.Any();
+
+            return Json(new
+            {
+                evento = evento,
+                esPersonal = esPersonal,
+                gruposConMaterias = gruposConMaterias,
+                materiasSueltas = materiasSueltas
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+
+
+        [Authorize]
+        [HttpGet]
         public ActionResult ObtenerEventosPorFecha(string fecha)
         {
             if (!DateTime.TryParse(fecha, out DateTime fechaSeleccionada))
