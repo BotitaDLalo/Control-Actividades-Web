@@ -1,5 +1,10 @@
-var div = document.getElementById("docente-datos"); 
-var docenteIdGlobal = div.dataset.docenteid;
+var div = document.getElementById("docente-datos");
+var docenteIdGlobal = 0;
+if (div && div.dataset && div.dataset.docenteid) {
+    docenteIdGlobal = div.dataset.docenteid;
+} else if (localStorage.getItem('docenteId')) {
+    docenteIdGlobal = localStorage.getItem('docenteId');
+}
 
 //Funcion para guarda las materias registradas sin un grupo
 async function guardarMateriaSinGrupo() {
@@ -39,8 +44,9 @@ async function guardarMateriaSinGrupo() {
             timer: 2000
         });
         ;// Mostramos una alerta de éxito
-        document.getElementById("materiasForm").reset(); // Limpiamos el formulario
-        cargarMateriasSinGrupo(); // Recargamos la lista de materias sin grupo
+        const form = document.getElementById("materiasForm");
+        if (form) form.reset(); // Limpiamos el formulario
+        if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo(); // Recargamos la lista de materias sin grupo
     } else {
         Swal.fire({
             position: "top-end",
@@ -61,9 +67,10 @@ async function cargarMaterias() {
         if (response.ok) { // Verificamos si la respuesta es exitosa
             const materias = await response.json(); // Convertimos la respuesta en formato JSON
             const contenedorMaterias = document.getElementById("materiasLista"); // Obtenemos el contenedor donde se mostrarán las materias
+            if (!contenedorMaterias) return;
             contenedorMaterias.innerHTML = ""; // Limpiamos cualquier contenido previo en el contenedor
 
-            if (materias.length === 0) { // Si no hay materias disponibles, mostramos un mensaje
+            if (!materias || materias.length === 0) { // Si no hay materias disponibles, mostramos un mensaje
                 contenedorMaterias.innerHTML = "<p>No hay materias disponibles.</p>";
                 return;
             }
@@ -93,17 +100,17 @@ async function cargarMaterias() {
 
 // Cargar materias que fueron creadas sin un grupo a la vista principal.
 async function cargarMateriasSinGrupo() {
-    const response = await fetch(`/Materias/ObtenerMateriasSinGrupo?docenteId=${docenteIdGlobal}`);
-    if (response.ok) {
+    try {
+        const response = await fetch(`/Materias/ObtenerMateriasSinGrupo?docenteId=${docenteIdGlobal}`);
+        if (!response.ok) throw new Error('Error en la respuesta');
         const materiasSinGrupo = await response.json();
         const listaMateriasSinGrupo = document.getElementById("listaMateriasSinGrupo");
+        if (!listaMateriasSinGrupo) return;
 
-        // Limpiar contenido anterior y crear el contenedor con Bootstrap Grid
+        // Limpiar contenido anterior
         listaMateriasSinGrupo.innerHTML = "";
-        const rowContainer = document.createElement("div");
-        rowContainer.classList.add("row", "g-3"); // "g-3" agrega un pequeño espacio entre las filas
 
-        if (materiasSinGrupo.length === 0) {
+        if (!materiasSinGrupo || materiasSinGrupo.length === 0) {
             const mensaje = document.createElement("p");
             mensaje.classList.add("text-center", "text-muted");
             mensaje.textContent = "No hay materias registradas.";
@@ -111,52 +118,26 @@ async function cargarMateriasSinGrupo() {
             return;
         }
 
-        // Nueva implementación: usar tarjetas personalizadas (sin animaciones) para mostrar la materia
         materiasSinGrupo.forEach((materia, index) => {
-            const col = document.createElement("div");
-            col.classList.add("col-md-3"); // Ajusta el tamaño de la tarjeta en la fila
+            const card = document.createElement('div');
+            card.className = 'rounded card-layout';
 
-            const card = document.createElement("div");
-            // Usamos clases personalizadas para poder aplicar el estilo entregado por el usuario
-            const gradientClass = `gr-${(index % 3) + 1}`; // gr-1, gr-2, gr-3 en ciclo
-            card.className = `materia-card-custom card ${gradientClass}`;
+            const title = document.createElement('div');
+            title.className = 'card-title';
+            title.textContent = materia.NombreMateria;
 
-            // Estructura interna: título, descripción, enlace y un icono
-            card.innerHTML = `
-                <div class="txt">
-                    <h1>${materia.NombreMateria}</h1>
-                    <p>${materia.Descripcion || ''}</p>
-                </div>
-                <a href="#" class="ver-materia-btn">Ver Materia</a>
-                <div class="ico-card"><i class="fas fa-book"></i></div>
-            `;
+            const subtitle = document.createElement('div');
+            subtitle.className = 'card-subtitle';
+            subtitle.textContent = materia.Descripcion || '';
 
-            // Hacer que el botón o la tarjeta lleve a la materia
-            const enlace = card.querySelector('.ver-materia-btn');
-            if (enlace) {
-                enlace.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    irAMateria(materia.MateriaId);
-                });
-            }
+            card.appendChild(title);
+            if (materia.Descripcion) card.appendChild(subtitle);
 
-            // También permitir que al hacer clic en la tarjeta completa se vaya a la materia
-            card.style.cursor = 'pointer';
-            card.addEventListener('click', function (e) {
-                // evitar doble disparo si se clickea el enlace
-                if (e.target && e.target.classList && e.target.classList.contains('ver-materia-btn')) return;
-                irAMateria(materia.MateriaId);
-            });
-
-            const colWrapper = document.createElement('div');
-            colWrapper.classList.add('mb-3');
-            col.appendChild(card);
-            rowContainer.appendChild(col);
+            listaMateriasSinGrupo.appendChild(card);
         });
 
-        listaMateriasSinGrupo.appendChild(rowContainer);
-
-    } else {
+    } catch (error) {
+        console.error('Error al cargar materias sin grupo:', error);
         Swal.fire({
             title: "Error al cargar materias",
             html: "Reintentando en <b></b> segundos...",
@@ -178,7 +159,6 @@ async function cargarMateriasSinGrupo() {
         });
     }
 }
-
 
 
 //Funcion para editar nombre y descripcion de una materia.
@@ -243,9 +223,9 @@ async function editarMateria(MateriaId, NombreMateria, Descripcion) {
                 showConfirmButton: false,
                 timer: 2000
             });
-            cargarGrupos();
-            cargarMaterias(); // Recargar la lista de materias
-            cargarMateriasSinGrupo();
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+            if (typeof cargarMaterias === 'function') cargarMaterias(); // Recargar la lista de materias
+            if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
         } else {
             Swal.fire({
                 position: "top-end",
@@ -287,7 +267,7 @@ async function eliminarMateria(MateriaId) {
                     timer: 2000
                 });
                 // Se ejecuta funcion inicializar para actualizar vista completa
-                inicializar();
+                if (typeof inicializar === 'function') inicializar();
             } else {
                 await Swal.fire({
                     position: "top-end",

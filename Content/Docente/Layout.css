@@ -44,9 +44,11 @@ p, body {
     overflow: hidden; /* Oculta cualquier desbordamiento */
 }
 
+/* Ajuste más coherente del logo para evitar que empuje elementos del header */
 .navbar-icon {
-    width: 112%; /* Se ajusta al 100% del contenedor */
-    height: 294%; /* Se ajusta al 100% del contenedor */
+    width: auto;
+    max-width: 160px;
+    height: auto;
     object-fit: contain; /* Escala internamente sin distorsionar */
 }
 
@@ -57,27 +59,30 @@ p, body {
     vertical-align: middle; /* Alineación vertical con el texto */
 }
 
+/* Notificaciones y avatar deben ser pequeños y alineados en una sola fila */
 .iconos-nav {
-    width: 70px; /* Ajusta el tamaño según tus necesidades */
+    width: 32px; /* tamaño reducido para que no desborde el header */
     height: auto; /* Mantiene la proporción de aspecto */
-    margin-right: -9px; /* Espaciado a la derecha del ícono */
+    margin-right: 0; /* No usar margin negativo que provoque overflow */
     vertical-align: middle; /* Alineación vertical con el texto */
     transition: box-shadow 0.3s ease, transform 0.3s ease; /* Suaviza la animación */
 }
 
     /* Efecto hover */
     .iconos-nav:hover {
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Sombra alrededor del ícono */
-        transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el cursor */
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); /* Sombra más sutil */
+        transform: scale(1.05); /* Aumenta ligeramente el tamaño al pasar el cursor */
     }
 
+/* Forzar que los elementos del navbar estén en fila y centrados */
 .navbar-nav {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* CORRECCIÓN: usar fila en lugar de columna para layout del header */
+    align-items: center; /* centra verticalmente los items */
     padding-left: 0;
     margin-bottom: 0;
     list-style: none;
-    justify-content: flex-end;
+    justify-content: flex-end; /* items al final (derecha) */
 }
 
 /*
@@ -142,9 +147,8 @@ Estilos del submenu usuario*/
 
     /* Tamaño del ícono */
     .user-info img.iconos1-nav {
-        width: 74px; /* Ajusta el tamaño según tus necesidades */
-        height: 34px; /* Asegura que el ícono sea cuadrado */
- 
+        width: 48px; /* reducido para que quepa correctamente */
+        height: auto; /* mantener proporción */
     }
 
     /* Nombre del usuario */

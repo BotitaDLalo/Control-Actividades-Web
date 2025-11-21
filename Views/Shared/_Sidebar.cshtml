@@ -68,13 +68,13 @@
                         <ul class="section-submenu" id="menu-grupos-materias" aria-hidden="true">
                             @if (isDocente)
                             {
-                                <li><a href="@Url.Action("Index", "Docente", new { seccion = "grupos" })" class="submenu-link">Gestionar Grupos</a></li>
-                                <li><a href="@Url.Action("Index", "Docente", new { seccion = "materiasSinGrupo" })" class="submenu-link">Materias sin grupo</a></li>
+                                <li><a href="@Url.Action("Grupos", "Docente")" class="submenu-link">Gestionar Grupos</a></li>
+                                <li><a href="@Url.Action("MateriasSinGrupo", "Docente")" class="submenu-link">Materias sin grupo</a></li>
                             }
                             else
                             {
-                                <li><a href="@Url.Action("Index", "Alumno", new { seccion = "grupos" })" class="submenu-link">Mis Grupos</a></li>
-                                <li><a href="@Url.Action("Index", "Alumno", new { seccion = "materias" })" class="submenu-link">Mis Materias</a></li>
+                                <li><a href="@Url.Action("Grupos", "Alumno")" class="submenu-link">Mis Grupos</a></li>
+                                <li><a href="@Url.Action("MateriasSinGrupo", "Alumno")" class="submenu-link">Mis Materias</a></li>
                             }
                         </ul>
                     </li>

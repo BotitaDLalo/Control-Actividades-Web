@@ -165,13 +165,15 @@ namespace ControlActividades.Controllers
             return View("GruposStandalone");
         }
 
-        // GET: /Docente/MateriasSinGrupo -> redirige al Index y muestra Materias sin grupo
+        // GET: /Docente/MateriasSinGrupo -> mostrar vista independiente MateriasSinGrupoStandalone
         [HttpGet]
         public ActionResult MateriasSinGrupo()
         {
             string userId = User.Identity.GetUserId();
             var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
-            return RedirectToAction("Index", new { seccion = "materiasSinGrupo", docenteId = docenteId });
+
+            ViewBag.DocenteId = docenteId;
+            return View("MateriasSinGrupoStandalone");
         }
 
         [HttpPost]
