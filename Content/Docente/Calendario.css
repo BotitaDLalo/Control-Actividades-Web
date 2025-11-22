@@ -489,3 +489,12 @@ button {
     scrollbar-width: thin;
 }
 
+.close-editar {
+    position: absolute;
+    top: 5px;
+    right: 3px;
+    font-size: 30px;
+    color: #333;
+    cursor: pointer;
+    transition: color 0.3s;
+}

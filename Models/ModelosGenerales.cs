@@ -455,6 +455,10 @@ namespace ControlActividades.Models
 
         [Required]
         public string Color { get; set; }
+
+        public List<int> GruposSeleccionados { get; set; }
+        public List<int> MateriasSeleccionadas { get; set; }
+
     }
 
     public class AsociarMateriasRequest

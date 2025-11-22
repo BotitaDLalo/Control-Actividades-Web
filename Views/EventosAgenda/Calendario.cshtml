@@ -57,7 +57,7 @@
 </div>
 
 
-
+<!--Detalle-->
 <div id="modalDetalleEvento" class="modal-evento" style="display:none;">
     <div class="modal-detalle-content">
         <span class="close-detalle">&times;</span>
@@ -98,6 +98,43 @@
     </div>
 </div>
 
+<!--Editar-->
+<div id="modalEditarEvento" class="modal-evento">
+    <div class="modal-crear-content">
+        <span class="close-editar" id="closeEditar">&times;</span>
+        <h2>Editar evento</h2>
+
+        <form id="formEditarEvento">
+            <input type="hidden" id="editar-evento-id" />
+
+            <label for="editar-titulo">Título:</label>
+            <input type="text" id="editar-titulo" required>
+
+            <label for="editar-fecha-inicio">Fecha inicio:</label>
+            <input type="datetime-local" id="editar-fecha-inicio" required>
+
+            <label for="editar-fecha-final">Fecha final:</label>
+            <input type="datetime-local" id="editar-fecha-final">
+
+            <label for="editar-color">Color:</label>
+            <select id="editar-color" name="Color" required>
+                <option value="azul">Azul</option>
+                <option value="gris">Gris</option>
+            </select>
+
+
+            <label for="editar-descripcion">Descripción:</label>
+            <textarea id="editar-descripcion"></textarea>
+
+            <p class="titulo-seccion">Destinatarios:</p>
+
+            <div class="grupos-materias-container" id="editar-contenedorGruposMaterias">
+            </div>
+
+            <button type="submit">Guardar cambios</button>
+        </form>
+    </div>
+</div>
 
 @section scripts {
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>

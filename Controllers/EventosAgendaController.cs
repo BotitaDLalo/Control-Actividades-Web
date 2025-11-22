@@ -415,44 +415,108 @@ namespace ControlActividades.Controllers
         }
 
         [Authorize]
-        [HttpPut]
-        public async Task<ActionResult> EditarEvento(EventoEditarDTO model)
+        [HttpGet]
+        public async Task<ActionResult> GetEvento(int id)
+        {
+            var evento = await Db.tbEventosAgenda
+                .Include(e => e.EventosGrupos)
+                .Include(e => e.EventosMaterias)
+                .FirstOrDefaultAsync(e => e.EventoId == id);
+
+            if (evento == null)
+                return HttpNotFound("Evento no encontrado");
+
+            return Json(new
+            {
+                eventoId = evento.EventoId,
+                titulo = evento.Titulo,
+                descripcion = evento.Descripcion,
+                fechaInicio = evento.FechaInicio,
+                fechaFinal = evento.FechaFinal,
+                color = evento.Color,
+
+                gruposSeleccionados = evento.EventosGrupos.Select(g => g.GrupoId).ToList(),
+                materiasSeleccionadas = evento.EventosMaterias.Select(m => m.MateriaId).ToList()
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public ActionResult EditarEvento(EventoEditarDTO model)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    Response.StatusCode = 400; // Bad Request
+                    Response.StatusCode = 400;
                     return Json(new { mensaje = "Datos inválidos" });
                 }
 
-                var eventoEditar = await Db.tbEventosAgenda.FindAsync(model.EventoId);
-                if (eventoEditar == null) {
-                    Response.StatusCode = 404; // Not Found
+                var evento = Db.tbEventosAgenda.Find(model.EventoId);
+
+                if (evento == null)
+                {
+                    Response.StatusCode = 404;
                     return Json(new { mensaje = "Evento no encontrado" });
                 }
 
-                if (model.FechaFinal < model.FechaInicio)
+                
+                // Actualizar datos del evento
+                evento.Titulo = model.Titulo;
+                evento.Descripcion = model.Descripcion;
+                evento.Color = model.Color;
+                evento.FechaInicio = model.FechaInicio;
+                evento.FechaFinal = model.FechaFinal;
+
+                
+                // Actualizar grupos asignados
+                var gruposActuales = Db.tbEventosGrupos
+                    .Where(x => x.FechaId == model.EventoId)
+                    .ToList();
+
+                foreach (var item in gruposActuales)
+                    Db.tbEventosGrupos.Remove(item);
+
+                if (model.GruposSeleccionados != null)
                 {
-                    Response.StatusCode = 400;
-                    return Json(new { mensaje = "La fecha final no puede ser anterior a la fecha de inicio" });
+                    foreach (var idGrupo in model.GruposSeleccionados)
+                    {
+                        Db.tbEventosGrupos.Add(new tbEventosGrupos
+                        {
+                            FechaId = model.EventoId,        
+                            GrupoId = idGrupo
+                        });
+                    }
                 }
 
-                eventoEditar.Titulo = model.Titulo;
-                eventoEditar.Descripcion = model.Descripcion;
-                eventoEditar.FechaInicio = model.FechaInicio;
-                eventoEditar.FechaFinal = model.FechaFinal;
-                eventoEditar.Color = model.Color;
-                
-                await Db.SaveChangesAsync();
+                // Actualizar materias asignadas
+                var materiasActuales = Db.tbEventosMaterias
+                    .Where(x => x.FechaId == model.EventoId)  
+                    .ToList();
+
+                foreach (var item in materiasActuales)
+                    Db.tbEventosMaterias.Remove(item);
+
+                if (model.MateriasSeleccionadas != null)
+                {
+                    foreach (var idMat in model.MateriasSeleccionadas)
+                    {
+                        Db.tbEventosMaterias.Add(new tbEventosMaterias
+                        {
+                            FechaId = model.EventoId,         
+                            MateriaId = idMat
+                        });
+                    }
+                }
+
+                Db.SaveChanges();
 
                 return Json(new { mensaje = "Evento actualizado correctamente" });
-
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
-                Response.StatusCode = 500; //Internal Server Error
-                return Json(new { mensaje = "Error al actualizar el evento ", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al editar evento", error = ex.Message });
             }
         }
 
