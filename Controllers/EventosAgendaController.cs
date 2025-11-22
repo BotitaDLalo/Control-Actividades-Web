@@ -526,24 +526,37 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var eventoEliminar = await Db.tbEventosAgenda.FindAsync(id);
-                if (eventoEliminar == null)
+                var evento = await Db.tbEventosAgenda.FindAsync(id);
+                if (evento == null)
                 {
-                    Response.StatusCode = 400; // Bad Request
+                    Response.StatusCode = 404;
                     return Json(new { mensaje = "Evento no encontrado" }, JsonRequestBehavior.AllowGet);
                 }
 
-                Db.tbEventosAgenda.Remove(eventoEliminar);
+                // Eliminar grupos relacionados
+                var grupos = Db.tbEventosGrupos.Where(g => g.FechaId == id).ToList();
+                foreach (var g in grupos)
+                    Db.tbEventosGrupos.Remove(g);
+
+                // Eliminar materias relacionadas
+                var materias = Db.tbEventosMaterias.Where(m => m.FechaId == id).ToList();
+                foreach (var m in materias)
+                    Db.tbEventosMaterias.Remove(m);
+
+                // Eliminar evento principal
+                Db.tbEventosAgenda.Remove(evento);
+
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Evento eliminado" }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Evento eliminado correctamente" }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; //Internal Server Error
-                return Json(new { mensaje = "Error al eliminar el evento ", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al eliminar el evento", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
 
         protected override void Dispose(bool disposing)
         {

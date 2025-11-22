@@ -442,11 +442,7 @@ window.addEventListener("click", function (e) {
 
 
 
-if (btnEliminarEvento) btnEliminarEvento.addEventListener("click", function () {
-    const id = modalDetalle.dataset.eventoId;
-    
-    //llamada a endpoint para eliminar
-});
+
 
 
 
@@ -647,21 +643,22 @@ document.getElementById("formEditarEvento").addEventListener("submit", async fun
         const data = await resp.json();
 
         if (!resp.ok) {
-            alert(data.mensaje || "Error al cachar evento");
+            alert(data.mensaje || "Error al actualizar evento");
             return;
         }
 
-        alert("Evento actualizado correctamente jsjsjsjsjsjs");
+        alert("Evento actualizado correctamente");
 
         // Cerrar modal
         document.getElementById("modalEditarEvento").style.display = "none";
+        modalDetalle.style.display = "none";
 
         // Refrescar calendario 
         //calendar.refetchEvents(); // Recargar eventos
 
     } catch (err) {
         console.error("Error al editar evento:", err);
-        alert("Error inesperadojsjsjsjsjsjsjsj");
+        alert("Error inesperado");
     }
 });
 
@@ -675,3 +672,42 @@ function convertirFechaNetAInput(fechaNet) {
     return fechaLocal.toISOString().slice(0, 16);
 }
 
+
+// ELIMINAR
+if (btnEliminarEvento) {
+    btnEliminarEvento.addEventListener("click", async function () {
+        const id = modalDetalle.dataset.eventoId;
+
+        if (!id) {
+            alert("No se encontró el ID del evento.");
+            return;
+        }
+
+        const confirmar = confirm("¿Seguro que deseas eliminar este evento?");
+        if (!confirmar) return;
+
+        try {
+            const resp = await fetch(`/EventosAgenda/EliminarEvento/${id}`, {
+                method: "DELETE"
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                alert(data.mensaje || "Error al eliminar el evento");
+                return;
+            }
+
+            alert("Evento eliminado correctamente");
+
+            // Cerrar modal
+            modalDetalle.style.display = "none";
+            modalEvento.style.display = "none";
+            //calendar.refetchEvents();
+
+        } catch (err) {
+            console.error("Error eliminando evento:", err);
+            alert("Ocurrió un error al eliminar el evento");
+        }
+    });
+}
