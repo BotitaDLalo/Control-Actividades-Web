@@ -28,15 +28,11 @@
     </style>*@
 </head>
 <body>
-
-
-
-
     @*<div class="container">
-        <main role="main" class="pb-3 app-main">
-            @RenderBody()
-        </main>
-    </div>*@
+            <main role="main" class="pb-3 app-main">
+                @RenderBody()
+            </main>
+        </div>*@
 
     <div class="layout">
         @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
@@ -54,13 +50,13 @@
     </div>
 
 
-
-    <script src="~/Scripts/sidebar.js"></script>
-    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
+
+    <script src="~/Scripts/sidebar.js"></script>
+    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
 
 
     @Scripts.Render("~/bundles/docente")
