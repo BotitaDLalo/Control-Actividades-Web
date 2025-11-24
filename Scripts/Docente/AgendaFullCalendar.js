@@ -15,7 +15,6 @@
 
         // Cuando se selecciona un día 
         dateClick: function (info) {
-            console.log("Día seleccionado:", info.dateStr);
             abrirModal(info.dateStr);
         },
 
@@ -302,6 +301,16 @@
 
 });
 
+function convertirFechaNetAInput(fechaNet) {
+    const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
+    const fechaUTC = new Date(timestamp);
+
+    // Convertir a hora local sin que el navegador lo cambie
+    const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
+
+    return fechaLocal.toISOString().slice(0, 16);
+}
+
 // ---------- MODAL DE DETALLES DEL EVENTO ----------
 const modalDetalle = document.getElementById("modalDetalleEvento");
 const btnCerrarDetalle = document.querySelector(".close-detalle");
@@ -309,17 +318,13 @@ const btnCerrarDetalle2 = document.getElementById("btnCerrarDetalle");
 const btnEditarEvento = document.getElementById("btnEditarEvento");
 const btnEliminarEvento = document.getElementById("btnEliminarEvento");
 
-// ---------- CERRAR MODAL EDITAR ----------
-const modalEditar = document.getElementById("modalEditarEvento");
-const btnCerrarEditar = document.querySelector(".close-editar");
-
-btnCerrarEditar.addEventListener("click", () => {
-    modalEditar.style.display = "none";
-});
+// Cerrar modal detalles
+if (btnCerrarDetalle) btnCerrarDetalle.addEventListener("click", () => { modalDetalle.style.display = "none"; });
+if (btnCerrarDetalle2) btnCerrarDetalle2.addEventListener("click", () => { modalDetalle.style.display = "none"; });
 
 async function abrirModalDetalle(eventoId) {
     try {
-        
+
         const resp = await fetch(`/EventosAgenda/ObtenerEventoPorId?id=${eventoId}`);
         if (!resp.ok) {
             const txt = await resp.text();
@@ -344,7 +349,7 @@ async function abrirModalDetalle(eventoId) {
         document.getElementById("detalle-descripcion").textContent = evento.descripcion || "";
 
         // Fechas
-        const opciones = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+        const opciones = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
         document.getElementById("detalle-fecha-inicio").textContent = new Date(evento.fechaInicio).toLocaleString('es-MX', opciones);
         document.getElementById("detalle-fecha-final").textContent = new Date(evento.fechaFinal).toLocaleString('es-MX', opciones);
 
@@ -429,9 +434,18 @@ async function abrirModalDetalle(eventoId) {
     }
 }
 
-// Cerrar modal detalles
-if (btnCerrarDetalle) btnCerrarDetalle.addEventListener("click", () => { modalDetalle.style.display = "none"; });
-if (btnCerrarDetalle2) btnCerrarDetalle2.addEventListener("click", () => { modalDetalle.style.display = "none"; });
+
+
+// EDITAR
+
+// ---------- CERRAR MODAL EDITAR ----------
+const modalEditar = document.getElementById("modalEditarEvento");
+const btnCerrarEditar = document.querySelector(".close-editar");
+
+btnCerrarEditar.addEventListener("click", () => {
+    modalEditar.style.display = "none";
+});
+
 
 // Cerrar click fuera del contenido
 window.addEventListener("click", function (e) {
@@ -441,13 +455,6 @@ window.addEventListener("click", function (e) {
 });
 
 
-
-
-
-
-
-
-// EDITAR
 if (btnEditarEvento) btnEditarEvento.addEventListener("click", function () {
     const id = modalDetalle.dataset.eventoId;
     abrirModalEditarEvento(id);
@@ -661,17 +668,6 @@ document.getElementById("formEditarEvento").addEventListener("submit", async fun
         alert("Error inesperado");
     }
 });
-
-function convertirFechaNetAInput(fechaNet) {
-    const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
-    const fechaUTC = new Date(timestamp);
-
-    // Convertir a hora local sin que el navegador lo cambie
-    const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
-
-    return fechaLocal.toISOString().slice(0, 16);
-}
-
 
 // ELIMINAR
 if (btnEliminarEvento) {

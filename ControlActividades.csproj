@@ -397,7 +397,7 @@
     <Content Include="Content\Docente\actividadesSeccion.css" />
     <Content Include="Content\Docente\alumnosSeccion.css" />
     <Content Include="Content\Docente\avisosSeccion.css" />
-    <Content Include="Content\Docente\Calendario.css" />
+    <Content Include="Content\Componentes\Calendario.css" />
     <Content Include="Content\Docente\Confirmacion.css" />
     <Content Include="Content\Docente\DetalleActividadesEstilos.css" />
     <Content Include="Content\Docente\footer.css" />
@@ -450,6 +450,7 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
     <Content Include="Scripts\Alumno\actividades.js" />
+    <Content Include="Scripts\Alumno\AgendaFullCalendar.js" />
     <Content Include="Scripts\Alumno\alumno.js" />
     <Content Include="Scripts\Alumno\Avisos.js" />
     <Content Include="Scripts\Alumno\Calendario.js" />
@@ -547,7 +548,7 @@
     <Content Include="Views\Home\Calendario.cshtml" />
     <Content Include="Views\Alumno\_GruposPartial.cshtml" />
     <Content Include="Views\Alumno\_MateriasSinGrupoPartial.cshtml" />
-    <Content Include="Views\EventosAgenda\Calendario.cshtml" />
+    <Content Include="Views\EventosAgenda\CalendarioDocentes.cshtml" />
     <Content Include="Views\Dashboard\Index.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Docente\Grupos.cshtml" />
@@ -556,6 +557,7 @@
     <Content Include="Views\Alumno\Materias.cshtml" />
     <Content Include="Views\Docente\GruposStandalone.cshtml" />
     <Content Include="Views\Docente\MateriasSinGrupoStandalone.cshtml" />
+    <Content Include="Views\EventosAgenda\CalendarioAlumnos.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Alumno\css\" />

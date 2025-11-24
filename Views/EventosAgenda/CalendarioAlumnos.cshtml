@@ -1,0 +1,60 @@
+@{
+    Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
+    ViewBag.Title = "Calendario";
+    int alumnoId = ViewBag.AlumnoId ?? 0;
+}
+
+<div class="calendario-wrapper" style="padding:20px;">
+    <div id="calendar" style="max-width: 1200px; margin: 0 auto;"></div>
+
+    <!-- MODAL DE EVENTOS -->
+    <div id="modalEvento" class="modal-evento">
+        <div class="modal-content">
+            <span class="close-modal12">&times;</span>
+            <h2>Eventos del <span id="fechaSeleccionadaTexto"></span></h2>
+
+            <div id="listaEventos"></div>
+
+        </div>
+    </div>
+</div>
+
+
+<!--Detalle-->
+<div id="modalDetalleEvento" class="modal-evento" style="display:none;">
+    <div class="modal-detalle-content">
+        <span class="close-detalle">&times;</span>
+        <h3 id="detalle-titulo">Título del evento</h3>
+
+        <div class="detalle-meta">
+            <p><strong>Inicio:</strong> <span id="detalle-fecha-inicio"></span></p>
+            <p><strong>Fin:</strong> <span id="detalle-fecha-final"></span></p>
+            <p><strong>Color:</strong> <span id="detalle-color"></span></p>
+            <p><strong>Docente:</strong> <span id="detalle-docente"></span></p>
+        </div>
+
+        <div class="detalle-descripcion">
+            <h4 id="descripcion-titulo">Descripción</h4>
+            <p id="detalle-descripcion"></p>
+        </div>
+
+        <div class="detalle-acciones" style="margin-top:15px;">
+            <button id="btnCerrarDetalle" class="btn btn-secondary">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+    <script>
+        var alumnoIdGlobal = @alumnoId;
+    </script>
+    <script src="~/Scripts/Alumno/AgendaFullCalendar.js"></script>
+}
+
+@section styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
+    <link href="~/Content/Componentes/Calendario.css" rel="stylesheet" />
+}

@@ -8,7 +8,7 @@
     <div id="calendar" style="max-width: 1200px; margin: 0 auto;"></div>
 
     <!-- MODAL DE EVENTOS -->
-    <div id="modalEvento" class="modal-evento">
+    <div id="modalEvento" class="modal-evento" style="display:none;">
         <div class="modal-content">
             <span class="close-modal12">&times;</span>
             <h2>Eventos del <span id="fechaSeleccionadaTexto"></span></h2>
@@ -22,7 +22,7 @@
 </div>
 
 
-<div id="modalCrearEvento" class="modal-evento">
+<div id="modalCrearEvento" class="modal-evento" style="display:none;">
     <div class="modal-crear-content">
         <span class="close-crear">&times;</span>
         <h2>Crear nuevo evento</h2>
@@ -99,7 +99,7 @@
 </div>
 
 <!--Editar-->
-<div id="modalEditarEvento" class="modal-evento">
+<div id="modalEditarEvento" class="modal-evento" style="display:none;">
     <div class="modal-crear-content">
         <span class="close-editar" id="closeEditar">&times;</span>
         <h2>Editar evento</h2>
@@ -147,5 +147,5 @@
 
 @section styles {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
-    <link href="~/Content/Docente/Calendario.css" rel="stylesheet" />
+    <link href="~/Content/Componentes/Calendario.css" rel="stylesheet" />
 }
