@@ -18,91 +18,85 @@
 
 body {
     /* Center login both horizontally and vertically */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
     margin: 0;
     background-color: #f1f2f4;
 }
 
 .login-box {
-    position: relative;
     width: 100%;
-    max-width: 420px;
     padding: 10px 30px;
-    max-height: 90vh; 
-    overflow-y: auto; 
+    
     background: #FFF;
-    border: 1px solid #ddd;
     border-radius: 15px;
-    /*max-width: calc(100vw - 40px);*/
+    border: 1px solid #ddd;
     box-sizing: border-box;
+     
+    /*max-width: calc(100vw - 40px);*/
 }
 
 .signin-box {
-    position: relative;
-    width: 470px;
-    height: 650px;
-    padding: 10px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    min-height: 650px;
 }
 
 .restablecer-box {
-    position: relative;
-    width: 470px;
-    height: 350px;
-    padding: 10px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    min-height: 350px;
 }
 
 .verify-box {
-    position: relative;
-    width: 470px;
-    height: 330px;
-    padding: 10px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    min-height: 330px;
 }
 
-/* Ensure auth boxes are centered in the viewport even if layout adds left margin */
+
 .login-box,
 .signin-box,
 .restablecer-box,
 .verify-box {
-    /* Fix to viewport center so login never appears shifted by surrounding layout */
-  /*  position: fixed !important;*/
-    /* Use viewport units so centering is based on viewport even when an ancestor creates a containing block */
-/*    left: 50vw !important;
+    width: 470px;
+    max-width: calc(100vw - 40px);
+    padding: 25px 30px;
+    background: #FFF;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+/* Ensure auth boxes are centered in the viewport even if layout adds left margin 
+.login-box,
+.signin-box,
+.restablecer-box,
+.verify-box {
+     Fix to viewport center so login never appears shifted by surrounding layout 
+    position: fixed !important;
+     Use viewport units so centering is based on viewport even when an ancestor creates a containing block 
+    left: 50vw !important;
     top: 50vh !important;
     transform: translate(-50%, -50%) !important;
     margin: 0 !important;
-    z-index: 1100;*/
+    z-index: 1100;
 }
-    
+*/    
 /* For very small screens use normal flow so box can scroll */
-@media (max-width: 600px) {
+@media (max-width: 850px) {
+
+    .right-side {
+        justify-content: flex-start;
+        padding-top: 40px;
+    }
+
     .login-box,
     .signin-box,
     .restablecer-box,
     .verify-box {
-        position: static !important;
-        transform: none !important;
-        left: auto !important;
-        top: auto !important;
-        margin: 20px auto !important;
-        max-width: calc(100% - 40px);
+        width: 90%;
+        max-width: 420px;
+    }
+
+    .logo img {
+        width: 180px;
     }
 }
+
 
 .input-box-code {
     display: flex;
@@ -379,22 +373,23 @@ button {
 
 
 
-.login-full{
+.login-full {
     height: 100vh;
     width: 100vw;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     background-color: white;
 }
 
 .left-side {
-    flex: 1;
-    background-color: var(--azul-twitter);
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    
     background-image: url('../Imgs/background-student.jpg');
     background-size: cover;
     background-position: center;
-    position: relative;
-    overflow: hidden;
-    height: 100%;
+
     border-top-right-radius: 5vw;
     border-bottom-right-radius: 5vw;
     /*border: 5px solid red !important;*/
@@ -403,23 +398,23 @@ button {
     .left-side .back-img {
         position: absolute;
         inset: 0;
-        background-color: var(--azul-twitter);
         opacity: 0.5;
         z-index: 1;
         mix-blend-mode: multiply;
+        height: 100vh;
     }
 
 .right-side {
-    flex: 1;
     display: flex;
-    background-color: white;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    overflow-y: auto;
+    justify-content: flex-start;
+    padding: 40px 20px;
+    gap: 20px;
+}
+.logo {
+    margin-top: 10px;
+    margin-bottom: 15px;
 }
 
-.logo {
-    margin-bottom: 5px;
-    margin-top: -50px; /* opcional para subirlo más */
-}
+/*GRID / flexbox*/
