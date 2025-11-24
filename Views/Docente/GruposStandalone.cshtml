@@ -21,24 +21,27 @@
 
     <div id="listaGrupos" class="content"></div>
 
-    <div class="divider"></div>
-
-    <h4 class="mt-4">Materias sin grupo</h4>
-    <div id="listaMateriasSinGrupo" class="content"></div>
-
     @Html.Partial("GruposModal")
     @Html.Partial("MateriasModal")
 </div>
 
 @section Scripts{
     <script>
-        // no declarar docenteIdGlobal aquí — lo toma el script desde #docente-datos
         document.addEventListener('DOMContentLoaded', function(){
             if (typeof cargarGrupos === 'function') cargarGrupos();
+
+            // Cuando se abra el modal de crear grupo, cargar las materias disponibles en el modal
+            var modalEl = document.getElementById('gruposModal');
+            if (modalEl) {
+                modalEl.addEventListener('show.bs.modal', function () {
+                    if (typeof cargarMaterias === 'function') cargarMaterias();
+                });
+            }
         });
     </script>
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/docente")
     @Scripts.Render("~/bundles/docentegrupos")
+    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
 }
