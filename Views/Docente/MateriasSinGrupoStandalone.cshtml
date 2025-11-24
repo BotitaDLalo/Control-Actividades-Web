@@ -13,13 +13,12 @@
         <h2 class="text-center" style="flex:1;">Materias sin grupo</h2>
         <div class="ms-3 d-flex align-items-center" style="gap:8px;">
             <input id="buscarMateria" class="form-control" placeholder="Buscar..." style="min-width:240px;" />
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#materiasModal">Crear Materia</button>
-            <button class="btn btn-secondary" onclick="if(typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();">Refrescar</button>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#materiasModal" style="min-width:120px; padding:.25rem .6rem;">Crear Materia</button>
         </div>
     </div>
 
-    <div id="listaMateriasSinGrupo" class="content">        <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
-    </div>
+    <div id="listaMateriasSinGrupo" class="content">
+        <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
 
 @Html.Partial("MateriasModal")
 
