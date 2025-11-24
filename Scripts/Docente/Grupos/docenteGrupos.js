@@ -186,11 +186,15 @@ async function cargarGrupos() {
             // settings dropdown
             const cta = document.createElement('div');
             cta.className = 'ms-3';
+            // make this container a dropdown so Bootstrap styles work
+            cta.classList.add('dropdown');
             const settingsButton = document.createElement('button');
             settingsButton.className = 'btn btn-link p-0 text-dark';
             settingsButton.type = 'button';
             settingsButton.setAttribute('data-bs-toggle', 'dropdown');
             settingsButton.setAttribute('aria-expanded', 'false');
+            // mark as toggle for accessibility/styling
+            settingsButton.classList.add('dropdown-toggle');
             settingsButton.innerHTML = '<i class="fas fa-cog"></i>';
 
             const dropdownMenu = document.createElement('ul');
@@ -217,6 +221,20 @@ async function cargarGrupos() {
             card.appendChild(ico);
             card.appendChild(text);
             card.appendChild(cta);
+
+            // When clicking the card (except on the settings button or the menu), toggle the dropdown
+            card.addEventListener('click', function (e) {
+                // if click inside dropdown menu or on the settings button, do nothing (Bootstrap handles it)
+                if (e.target.closest('.dropdown-menu') || e.target === settingsButton || e.target.closest('.dropdown-toggle')) return;
+                try {
+                    // use Bootstrap's Dropdown API to toggle
+                    var bsDropdown = bootstrap.Dropdown.getOrCreateInstance(settingsButton);
+                    bsDropdown.toggle();
+                } catch (err) {
+                    // bootstrap not available or error - fallback: click the settings button
+                    settingsButton.click();
+                }
+            });
 
             listaGrupos.appendChild(card);
         });
