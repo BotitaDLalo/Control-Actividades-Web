@@ -1,7 +1,7 @@
 <div class="sidebar" id="sidebar">
     <div style="height: 50px"></div>
 
-    <a class="sidebar-menu" data-bs-toggle="collapse" href="" role="button">
+    <a class="sidebar-menu" href="@Url.Action("Index", "Docente")">
         <div class="icono-titulo">
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="16"
@@ -64,10 +64,7 @@
 
     <div style="height: 5px"></div>
 
-    <a class="sidebar-menu"
-       data-bs-toggle="collapse"
-       href="#submenu2"
-       role="button">
+    <a class="sidebar-menu" href="@Url.Action("Index", "Docente", new { seccion = "actividades" })">
         <div class="icono-titulo">
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="16"

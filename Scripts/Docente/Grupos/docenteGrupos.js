@@ -222,18 +222,12 @@ async function cargarGrupos() {
             card.appendChild(text);
             card.appendChild(cta);
 
-            // When clicking the card (except on the settings button or the menu), toggle the dropdown
+            // When clicking the card (except on the settings button or the menu), open actions modal
             card.addEventListener('click', function (e) {
                 // if click inside dropdown menu or on the settings button, do nothing (Bootstrap handles it)
                 if (e.target.closest('.dropdown-menu') || e.target === settingsButton || e.target.closest('.dropdown-toggle')) return;
-                try {
-                    // use Bootstrap's Dropdown API to toggle
-                    var bsDropdown = bootstrap.Dropdown.getOrCreateInstance(settingsButton);
-                    bsDropdown.toggle();
-                } catch (err) {
-                    // bootstrap not available or error - fallback: click the settings button
-                    settingsButton.click();
-                }
+                // open grupo actions modal
+                abrirAccionesGrupo(grupo.GrupoId).catch(err => console.warn(err));
             });
 
             listaGrupos.appendChild(card);
@@ -247,6 +241,79 @@ async function cargarGrupos() {
             showConfirmButton: false,
             timer: 2000
         });
+    }
+}
+
+// new abrirAccionesGrupo with improved error reporting
+async function abrirAccionesGrupo(grupoId) {
+    try {
+        window.docenteIdGlobal = docenteIdGlobal;
+
+        // Try API endpoint first
+        try {
+            const resp = await fetch(`/api/Grupos/ObtenerGruposMateriasDocente?docenteId=${docenteIdGlobal}`);
+            if (resp.ok) {
+                const grupos = await resp.json();
+                if (Array.isArray(grupos)) {
+                    const grupo = grupos.find(g => parseInt(g.GrupoId) === parseInt(grupoId) || parseInt(g.GrupoId) === grupoId);
+                    if (grupo) {
+                        if (typeof showGrupoActionsModal === 'function') { showGrupoActionsModal(grupo); return; }
+                    }
+                }
+            } else {
+                const txt = await resp.text();
+                console.warn('API /api/Grupos/ObtenerGruposMateriasDocente failed', resp.status, txt);
+                // continue to fallback
+            }
+        } catch (apiErr) {
+            console.warn('Error calling API endpoint:', apiErr);
+            // continue to fallback
+        }
+
+        // Fallback to MVC controller endpoints
+        let fallbackErrMsg = '';
+        const respGr = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
+        if (!respGr.ok) {
+            const body = await respGr.text().catch(() => '');
+            fallbackErrMsg += `ObtenerGrupos failed ${respGr.status}: ${body}\n`;
+            throw new Error(fallbackErrMsg || 'No se pudieron obtener grupos (fallback)');
+        }
+
+        const gruposSimple = await respGr.json();
+        const grupoSimple = gruposSimple.find(g => parseInt(g.GrupoId) === parseInt(grupoId) || parseInt(g.GrupoId) === grupoId);
+        if (!grupoSimple) throw new Error('Grupo no encontrado (fallback)');
+
+        // get materias for that group
+        let materias = [];
+        try {
+            const respMat = await fetch(`/Grupos/ObtenerMateriasPorGrupo?grupoId=${grupoId}`);
+            if (respMat.ok) {
+                materias = await respMat.json();
+            } else {
+                const t = await respMat.text().catch(() => '');
+                console.warn('ObtenerMateriasPorGrupo failed', respMat.status, t);
+                fallbackErrMsg += `ObtenerMateriasPorGrupo failed ${respMat.status}: ${t}\n`;
+            }
+        } catch (matErr) {
+            console.warn('Error fetching materias for group:', matErr);
+            fallbackErrMsg += `Error fetching materias: ${matErr.message || matErr}\n`;
+        }
+
+        const grupoObj = {
+            GrupoId: grupoSimple.GrupoId,
+            NombreGrupo: grupoSimple.NombreGrupo,
+            Descripcion: grupoSimple.Descripcion,
+            Materias: Array.isArray(materias) ? materias.map(m => ({ MateriaId: m.MateriaId || m.materiaId || m.materiaId, NombreMateria: m.NombreMateria || m.nombreMateria || m.NombreMateria, Descripcion: m.Descripcion || m.descripcion })) : []
+        };
+
+        if (typeof showGrupoActionsModal === 'function') { showGrupoActionsModal(grupoObj); return; }
+
+        throw new Error('No hay función para mostrar modal de acciones de grupo.');
+
+    } catch (err) {
+        console.error('Error al abrir acciones de grupo:', err);
+        const msg = (err && err.message) ? err.message : String(err);
+        Swal.fire({ icon: 'error', title: 'Error', html: `No se pudieron obtener detalles del grupo.<br><pre style="text-align:left;white-space:pre-wrap">${msg}</pre>` });
     }
 }
 

@@ -1,0 +1,106 @@
+@{
+    ViewData["Title"] = "GrupoActionsModal";
+}
+<div class="modal fade" id="grupoActionsModal" tabindex="-1" aria-labelledby="grupoActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="grupoActionsModalLabel">Acciones del Grupo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="grupoActionsContent">
+                    <h4 id="grupoName">Cargando...</h4>
+                    <p id="grupoDesc"></p>
+
+                    <div class="mb-3">
+                        <h6>Materias del grupo</h6>
+                        <div id="grupoMateriasList" class="d-flex flex-wrap" style="gap:8px"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>Acciones disponibles</h6>
+                        <div class="d-flex flex-column" style="gap:8px">
+                            <button id="btnCrearAvisoGrupal" class="btn btn-outline-primary">Crear aviso para el grupo</button>
+                            <button id="btnSubirExcelAlumnos" class="btn btn-outline-secondary">Importar alumnos (Excel)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Functions to be called from docenteGrupos.js
+    async function showGrupoActionsModal(grupo) {
+        // grupo is an object with GrupoId, NombreGrupo, Descripcion, Materias
+        document.getElementById('grupoName').innerText = grupo.NombreGrupo || 'Grupo';
+        document.getElementById('grupoDesc').innerText = grupo.Descripcion || '';
+
+        const list = document.getElementById('grupoMateriasList');
+        list.innerHTML = '';
+        if (Array.isArray(grupo.Materias) && grupo.Materias.length) {
+            grupo.Materias.forEach(m => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-outline-dark';
+                btn.innerText = m.NombreMateria;
+                btn.addEventListener('click', function () {
+                    // set global materia id and open CrearActividadModal
+                    window.materiaIdGlobal = m.MateriaId;
+                    try {
+                        var modalEl = document.getElementById('crearActividadModal');
+                        if (modalEl && window.bootstrap) {
+                            var modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                        }
+                    } catch (e) { console.warn(e); }
+                });
+                list.appendChild(btn);
+            });
+        } else {
+            list.innerHTML = '<small class="text-muted">No hay materias en este grupo.</small>';
+        }
+
+        // hook for Crear aviso grupal button
+        document.getElementById('btnCrearAvisoGrupal').onclick = function () {
+            // open a Swal input for title/description and call servidor
+            if (!grupo.GrupoId) return;
+            Swal.fire({
+                title: 'Crear Aviso grupal',
+                html: '<input id="tituloAvisoSwal" class="swal2-input" placeholder="Título">' +
+                      '<textarea id="descripcionAvisoSwal" class="swal2-textarea" placeholder="Descripción"></textarea>',
+                showCancelButton: true,
+                confirmButtonText: 'Crear',
+                preConfirm: () => {
+                    const titulo = document.getElementById('tituloAvisoSwal').value.trim();
+                    const descripcion = document.getElementById('descripcionAvisoSwal').value.trim();
+                    if (!titulo || !descripcion) {
+                        Swal.showValidationMessage('Completa todos los campos');
+                        return false;
+                    }
+                    return { titulo, descripcion };
+                }
+            }).then(res => {
+                if (res.isConfirmed) {
+                    const datos = { GrupoId: grupo.GrupoId, Titulo: res.value.titulo, Descripcion: res.value.descripcion, DocenteId: (window.docenteIdGlobal || 0) };
+                    fetch('/Materias/CrearAvisoPorGrupo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) })
+                        .then(r => r.json()).then(j => { Swal.fire('Éxito', j.mensaje || 'Aviso creado', 'success'); })
+                        .catch(e => { console.error(e); Swal.fire('Error', 'No se pudo crear el aviso', 'error'); });
+                }
+            });
+        };
+
+        // show modal
+        try {
+            var modalEl = document.getElementById('grupoActionsModal');
+            if (modalEl && window.bootstrap) {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        } catch (e) { console.warn(e); }
+    }
+</script>

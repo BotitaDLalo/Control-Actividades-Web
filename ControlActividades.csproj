@@ -542,6 +542,7 @@
     <Content Include="Views\Account\ExternalLoginLink.cshtml" />
     <Content Include="Views\Account\Error.cshtml" />
     <Content Include="Views\Shared\_Sidebar.cshtml" />
+    <Content Include="Views\Docente\GrupoActionsModal.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
