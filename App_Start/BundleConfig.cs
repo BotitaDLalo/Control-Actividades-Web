@@ -28,6 +28,13 @@ namespace ControlActividades
                       "~/Content/site.css",
                       "~/Content/sidebar.css"));
 
+            bundles.Add(new StyleBundle("~/Content/Dashboard/css").Include(
+                    "~/Content/Dashboard/cards.css",
+                    "~/Content/Dashboard/content.css",
+                    "~/Content/Dashboard/nav-bar.css",
+                    "~/Content/Dashboard/sidebar.css"
+                ));
+
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")
             //        .IncludeDirectory("~/Scripts/Docente/Grupos", "*.js"));

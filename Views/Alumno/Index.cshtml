@@ -1,51 +1,16 @@
-﻿@{
-    ViewBag.Title = "Alumnos";
+@{
+    ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
 
     int alumnoId = ViewBag.AlumnoId;
 }
 
-<div id="alumno-datos" data-alumnoid="@alumnoId"></div>
-<div class="misCursos-header">
-    <h2 class="misCursos-titulo">
-        Mis Actividades
-        <!-- Icono de filtro para interactuar con los cursos -->
-        <img src="@Url.Content("~/Content/Iconos/FILTRO-26.svg")"
-             alt="ActivIA Logo"
-             class="misCursos-icono">
-    </h2>
-    <div class="misCursos-dropdown">
-        <button onclick="openModal()" class="misCursos-btn-crear" id="misCursos-dropdownBtn">Unirme a una clase</button>
-    </div>
-
-</div>
-
-
-
-<!-- Modal -->
-<div id="modalUnique" class="modal-overlay-unique">
-    <div class="modal-container-unique">
-        <h2>Unirme a una clase</h2>
-        <input type="text" id="codigoAccesoInput" class="modal-input-unique" placeholder="Escribe el código de la clase">
-        <button onclick="unirseAClase()" class="modal-btn-Centrados">Unirme</button>
-        <button onclick="closeModal()" class="modal-btn-Centrados" style="background: #dc3545; margin-top: 10px;">Cerrar</button>
+<div class="inputs-content">
+    <div class="input-buscar">
+        <input type="text" placeholder="Buscar..." class="form-control" />
+        <!-- <button class="btn btn-primary">Buscar</button> -->
     </div>
 </div>
 
+<div class="content"></div>
 
-<!-- Contenedor donde se mostrarán las clases -->
-<div class="card-wrapper" id="contenedorClases"></div>
-
-
-
-@section Scripts {
-    <script>
-        const alumnoIdGlobal = '@alumnoId';
-    </script>
-    @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/alumno")
-}
-
-@section Styles{
-    @Styles.Render("~/Content/Alumno/css")
-} 
