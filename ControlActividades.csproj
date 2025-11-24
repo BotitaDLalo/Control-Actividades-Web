@@ -443,6 +443,7 @@
     <Content Include="Content\Iconos\UPLOAD-26.svg" />
     <Content Include="Content\Iconos\WORD-26.svg" />
     <Content Include="Content\Iconos\x.svg" />
+    <Content Include="Content\Imgs\background-student.jpg" />
     <Content Include="Content\Login\Login.css" />
     <Content Include="Content\sidebar.css" />
     <Content Include="Content\Site.css" />

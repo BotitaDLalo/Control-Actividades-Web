@@ -4,6 +4,11 @@
 /* POPPINS FONT */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
 
+/*Colores*/
+:root{
+    --azul-twitter:#1db7f7;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -24,13 +29,16 @@ body {
 
 .login-box {
     position: relative;
-    width: 470px;
-    height: 580px;
+    width: 100%;
+    max-width: 420px;
     padding: 10px 30px;
+    max-height: 90vh; 
+    overflow-y: auto; 
     background: #FFF;
     border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    border-radius: 15px;
+    /*max-width: calc(100vw - 40px);*/
+    box-sizing: border-box;
 }
 
 .signin-box {
@@ -72,15 +80,15 @@ body {
 .restablecer-box,
 .verify-box {
     /* Fix to viewport center so login never appears shifted by surrounding layout */
-    position: fixed !important;
+  /*  position: fixed !important;*/
     /* Use viewport units so centering is based on viewport even when an ancestor creates a containing block */
-    left: 50vw !important;
+/*    left: 50vw !important;
     top: 50vh !important;
     transform: translate(-50%, -50%) !important;
     margin: 0 !important;
-    z-index: 1100;
+    z-index: 1100;*/
 }
-
+    
 /* For very small screens use normal flow so box can scroll */
 @media (max-width: 600px) {
     .login-box,
@@ -265,6 +273,8 @@ button {
     padding: 0 30px;
     background: #FFF;
     border: 1px solid #CCC;
+    justify-content: center;
+    align-items: center;
 }
 
 .input-google {
@@ -365,4 +375,51 @@ button {
     width: 20px;
     height: 20px;
     pointer-events: none;
+}
+
+
+
+.login-full{
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    background-color: white;
+}
+
+.left-side {
+    flex: 1;
+    background-color: var(--azul-twitter);
+    background-image: url('../Imgs/background-student.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    border-top-right-radius: 5vw;
+    border-bottom-right-radius: 5vw;
+    /*border: 5px solid red !important;*/
+}
+
+    .left-side .back-img {
+        position: absolute;
+        inset: 0;
+        background-color: var(--azul-twitter);
+        opacity: 0.5;
+        z-index: 1;
+        mix-blend-mode: multiply;
+    }
+
+.right-side {
+    flex: 1;
+    display: flex;
+    background-color: white;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.logo {
+    margin-bottom: 5px;
+    margin-top: -50px; /* opcional para subirlo más */
 }
