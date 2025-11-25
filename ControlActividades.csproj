@@ -507,6 +507,7 @@
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
+    <Content Include="Scripts\Shared\headerNotifications.js" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
     <Content Include="Views\Alumno\Materias.cshtml.txt" />
     <Content Include="Views\Docente\Grupos.cshtml.txt" />
