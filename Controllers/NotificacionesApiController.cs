@@ -140,6 +140,36 @@ namespace ControlActividades.Controllers
 
 
 
+        [HttpPost]
+        [Route("Test")]
+        public async Task<IHttpActionResult> TestPush(TestPushRequest model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Token))
+                    return BadRequest("Token requerido");
+
+                var fcm = new FCMService();
+
+                var ok = await fcm.SendNotificationAsync(model.Token, model.Title, model.Body);
+
+                if (ok)
+                    return Ok("Notificación enviada correctamente");
+                else
+                    return BadRequest("Falló el envío de la notificación");
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        public class TestPushRequest
+        {
+            public string Token { get; set; }
+            public string Title { get; set; }
+            public string Body { get; set; }
+        }
 
 
 

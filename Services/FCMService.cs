@@ -1,4 +1,8 @@
-﻿using System;
+﻿using FirebaseAdmin;
+using FirebaseAdmin.Messaging;
+using Google.Apis.Auth.OAuth2;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -6,65 +10,53 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
-using Google.Apis.Auth.OAuth2;
-using Newtonsoft.Json;
 
 namespace ControlActividades.Services
 {
     public class FCMService
     {
-        private readonly string _projectId;
-        private readonly GoogleCredential _googleCredential;
-        private readonly string uriApiGoogle = "https://www.googleapis.com/auth/firebase.messaging";
-        private readonly string uriFile = HostingEnvironment.MapPath("~/App_Data/push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json");
+        private static bool _initialized = false;
 
         public FCMService()
         {
-            _projectId = "push-notification-9bc5f";
-            _googleCredential = GoogleCredential.FromFile(uriFile).CreateScoped(uriApiGoogle);
+            InicializarFirebase();
         }
 
-        private async Task<string> GetAccessTokenAsync()
+        private void InicializarFirebase()
         {
-            return await _googleCredential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+            if (_initialized)
+                return;
+
+            var rutaArchivo = HostingEnvironment.MapPath("~/App_Data/apptokens-dc835-firebase-adminsdk-fbsvc-df059391ca.json");
+
+            FirebaseApp.Create(new AppOptions
+            {
+                Credential = GoogleCredential.FromFile(rutaArchivo)
+            });
+
+            _initialized = true;
         }
 
         public async Task<bool> SendNotificationAsync(string targetToken, string title, string body)
         {
             try
             {
-                var accessToken = await GetAccessTokenAsync();
-
-                var message = new
+                var message = new Message
                 {
-                    message = new
+                    Token = targetToken,
+                    Notification = new Notification
                     {
-                        token = targetToken,
-                        notification = new
-                        {
-                            title,
-                            body
-                        }
+                        Title = title,
+                        Body = body
                     }
                 };
 
-                string jsonMessage = JsonConvert.SerializeObject(message);
-
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-
-                    var url = $"https://fcm.googleapis.com/v1/projects/{_projectId}/messages:send";
-
-                    var response = await client.PostAsync(url, new StringContent(jsonMessage, Encoding.UTF8, "application/json"));
-
-                    return response.IsSuccessStatusCode;
-                }
-
-            }catch (Exception)
+                string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                return true;
+            }
+            catch (Exception ex)
             {
-                return false;
+                throw new Exception("Error FCM: " + ex.Message, ex);
             }
         }
     }
