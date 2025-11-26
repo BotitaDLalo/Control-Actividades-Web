@@ -467,6 +467,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\Componentes\componenteAvisos.js" />
+    <Content Include="Scripts\dev\measureCardSize.js" />
     <Content Include="Scripts\Docente\Agenda.js" />
     <Content Include="Scripts\Docente\AgendaFullCalendar.js" />
     <Content Include="Scripts\Docente\Confirmacion.js" />
