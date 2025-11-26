@@ -6,6 +6,39 @@ if (div && div.dataset && div.dataset.docenteid) {
     docenteIdGlobal = localStorage.getItem('docenteId');
 }
 
+function abrirImportarAlumnos(grupoId) {
+    // reutiliza modal/handler de GrupoActionsModal: establecer currentGrupoId y disparar click en input
+    window.currentGrupoId = grupoId;
+    var input = document.getElementById('fileImportarAlumnos');
+    if (!input) {
+        // crear input temporal si no existe (GrupoActionsModal normalmente crea uno cuando se muestra)
+        input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.id = 'fileImportarAlumnos';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', async function (e) {
+            var f = e.target.files[0];
+            if (!f) return;
+            var fd = new FormData();
+            fd.append('file', f);
+            fd.append('GrupoId', window.currentGrupoId || grupoId);
+            try {
+                var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd });
+                var json = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    Swal.fire('Error', json.mensaje || 'Error al importar', 'error');
+                    return;
+                }
+                Swal.fire('Éxito', 'Importación completada', 'success');
+            } catch (err) { console.error(err); Swal.fire('Error', 'No se pudo subir archivo', 'error'); }
+        });
+    }
+    // abrir selector
+    input.click();
+}
+
 //Crea un nuevo grupo, con la posibilidad de agregar una materia sin grupo, y crear directamente varias materia para ese grupo
 async function guardarGrupo() {
     const nombre = document.getElementById("nombreGrupo").value;
@@ -164,7 +197,8 @@ async function cargarGrupos() {
 
         grupos.forEach((grupo, index) => {
             const card = document.createElement('div');
-            card.className = 'rounded card-layout d-flex align-items-center';
+            card.className = 'rounded card-layout';
+            card.style.position = 'relative';
 
             // left icon
             const ico = document.createElement('div');
@@ -183,26 +217,37 @@ async function cargarGrupos() {
             text.appendChild(title);
             if (grupo.Descripcion) text.appendChild(subtitle);
 
-            // settings dropdown
+            // create a row for icon + text
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.width = '100%';
+            row.appendChild(ico);
+            row.appendChild(text);
+
+            // settings dropdown container positioned top-right
             const cta = document.createElement('div');
-            cta.className = 'ms-3';
-            // make this container a dropdown so Bootstrap styles work
-            cta.classList.add('dropdown');
+            cta.className = 'dropdown';
+            cta.style.position = 'absolute';
+            cta.style.top = '8px';
+            cta.style.right = '12px';
+
             const settingsButton = document.createElement('button');
             settingsButton.className = 'btn btn-link p-0 text-dark';
             settingsButton.type = 'button';
             settingsButton.setAttribute('data-bs-toggle', 'dropdown');
             settingsButton.setAttribute('aria-expanded', 'false');
-            // mark as toggle for accessibility/styling
-            settingsButton.classList.add('dropdown-toggle');
-            settingsButton.innerHTML = '<i class="fas fa-cog"></i>';
+            settingsButton.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
 
             const dropdownMenu = document.createElement('ul');
             dropdownMenu.className = 'dropdown-menu dropdown-menu-end';
+            dropdownMenu.style.minWidth = '180px';
+            dropdownMenu.style.padding = '6px 0';
             const items = [
-                { text: 'Editar', action: () => editarGrupo(grupo.GrupoId) },
-                { text: 'Eliminar', action: () => eliminarGrupo(grupo.GrupoId) },
-                { text: 'Crear Aviso Grupal', action: () => crearAvisoGrupal(grupo.GrupoId) }
+                { text: 'Administrar grupo', action: () => abrirAccionesGrupo(grupo.GrupoId) },
+                { text: 'Importar alumnos (masivo)', action: () => abrirImportarAlumnos(grupo.GrupoId) },
+                { text: 'Crear aviso grupal', action: () => crearAvisoGrupal(grupo.GrupoId) },
+                { text: 'Editar grupo', action: () => showEditarGrupoPrompt(grupo) },
+                { text: 'Eliminar grupo', action: () => eliminarGrupo(grupo.GrupoId) }
             ];
             items.forEach(it => {
                 const li = document.createElement('li');
@@ -218,16 +263,18 @@ async function cargarGrupos() {
             cta.appendChild(settingsButton);
             cta.appendChild(dropdownMenu);
 
-            card.appendChild(ico);
-            card.appendChild(text);
+            // assemble card content
+            card.appendChild(row);
             card.appendChild(cta);
 
-            // When clicking the card (except on the settings button or the menu), open actions modal
+            // When clicking the card (except on the settings button or the menu), redirect to group materias
             card.addEventListener('click', function (e) {
-                // if click inside dropdown menu or on the settings button, do nothing (Bootstrap handles it)
-                if (e.target.closest('.dropdown-menu') || e.target === settingsButton || e.target.closest('.dropdown-toggle')) return;
-                // open grupo actions modal
-                abrirAccionesGrupo(grupo.GrupoId).catch(err => console.warn(err));
+                if (e.target.closest('.dropdown-menu') || e.target === settingsButton || e.target.closest('button')) return;
+                try {
+                    window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
+                } catch (err) {
+                    console.warn('No se pudo redirigir:', err);
+                }
             });
 
             listaGrupos.appendChild(card);
@@ -324,8 +371,28 @@ async function handleCardClick(grupoId) {
 
 //Funciones de contenedor de grupo
 function editarGrupo(id) {
-    // placeholder
-    alert("Editar grupo " + id);
+    // fallback: open simple edit prompt
+    showEditarGrupoPrompt({ GrupoId: id });
+}
+
+function showEditarGrupoPrompt(grupo) {
+    const nombre = prompt('Nombre del grupo', grupo.NombreGrupo || '');
+    if (nombre === null) return; // cancel
+    const descripcion = prompt('Descripción', grupo.Descripcion || '');
+
+    // send update
+    fetch('/api/Grupos/ActualizarGrupo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ GrupoId: grupo.GrupoId, NombreGrupo: nombre, Descripcion: descripcion })
+    }).then(r => {
+        if (r.ok) {
+            Swal.fire({ position: 'top-end', icon: 'success', title: 'Grupo actualizado', showConfirmButton: false, timer: 1500 });
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+        } else {
+            Swal.fire({ position: 'top-end', icon: 'error', title: 'Error al actualizar grupo', showConfirmButton: false, timer: 2000 });
+        }
+    }).catch(err => { console.error(err); Swal.fire({ position: 'top-end', icon: 'error', title: 'Error', showConfirmButton: false, timer: 2000 }); });
 }
 
 async function eliminarGrupo(grupoId) {

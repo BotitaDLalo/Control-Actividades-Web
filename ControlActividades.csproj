@@ -481,6 +481,7 @@
     <Content Include="Scripts\Docente\Grupos\docenteErrores.js" />
     <Content Include="Scripts\Docente\Grupos\docenteGrupos.js" />
     <Content Include="Scripts\Docente\Grupos\docenteMaterias.js" />
+    <Content Include="Scripts\Docente\Grupos\mostrarMateriasGrupo.js" />
     <Content Include="Scripts\Docente\Grupos\Notificaciones.js" />
     <Content Include="Scripts\Docente\Grupos\PrincipalMG.js" />
     <Content Include="Scripts\Docente\Grupos\scriptsActividades.js" />
@@ -545,6 +546,7 @@
     <Content Include="Views\Account\Error.cshtml" />
     <Content Include="Views\Shared\_Sidebar.cshtml" />
     <Content Include="Views\Docente\GrupoActionsModal.cshtml" />
+    <Content Include="Views\Docente\GrupoMaterias.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
