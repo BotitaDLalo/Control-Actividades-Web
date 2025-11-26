@@ -1,6 +1,57 @@
 ﻿@using System.Web
 <div class="nav-bar">
     <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom">
+        <style>
+            /* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
+            .nav-bar { position: relative; }
+            .nav-bar .header-icons {
+                position: fixed;
+                right: 16px;
+                top: 12px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 3000;
+            }
+
+            .nav-bar .header-icons .btn-link,
+            .nav-bar .header-icons .btn {
+                color: #5a5a5a;
+                background: transparent;
+                border: none;
+            }
+
+            .nav-bar .header-icons .btn-link:hover,
+            .nav-bar .header-icons .btn:hover {
+                color: #2f2f2f;
+                background-color: rgba(0,0,0,0.04);
+            }
+
+            /* position notification panel and user dropdown relative to the header-icons container */
+            .nav-bar .header-icons .notificaciones-container {
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                z-index: 3050;
+            }
+
+            .nav-bar .header-icons .dropdown-menu {
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                z-index: 3050;
+            }
+
+            /* Responsive: on small screens put icons back in header flow */
+            @@media (max-width: 991px) {
+                .nav-bar .header-icons { position: static; top: auto; right: auto; margin-left: auto; }
+                .nav-bar .header-icons .notificaciones-container,
+                .nav-bar .header-icons .dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; }
+            }
+
+            /* make svg icons follow currentColor */
+            .nav-bar .header-icons svg { fill: currentColor; }
+        </style>
         <div class="container-fluid d-flex align-items-center">
             <div class="me-auto">
                 <span class="fw-bold">Header</span>
@@ -54,6 +105,4 @@
     </nav>
 </div>
 
-@section scripts {
-    <script src="~/Scripts/Shared/headerNotifications.js"></script>
-}
+<script src="~/Scripts/Shared/headerNotifications.js"></script>
