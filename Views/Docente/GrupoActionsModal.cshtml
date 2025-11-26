@@ -94,6 +94,66 @@
             });
         };
 
+        // expose current grupo id for file upload handler
+        window.currentGrupoId = grupo.GrupoId || 0;
+
+        // file input for importing alumnos (hidden)
+        var existing = document.getElementById('fileImportarAlumnos');
+        if (!existing) {
+            var fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.id = 'fileImportarAlumnos';
+            fileInput.accept = '.xlsx,.xls';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
+            fileInput.addEventListener('change', async function (e) {
+                var f = e.target.files[0];
+                if (!f) return;
+                var fd = new FormData();
+                fd.append('file', f);
+                // include GrupoId so API knows where to add
+                fd.append('GrupoId', window.currentGrupoId);
+
+                try {
+                    var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', {
+                        method: 'POST',
+                        body: fd
+                    });
+                    var json = await resp.json().catch(() => ({}));
+                    if (!resp.ok) {
+                        Swal.fire('Error', (json && json.mensaje) ? json.mensaje : 'Error al importar alumnos', 'error');
+                        return;
+                    }
+
+                    var summary = `Total leídos: ${json.TotalLeidos || 0}\nAgregados: ${json.Agregados ? json.Agregados.length : 0}\nOmitidos: ${json.Omitidos ? json.Omitidos.length : 0}\nNo encontrados: ${json.NoEncontrados ? json.NoEncontrados.length : 0}`;
+                    Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
+
+                    // clear file input
+                    fileInput.value = '';
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'No se pudo subir el archivo', 'error');
+                }
+            });
+        }
+
+        // ensure the Import button opens the hidden file input - set here every time modal opens
+        try {
+            var importBtn = document.getElementById('btnSubirExcelAlumnos');
+            if (importBtn) {
+                importBtn.onclick = function () {
+                    var input = document.getElementById('fileImportarAlumnos');
+                    if (input) {
+                        console.log('Opening file selector for grupo', window.currentGrupoId);
+                        input.click();
+                    } else {
+                        console.warn('fileImportarAlumnos element not found');
+                    }
+                };
+            }
+        } catch (e) { console.warn(e); }
+
         // show modal
         try {
             var modalEl = document.getElementById('grupoActionsModal');
