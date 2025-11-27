@@ -80,3 +80,38 @@
   margin-left: auto;
   opacity: 0.85;
 }
+
+/* Settings button inside group cards */
+.group-settings-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: #374151; /* gray-700 */
+  cursor: pointer;
+}
+
+.group-settings-btn:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+/* Ensure dropdown menus inside cards appear above other elements */
+.card-layout .dropdown-menu {
+  z-index: 2500;
+}
+
+/* When using manual dropdown toggle we need to position the menu relative to the card */
+.card-layout .dropdown-menu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+}
+
+/* show helper when toggled by JS */
+.card-layout .dropdown-menu.show {
+  display: block;
+}
