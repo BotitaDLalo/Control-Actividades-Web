@@ -67,16 +67,28 @@ namespace ControlActividades.Services
 
             if (grupoId != null)
             {
-                lsAlumnosId = await Db.tbAlumnosGrupos.Where(a => a.GrupoId == grupoId).Select(a => a.AlumnoId).ToListAsync();
+                lsAlumnosId = await Db.tbAlumnosGrupos
+                    .Where(a => a.GrupoId == grupoId)
+                    .Select(a => a.AlumnoId)
+                    .ToListAsync();
             }
             else if (materiaId != null)
             {
-                lsAlumnosId = await Db.tbAlumnosMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.AlumnoId).ToListAsync();
+                lsAlumnosId = await Db.tbAlumnosMaterias
+                    .Where(a => a.MateriaId == materiaId)
+                    .Select(a => a.AlumnoId).ToListAsync();
             }
 
-            var lsAlumnosUserIds = await Db.tbAlumnos.Where(a => lsAlumnosId.Contains(a.AlumnoId)).Select(a => a.UserId).ToListAsync();
+            //Lista de alumnos a notificar
+            var lsAlumnosUserIds = await Db.tbAlumnos
+                .Where(a => lsAlumnosId.Contains(a.AlumnoId))
+                .Select(a => a.UserId)
+                .ToListAsync();
 
-            var lsFcmTokens = await Db.tbUsuariosFcmTokens.Where(a => lsAlumnosUserIds.Contains(a.UserId)).Select(a => new UsuarioFcmToken { FcmToken = a.Token, UserId = a.UserId }).ToListAsync();
+            var lsFcmTokens = await Db.tbUsuariosFcmTokens
+                .Where(a => lsAlumnosUserIds.Contains(a.UserId))
+                .Select(a => new UsuarioFcmToken { FcmToken = a.Token, UserId = a.UserId })
+                .ToListAsync();
 
             ElementosNotificacion notificacion = new ElementosNotificacion()
             {

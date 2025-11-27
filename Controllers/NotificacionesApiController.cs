@@ -174,39 +174,6 @@ namespace ControlActividades.Controllers
             return Ok();
         }
 
-        [HttpPost]
-        public async Task<IHttpActionResult> NotificacionCrearAviso(int materiaId)
-        {
-            try
-            {
-
-                tbAvisos aviso = new tbAvisos
-                {
-                    DocenteId = 4, // ID de prueba
-                    Titulo = "Tienes un aviso máster",
-                    Descripcion = "Aviso de prueba 3 desde el backend",
-                    MateriaId = materiaId,
-                    GrupoId = null,
-                    FechaCreacion = DateTime.Now
-                };
-
-                //  Llamada a servicio de notificaciones
-                await Ns.NotificacionCrearAviso(aviso, null, materiaId);
-
-                return Ok(new
-                {
-                    ok = true,
-                    mensaje = "Notificación de aviso enviada correctamente.",
-                    materiaId = materiaId
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Error: " + ex.Message);
-            }
-        }
-
-
         //ENDPOINT DE PRUEBA PARA ENVIAR NOTIFICACIONES PUSH
         //PRIMERA PRUEBA
         [HttpPost]
