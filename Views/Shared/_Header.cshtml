@@ -54,7 +54,8 @@
         </style>
         <div class="container-fluid d-flex align-items-center">
             <div class="me-auto">
-                <span class="fw-bold">Header</span>
+                @* Page title: prefer ViewBag.PageHeader set by views; fallback to default label *@
+                <span id="page-title-header" class="fw-bold text-dark">@((ViewBag.PageHeader ?? "Header"))</span>
             </div>
 
             <div class="header-icons d-flex align-items-center" style="gap:8px;">
