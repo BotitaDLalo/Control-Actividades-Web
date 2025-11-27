@@ -133,6 +133,17 @@ async function cargarMateriasSinGrupo() {
             card.appendChild(title);
             if (materia.Descripcion) card.appendChild(subtitle);
 
+            // agregar nombre del docente si viene
+            if (materia.DocenteId || materia.DocenteId === 0) {
+                const nombreDocente = materia.DocenteNombre || materia.DocenteNombre || '';
+                if (nombreDocente) {
+                    const d = document.createElement('div');
+                    d.className = 'card-docente';
+                    d.textContent = 'Docente: ' + nombreDocente;
+                    card.appendChild(d);
+                }
+            }
+
             listaMateriasSinGrupo.appendChild(card);
         });
 

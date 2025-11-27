@@ -25,6 +25,7 @@
   justify-content: flex-start; /* poner contenido en la parte superior */
   align-items: flex-start;
   box-sizing: border-box;
+  position: relative; /* permitir posicionamiento absoluto de elementos internos como el nombre del docente */
 }
 
 .card-layout:hover {
@@ -114,4 +115,19 @@
 /* show helper when toggled by JS */
 .card-layout .dropdown-menu.show {
   display: block;
+}
+
+/* Nombre del docente posicionado en la esquina inferior derecha de la card */
+.card-docente {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  font-size: 12px;
+  color: #6b7280; /* gray-500 */
+  font-weight: 600;
+}
+
+/* Asegurar espacio interior para el texto del docente */
+.card-layout {
+  padding-bottom: 48px; /* espacio para el docente en la esquina inferior */
 }

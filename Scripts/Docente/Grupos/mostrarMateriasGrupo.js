@@ -35,6 +35,15 @@
                 card.appendChild(title);
                 if (subtitle.textContent) card.appendChild(subtitle);
 
+                // show docente name if provided
+                const docenteName = m.DocenteNombre || m.docenteNombre || m.Docente || '';
+                if (docenteName) {
+                    const docenteDiv = document.createElement('div');
+                    docenteDiv.className = 'card-docente';
+                    docenteDiv.textContent = 'Docente: ' + docenteName;
+                    card.appendChild(docenteDiv);
+                }
+
                 cont.appendChild(card);
             });
 
