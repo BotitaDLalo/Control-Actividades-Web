@@ -525,6 +525,9 @@
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
+    <Content Include="firebase-messaging-sw.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
     <Content Include="Views\Alumno\Materias.cshtml.txt" />
     <Content Include="Views\Docente\Grupos.cshtml.txt" />
@@ -646,6 +649,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\Firebase\firebase.js" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

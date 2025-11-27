@@ -473,6 +473,10 @@ namespace ControlActividades.Models
         public string Body { get; set; }
         public string ImageUrl { get; set; }
     }
+    public class TokenDispositivo
+    {
+        public string Token { get; set; }
+    }
 
 
 }

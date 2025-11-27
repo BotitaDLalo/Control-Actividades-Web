@@ -118,6 +118,41 @@ namespace ControlActividades.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("RegistrarToken")]
+        [Authorize]
+        public async Task<IHttpActionResult> RegistrarTokenDispositivo([FromBody] TokenDispositivo tokenDispositivo)
+        {
+            var userId = User.Identity.GetUserId();
+            if (userId == null)
+            {
+                return BadRequest("Usuario no encontrado");
+            }
+            if(tokenDispositivo == null || string.IsNullOrEmpty(tokenDispositivo.Token))
+            {
+                return BadRequest("Token inválido");
+            }
+            
+            //Token Duplicado
+            var tokenExistente = Db.tbUsuariosFcmTokens
+                .FirstOrDefault(t => t.UserId == userId && t.Token == tokenDispositivo.Token);
+            
+            if (tokenExistente != null)
+            {
+                return Ok("Token ya registrado");
+            }
+
+            //Registrar nuevo token
+            tbUsuariosFcmTokens nuevoToken = new tbUsuariosFcmTokens
+            {
+                UserId = userId,
+                Token = tokenDispositivo.Token
+            };
+            Db.tbUsuariosFcmTokens.Add(nuevoToken);
+            await Db.SaveChangesAsync();
+
+            return Ok("Token registrado correctamente");
+        }
 
 
         [HttpPost]
@@ -137,6 +172,38 @@ namespace ControlActividades.Controllers
             await Db.SaveChangesAsync();
 
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IHttpActionResult> NotificacionCrearAviso(int materiaId)
+        {
+            try
+            {
+
+                tbAvisos aviso = new tbAvisos
+                {
+                    DocenteId = 4, // ID de prueba
+                    Titulo = "Tienes un aviso máster",
+                    Descripcion = "Aviso de prueba 3 desde el backend",
+                    MateriaId = materiaId,
+                    GrupoId = null,
+                    FechaCreacion = DateTime.Now
+                };
+
+                //  Llamada a servicio de notificaciones
+                await Ns.NotificacionCrearAviso(aviso, null, materiaId);
+
+                return Ok(new
+                {
+                    ok = true,
+                    mensaje = "Notificación de aviso enviada correctamente.",
+                    materiaId = materiaId
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error: " + ex.Message);
+            }
         }
 
 
