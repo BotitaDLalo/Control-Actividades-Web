@@ -1,4 +1,12 @@
-﻿using System;
+﻿using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Org.BouncyCastle.Asn1.Ocsp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,13 +14,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using ControlActividades.Services;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Controllers
 {
@@ -27,8 +28,8 @@ namespace ControlActividades.Controllers
         private NotificacionesService _notifServ;
         public NotificacionesApiController()
         {
+            _notifServ = new NotificacionesService(new ApplicationDbContext());
         }
-
         public NotificacionesApiController(ApplicationUserManager userManager,
             ApplicationSignInManager signInManager,
             RoleManager<IdentityRole> roleManager,
@@ -109,7 +110,7 @@ namespace ControlActividades.Controllers
         {
             get
             {
-                return _notifServ ?? (_notifServ = new NotificacionesService());
+                return _notifServ ?? (_notifServ = new NotificacionesService(_db));
             }
             private set
             {
@@ -139,7 +140,8 @@ namespace ControlActividades.Controllers
         }
 
 
-
+        //ENDPOINT DE PRUEBA PARA ENVIAR NOTIFICACIONES PUSH
+        //PRIMERA PRUEBA
         [HttpPost]
         [Route("Test")]
         public async Task<IHttpActionResult> TestPush(TestPushRequest model)
@@ -169,6 +171,40 @@ namespace ControlActividades.Controllers
             public string Token { get; set; }
             public string Title { get; set; }
             public string Body { get; set; }
+        }
+
+        //PRUEBA EDNPOINT DE AVISOS
+        [HttpPost]
+        [Route("prueba-aviso")]
+        public async Task<IHttpActionResult> PruebaAviso(int materiaId)
+        {
+            try
+            {
+                
+                tbAvisos aviso = new tbAvisos
+                {
+                    DocenteId = 4, // ID de prueba
+                    Titulo = "Tienes un aviso máster",
+                    Descripcion = "Aviso de prueba 3 desde el backend",
+                    MateriaId = materiaId,
+                    GrupoId = null,
+                    FechaCreacion = DateTime.Now
+                };
+
+                //  Llamada a servicio de notificaciones
+                await Ns.NotificacionCrearAviso(aviso, null, materiaId);
+                
+                return Ok(new
+                {
+                    ok = true,
+                    mensaje = "Notificación de aviso enviada correctamente.",
+                    materiaId = materiaId
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error: " + ex.Message);
+            }
         }
 
 

@@ -18,12 +18,13 @@ namespace ControlActividades.Services
         private bool disposed = false;
         public NotificacionesService()
         {
+            _db = new ApplicationDbContext();
+            _fCMService = new FCMService();
         }
-
-        public NotificacionesService(ApplicationDbContext DbContext, FCMService fCMService)
+        public NotificacionesService(ApplicationDbContext dbContext, FCMService fCMService=null)
         {
-            _db = DbContext ?? throw new ArgumentNullException(nameof(DbContext));
-            FCM = fCMService;
+            _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _fCMService = fCMService ?? new FCMService();
         }
 
         public ApplicationDbContext Db => _db;
@@ -84,10 +85,14 @@ namespace ControlActividades.Services
                 Descripcion = aviso.Descripcion,
             };
 
+            foreach (var t in lsFcmTokens)
+            {
+                System.Diagnostics.Debug.WriteLine("TOKEN: " + t.FcmToken);
+            }
+
+
             await DetonarNotificaciones(notificacion);
         }
-
-
 
 
         public async Task NotificacionRegistrarAlumnoClase(List<int> lsAlumnosId, int docenteId, int grupoId = -1, int materiaId = -1)
@@ -172,9 +177,29 @@ namespace ControlActividades.Services
 
             foreach (var usuariotoken in lsUsuariosFcmTokens)
             {
-                await FCM.SendNotificationAsync(usuariotoken.FcmToken, notificacion.Titulo, notificacion.Descripcion);
+                try
+                {
+                    await FCM.SendNotificationAsync(
+                        usuariotoken.FcmToken,
+                        notificacion.Titulo,
+                        notificacion.Descripcion
+                    );
+                }
+                catch (Exception ex)
+                {
+                    // Ignora tokens inválidos
+                    if (ex.Message.Contains("Requested entity was not found"))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Token inválido ignorado: {usuariotoken.FcmToken}");
+                        continue; // seguir con el siguiente token
+                    }
+
+                    //Otro tipo de error 
+                    throw;
+                }
             }
         }
+
 
 
         public void Dispose()
