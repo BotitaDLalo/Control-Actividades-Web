@@ -2,7 +2,25 @@
     ViewData["Title"] = "GruposModal";
 }
 <div class="modal fade" id="gruposModal" tabindex="-1" aria-labelledby="gruposModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <style>
+        /* Scoped overrides to neutralize problematic global modal rules but NOT force the modal visible */
+        #gruposModal.modal {
+            left: 0 !important;
+            width: 100% !important;
+            /* do not set display here; Bootstrap controls visibility via .show */
+        }
+        #gruposModal .modal-dialog {
+            margin: 1.75rem auto !important; /* center vertically with default spacing */
+            transform: none !important; /* avoid unexpected transforms */
+            max-width: 700px; /* reasonable width for the form */
+        }
+        /* Ensure modal content doesn't overflow the viewport height */
+        #gruposModal .modal-content {
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+    </style>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="gruposModalLabel">Gestión de Grupos</h5>

@@ -1,5 +1,43 @@
 var div = document.getElementById("docente-datos");
-var docenteIdGlobal = div.dataset.docenteid;
+var docenteIdGlobal = 0;
+if (div && div.dataset && div.dataset.docenteid) {
+    docenteIdGlobal = div.dataset.docenteid;
+} else if (localStorage.getItem('docenteId')) {
+    docenteIdGlobal = localStorage.getItem('docenteId');
+}
+
+function abrirImportarAlumnos(grupoId) {
+    // reutiliza modal/handler de GrupoActionsModal: establecer currentGrupoId y disparar click en input
+    window.currentGrupoId = grupoId;
+    var input = document.getElementById('fileImportarAlumnos');
+    if (!input) {
+        // crear input temporal si no existe (GrupoActionsModal normalmente crea uno cuando se muestra)
+        input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.id = 'fileImportarAlumnos';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', async function (e) {
+            var f = e.target.files[0];
+            if (!f) return;
+            var fd = new FormData();
+            fd.append('file', f);
+            fd.append('GrupoId', window.currentGrupoId || grupoId);
+            try {
+                var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd });
+                var json = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    Swal.fire('Error', json.mensaje || 'Error al importar', 'error');
+                    return;
+                }
+                Swal.fire('Éxito', 'Importación completada', 'success');
+            } catch (err) { console.error(err); Swal.fire('Error', 'No se pudo subir archivo', 'error'); }
+        });
+    }
+    // abrir selector
+    input.click();
+}
 
 //Crea un nuevo grupo, con la posibilidad de agregar una materia sin grupo, y crear directamente varias materia para ese grupo
 async function guardarGrupo() {
@@ -8,7 +46,6 @@ async function guardarGrupo() {
     const color = "#2196F3";
     const checkboxes = document.querySelectorAll(".materia-checkbox:checked");
 
-    
     if (nombre.trim() === '') {
         Swal.fire({
             position: "top-end",
@@ -70,7 +107,6 @@ async function guardarGrupo() {
 
         // Asociar materias seleccionadas al grupo
         if (materiasSeleccionadas.length > 0) {
-            //console.log("Checkboxes seleccionados:"); Revisar que los ids se estén pasando
             checkboxes.forEach(cb => console.log(cb.value, cb.checked));
             await asociarMateriasAGrupo(grupoId, materiasSeleccionadas);
         }
@@ -82,10 +118,10 @@ async function guardarGrupo() {
             showConfirmButton: false,
             timer: 2000
         });
-        document.getElementById("gruposForm").reset();
-        cargarGrupos();
-        cargarMateriasSinGrupo();
-        cargarMaterias();
+        const form = document.getElementById("gruposForm"); if (form) form.reset();
+        if (typeof cargarGrupos === 'function') cargarGrupos();
+        if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
+        if (typeof cargarMaterias === 'function') cargarMaterias();
     } else {
         Swal.fire({
             position: "top-end",
@@ -119,10 +155,10 @@ async function asociarMateriasAGrupo(grupoId, materiasSeleccionadas) {
     }
 }
 
-
 //funcion que ayuda a agregar materias nuevas para el grupo
 function agregarMateria() {
     const materiasContainer = document.getElementById("listaMaterias");
+    if (!materiasContainer) return;
 
     const materiaDiv = document.createElement("div");
     materiaDiv.classList.add("materia-item");
@@ -138,21 +174,20 @@ function agregarMateria() {
 
 // Remover materia del formulario antes de enviarla
 function removerDeLista(button) {
-    button.parentElement.remove();
+    if (button && button.parentElement) button.parentElement.remove();
 }
 
-
-
-//Funcion para obtener los grupos de la base de datos y mostrarlos
-
+//Funcion para obtener los grupos de la base de datos y mostrarlos (render como grid cards)
 async function cargarGrupos() {
-    const response = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
-    if (response.ok) {
+    try {
+        const response = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
+        if (!response.ok) throw new Error('Error al obtener grupos');
         const grupos = await response.json();
         const listaGrupos = document.getElementById("listaGrupos");
+        if (!listaGrupos) return;
         listaGrupos.innerHTML = "";
 
-        if (grupos.length === 0) {
+        if (!grupos || grupos.length === 0) {
             const mensaje = document.createElement("p");
             mensaje.classList.add("text-center", "text-muted");
             mensaje.textContent = "No hay grupos registrados.";
@@ -160,392 +195,204 @@ async function cargarGrupos() {
             return;
         }
 
-        grupos.forEach(grupo => {
-            const card = document.createElement("div");
-            card.classList.add("card", "bg-primary", "text-white", "mb-3");
-            card.style.cursor = "pointer";
-            card.style.maxWidth = "30em";
-            card.style.height = "6em";
-            card.style.display = "block";
-            card.style.alignItems = "center";
-            card.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
-            card.onmouseover = () => {
-                card.style.transform = "translateY(-10px)";
-                card.style.boxShadow = "0 10px 20px rgba(0, 0, 0, 0.2)";
-            };
-            card.onmouseout = () => {
-                card.style.transform = "";
-                card.style.boxShadow = "";
-            };
+        grupos.forEach((grupo, index) => {
+            const card = document.createElement('div');
+            card.className = 'rounded card-layout';
+            card.style.position = 'relative';
 
-            // 📌 Imagen del grupo
-            const img = document.createElement("img");
-            img.classList.add("card-img-top");
-            img.src = "/Content/Iconos/1-26.svg";
-            img.alt = "Grupo";
-            img.style.maxWidth = "25%";
-            img.style.margin = "auto";
-            img.style.padding = "0.5em";
-            img.style.borderRadius = "0.7em";
+            // left icon
+            const ico = document.createElement('div');
+            ico.className = 'me-3';
+            ico.innerHTML = '<i class="fas fa-graduation-cap fa-2x" style="color:#0d6efd"></i>';
 
-            // 📌 Contenedor del contenido
-            const cardBody = document.createElement("div");
-            cardBody.classList.add("card-body");
-            cardBody.style.display = "flex";
-            cardBody.style.justifyContent = "space-between";
-            cardBody.style.alignItems = "center";
-            cardBody.style.flex = "1";
-            cardBody.style.overflow = "visible";
-
-            // 📌 Sección de texto
-            const textSection = document.createElement("div");
-            textSection.classList.add("text-section");
-            textSection.style.maxWidth = "100%";
-            textSection.style.overflow = "hidden";
-            textSection.style.display = "flex";
-            textSection.style.flexDirection = "column";
-            textSection.style.justifyContent = "center";
-
-            const title = document.createElement("h5");
-            title.classList.add("card-title");
+            // text
+            const text = document.createElement('div');
+            text.style.flex = '1';
+            const title = document.createElement('div');
+            title.className = 'card-title';
             title.textContent = grupo.NombreGrupo;
-            title.style.whiteSpace = "nowrap";
-            title.style.overflow = "hidden";
-            title.style.textOverflow = "ellipsis";
-            title.style.margin = "0";
-            title.style.fontWeight = "bold";
+            const subtitle = document.createElement('div');
+            subtitle.className = 'card-subtitle';
+            subtitle.textContent = grupo.Descripcion || '';
+            text.appendChild(title);
+            if (grupo.Descripcion) text.appendChild(subtitle);
 
-            const description = document.createElement("p");
-            description.classList.add("card-text");
-            description.textContent = grupo.Descripcion || "Sin descripción";
-            description.style.whiteSpace = "nowrap";
-            description.style.overflow = "hidden";
-            description.style.textOverflow = "ellipsis";
-            description.style.margin = "0";
+            // create a row for icon + text
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.width = '100%';
+            row.appendChild(ico);
+            row.appendChild(text);
 
-            textSection.appendChild(title);
-            textSection.appendChild(description);
+            // settings dropdown container positioned top-right
+            const cta = document.createElement('div');
+            cta.className = 'dropdown';
+            cta.style.position = 'absolute';
+            cta.style.top = '8px';
+            cta.style.right = '12px';
 
-            // 📌 Sección del botón (Icono de engranaje)
-            const lista = document.getElementById('listaGrupos');
+            const settingsButton = document.createElement('button');
+            settingsButton.className = 'btn btn-link p-0 text-dark';
+            settingsButton.type = 'button';
+            settingsButton.setAttribute('data-bs-toggle', 'dropdown');
+            settingsButton.setAttribute('aria-expanded', 'false');
+            settingsButton.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
 
-            const ctaSection = document.createElement("div");
-            ctaSection.classList.add("cta-section", "dropdown", "dropend");
-            ctaSection.style.maxWidth = "40%";
-            ctaSection.style.display = "flex";
-            ctaSection.style.flexDirection = "column";
-            ctaSection.style.justifyContent = "center";
-            ctaSection.style.position = "relative";
-
-            const settingsButton = document.createElement("button");
-            settingsButton.classList.add("btn", "btn-link", "text-white", "p-0");
-            settingsButton.type = "button";
-            settingsButton.setAttribute("data-bs-toggle", "dropdown");
-            settingsButton.setAttribute("aria-expanded", "false");
-            settingsButton.style.width = "3em";
-            settingsButton.style.height = "3em";
-            settingsButton.style.display = "flex";
-            settingsButton.style.alignItems = "center";
-            settingsButton.style.justifyContent = "center";
-            settingsButton.style.border = "none";
-            settingsButton.style.outline = "none";
-            settingsButton.style.textDecoration = "none";
-
-            const settingsIcon = document.createElement("i");
-            settingsIcon.classList.add("fas", "fa-cog");
-            settingsIcon.style.fontSize = "1.5em";
-
-
-
-            // ... (el código anterior hasta crear el settingsButton)
-
-            // Crear el menú dropdown con clases de Bootstrap
-            const dropdownMenu = document.createElement("ul");
-            dropdownMenu.classList.add("dropdown-menu", "dropdown-menu-end", "mt-2");
-
-            // Añadir items al dropdown
-            const dropdownItems = [
-                { text: "Eliminar", action: () => eliminarGrupo(grupo.GrupoId) },
-                { text: "Aviso Grupal", action: () => crearAvisoGrupal(grupo.GrupoId) },
-                { text: "Desactivar", action: () => console.log("Opción 3 seleccionada") }
+            const dropdownMenu = document.createElement('ul');
+            dropdownMenu.className = 'dropdown-menu dropdown-menu-end';
+            dropdownMenu.style.minWidth = '180px';
+            dropdownMenu.style.padding = '6px 0';
+            const items = [
+                { text: 'Administrar grupo', action: () => abrirAccionesGrupo(grupo.GrupoId) },
+                { text: 'Importar alumnos (masivo)', action: () => abrirImportarAlumnos(grupo.GrupoId) },
+                { text: 'Crear aviso grupal', action: () => crearAvisoGrupal(grupo.GrupoId) },
+                { text: 'Editar grupo', action: () => showEditarGrupoPrompt(grupo) },
+                { text: 'Eliminar grupo', action: () => eliminarGrupo(grupo.GrupoId) }
             ];
-
-            dropdownItems.forEach(item => {
-                const li = document.createElement("li");
-                const dropdownItem = document.createElement("a");
-                dropdownItem.classList.add("dropdown-item");
-                dropdownItem.href = "#";
-                dropdownItem.textContent = item.text;
-                dropdownItem.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    item.action();
-                });
-                li.appendChild(dropdownItem);
+            items.forEach(it => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'dropdown-item';
+                a.textContent = it.text;
+                a.addEventListener('click', function (e) { e.preventDefault(); it.action(); });
+                li.appendChild(a);
                 dropdownMenu.appendChild(li);
             });
 
-            // Ensamblar todos los elementos
-            settingsButton.appendChild(settingsIcon);
-            ctaSection.appendChild(settingsButton);
-            ctaSection.appendChild(dropdownMenu);
-            lista.appendChild(ctaSection);
+            cta.appendChild(settingsButton);
+            cta.appendChild(dropdownMenu);
 
-            // 📌 Contenedor de materias (inicialmente oculto)
-            const materiasContainer = document.createElement("div");
-            materiasContainer.id = `materiasContainer-${grupo.GrupoId}`;
-            materiasContainer.classList.add("materias-container");
-            materiasContainer.style.display = "none";
-            materiasContainer.style.paddingLeft = "20px";
-            materiasContainer.style.marginBottom = "20px";
+            // assemble card content
+            card.appendChild(row);
+            card.appendChild(cta);
 
-            // 📌 Evento al hacer clic en la tarjeta
-            card.onclick = () => {
-                handleCardClick(grupo.GrupoId);
-            };
-
-            // 📌 Estructura final
-            cardBody.appendChild(textSection);
-            cardBody.appendChild(ctaSection);
-
-            const contentWrapper = document.createElement("div");
-            contentWrapper.style.display = "flex";
-            contentWrapper.style.width = "100%";
-            contentWrapper.appendChild(img);
-            contentWrapper.appendChild(cardBody);
-
-            card.appendChild(contentWrapper);
+            // When clicking the card (except on the settings button or the menu), redirect to group materias
+            card.addEventListener('click', function (e) {
+                if (e.target.closest('.dropdown-menu') || e.target === settingsButton || e.target.closest('button')) return;
+                try {
+                    window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
+                } catch (err) {
+                    console.warn('No se pudo redirigir:', err);
+                }
+            });
 
             listaGrupos.appendChild(card);
-            listaGrupos.appendChild(materiasContainer);
         });
-    } else {
+    } catch (error) {
+        console.error(error);
         Swal.fire({
+            position: "top-end",
+            icon: "error",
             title: "Error al cargar los grupos.",
-            html: "Reintentando en <b></b> segundos...",
-            timer: 4000,
-            timerProgressBar: true,
-            allowOutsideClick: false,
-            showCancelButton: true,
-            cancelButtonText: "Cerrar sesión",
-            didOpen: () => {
-                Swal.showLoading();
-                const timer = Swal.getPopup().querySelector("b");
-                let interval = setInterval(() => {
-                    timer.textContent = `${Math.floor(Swal.getTimerLeft() / 1000)}`;
-                }, 100);
-            },
-            willClose: () => clearInterval(timerInterval)
-        }).then((result) => {
-            if (result.dismiss === Swal.DismissReason.timer) {
-                cargarGrupos();
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                cerrarSesion();
-            }
+            showConfirmButton: false,
+            timer: 2000
         });
     }
-
-    document.getElementById('gruposModal').addEventListener('hidden.bs.modal', cargarGrupos);
 }
 
+// new abrirAccionesGrupo with improved error reporting
+async function abrirAccionesGrupo(grupoId) {
+    try {
+        window.docenteIdGlobal = docenteIdGlobal;
 
-
-
-// Función para cargar materias de un grupo cuando se hace clic en la card del grupo
-async function handleCardClick(grupoId) {
-    localStorage.setItem("grupoIdSeleccionado", grupoId); //Se guardar el localstorage el id del grupo seleccionado
-
-    // Ocultar todas las materias de otros grupos
-    document.querySelectorAll("[id^='materiasContainer-']").forEach(container => {
-        if (container.id !== `materiasContainer-${grupoId}`) {
-            container.style.display = "none";
-            container.innerHTML = "";
-        }
-    });
-
-    const materiasContainer = document.getElementById(`materiasContainer-${grupoId}`);
-
-    if (materiasContainer.style.display === "block") {
-        // Si las materias están visibles, ocultarlas
-        materiasContainer.style.display = "none";
-        materiasContainer.innerHTML = "";
-    } else {
-        // Si están ocultas, obtener las materias y mostrarlas
-        const response = await fetch(`/Grupos/ObtenerMateriasPorGrupo?grupoId=${grupoId}`);
-        if (response.ok) {
-            const materias = await response.json();
-            if (materias.length === 0) {
-                materiasContainer.innerHTML = "<p>Aún no hay materias registradas para este grupo.</p>";
-            } else {
-                const rowContainer = document.createElement("div");
-                rowContainer.classList.add("row", "g-3");
-
-                materias.forEach(materia => {
-                    const col = document.createElement("div");
-                    col.classList.add("col-md-3"); // Ajusta el tamaño de la tarjeta en la fila
-
-                    const card = document.createElement("div");
-                    card.classList.add("card", "bg-light", "mb-3", "shadow-sm");
-                    card.style.maxWidth = "100%";
-
-                    // Header
-                    const header = document.createElement("div");
-                    header.classList.add("card-header", "bg-primary", "text-white", "fs-4");
-                    header.style.display = "flex";
-                    header.style.justifyContent = "space-between";
-                    header.textContent = materia.NombreMateria;
-
-                    // Crear el dropdown
-                    const dropdown = document.createElement("div");
-                    dropdown.classList.add("dropdown");
-
-                    const button = document.createElement("button");
-                    button.classList.add("btn", "btn-link", "p-0", "text-white");
-                    button.setAttribute("data-bs-toggle", "dropdown");
-                    button.setAttribute("aria-expanded", "false");
-
-                    const icon = document.createElement("i");
-                    icon.classList.add("fas", "fa-ellipsis-v");
-                    button.appendChild(icon);
-
-                    const ul = document.createElement("ul");
-                    ul.classList.add("dropdown-menu", "dropdown-menu-end");
-
-                    const editLi = document.createElement("li");
-                    const editLink = document.createElement("a");
-                    editLink.classList.add("dropdown-item");
-                    editLink.href = "#";
-                    editLink.onclick = () => editarMateria(materia.MateriaId, materia.NombreMateria, materia.Descripcion);
-                    editLink.textContent = "Editar";
-                    editLi.appendChild(editLink);
-
-                    const deleteLi = document.createElement("li");
-                    const deleteLink = document.createElement("a");
-                    deleteLink.classList.add("dropdown-item");
-                    deleteLink.href = "#";
-                    deleteLink.onclick = () => eliminarMateria(materia.MateriaId);
-                    deleteLink.textContent = "Eliminar";
-                    deleteLi.appendChild(deleteLink);
-
-                    // Añadir los elementos al menú desplegable
-                    ul.appendChild(editLi);
-                    ul.appendChild(deleteLi);
-
-                    // Añadir el botón y el menú al dropdown
-                    dropdown.appendChild(button);
-                    dropdown.appendChild(ul);
-
-                    // Añadir el dropdown al header
-                    header.appendChild(dropdown);
-
-                    // Body
-                    const body = document.createElement("div");
-                    body.classList.add("card-body");
-
-                    const title = document.createElement("h5");
-                    title.classList.add("card-title");
-
-                    const description = document.createElement("p");
-                    description.classList.add("card-text");
-                    description.textContent = materia.Descripcion || "Sin descripción";
-                    
-                    body.appendChild(title);
-                    body.appendChild(description);
-
-                    // Actividades Recientes - Crear una sección para las actividades
-                    if (materia.ActividadesRecientes && materia.ActividadesRecientes.length > 0) {
-                        const actividadesContainer = document.createElement("div");
-                        actividadesContainer.classList.add("mt-3"); // Margen superior para separar las actividades
-
-                        materia.ActividadesRecientes.forEach(actividad => {
-                            const actividadItem = document.createElement("div");
-                            actividadItem.classList.add("actividad-item");
-
-                            const fechaFormateada = new Date(actividad.fechaCreacion).toLocaleDateString('es-ES', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                            });
-
-                            const actividadLink = document.createElement("a");
-                            actividadLink.href = "#";
-                            actividadLink.classList.add("actividad-link");
-                            actividadLink.textContent = actividad.nombreActividad;
-                            actividadLink.setAttribute("data-id", actividad.actividadId, materia.MateriaId);
-
-                            const actividadFecha = document.createElement("p");
-                            actividadFecha.classList.add("actividad-fecha");
-                            actividadFecha.textContent = `Asignada: ${fechaFormateada}`;
-
-                            actividadItem.appendChild(actividadLink);
-                            actividadItem.appendChild(actividadFecha);
-
-                            actividadesContainer.appendChild(actividadItem);
-                        });
-
-                        body.appendChild(actividadesContainer); // Agregar actividades al cuerpo de la tarjeta
+        // Try API endpoint first
+        try {
+            const resp = await fetch(`/api/Grupos/ObtenerGruposMateriasDocente?docenteId=${docenteIdGlobal}`);
+            if (resp.ok) {
+                const grupos = await resp.json();
+                if (Array.isArray(grupos)) {
+                    const grupo = grupos.find(g => parseInt(g.GrupoId) === parseInt(grupoId) || parseInt(g.GrupoId) === grupoId);
+                    if (grupo) {
+                        if (typeof showGrupoActionsModal === 'function') { showGrupoActionsModal(grupo); return; }
                     }
-
-                    // Footer
-                    const footer = document.createElement("div");
-                    footer.classList.add("card-footer", "d-flex", "justify-content-between", "align-items-center");
-
-                    const btnVerMateria = document.createElement("button");
-                    btnVerMateria.classList.add("btn", "btn-sm", "btn-primary");
-                    btnVerMateria.textContent = "Ver Materia";
-                    btnVerMateria.onclick = () => irAMateria(materia.MateriaId);
-
-                    // Contenedor de iconos
-                    const iconContainer = document.createElement("div");
-                    iconContainer.classList.add("d-flex", "gap-2");
-
-                    const icons = [
-                        { src: "https://cdn-icons-png.flaticon.com/512/1828/1828817.png", title: "Ver Actividades", onclick: () => irAMateria(materia.MateriaId, 'actividades') },
-                        { src: "https://cdn-icons-png.flaticon.com/512/847/847969.png", title: "Ver Integrantes", onclick: () => irAMateria(materia.MateriaId, 'alumnos') },
-                    ];
-
-                    icons.forEach(({ src, title, onclick }) => {
-                        const img = document.createElement("img");
-                        img.classList.add("icon-action");
-                        img.src = src;
-                        img.alt = title;
-                        img.title = title;
-                        img.onclick = onclick;
-                        iconContainer.appendChild(img);
-                    });
-
-                    footer.appendChild(btnVerMateria);
-                    footer.appendChild(iconContainer);
-
-                    // Construcción de la card
-                    card.appendChild(header);
-                    card.appendChild(body);
-                    card.appendChild(footer);
-                    col.appendChild(card);
-
-                    // Agregar la columna al contenedor de la fila
-                    rowContainer.appendChild(col);
-                });
-                materiasContainer.appendChild(rowContainer);
+                }
+            } else {
+                const txt = await resp.text();
+                console.warn('API /api/Grupos/ObtenerGruposMateriasDocente failed', resp.status, txt);
+                // continue to fallback
             }
-            materiasContainer.style.display = "block";
-        } else {
-            Swal.fire({
-                position: "top-end",
-                icon: "error",
-                title: "Error al obtener las materias del grupo.",
-                showConfirmButton: false,
-                timer: 2000
-            });
+        } catch (apiErr) {
+            console.warn('Error calling API endpoint:', apiErr);
+            // continue to fallback
         }
+
+        // Fallback to MVC controller endpoints
+        let fallbackErrMsg = '';
+        const respGr = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
+        if (!respGr.ok) {
+            const body = await respGr.text().catch(() => '');
+            fallbackErrMsg += `ObtenerGrupos failed ${respGr.status}: ${body}\n`;
+            throw new Error(fallbackErrMsg || 'No se pudieron obtener grupos (fallback)');
+        }
+
+        const gruposSimple = await respGr.json();
+        const grupoSimple = gruposSimple.find(g => parseInt(g.GrupoId) === parseInt(grupoId) || parseInt(g.GrupoId) === grupoId);
+        if (!grupoSimple) throw new Error('Grupo no encontrado (fallback)');
+
+        // get materias for that group
+        let materias = [];
+        try {
+            const respMat = await fetch(`/Grupos/ObtenerMateriasPorGrupo?grupoId=${grupoId}`);
+            if (respMat.ok) {
+                materias = await respMat.json();
+            } else {
+                const t = await respMat.text().catch(() => '');
+                console.warn('ObtenerMateriasPorGrupo failed', respMat.status, t);
+                fallbackErrMsg += `ObtenerMateriasPorGrupo failed ${respMat.status}: ${t}\n`;
+            }
+        } catch (matErr) {
+            console.warn('Error fetching materias for group:', matErr);
+            fallbackErrMsg += `Error fetching materias: ${matErr.message || matErr}\n`;
+        }
+
+        const grupoObj = {
+            GrupoId: grupoSimple.GrupoId,
+            NombreGrupo: grupoSimple.NombreGrupo,
+            Descripcion: grupoSimple.Descripcion,
+            Materias: Array.isArray(materias) ? materias.map(m => ({ MateriaId: m.MateriaId || m.materiaId || m.materiaId, NombreMateria: m.NombreMateria || m.nombreMateria || m.NombreMateria, Descripcion: m.Descripcion || m.descripcion })) : []
+        };
+
+        if (typeof showGrupoActionsModal === 'function') { showGrupoActionsModal(grupoObj); return; }
+
+        throw new Error('No hay función para mostrar modal de acciones de grupo.');
+
+    } catch (err) {
+        console.error('Error al abrir acciones de grupo:', err);
+        const msg = (err && err.message) ? err.message : String(err);
+        Swal.fire({ icon: 'error', title: 'Error', html: `No se pudieron obtener detalles del grupo.<br><pre style="text-align:left;white-space:pre-wrap">${msg}</pre>` });
     }
 }
 
-
-
+// keep handleCardClick available but not used on groups page
+async function handleCardClick(grupoId) {
+    // legacy: function preserved
+}
 
 //Funciones de contenedor de grupo
 function editarGrupo(id) {
-    alert("Editar grupo " + id); // Muestra una alerta indicando que el grupo será editado
+    // fallback: open simple edit prompt
+    showEditarGrupoPrompt({ GrupoId: id });
+}
+
+function showEditarGrupoPrompt(grupo) {
+    const nombre = prompt('Nombre del grupo', grupo.NombreGrupo || '');
+    if (nombre === null) return; // cancel
+    const descripcion = prompt('Descripción', grupo.Descripcion || '');
+
+    // send update
+    fetch('/api/Grupos/ActualizarGrupo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ GrupoId: grupo.GrupoId, NombreGrupo: nombre, Descripcion: descripcion })
+    }).then(r => {
+        if (r.ok) {
+            Swal.fire({ position: 'top-end', icon: 'success', title: 'Grupo actualizado', showConfirmButton: false, timer: 1500 });
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+        } else {
+            Swal.fire({ position: 'top-end', icon: 'error', title: 'Error al actualizar grupo', showConfirmButton: false, timer: 2000 });
+        }
+    }).catch(err => { console.error(err); Swal.fire({ position: 'top-end', icon: 'error', title: 'Error', showConfirmButton: false, timer: 2000 }); });
 }
 
 async function eliminarGrupo(grupoId) {
@@ -560,114 +407,56 @@ async function eliminarGrupo(grupoId) {
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
         if (result.isConfirmed) {
-            // Llamar al controlador que elimina solo el grupo
             const response = await fetch(`/Grupos/EliminarGrupo?grupoId=${grupoId}`, { method: "DELETE" });
             if (response.ok) {
-                await Swal.fire({
-                    position: "top-end",
-                    icon: "success",
-                    title: "El grupo ha sido eliminado.",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                inicializar();
+                Swal.fire({ position: "top-end", icon: "success", title: "El grupo ha sido eliminado.", showConfirmButton: false, timer: 2000 });
+                if (typeof cargarGrupos === 'function') cargarGrupos();
             } else {
-                await Swal.fire({
-                    position: "top-end",
-                    icon: "error",
-                    title: "No se pudo eliminar el grupo.",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
+                Swal.fire({ position: "top-end", icon: "error", title: "No se pudo eliminar el grupo.", showConfirmButton: false, timer: 2000 });
             }
         } else if (result.isDenied) {
-            // Llamar al nuevo controlador que elimina grupo y materias
             const response = await fetch(`/Grupos/EliminarGrupoConMaterias?grupoId=${grupoId}`, { method: "DELETE" });
             if (response.ok) {
-                await Swal.fire({
-                    position: "top-end",
-                    icon: "success",
-                    title: "El grupo y sus materias han sido eliminados.",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                inicializar();
+                Swal.fire({ position: "top-end", icon: "success", title: "El grupo y sus materias han sido eliminados.", showConfirmButton: false, timer: 2000 });
+                if (typeof cargarGrupos === 'function') cargarGrupos();
             } else {
-                await Swal.fire({
-                    position: "top-end",
-                    icon: "error",
-                    title: "No se pudo eliminar el grupo y sus materias.",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
+                Swal.fire({ position: "top-end", icon: "error", title: "No se pudo eliminar el grupo y sus materias.", showConfirmButton: false, timer: 2000 });
             }
         }
     });
 }
 
-
 function agregarMateriaAlGrupo(id) {
-    alert("Agregar Materia Al Grupo " + id); // Muestra una alerta indicando que el grupo será desactivado
+    alert("Agregar Materia Al Grupo " + id);
 }
-
 
 function crearAvisoGrupal(id) {
     Swal.fire({
         title: "Crear Aviso",
-        html:
-            '<input id="tituloAviso" class="swal2-input" placeholder="Título del aviso">' +
-            '<textarea id="descripcionAviso" class="swal2-textarea" placeholder="Descripción del aviso"></textarea>',
+        html: '<input id="tituloAviso" class="swal2-input" placeholder="Título del aviso">' + '<textarea id="descripcionAviso" class="swal2-textarea" placeholder="Descripción del aviso"></textarea>',
         showCancelButton: true,
         confirmButtonText: "Crear",
         cancelButtonText: "Cancelar",
         preConfirm: () => {
             const titulo = document.getElementById("tituloAviso").value.trim();
             const descripcion = document.getElementById("descripcionAviso").value.trim();
-
-            if (!titulo || !descripcion) {
-                Swal.showValidationMessage("Debes completar todos los campos");
-                return false;
-            }
+            if (!titulo || !descripcion) { Swal.showValidationMessage("Debes completar todos los campos"); return false; }
             return { titulo, descripcion };
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            const datos = {
-                GrupoId: id,
-                Titulo: result.value.titulo,
-                Descripcion: result.value.descripcion,
-                DocenteId: docenteIdGlobal
-            };
-
-            fetch("/Materias/CrearAvisoPorGrupo", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(datos)
-            })
+            const datos = { GrupoId: id, Titulo: result.value.titulo, Descripcion: result.value.descripcion, DocenteId: docenteIdGlobal };
+            fetch("/Materias/CrearAvisoPorGrupo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) })
                 .then(response => response.json())
-                .then(data => {
-                    if (data.mensaje) {
-                        Swal.fire("Éxito", data.mensaje, "success");
-                    } else {
-                        Swal.fire("Error", "No se pudo crear el aviso", "error");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al enviar el aviso:", error);
-                    Swal.fire("Error", "Ocurrió un error al crear el aviso", "error");
-                });
+                .then(data => { if (data.mensaje) Swal.fire("Éxito", data.mensaje, "success"); else Swal.fire("Error", "No se pudo crear el aviso", "error"); })
+                .catch(error => { console.error("Error al enviar el aviso:", error); Swal.fire("Error", "Ocurrió un error al crear el aviso", "error"); });
         }
     });
 }
 
 async function subirExcelAlumnos(grupoId, materiaId) {
     const input = document.getElementById('excelFileInput');
-    if (!input || input.files.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'Seleccione un archivo', text: 'Adjunte un .xlsx o .xls', position: 'top-end' });
-        return;
-    }
+    if (!input || input.files.length === 0) { Swal.fire({ icon: 'warning', title: 'Seleccione un archivo', text: 'Adjunte un .xlsx o .xls', position: 'top-end' }); return; }
 
     const file = input.files[0];
     const formData = new FormData();
@@ -676,21 +465,13 @@ async function subirExcelAlumnos(grupoId, materiaId) {
     if (materiaId) formData.append('MateriaId', materiaId);
 
     try {
-        const resp = await fetch('/api/CargaMasiva/ImportarAlumnosExcel', {
-            method: 'POST',
-            body: formData
-        });
-
+        const resp = await fetch('/api/CargaMasiva/ImportarAlumnosExcel', { method: 'POST', body: formData });
         const data = await resp.json();
-
         if (resp.ok) {
             const mensaje = `Leídos: ${data.TotalLeidos}\nAgregados: ${data.Agregados.length}\nOmitidos: ${data.Omitidos.length}\nNo encontrados: ${data.NoEncontrados.length}`;
             Swal.fire({ icon: 'success', title: 'Importación completada', text: mensaje, position: 'top-end' });
         } else {
             Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || 'Error al importar', position: 'top-end' });
         }
-    } catch (err) {
-        console.error(err);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo subir el archivo', position: 'top-end' });
-    }
+    } catch (err) { console.error(err); Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo subir el archivo', position: 'top-end' }); }
 }

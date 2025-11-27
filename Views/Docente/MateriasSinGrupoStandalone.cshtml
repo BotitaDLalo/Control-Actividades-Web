@@ -1,0 +1,45 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "Materias sin grupo";
+    int docenteId = ViewBag.DocenteId != null ? (int)ViewBag.DocenteId : 0;
+}
+
+<div id="docente-datos" data-docenteid="@docenteId" style="display:none"></div>
+
+<link href="~/Content/cards.css" rel="stylesheet" />
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-center" style="flex:1;">Materias sin grupo</h2>
+        <div class="ms-3 d-flex align-items-center" style="gap:8px;">
+            <input id="buscarMateria" class="form-control" placeholder="Buscar..." style="min-width:240px;" />
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#materiasModal" style="min-width:150px; padding:.35rem .9rem;">Crear Materia</button>
+        </div>
+    </div>
+
+    <div id="listaMateriasSinGrupo" class="content">
+        <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
+    </div>
+
+@Html.Partial("MateriasModal")
+
+@section Scripts{
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
+
+            const input = document.getElementById('buscarMateria');
+            input.addEventListener('input', function(){
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('#listaMateriasSinGrupo .card-layout').forEach(card => {
+                    const title = (card.textContent || '').toLowerCase();
+                    card.style.display = q === '' || title.indexOf(q) !== -1 ? '' : 'none';
+                });
+            });
+        });
+    </script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/docente")
+    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
+}

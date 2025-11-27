@@ -1,0 +1,14 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "Materias del grupo";
+    int grupoId = Request.QueryString["grupoId"] != null ? int.Parse(Request.QueryString["grupoId"]) : 0;
+}
+
+<div class="container mt-4">
+    <h2>Materias del grupo</h2>
+    <div id="listaMateriasGrupo" class="content"></div>
+</div>
+
+@section Scripts{
+    <script src="~/Scripts/Docente/Grupos/mostrarMateriasGrupo.js"></script>
+}

@@ -144,6 +144,24 @@ namespace ControlActividades.Controllers
             return View();
         }
 
+        // GET: /Docente/GrupoMaterias -> vista que muestra materias de un grupo
+        [HttpGet]
+        public ActionResult GrupoMaterias(int? grupoId)
+        {
+            if (!grupoId.HasValue)
+            {
+                return RedirectToAction("Grupos");
+            }
+
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            ViewBag.GrupoId = grupoId.Value;
+
+            return View();
+        }
+
         public ActionResult EvaluarActividades()
         {
             string userId = User.Identity.GetUserId();
@@ -165,13 +183,15 @@ namespace ControlActividades.Controllers
             return View("GruposStandalone");
         }
 
-        // GET: /Docente/MateriasSinGrupo -> redirige al Index y muestra Materias sin grupo
+        // GET: /Docente/MateriasSinGrupo -> mostrar vista independiente MateriasSinGrupoStandalone
         [HttpGet]
         public ActionResult MateriasSinGrupo()
         {
             string userId = User.Identity.GetUserId();
             var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
-            return RedirectToAction("Index", new { seccion = "materiasSinGrupo", docenteId = docenteId });
+
+            ViewBag.DocenteId = docenteId;
+            return View("MateriasSinGrupoStandalone");
         }
 
         [HttpPost]
