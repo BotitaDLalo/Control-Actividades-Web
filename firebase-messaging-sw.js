@@ -14,10 +14,14 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log("Mensaje recibido en background:", payload);
+    /*
+    const title = payload.data.title;
+    const body = payload.data.body;
 
     self.registration.showNotification(
-        payload.notification.title,{
-            body: payload.notification.body,
-            icon: "/firebase-logo.png"}
-    );
+        title,{
+            body: body,
+            data: payload.data  //para clic action
+        }
+    );*/
 });
