@@ -127,7 +127,7 @@ namespace ControlActividades.Controllers
         }
 
         
-        public ActionResult MateriasDetalles(int? materiaId)
+        public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
         {
             if (!materiaId.HasValue)
             {
@@ -140,6 +140,7 @@ namespace ControlActividades.Controllers
 
             ViewBag.DocenteId = docenteId;
             ViewBag.MateriaId = materiaId.Value;
+            ViewBag.GrupoId = grupoId ?? 0;
 
             return View();
         }

@@ -224,80 +224,14 @@ async function cargarGrupos() {
             row.appendChild(ico);
             row.appendChild(text);
 
-            // settings dropdown container positioned top-right
-            const cta = document.createElement('div');
-            cta.className = 'dropdown';
-            cta.style.position = 'absolute';
-            cta.style.top = '8px';
-            cta.style.right = '12px';
-
-            const settingsButton = document.createElement('button');
-            // visible icon button with dropdown (use inline SVG to avoid external icon libs)
-            settingsButton.className = 'group-settings-btn dropdown-toggle';
-            settingsButton.type = 'button';
-            settingsButton.setAttribute('data-bs-toggle', 'dropdown');
-            settingsButton.setAttribute('aria-expanded', 'false');
-            settingsButton.setAttribute('aria-label', 'Opciones del grupo');
-            settingsButton.title = 'Opciones';
-            settingsButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
-                + '<circle cx="12" cy="5" r="1.5" fill="#374151"/>'
-                + '<circle cx="12" cy="12" r="1.5" fill="#374151"/>'
-                + '<circle cx="12" cy="19" r="1.5" fill="#374151"/>'
-                + '</svg>';
-
-            const dropdownMenu = document.createElement('ul');
-            dropdownMenu.className = 'dropdown-menu dropdown-menu-end';
-            dropdownMenu.style.minWidth = '180px';
-            dropdownMenu.style.padding = '6px 0';
-            const items = [
-                { text: 'Administrar grupo', action: () => abrirAccionesGrupo(grupo.GrupoId) },
-                { text: 'Importar alumnos (masivo)', action: () => abrirImportarAlumnos(grupo.GrupoId) },
-                { text: 'Crear aviso grupal', action: () => crearAvisoGrupal(grupo.GrupoId) },
-                { text: 'Editar grupo', action: () => showEditarGrupoPrompt(grupo) },
-                { text: 'Eliminar grupo', action: () => eliminarGrupo(grupo.GrupoId) }
-            ];
-            items.forEach(it => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = '#';
-                a.className = 'dropdown-item';
-                a.textContent = it.text;
-                a.addEventListener('click', function (e) { e.preventDefault(); it.action(); });
-                li.appendChild(a);
-                dropdownMenu.appendChild(li);
-            });
-
-            cta.appendChild(settingsButton);
-            cta.appendChild(dropdownMenu);
-
-            // manual toggle for dropdown so it works even if Bootstrap's JS isn't initializing dynamic elements
-            settingsButton.addEventListener('click', function (ev) {
-                ev.stopPropagation();
-                // close other dropdowns
-                document.querySelectorAll('.card-layout .dropdown-menu.show').forEach(dm => {
-                    if (dm !== dropdownMenu) dm.classList.remove('show');
-                });
-
-                const isShown = dropdownMenu.classList.toggle('show');
-                settingsButton.setAttribute('aria-expanded', isShown ? 'true' : 'false');
-            });
-
-            // close dropdown when clicking a menu item
-            dropdownMenu.addEventListener('click', function (ev) {
-                // allow item handlers to run (they call preventDefault), then hide
-                setTimeout(() => {
-                    dropdownMenu.classList.remove('show');
-                    settingsButton.setAttribute('aria-expanded', 'false');
-                }, 0);
-            });
+            // removed settings dropdown (options moved inside Materias view)
 
             // assemble card content
             card.appendChild(row);
-            card.appendChild(cta);
 
-            // When clicking the card (except on the settings button or the menu), redirect to group materias
+            // When clicking the card (except on any interactive button/anchor), redirect to group materias
             card.addEventListener('click', function (e) {
-                if (e.target.closest('.dropdown-menu') || e.target === settingsButton || e.target.closest('button')) return;
+                if (e.target.closest('button') || e.target.closest('a')) return;
                 try {
                     window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
                 } catch (err) {

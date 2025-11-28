@@ -23,8 +23,9 @@
     <nav class="materia-nav">
         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
+        <button class="tab-button" onclick="abrirEntregables()">Entregables</button>
         <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
-        <button class="tab-button" onclick="cambiarSeccion('calificaciones')">Calificaciones</button>
+        <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
     </nav>
 
     <div id="contenedor-dinamico" class="materia-content">
@@ -36,6 +37,24 @@
                         Crear Aviso
                     </button>
                 </div>
+
+        <div id="seccion-entregables" class="seccion" style="display: none;">
+            <p>Entregables — abre el modal para ver (aún sin contenido)</p>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entregablesModal">Ver Entregables</button>
+        </div>
+
+        <div id="seccion-configuracion" class="seccion" style="display: none;">
+            <h4>Configuración de la materia</h4>
+            <div class="mb-3">
+                <label class="form-label">Nombre de la materia</label>
+                <input id="configNombre" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Descripción</label>
+                <textarea id="configDescripcion" class="form-control"></textarea>
+            </div>
+            <button id="btnGuardarConfig" class="btn btn-success">Guardar</button>
+        </div>
             </div>
             <div class="divider"></div>
             <div id="listaDeAvisosDeMateria"></div>
@@ -87,8 +106,65 @@
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/docente")
     @Scripts.Render("~/bundles/docentegrupos")
+    <script src="~/Scripts/Docente/Grupos/DetalleMateria.js"></script>
+    <script src="~/Scripts/Docente/Grupos/scriptsAvisos.js"></script>
+    <script src="~/Scripts/Docente/Grupos/scriptsAlumnos.js"></script>
     <script src="~/Scripts/Docente/Grupos/scriptsActividades.js"></script>
 }
+
+<div class="modal fade" id="entregablesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Entregables</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Aún no hay entregables configurados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // abrir modal de entregables
+    function abrirEntregables() {
+        var modalEl = document.getElementById('entregablesModal');
+        if (!modalEl) return;
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var btnGuardar = document.getElementById('btnGuardarConfig');
+        if (btnGuardar) {
+            btnGuardar.addEventListener('click', async function () {
+                var nombre = document.getElementById('configNombre').value.trim();
+                var descripcion = document.getElementById('configDescripcion').value.trim();
+                if (!nombre) { Swal.fire('Error', 'El nombre es requerido', 'error'); return; }
+                try {
+                    const resp = await fetch(`/Materias/ActualizarMateria?materiaId=${materiaIdGlobal}`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
+                    });
+                    if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); }
+                    else { Swal.fire('Error', 'No se pudo guardar', 'error'); }
+                } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); }
+            });
+        }
+
+        // rellenar inputs de configuracion con datos actuales
+        fetch(`/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`).then(r => r.json()).then(data => {
+            if (data && data.NombreMateria) {
+                document.getElementById('configNombre').value = data.NombreMateria || '';
+                document.getElementById('configDescripcion').value = data.Descripcion || '';
+            }
+        }).catch(()=>{});
+    });
+</script>
 
 @section Styles{
     @Styles.Render("~/Content/Docente/css")
