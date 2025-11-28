@@ -102,8 +102,12 @@ namespace ControlActividades.Services
                 System.Diagnostics.Debug.WriteLine("TOKEN: " + t.FcmToken);
             }
 
-
-            await DetonarNotificaciones(notificacion);
+            await FCM.SendBatchNotificationsAsync(
+                lsFcmTokens.Select(a => a.FcmToken).ToList(),
+                notificacion.Titulo,
+                notificacion.Descripcion
+            );
+            //await DetonarNotificaciones(notificacion);
         }
 
 
@@ -157,7 +161,7 @@ namespace ControlActividades.Services
                 Descripcion = "El docente " + nombreCompletoDocente + " te asignó " + descrip + nombreClase
             };
 
-            await DetonarNotificaciones(notificacion);
+            //await DetonarNotificaciones(notificacion);
         }
 
         public async Task NotificacionCrearActividad(tbActividades actividad)
@@ -180,9 +184,9 @@ namespace ControlActividades.Services
                 Descripcion = ""
             };
 
-            await DetonarNotificaciones(notificacion);
+           // await DetonarNotificaciones(notificacion);
         }
-
+        /*
         private async Task DetonarNotificaciones(ElementosNotificacion notificacion)
         {
             var lsUsuariosFcmTokens = notificacion.LsUsuariosFcmTokens;
@@ -212,7 +216,7 @@ namespace ControlActividades.Services
             }
         }
 
-
+        */
 
         public void Dispose()
         {
