@@ -778,9 +778,11 @@ namespace ControlMaterias.Controllers
                         materia.MateriaId,
                         materia.NombreMateria,
                         materia.Descripcion,
+                        materia.DocenteId,
+                        DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == materia.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
                         materia.CodigoColor,
                         materia.CodigoAcceso,
-                        materia.DocenteId,
+                        // materia.DocenteId already included above
                         ActividadesRecientes = actividadesRecientes
                     });
                 }

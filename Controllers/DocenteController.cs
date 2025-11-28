@@ -277,6 +277,8 @@ namespace ControlActividades.Controllers
                     m.MateriaId,
                     m.NombreMateria,
                     m.Descripcion,
+                    m.DocenteId,
+                    DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == m.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
                     m.CodigoColor,
                     ActividadesRecientes = Db.tbActividades
                         .Where(a => a.MateriaId == m.MateriaId)

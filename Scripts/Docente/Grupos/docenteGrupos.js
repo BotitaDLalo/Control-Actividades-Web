@@ -232,11 +232,18 @@ async function cargarGrupos() {
             cta.style.right = '12px';
 
             const settingsButton = document.createElement('button');
-            settingsButton.className = 'btn btn-link p-0 text-dark';
+            // visible icon button with dropdown (use inline SVG to avoid external icon libs)
+            settingsButton.className = 'group-settings-btn dropdown-toggle';
             settingsButton.type = 'button';
             settingsButton.setAttribute('data-bs-toggle', 'dropdown');
             settingsButton.setAttribute('aria-expanded', 'false');
-            settingsButton.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+            settingsButton.setAttribute('aria-label', 'Opciones del grupo');
+            settingsButton.title = 'Opciones';
+            settingsButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+                + '<circle cx="12" cy="5" r="1.5" fill="#374151"/>'
+                + '<circle cx="12" cy="12" r="1.5" fill="#374151"/>'
+                + '<circle cx="12" cy="19" r="1.5" fill="#374151"/>'
+                + '</svg>';
 
             const dropdownMenu = document.createElement('ul');
             dropdownMenu.className = 'dropdown-menu dropdown-menu-end';
@@ -262,6 +269,27 @@ async function cargarGrupos() {
 
             cta.appendChild(settingsButton);
             cta.appendChild(dropdownMenu);
+
+            // manual toggle for dropdown so it works even if Bootstrap's JS isn't initializing dynamic elements
+            settingsButton.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                // close other dropdowns
+                document.querySelectorAll('.card-layout .dropdown-menu.show').forEach(dm => {
+                    if (dm !== dropdownMenu) dm.classList.remove('show');
+                });
+
+                const isShown = dropdownMenu.classList.toggle('show');
+                settingsButton.setAttribute('aria-expanded', isShown ? 'true' : 'false');
+            });
+
+            // close dropdown when clicking a menu item
+            dropdownMenu.addEventListener('click', function (ev) {
+                // allow item handlers to run (they call preventDefault), then hide
+                setTimeout(() => {
+                    dropdownMenu.classList.remove('show');
+                    settingsButton.setAttribute('aria-expanded', 'false');
+                }, 0);
+            });
 
             // assemble card content
             card.appendChild(row);
