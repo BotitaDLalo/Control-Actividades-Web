@@ -27,7 +27,7 @@ namespace ControlActividades.Services
             if (_initialized)
                 return;
 
-            var rutaArchivo = HostingEnvironment.MapPath("~/App_Data/apptokens-dc835-firebase-adminsdk-fbsvc-df059391ca.json");
+            var rutaArchivo = HostingEnvironment.MapPath("~/App_Data/push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json");
 
             FirebaseApp.Create(new AppOptions
             {

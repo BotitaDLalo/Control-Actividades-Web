@@ -2,11 +2,11 @@
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-messaging.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBAZnCbjlXGteAcLSZRV2soNVA3L4fHNpA",
-    authDomain: "apptokens-dc835.firebaseapp.com",
-    projectId: "apptokens-dc835",
-    messagingSenderId: "309526870092",
-    appId: "1:309526870092:web:551aef71e9dfb58c21dce9"
+    apiKey: "AIzaSyAU0lEbkXSDObxI6vpGkGY1ZcsJwMku_ns",
+    authDomain: "push-notification-9bc5f.firebaseapp.com",
+    projectId: "push-notification-9bc5f",
+    messagingSenderId: "700503342964",
+    appId: "1:700503342964:web:6469fdcd5fbe2b160c3621"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -28,7 +28,7 @@ export async function registrarTokenFcm() {
 
             console.log("Consiguiendo token...");
             const token = await getToken(messaging, {
-                vapidKey: "BEFhmn2Q7-Bz2ORaOl2WPtJr3KHehzLXMctKFNbf1ohL0A8H55RvDTYvyS37whGFUPkNJA2fPP63p18QmTuYc8U",
+                vapidKey: "BLzbaIQqIsTJ1vti9QsOh_qintrrCFYSnWcUpREM0QscujnnT-X61W51S-awt0534HKFSyYdPgUU8xNCMhvIHDg",
                 serviceWorkerRegistration: reg
             });
 
