@@ -245,6 +245,7 @@ namespace ControlActividades.Controllers
                         Descripcion = grupo.Descripcion,
                         CodigoAcceso = grupo.CodigoAcceso,
                         CodigoColor = grupo.CodigoColor,
+
                         Materias = lsMaterias
                     });
                 }
@@ -435,12 +436,12 @@ namespace ControlActividades.Controllers
 
                     listaGruposMaterias.Add(new
                     {
-                        grupoId = grupo.GrupoId,
-                        nombreGrupo = grupo.NombreGrupo,
-                        descripcion = grupo.Descripcion,
+                        GrupoId = grupo.GrupoId,
+                        NombreGrupo = grupo.NombreGrupo,
+                        Descripcion = grupo.Descripcion,
                         //codigoAcceso = grupo.CodigoAcceso,
-                        codigoColor = grupo.CodigoColor,
-                        materias = lsMaterias
+                        CodigoColor = grupo.CodigoColor,
+                        Materias = lsMaterias
                     });
                 }
 
