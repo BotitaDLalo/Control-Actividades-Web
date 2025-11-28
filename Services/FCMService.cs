@@ -14,15 +14,13 @@ using System.Web.Hosting;
 
 namespace ControlActividades.Services
 {
-    public class FCMService : IDisposable
+    public class FCMService
     {
         private static bool _initialized = false;
-        private readonly ApplicationDbContext _db;
 
         public FCMService()
         {
             InicializarFirebase();
-            _db = new ApplicationDbContext();
         }
 
         private void InicializarFirebase()
@@ -75,47 +73,65 @@ namespace ControlActividades.Services
                     Body = body
                 }
             }).ToList();
+
             var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
 
-            // Manejar errores individuales si es necesario
+            // Evaluar cada respuesta
             for (int i = 0; i < response.Responses.Count; i++)
             {
                 var result = response.Responses[i];
 
+                // Evitar index desalineado
+                if (i >= targetTokens.Count)
+                    continue;
+
+                var token = targetTokens[i];
+
                 if (!result.IsSuccess)
                 {
-                    var token = targetTokens[i];
                     var error = result.Exception;
 
                     Console.WriteLine($"Error enviando a {token}: {error}");
-                    if (error is FirebaseMessagingException fcmEx) {
+
+                    bool debeEliminar = false;
+
+                    if (error is FirebaseMessagingException fcmEx)
+                    {
                         if (fcmEx.ErrorCode == ErrorCode.NotFound ||
                             fcmEx.ErrorCode == ErrorCode.InvalidArgument)
                         {
-                            // ELIMINAR TOKEN DE LA BASE DE DATOS
-                            await EliminarTokenInvalido(token);
+                            debeEliminar = true;
                         }
                     }
-                    
+
+                    // si Firebase devuelve el mensaje en lugar del ErrorCode
+                    if (error.Message.Contains("registration-token-not-registered") ||
+                        error.Message.Contains("invalid-registration-token"))
+                    {
+                        debeEliminar = true;
+                    }
+
+                    if (debeEliminar)
+                    {
+                        await EliminarTokenInvalido(token);
+                    }
                 }
             }
-
         }
+
 
         // eliminar token inválido de la base de datos
         private async Task EliminarTokenInvalido(string token)
         {
-            var tokens = _db.tbUsuariosFcmTokens.Where(t => t.Token == token).ToList();
-            if (tokens.Any())
+            using (var _db = new ApplicationDbContext())
             {
-                _db.tbUsuariosFcmTokens.RemoveRange(tokens);
-                await _db.SaveChangesAsync();
+                var tokens = _db.tbUsuariosFcmTokens.Where(t => t.Token == token).ToList();
+                if (tokens.Any())
+                {
+                    _db.tbUsuariosFcmTokens.RemoveRange(tokens);
+                    await _db.SaveChangesAsync();
+                }
             }
-        }
-
-        public void Dispose()
-        {
-            _db.Dispose();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Services.Description;
+using ControlActividades.Controllers;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using static Google.Apis.Requests.RequestError;
@@ -16,6 +17,8 @@ namespace ControlActividades.Services
         private ApplicationDbContext _db;
         private FCMService _fCMService;
         private bool disposed = false;
+
+        #region
         public NotificacionesService()
         {
             _db = new ApplicationDbContext();
@@ -40,6 +43,7 @@ namespace ControlActividades.Services
                 _fCMService = value;
             }
         }
+        #endregion
 
         public async Task RegistrarFcmTokenUsuario(string identityUserId, string fcmToken)
         {
@@ -60,7 +64,7 @@ namespace ControlActividades.Services
             }
         }
 
-
+        #region Crear notificaciones
         public async Task NotificacionCrearAviso(tbAvisos aviso, int? grupoId, int? materiaId)
         {
             List<int> lsAlumnosId = new List<int>();
@@ -107,6 +111,8 @@ namespace ControlActividades.Services
                 notificacion.Titulo,
                 notificacion.Descripcion
             );
+            
+
             //await DetonarNotificaciones(notificacion);
         }
 
@@ -186,6 +192,9 @@ namespace ControlActividades.Services
 
            // await DetonarNotificaciones(notificacion);
         }
+
+        #endregion
+        
         /*
         private async Task DetonarNotificaciones(ElementosNotificacion notificacion)
         {
