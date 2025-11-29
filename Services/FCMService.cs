@@ -64,6 +64,7 @@ namespace ControlActividades.Services
         // Enviar notificaciones por lotes
         public async Task SendBatchNotificationsAsync(List<string> targetTokens, string title, string body)
         {
+            //Obtiene el lote de tokens
             var messages = targetTokens.Select(token => new Message
             {
                 Token = token,
@@ -75,6 +76,8 @@ namespace ControlActividades.Services
             }).ToList();
 
             var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+
+
 
             // Evaluar cada respuesta
             for (int i = 0; i < response.Responses.Count; i++)

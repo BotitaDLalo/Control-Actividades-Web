@@ -65,24 +65,4 @@ onMessage( messaging, (payload) => {
         body: payload.notification.body
     });
 
-    //Llamar al controlador para guardarla
-    $.ajax({
-        url: '/api/Notificaciones/RegistrarNotificacion',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            UserId: window.USER_ID,
-            MessageId: payload.messageId,
-            Title: payload.notification.title,
-            Body: payload.notification.body,
-            FechaRecibido: new Date().toISOString()
-        }),
-        success: function (r) {
-            console.log("Notificación guardada:", r);
-        },
-        error: function (err) {
-            console.error("Error guardando notificación:", err.responseText);
-        }
-    });
-
 });
