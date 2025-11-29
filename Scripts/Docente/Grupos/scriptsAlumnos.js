@@ -1,6 +1,14 @@
 ﻿var div = document.getElementById("docente-datos");
 var docenteIdGlobal = div.dataset.docenteid;
 
+// Prevent this script from initializing twice (bundles + direct include)
+if (window.__docente_scriptsAlumnosInitialized) {
+    console.warn('scriptsAlumnos already initialized, skipping duplicate load');
+    // stop executing duplicate script
+    throw new Error('scriptsAlumnos duplicate load prevented');
+} 
+window.__docente_scriptsAlumnosInitialized = true;
+
 // Esperar a que el DOM esté completamente cargado antes de ejecutar el código
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -58,50 +66,83 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // Abrir selector de archivo al presionar Importar Alumnos
-        if (event.target.id === "btnImportarAlumnos") {
-            document.getElementById('fileImportarAlumnos').click();
-        }
+        // Nota: no usar document-level handler para abrir archivo múltiples veces
     });
 
-    // Manejar selección de archivo y subir al servidor
-    const inputFile = document.getElementById('fileImportarAlumnos');
-    inputFile.addEventListener('change', async function (e) {
-        const file = e.target.files[0];
-        if (!file) return;
+    // --- File import handling: use a single dedicated click handler and a single file input ---
+    let isSelectingFile = false;
 
-        const formData = new FormData();
-        formData.append('file', file);
-        // Enviar parámetros opcionales: materiaId o grupoId
-        formData.append('MateriaId', materiaIdGlobal);
-        if (grupoIdGlobal && grupoIdGlobal !== '0') formData.append('GrupoId', grupoIdGlobal);
+    function getOrCreateFileInput() {
+        let input = document.getElementById('fileImportarAlumnos');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'file';
+            input.id = 'fileImportarAlumnos';
+            input.accept = '.xlsx,.xls';
+            input.style.display = 'none';
+            document.body.appendChild(input);
+        }
 
-        try {
-            const resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', {
-                method: 'POST',
-                body: formData
+        // attach change handler only once
+        if (!input.dataset.importHandlerAttached) {
+            input.addEventListener('change', async function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('MateriaId', materiaIdGlobal);
+                if (grupoIdGlobal && grupoIdGlobal !== '0') formData.append('GrupoId', grupoIdGlobal);
+
+                try {
+                    const resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await resp.json();
+                    if (!resp.ok) {
+                        Swal.fire('Error', result.mensaje || 'Error al importar alumnos', 'error');
+                        return;
+                    }
+
+                    let summary = `Total leídos: ${result.TotalLeidos}\nAgregados: ${result.Agregados.length}\nOmitidos: ${result.Omitidos.length}\nNo encontrados: ${result.NoEncontrados.length}`;
+                    Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
+
+                    cargarAlumnosAsignados(materiaIdGlobal);
+
+                    // Limpiar input
+                    input.value = '';
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'Error al subir el archivo', 'error');
+                } finally {
+                    isSelectingFile = false;
+                }
             });
-
-            const result = await resp.json();
-            if (!resp.ok) {
-                Swal.fire('Error', result.mensaje || 'Error al importar alumnos', 'error');
-                return;
-            }
-
-            // Mostrar resumen
-            let summary = `Total leídos: ${result.TotalLeidos}\nAgregados: ${result.Agregados.length}\nOmitidos: ${result.Omitidos.length}\nNo encontrados: ${result.NoEncontrados.length}`;
-            Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
-
-            // Recargar la lista de alumnos
-            cargarAlumnosAsignados(materiaIdGlobal);
-
-            // Limpiar input
-            inputFile.value = '';
-        } catch (err) {
-            console.error(err);
-            Swal.fire('Error', 'Error al subir el archivo', 'error');
+            input.dataset.importHandlerAttached = '1';
         }
-    });
+
+        return input;
+    }
+
+    // Attach single click handler to the import button (if exists)
+    const btnImport = document.getElementById('btnImportarAlumnos');
+    if (btnImport) {
+        btnImport.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            ev.preventDefault();
+            if (isSelectingFile) return;
+            isSelectingFile = true;
+            const input = getOrCreateFileInput();
+            // Small timeout to ensure flag set before any other handler
+            setTimeout(() => {
+                input.click();
+            }, 10);
+            // safety: reset flag after 2s in case change doesn't fire
+            setTimeout(() => { isSelectingFile = false; }, 2000);
+        });
+    }
 
 
     // Funcionalidad de búsqueda de alumnos en tiempo real (sugerencias de correo)
