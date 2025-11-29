@@ -443,6 +443,7 @@
     <Content Include="Content\Iconos\LOGO HORIZONTAL-26.svg" />
     <Content Include="Content\Iconos\LOGO VERTICAL-26.svg" />
     <Content Include="Content\Iconos\logo1.svg" />
+    <Content Include="Content\Iconos\logo2.svg" />
     <Content Include="Content\Iconos\Materia.svg" />
     <Content Include="Content\Iconos\Notificacion.svg" />
     <Content Include="Content\Iconos\NOTIFICACIONES-26.svg" />
@@ -653,6 +654,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Scripts\Firebase\firebase.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Variables\colors.css" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

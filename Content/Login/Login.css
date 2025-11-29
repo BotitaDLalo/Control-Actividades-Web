@@ -4,13 +4,6 @@
 /* POPPINS FONT */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
 
-/*Colores*/
-:root {
-    --azul-twitter: #1db7f7;
-    --fondo1: #082050;
-    --fondo2: #0F0C20;
-}
-
 * {
     margin: 0;
     padding: 0;
