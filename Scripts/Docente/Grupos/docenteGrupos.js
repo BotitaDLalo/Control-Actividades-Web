@@ -6,6 +6,39 @@ if (div && div.dataset && div.dataset.docenteid) {
     docenteIdGlobal = localStorage.getItem('docenteId');
 }
 
+function abrirImportarAlumnos(grupoId) {
+    // reutiliza modal/handler de GrupoActionsModal: establecer currentGrupoId y disparar click en input
+    window.currentGrupoId = grupoId;
+    var input = document.getElementById('fileImportarAlumnos');
+    if (!input) {
+        // crear input temporal si no existe (GrupoActionsModal normalmente crea uno cuando se muestra)
+        input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.id = 'fileImportarAlumnos';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', async function (e) {
+            var f = e.target.files[0];
+            if (!f) return;
+            var fd = new FormData();
+            fd.append('file', f);
+            fd.append('GrupoId', window.currentGrupoId || grupoId);
+            try {
+                var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd });
+                var json = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    Swal.fire('Error', json.mensaje || 'Error al importar', 'error');
+                    return;
+                }
+                Swal.fire('Éxito', 'Importación completada', 'success');
+            } catch (err) { console.error(err); Swal.fire('Error', 'No se pudo subir archivo', 'error'); }
+        });
+    }
+    // abrir selector
+    input.click();
+}
+
 //Crea un nuevo grupo, con la posibilidad de agregar una materia sin grupo, y crear directamente varias materia para ese grupo
 async function guardarGrupo() {
     const nombre = document.getElementById("nombreGrupo").value;
@@ -164,7 +197,8 @@ async function cargarGrupos() {
 
         grupos.forEach((grupo, index) => {
             const card = document.createElement('div');
-            card.className = 'rounded card-layout d-flex align-items-center';
+            card.className = 'rounded card-layout';
+            card.style.position = 'relative';
 
             // left icon
             const ico = document.createElement('div');
@@ -183,40 +217,27 @@ async function cargarGrupos() {
             text.appendChild(title);
             if (grupo.Descripcion) text.appendChild(subtitle);
 
-            // settings dropdown
-            const cta = document.createElement('div');
-            cta.className = 'ms-3';
-            const settingsButton = document.createElement('button');
-            settingsButton.className = 'btn btn-link p-0 text-dark';
-            settingsButton.type = 'button';
-            settingsButton.setAttribute('data-bs-toggle', 'dropdown');
-            settingsButton.setAttribute('aria-expanded', 'false');
-            settingsButton.innerHTML = '<i class="fas fa-cog"></i>';
+            // create a row for icon + text
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.width = '100%';
+            row.appendChild(ico);
+            row.appendChild(text);
 
-            const dropdownMenu = document.createElement('ul');
-            dropdownMenu.className = 'dropdown-menu dropdown-menu-end';
-            const items = [
-                { text: 'Editar', action: () => editarGrupo(grupo.GrupoId) },
-                { text: 'Eliminar', action: () => eliminarGrupo(grupo.GrupoId) },
-                { text: 'Crear Aviso Grupal', action: () => crearAvisoGrupal(grupo.GrupoId) }
-            ];
-            items.forEach(it => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = '#';
-                a.className = 'dropdown-item';
-                a.textContent = it.text;
-                a.addEventListener('click', function (e) { e.preventDefault(); it.action(); });
-                li.appendChild(a);
-                dropdownMenu.appendChild(li);
+            // removed settings dropdown (options moved inside Materias view)
+
+            // assemble card content
+            card.appendChild(row);
+
+            // When clicking the card (except on any interactive button/anchor), redirect to group materias
+            card.addEventListener('click', function (e) {
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                try {
+                    window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
+                } catch (err) {
+                    console.warn('No se pudo redirigir:', err);
+                }
             });
-
-            cta.appendChild(settingsButton);
-            cta.appendChild(dropdownMenu);
-
-            card.appendChild(ico);
-            card.appendChild(text);
-            card.appendChild(cta);
 
             listaGrupos.appendChild(card);
         });
@@ -232,6 +253,79 @@ async function cargarGrupos() {
     }
 }
 
+// new abrirAccionesGrupo with improved error reporting
+async function abrirAccionesGrupo(grupoId) {
+    try {
+        window.docenteIdGlobal = docenteIdGlobal;
+
+        // Try API endpoint first
+        try {
+            const resp = await fetch(`/api/Grupos/ObtenerGruposMateriasDocente?docenteId=${docenteIdGlobal}`);
+            if (resp.ok) {
+                const grupos = await resp.json();
+                if (Array.isArray(grupos)) {
+                    const grupo = grupos.find(g => parseInt(g.GrupoId) === parseInt(grupoId) || parseInt(g.GrupoId) === grupoId);
+                    if (grupo) {
+                        if (typeof showGrupoActionsModal === 'function') { showGrupoActionsModal(grupo); return; }
+                    }
+                }
+            } else {
+                const txt = await resp.text();
+                console.warn('API /api/Grupos/ObtenerGruposMateriasDocente failed', resp.status, txt);
+                // continue to fallback
+            }
+        } catch (apiErr) {
+            console.warn('Error calling API endpoint:', apiErr);
+            // continue to fallback
+        }
+
+        // Fallback to MVC controller endpoints
+        let fallbackErrMsg = '';
+        const respGr = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
+        if (!respGr.ok) {
+            const body = await respGr.text().catch(() => '');
+            fallbackErrMsg += `ObtenerGrupos failed ${respGr.status}: ${body}\n`;
+            throw new Error(fallbackErrMsg || 'No se pudieron obtener grupos (fallback)');
+        }
+
+        const gruposSimple = await respGr.json();
+        const grupoSimple = gruposSimple.find(g => parseInt(g.GrupoId) === parseInt(grupoId) || parseInt(g.GrupoId) === grupoId);
+        if (!grupoSimple) throw new Error('Grupo no encontrado (fallback)');
+
+        // get materias for that group
+        let materias = [];
+        try {
+            const respMat = await fetch(`/Grupos/ObtenerMateriasPorGrupo?grupoId=${grupoId}`);
+            if (respMat.ok) {
+                materias = await respMat.json();
+            } else {
+                const t = await respMat.text().catch(() => '');
+                console.warn('ObtenerMateriasPorGrupo failed', respMat.status, t);
+                fallbackErrMsg += `ObtenerMateriasPorGrupo failed ${respMat.status}: ${t}\n`;
+            }
+        } catch (matErr) {
+            console.warn('Error fetching materias for group:', matErr);
+            fallbackErrMsg += `Error fetching materias: ${matErr.message || matErr}\n`;
+        }
+
+        const grupoObj = {
+            GrupoId: grupoSimple.GrupoId,
+            NombreGrupo: grupoSimple.NombreGrupo,
+            Descripcion: grupoSimple.Descripcion,
+            Materias: Array.isArray(materias) ? materias.map(m => ({ MateriaId: m.MateriaId || m.materiaId || m.materiaId, NombreMateria: m.NombreMateria || m.nombreMateria || m.NombreMateria, Descripcion: m.Descripcion || m.descripcion })) : []
+        };
+
+        if (typeof showGrupoActionsModal === 'function') { showGrupoActionsModal(grupoObj); return; }
+
+        throw new Error('No hay función para mostrar modal de acciones de grupo.');
+
+    } catch (err) {
+        console.error('Error al abrir acciones de grupo:', err);
+        const msg = (err && err.message) ? err.message : String(err);
+        Swal.fire({ icon: 'error', title: 'Error', html: `No se pudieron obtener detalles del grupo.<br><pre style="text-align:left;white-space:pre-wrap">${msg}</pre>` });
+    }
+}
+
 // keep handleCardClick available but not used on groups page
 async function handleCardClick(grupoId) {
     // legacy: function preserved
@@ -239,8 +333,28 @@ async function handleCardClick(grupoId) {
 
 //Funciones de contenedor de grupo
 function editarGrupo(id) {
-    // placeholder
-    alert("Editar grupo " + id);
+    // fallback: open simple edit prompt
+    showEditarGrupoPrompt({ GrupoId: id });
+}
+
+function showEditarGrupoPrompt(grupo) {
+    const nombre = prompt('Nombre del grupo', grupo.NombreGrupo || '');
+    if (nombre === null) return; // cancel
+    const descripcion = prompt('Descripción', grupo.Descripcion || '');
+
+    // send update
+    fetch('/api/Grupos/ActualizarGrupo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ GrupoId: grupo.GrupoId, NombreGrupo: nombre, Descripcion: descripcion })
+    }).then(r => {
+        if (r.ok) {
+            Swal.fire({ position: 'top-end', icon: 'success', title: 'Grupo actualizado', showConfirmButton: false, timer: 1500 });
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+        } else {
+            Swal.fire({ position: 'top-end', icon: 'error', title: 'Error al actualizar grupo', showConfirmButton: false, timer: 2000 });
+        }
+    }).catch(err => { console.error(err); Swal.fire({ position: 'top-end', icon: 'error', title: 'Error', showConfirmButton: false, timer: 2000 }); });
 }
 
 async function eliminarGrupo(grupoId) {

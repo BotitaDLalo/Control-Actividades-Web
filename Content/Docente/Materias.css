@@ -17,6 +17,23 @@
     height: 180%;
 }
 
+/* small label with docente name placed bottom-right inside card-layout/card container */
+.card-docente {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    font-size: 13px;
+    color: #495057; /* slightly darker muted text for better contrast */
+    display: block;
+    z-index: 5;
+    font-weight: 500;
+}
+
+/* ensure cards have enough bottom padding so the docente label doesn't overlap content */
+.card-layout {
+    padding-bottom: 36px; /* room for docente label */
+}
+
 
 /* Figuras blancas animadas */
 .modal-title::before, 

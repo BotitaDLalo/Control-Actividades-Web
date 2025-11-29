@@ -1,6 +1,7 @@
 @{
     Layout = "~/Views/Shared/_LayoutDocente.cshtml";
     ViewBag.Title = "Grupos";
+    ViewBag.PageHeader = "Gestionar Grupos";
     int docenteId = ViewBag.DocenteId != null ? (int)ViewBag.DocenteId : 0;
 }
 
@@ -11,11 +12,9 @@
 @using (Html.BeginForm()) { @Html.AntiForgeryToken() }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-center" style="flex:1;">Gestionar Grupos</h2>
+    <div class="d-flex justify-content-end align-items-center mb-3">
         <div class="ms-3">
             <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#gruposModal">Crear Grupo</button>
-            <button class="btn btn-secondary" onclick="if(typeof cargarGrupos === 'function') cargarGrupos();">Refrescar</button>
         </div>
     </div>
 
@@ -23,6 +22,7 @@
 
     @Html.Partial("GruposModal")
     @Html.Partial("MateriasModal")
+    @Html.Partial("GrupoActionsModal")
 </div>
 
 @section Scripts{

@@ -127,7 +127,7 @@ namespace ControlActividades.Controllers
         }
 
         
-        public ActionResult MateriasDetalles(int? materiaId)
+        public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
         {
             if (!materiaId.HasValue)
             {
@@ -140,6 +140,25 @@ namespace ControlActividades.Controllers
 
             ViewBag.DocenteId = docenteId;
             ViewBag.MateriaId = materiaId.Value;
+            ViewBag.GrupoId = grupoId ?? 0;
+
+            return View();
+        }
+
+        // GET: /Docente/GrupoMaterias -> vista que muestra materias de un grupo
+        [HttpGet]
+        public ActionResult GrupoMaterias(int? grupoId)
+        {
+            if (!grupoId.HasValue)
+            {
+                return RedirectToAction("Grupos");
+            }
+
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            ViewBag.GrupoId = grupoId.Value;
 
             return View();
         }
@@ -259,6 +278,8 @@ namespace ControlActividades.Controllers
                     m.MateriaId,
                     m.NombreMateria,
                     m.Descripcion,
+                    m.DocenteId,
+                    DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == m.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
                     m.CodigoColor,
                     ActividadesRecientes = Db.tbActividades
                         .Where(a => a.MateriaId == m.MateriaId)

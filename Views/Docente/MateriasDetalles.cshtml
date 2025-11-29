@@ -23,8 +23,9 @@
     <nav class="materia-nav">
         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
+        <button class="tab-button" onclick="abrirEntregables()">Entregables</button>
         <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
-        <button class="tab-button" onclick="cambiarSeccion('calificaciones')">Calificaciones</button>
+        <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
     </nav>
 
     <div id="contenedor-dinamico" class="materia-content">
@@ -54,6 +55,11 @@
             <div id="listaActividadesDeMateria"></div>
         </div>
 
+        <div id="seccion-entregables" class="seccion" style="display: none;">
+            <p>Entregables — abre el modal para ver (aún sin contenido)</p>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entregablesModal">Ver Entregables</button>
+        </div>
+
         <div id="seccion-alumnos" class="seccion" style="display: none;">
             <div class="container mt-3">
                 <label for="buscarAlumno" class="form-label">Buscar alumno por correo:</label>
@@ -72,6 +78,24 @@
             <div id="listaAlumnosAsignados" class="mt-3"></div>
         </div>
 
+        <div id="seccion-configuracion" class="seccion" style="display: none;">
+            <h4>Configuración de la materia</h4>
+            <div class="mb-3">
+                <label class="form-label">Nombre de la materia</label>
+                <input id="configNombre" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Descripción</label>
+                <textarea id="configDescripcion" class="form-control"></textarea>
+            </div>
+            <div class="d-flex" style="gap:10px;">
+                <button id="btnGuardarConfig" class="btn btn-success">Guardar</button>
+                <button id="btnEditarMateria" class="btn btn-primary">Editar Materia</button>
+                <button id="btnCopiarMateria" class="btn btn-secondary">Copiar Materia</button>
+                <button id="btnEliminarMateria" class="btn btn-danger">Eliminar Materia</button>
+            </div>
+        </div>
+
         <div id="seccion-calificaciones" class="seccion" style="display: none;">
             <h2>Calificaciones</h2>
             <p>Notas de los estudiantes...</p>
@@ -87,8 +111,114 @@
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/docente")
     @Scripts.Render("~/bundles/docentegrupos")
+    <script src="~/Scripts/Docente/Grupos/DetalleMateria.js"></script>
+    <script src="~/Scripts/Docente/Grupos/scriptsAvisos.js"></script>
+    <script src="~/Scripts/Docente/Grupos/scriptsAlumnos.js"></script>
     <script src="~/Scripts/Docente/Grupos/scriptsActividades.js"></script>
 }
+
+<div class="modal fade" id="entregablesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Entregables</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Aún no hay entregables configurados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // abrir modal de entregables
+    function abrirEntregables() {
+        var modalEl = document.getElementById('entregablesModal');
+        if (!modalEl) return;
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var btnGuardar = document.getElementById('btnGuardarConfig');
+        if (btnGuardar) {
+            btnGuardar.addEventListener('click', async function () {
+                var nombre = document.getElementById('configNombre').value.trim();
+                var descripcion = document.getElementById('configDescripcion').value.trim();
+                if (!nombre) { Swal.fire('Error', 'El nombre es requerido', 'error'); return; }
+                try {
+                    const resp = await fetch(`/Materias/ActualizarMateria?materiaId=${materiaIdGlobal}`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
+                    });
+                    if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); }
+                    else { Swal.fire('Error', 'No se pudo guardar', 'error'); }
+                } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); }
+            });
+        }
+
+        // rellenar inputs de configuracion con datos actuales
+        fetch(`/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`).then(r => r.json()).then(data => {
+            if (data && data.NombreMateria) {
+                document.getElementById('configNombre').value = data.NombreMateria || '';
+                document.getElementById('configDescripcion').value = data.Descripcion || '';
+            }
+        }).catch(()=>{});
+        // Configuración actions
+        const btnEliminar = document.getElementById('btnEliminarMateria');
+        const btnCopiar = document.getElementById('btnCopiarMateria');
+        const btnEditar = document.getElementById('btnEditarMateria');
+
+        if (btnEliminar) btnEliminar.addEventListener('click', async function () {
+            if (!confirm('¿Eliminar esta materia? Esta acción no se puede deshacer.')) return;
+            try {
+                const resp = await fetch(`/Materias/EliminarMateria?id=${materiaIdGlobal}`, { method: 'DELETE' });
+                if (resp.ok) {
+                    Swal.fire({ icon: 'success', title: 'Materia eliminada', showConfirmButton: false, timer: 1500 });
+                    // redirect to grupos overview
+                    window.location.href = '/Docente/Index';
+                } else {
+                    const txt = await resp.text();
+                    Swal.fire('Error', txt || 'No se pudo eliminar la materia', 'error');
+                }
+            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo eliminar', 'error'); }
+        });
+
+        if (btnCopiar) btnCopiar.addEventListener('click', async function () {
+            try {
+                // get current materia details
+                const respMat = await fetch(`/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`);
+                if (!respMat.ok) throw new Error('No se pudo obtener materia');
+                const mat = await respMat.json();
+
+                // create new materia (sin grupo) copying fields
+                const nuevo = { NombreMateria: mat.NombreMateria + ' (Copia)', Descripcion: mat.Descripcion, CodigoColor: mat.CodigoColor || '#2196F3', DocenteId: @docenteId };
+                const crear = await fetch('/Materias/CrearMateria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevo) });
+                if (!crear.ok) { const t = await crear.text(); throw new Error(t || 'Error al crear copia'); }
+                const res = await crear.json();
+                // Inform using native alert and then redirect to Materias sin grupo
+                alert("Materia copiada con éxito. Se encuentra en 'Materias sin Grupo'.");
+                window.location.href = '/Docente/MateriasSinGrupo';
+            } catch (e) { console.error(e); Swal.fire('Error', e.message || 'No se pudo copiar'); }
+        });
+
+        if (btnEditar) btnEditar.addEventListener('click', async function () {
+            try {
+                const nombre = document.getElementById('configNombre').value.trim();
+                const descripcion = document.getElementById('configDescripcion').value.trim();
+                if (!nombre) { Swal.fire('Error', 'Nombre requerido', 'error'); return; }
+                const payload = { MateriaId: materiaIdGlobal, NombreMateria: nombre, Descripcion: descripcion };
+                const resp = await fetch(`/Materias/ActualizarMateria?materiaId=${materiaIdGlobal}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (resp.ok) { Swal.fire({ icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1200 }); }
+                else { const txt = await resp.text(); Swal.fire('Error', txt || 'No se pudo guardar', 'error'); }
+            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); }
+        });
+    });
+</script>
 
 @section Styles{
     @Styles.Render("~/Content/Docente/css")

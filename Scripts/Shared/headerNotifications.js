@@ -1,12 +1,17 @@
-﻿function initNotificacionesDocente() {
+function initHeaderNotifications() {
     const icono = document.getElementById("notificaciones-icono");
     const panel = document.getElementById("notificaciones-panel");
+
     if (!icono || !panel) return;
-    if (icono.dataset.notifInit === '1') return;
-    icono.dataset.notifInit = '1';
+
+    // avoid attaching handlers multiple times
+    if (icono.dataset.notificationsInited === '1') return;
+    icono.dataset.notificationsInited = '1';
 
     icono.addEventListener("click", function (event) {
-        try { event.preventDefault(); } catch (e) { }
+        try {
+            event.preventDefault();
+        } catch (e) { }
         panel.classList.toggle("mostrar");
         panel.setAttribute('aria-hidden', panel.classList.contains('mostrar') ? 'false' : 'true');
     });
@@ -19,6 +24,9 @@
     });
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initNotificacionesDocente); else initNotificacionesDocente();
-
-
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeaderNotifications);
+} else {
+    // DOM already ready
+    initHeaderNotifications();
+}

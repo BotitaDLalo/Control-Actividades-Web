@@ -1,85 +1,99 @@
-@* Redesigned sidebar: visual style like the provided reference (layout and interactions), content kept as existing ActionLinks *@
-@using System.Security.Principal
-@{
-    var isDocente = User.IsInRole("Docente");
-    var isAlumno = User.IsInRole("Alumno");
-    // also detect alumno by route or ViewBag in case role claims are not present in the principal
-    var currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
-    if (!isAlumno && (string.Equals(currentController, "Alumno", StringComparison.OrdinalIgnoreCase) || ViewBag.AlumnoId != null))
-    {
-        isAlumno = true;
-    }
-    var inicioUrl = isDocente ? Url.Action("Index", "Docente") : (isAlumno ? Url.Action("Index", "Alumno") : Url.Action("Index", "Home"));
-}
-<aside class="app-sidebar new-sidebar" id="appSidebar" role="navigation" aria-label="Sidebar">
-    <div class="sidebar-inner">
-        <div class="sidebar-top">
-            <a class="brand-link" href="@inicioUrl">
-                <img src="@Url.Content("~/Content/Iconos/LOGO HORIZONTAL-26.svg")" alt="Logo" class="sidebar-logo" />
-            </a>
-            <button id="sidebarToggle" class="sidebar-toggle" aria-label="Alternar men�">
-                <span class="hamburger"></span>
-            </button>
+<div class="sidebar" id="sidebar">
+    <div style="height: 50px"></div>
+
+    <a class="sidebar-menu" href="@Url.Action("Index", "Docente")">
+        <div class="icono-titulo">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 fill="currentColor"
+                 class="bi bi-house-door"
+                 viewBox="0 0 16 16">
+                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z" />
+            </svg>
+            <div>Inicio</div>
         </div>
+    </a>
 
-        <div class="sidebar-cta">
-            <button class="btn btn-cta" id="btnSidebarCrear" data-bs-toggle="modal" data-bs-target="#materiasModal">Crear</button>
+    <div style="height: 5px"></div>
+
+    <a class="sidebar-menu"
+       data-bs-toggle="collapse"
+       href="#submenu1"
+       role="button">
+        <div class="icono-titulo">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 fill="currentColor"
+                 class="bi bi-people"
+                 viewBox="0 0 16 16">
+                <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
+            </svg>
+            <div>Grupos y Materias</div>
         </div>
+    </a>
+    <div class="collapse submenu" id="submenu1">
+        <a href="@Url.Action("Grupos", "Docente")" class="sub-item">
+            <div class="icono-titulo">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="16"
+                     height="16"
+                     fill="currentColor"
+                     class="bi bi-people"
+                     viewBox="0 0 16 16">
+                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
+                </svg>
+                <div>Grupos</div>
+            </div>
+        </a>
+        <a href="@Url.Action("MateriasSinGrupo", "Docente")" class="sub-item">
+            <div class="icono-titulo">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="16"
+                     height="16"
+                     fill="currentColor"
+                     class="bi bi-collection"
+                     viewBox="0 0 16 16">
+                    <path d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6zm1.5.5A.5.5 0 0 1 1 13V6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5z" />
+                </svg>
+                <div>Materias Sin Grupo</div>
+            </div>
+        </a>
+    </div>
 
-        <nav class="sidebar-nav" aria-label="Main navigation">
-            <ul class="nav-sections">
-                <li class="nav-section" id="section-inicio">
-                    <!-- Inicio: el botón tiene data-href para navegar; el caret controls the submenu -->
-                    <button class="section-btn" data-target="#menu-home" aria-expanded="false" data-href="@inicioUrl">
-                        <i class="fas fa-home"></i>
-                        <span class="section-label">Inicio</span>
-                    </button>
-                    <ul class="section-submenu menu-list submenu" id="menu-home" aria-hidden="true">
-                        <li><a href="@inicioUrl"><i class="menu-icon fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    </ul>
-                </li>
+    <div style="height: 5px"></div>
 
-                <li class="nav-section" id="section-actividades">
-                    <button class="section-btn" data-target="#menu-actividades" aria-expanded="false">
-                        <i class="fas fa-th-large"></i>
-                        <span class="section-label">Actividades</span>
-                    </button>
-                    <ul class="section-submenu" id="menu-actividades" aria-hidden="true">
-                        @if (isDocente)
-                        {
-                            <li>@Html.ActionLink("Evaluar Actividades", "EvaluarActividades", "Docente", null, new { @class = "submenu-link" })</li>
-                        }
-                        else if (isAlumno)
-                        {
-                            <li>@Html.ActionLink("Ver Actividades", "Actividades", "Alumno", null, new { @class = "submenu-link" })</li>
-                            <li>@Html.ActionLink("Mis Entregas", "MisEntregas", "Alumno", null, new { @class = "submenu-link" })</li>
-                        }
-                    </ul>
-                </li>
-
-                @* Mostrar "Materias y Grupos" para Alumno y Docente *@
-                @if (isAlumno || isDocente)
-                {
-                    <li class="nav-section" id="section-grupos-materias">
-                        <button class="section-btn" data-target="#menu-grupos-materias" aria-expanded="false">
-                            <i class="fas fa-layer-group"></i>
-                            <span class="section-label">Materias y Grupos</span>
-                        </button>
-                        <ul class="section-submenu" id="menu-grupos-materias" aria-hidden="true">
-                            @if (isDocente)
-                            {
-                                <li><a href="@Url.Action("Grupos", "Docente")" class="submenu-link">Gestionar Grupos</a></li>
-                                <li><a href="@Url.Action("MateriasSinGrupo", "Docente")" class="submenu-link">Materias sin grupo</a></li>
-                            }
-                            else
-                            {
-                                <li><a href="@Url.Action("Grupos", "Alumno")" class="submenu-link">Mis Grupos</a></li>
-                                <li><a href="@Url.Action("MateriasSinGrupo", "Alumno")" class="submenu-link">Mis Materias</a></li>
-                            }
-                        </ul>
-                    </li>
-                }
-
+    <a class="sidebar-menu" href="@Url.Action("Index", "Docente", new { seccion = "actividades" })">
+        <div class="icono-titulo">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 fill="currentColor"
+                 class="bi bi-card-checklist"
+                 viewBox="0 0 16 16">
+                <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
+                <path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0M7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0" />
+            </svg>
+            <div>Actividades</div>
+        </div>
+    </a>
+    <div class="collapse submenu" id="submenu2">
+        <a href="#" class="sub-item">
+            <div class="icono-titulo">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="16"
+                     height="16"
+                     fill="currentColor"
+                     class="bi bi-card-checklist"
+                     viewBox="0 0 16 16">
+                    <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z" />
+                    <path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0M7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0" />
+                </svg>
+                <div>Actividades</div>
+            </div>
+        </a>
+    </div>
                 <li class="nav-section" id="section-calendario">
                     <button class="section-btn" data-target="#menu-calendario" aria-expanded="false">
                         <i class="fas fa-calendar-alt"></i>
@@ -90,31 +104,19 @@
                     </ul>
                 </li>
 
-                <li class="nav-section" id="section-config">
-                    <button class="section-btn" data-target="#menu-perfil" aria-expanded="false">
-                        <i class="fas fa-user"></i>
-                        <span class="section-label">Cuenta</span>
-                    </button>
-                    <ul class="section-submenu" id="menu-perfil" aria-hidden="true">
-                        <li>@Html.ActionLink("Perfil", "Index", "Manage", null, new { @class = "submenu-link" })</li>
-                        <li>
-                            @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { @class = "logout-form" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="submenu-link btn-link" style="border:none;background:none;padding:0;color:inherit;text-align:left;">Cerrar sesi�n</button>
-                            }
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
+    <div style="height: 5px"></div>
 
-        <div class="sidebar-footer">
-            <small class="muted">� @DateTime.Now.Year</small>
+    <a class="sidebar-menu" data-bs-toggle="collapse" href="" role="button">
+        <div class="icono-titulo">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 fill="currentColor"
+                 class="bi bi-calendar"
+                 viewBox="0 0 16 16">
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
+            </svg>
+            <div>Calendario</div>
         </div>
-    </div>
-</aside>
-
-@section Scripts {
-    <script src="~/Scripts/sidebar.js"></script>
-}
+    </a>
+</div>

@@ -216,8 +216,16 @@ namespace ControlActividades.Controllers
                 return Json(new { mensaje = "El grupo no existe." });
             }
 
+            // Remove relations with materias
             var relaciones = Db.tbGruposMaterias.Where(gm => gm.GrupoId == grupoId).ToList();
             Db.tbGruposMaterias.RemoveRange(relaciones);
+
+            // Also remove student-group relations to avoid FK constraint violations
+            var relacionesAlumnosGrupos = Db.tbAlumnosGrupos.Where(ag => ag.GrupoId == grupoId).ToList();
+            if (relacionesAlumnosGrupos.Any())
+            {
+                Db.tbAlumnosGrupos.RemoveRange(relacionesAlumnosGrupos);
+            }
 
             Db.tbGrupos.Remove(grupo);
 
@@ -239,6 +247,13 @@ namespace ControlActividades.Controllers
 
             var relacionesGruposMaterias = Db.tbGruposMaterias.Where(mg => mg.GrupoId == grupoId).ToList();
             var materiasIds = relacionesGruposMaterias.Select(r => r.MateriaId).ToList();
+            // Remove any student-group relations for this group
+            var relacionesAlumnosGrupos = Db.tbAlumnosGrupos.Where(ag => ag.GrupoId == grupoId).ToList();
+            if (relacionesAlumnosGrupos.Any())
+            {
+                Db.tbAlumnosGrupos.RemoveRange(relacionesAlumnosGrupos);
+            }
+
 
             var relacionesAlumnosMaterias = Db.tbAlumnosMaterias.Where(am => materiasIds.Contains(am.MateriaId)).ToList();
             Db.tbAlumnosMaterias.RemoveRange(relacionesAlumnosMaterias);
