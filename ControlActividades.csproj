@@ -442,6 +442,7 @@
     <Content Include="Content\Iconos\LINK-26.svg" />
     <Content Include="Content\Iconos\LOGO HORIZONTAL-26.svg" />
     <Content Include="Content\Iconos\LOGO VERTICAL-26.svg" />
+    <Content Include="Content\Iconos\logo1.svg" />
     <Content Include="Content\Iconos\Materia.svg" />
     <Content Include="Content\Iconos\Notificacion.svg" />
     <Content Include="Content\Iconos\NOTIFICACIONES-26.svg" />

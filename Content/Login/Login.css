@@ -5,8 +5,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
 
 /*Colores*/
-:root{
-    --azul-twitter:#1db7f7;
+:root {
+    --azul-twitter: #1db7f7;
+    --fondo1: #082050;
+    --fondo2: #0F0C20;
 }
 
 * {
@@ -20,23 +22,11 @@ body {
     /* Center login both horizontally and vertically */
     min-height: 100vh;
     margin: 0;
-    background-color: #f1f2f4;
-}
-
-.login-box {
-    width: 100%;
-    padding: 10px 30px;
-    
-    background: #FFF;
-    border-radius: 15px;
-    border: 1px solid #ddd;
-    box-sizing: border-box;
-     
-    /*max-width: calc(100vw - 40px);*/
+    background-color: white;
 }
 
 .signin-box {
-    min-height: 650px;
+    min-height: auto;
 }
 
 .restablecer-box {
@@ -48,43 +38,10 @@ body {
 }
 
 
-.login-box,
-.signin-box,
-.restablecer-box,
-.verify-box {
-    width: 470px;
-    max-width: calc(100vw - 40px);
-    padding: 25px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    box-sizing: border-box;
-}
-
-/* Ensure auth boxes are centered in the viewport even if layout adds left margin 
-.login-box,
-.signin-box,
-.restablecer-box,
-.verify-box {
-     Fix to viewport center so login never appears shifted by surrounding layout 
-    position: fixed !important;
-     Use viewport units so centering is based on viewport even when an ancestor creates a containing block 
-    left: 50vw !important;
-    top: 50vh !important;
-    transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
-    z-index: 1100;
-}
-*/    
 /* For very small screens use normal flow so box can scroll */
 @media (max-width: 850px) {
 
-    .right-side {
-        justify-content: flex-start;
-        padding-top: 40px;
-    }
-
-    .login-box,
+ 
     .signin-box,
     .restablecer-box,
     .verify-box {
@@ -96,7 +53,6 @@ body {
         width: 180px;
     }
 }
-
 
 .input-box-code {
     display: flex;
@@ -310,19 +266,7 @@ button {
             text-decoration: none;
         }
 
-@media only screen and (max-width: 510px) {
-    .login-box {
-        padding: 10px 30px;
-        margin: 20px;
-    }
-}
 
-@media only screen and (max-width: 415px) {
-    .login-box {
-        padding: 10px 25px;
-        margin: 15px;
-    }
-}
 
 /* --- BOTÓN mostrar/ocultar contraseña --- */
 
@@ -372,49 +316,147 @@ button {
 }
 
 
-
-.login-full {
-    height: 100vh;
-    width: 100vw;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    background-color: white;
+/*Personalizados*/
+.titulo-color{
+    color:var(--azul-twitter);
+    padding-top: 50px;
+}
+.mb-10 {
+    margin-bottom: 10px;
+}
+.titulo-bienvenida{
+    color:white;
+}
+.container-fluid {
+    padding-left: 0px;
+    padding-right: 40px;
 }
 
-.left-side {
-    position: relative;
-    height: 100%;
-    overflow: hidden;
-    
-    background-image: url('../Imgs/background-student.jpg');
-    background-size: cover;
-    background-position: center;
 
-    border-top-right-radius: 5vw;
-    border-bottom-right-radius: 5vw;
-    /*border: 5px solid red !important;*/
+/* Fila principal */
+.auth-row {
+    min-height: auto; /* que crezca según contenido */
 }
 
-    .left-side .back-img {
-        position: absolute;
-        inset: 0;
-        opacity: 0.5;
-        z-index: 1;
-        mix-blend-mode: multiply;
-        height: 100vh;
-    }
-
-.right-side {
+.auth-cover-wrapper {
     display: flex;
     flex-direction: column;
+    justify-content: center; /* centrar vertical dentro de su espacio */
     align-items: center;
-    justify-content: flex-start;
-    padding: 40px 20px;
-    gap: 20px;
+    padding: 30px;
+    height: auto; /* importante para que no corte */
 }
-.logo {
-    margin-top: 10px;
-    margin-bottom: 15px;
+.auth-cover .cover-image img {
+    max-width: 300px;
+    width: 80%;
+    height: auto;
 }
 
-/*GRID / flexbox*/
+.auth-cover-wrapper .auth-cover .title {
+    text-align: cover;
+    margin-bottom: 40px;
+}
+
+
+.auth-cover-wrapper .auth-cover .cover-image {
+    max-width: 100%;
+    margin: auto;
+}
+
+    .auth-cover-wrapper .auth-cover .cover-image img {
+        width: 100%;
+    }
+
+
+.signin-wrapper {
+    background: #fff;
+    padding: 60px;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+    .signin-wrapper {
+        padding: 40px;
+    }
+}
+
+@media (max-width: 767px) {
+    .signin-wrapper {
+        padding: 30px;
+    }
+}
+
+.signin-wrapper .form-wrapper {
+    width: 100%;
+}
+
+
+
+/*Botones*/
+.main-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    padding: 15px 45px;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.4s ease-in-out;
+    border: 1px solid transparent;
+    overflow: hidden;
+}
+
+    .main-btn i {
+        font-size: 17px;
+    }
+
+    .main-btn svg {
+        fill: currentColor;
+    }
+
+    .main-btn:hover {
+        color: inherit;
+    }
+
+.danger-btn {
+    background: #d50100;
+    color: #fff;
+}
+
+    .danger-btn:hover {
+        color: #fff;
+    }
+
+.danger-btn-outline {
+    background: transparent;
+    color: #d50100;
+    border-color: #d50100;
+}
+
+    .danger-btn-outline:hover {
+        color: #fff;
+        background: #d50100;
+    }
+
+.danger-btn-light {
+    background: rgba(213, 1, 0, 0.12);
+    color: #d50100;
+}
+
+    .danger-btn-light:hover {
+        color: #d50100;
+    }
