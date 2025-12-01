@@ -80,17 +80,24 @@
 
         <div id="seccion-configuracion" class="seccion" style="display: none;">
             <h4>Configuración de la materia</h4>
+
             <div class="mb-3">
-                <label class="form-label">Nombre de la materia</label>
-                <input id="configNombre" class="form-control" />
+                <label class="form-label">Editar Nombre</label>
+                <div class="input-group">
+                    <input id="configNombre" class="form-control" />
+                    <button id="btnGuardarNombre" class="btn btn-primary" type="button" style="margin-left:2cm;">Guardar</button>
+                </div>
             </div>
+
             <div class="mb-3">
-                <label class="form-label">Descripción</label>
-                <textarea id="configDescripcion" class="form-control"></textarea>
+                <label class="form-label">Editar Descripción</label>
+                <div class="d-flex" style="gap:10px; align-items:flex-start;">
+                    <textarea id="configDescripcion" class="form-control" style="min-height:120px; flex:1;"></textarea>
+                    <button id="btnGuardarDescripcion" class="btn btn-primary" type="button" style="height:40px; align-self:flex-start; margin-left:2cm;">Guardar</button>
+                </div>
             </div>
+
             <div class="d-flex" style="gap:10px;">
-                <button id="btnGuardarConfig" class="btn btn-success">Guardar</button>
-                <button id="btnEditarMateria" class="btn btn-primary">Editar Materia</button>
                 <button id="btnCopiarMateria" class="btn btn-secondary">Copiar Materia</button>
                 <button id="btnEliminarMateria" class="btn btn-danger">Eliminar Materia</button>
             </div>
@@ -144,22 +151,26 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        var btnGuardar = document.getElementById('btnGuardarConfig');
-        if (btnGuardar) {
-            btnGuardar.addEventListener('click', async function () {
-                var nombre = document.getElementById('configNombre').value.trim();
-                var descripcion = document.getElementById('configDescripcion').value.trim();
-                if (!nombre) { Swal.fire('Error', 'El nombre es requerido', 'error'); return; }
-                try {
-                    const resp = await fetch(`/Materias/ActualizarMateria?materiaId=${materiaIdGlobal}`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
-                    });
-                    if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); }
-                    else { Swal.fire('Error', 'No se pudo guardar', 'error'); }
-                } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); }
-            });
+        // Guardar nombre y descripcion con botones individuales
+        const btnGuardarNombre = document.getElementById('btnGuardarNombre');
+        const btnGuardarDescripcion = document.getElementById('btnGuardarDescripcion');
+
+        async function guardarConfig() {
+            const nombre = document.getElementById('configNombre').value.trim();
+            const descripcion = document.getElementById('configDescripcion').value.trim();
+            if (!nombre) { Swal.fire('Error', 'El nombre es requerido', 'error'); return false; }
+            try {
+                const resp = await fetch(`/Materias/ActualizarMateria?materiaId=${materiaIdGlobal}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
+                });
+                if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); return true; }
+                else { Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
+            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
         }
+
+        if (btnGuardarNombre) btnGuardarNombre.addEventListener('click', function () { guardarConfig(); });
+        if (btnGuardarDescripcion) btnGuardarDescripcion.addEventListener('click', function () { guardarConfig(); });
 
         // rellenar inputs de configuracion con datos actuales
         fetch(`/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`).then(r => r.json()).then(data => {
