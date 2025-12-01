@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -12,8 +12,10 @@
     @RenderSection("styles", required: false)
 
     @Scripts.Render("~/bundles/modernizr")
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
     <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
 
 
@@ -29,6 +31,11 @@
         </div>
     </div>
 
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/sidebar.js"></script>
+    <script type="module" src="~/Scripts/Firebase/firebase.js"></script>
+
     <!--SPINNER DE CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
@@ -42,6 +49,14 @@
     <script src="~/Scripts/sidebar.js"></script>
     <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
 
+    <script type="module">
+        import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                registrarTokenFcm();
+            }, 500);
+        });
+    </script>
 
     @RenderSection("scripts", required: false)
 </body>

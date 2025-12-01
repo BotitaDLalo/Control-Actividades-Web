@@ -1,0 +1,151 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "Calendario";
+    int docenteId = ViewBag.DocenteId ?? 0;
+}
+
+<div class="calendario-wrapper" style="padding:20px;">
+    <div id="calendar" style="max-width: 1200px; margin: 0 auto;"></div>
+
+    <!-- MODAL DE EVENTOS -->
+    <div id="modalEvento" class="modal-evento" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal12">&times;</span>
+            <h2>Eventos del <span id="fechaSeleccionadaTexto"></span></h2>
+
+            <div id="listaEventos"></div>
+
+            <button id="btnAgregarEvento">Agregar Evento</button>
+
+        </div>
+    </div>
+</div>
+
+
+<div id="modalCrearEvento" class="modal-evento" style="display:none;">
+    <div class="modal-crear-content">
+        <span class="close-crear">&times;</span>
+        <h2>Crear nuevo evento</h2>
+
+        <form id="formEvento">
+            <label for="titulo">Título:</label>
+            <input type="text" id="titulo" name="Titulo" required>
+
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="Descripcion" required></textarea>
+
+            <label for="FechaInicio">Fecha Inicio:</label>
+            <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
+
+            <label for="FechaFinal">Fecha Final:</label>
+            <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+
+            <label for="color">Color:</label>
+            <select id="color" name="Color" required>
+                <option value="azul">Azul</option>
+                <option value="gris">Gris</option>
+            </select>
+
+            <h3>Grupos y Materias</h3>
+            <div id="contenedorGruposMaterias"></div>
+            <button type="submit">Guardar</button>
+
+
+        </form>
+
+    </div>
+</div>
+
+
+<!--Detalle-->
+<div id="modalDetalleEvento" class="modal-evento" style="display:none;">
+    <div class="modal-detalle-content">
+        <span class="close-detalle">&times;</span>
+        <h3 id="detalle-titulo">Título del evento</h3>
+
+        <div class="detalle-meta">
+            <p><strong>Inicio:</strong> <span id="detalle-fecha-inicio"></span></p>
+            <p><strong>Fin:</strong> <span id="detalle-fecha-final"></span></p>
+            <p><strong>Color:</strong> <span id="detalle-color"></span></p>
+        </div>
+
+        <div class="detalle-descripcion">
+            <h4 id="descripcion-titulo">Descripción</h4>
+            <p id="detalle-descripcion"></p>
+        </div>
+
+        <div id="detalle-destinatarios" style="display:none;">
+            <div id="detalle-destinatarios-scroll">
+                <h4>Destinatarios</h4>
+
+                <div id="detalle-grupos" style="display:none;">
+                    <strong>Grupos:</strong>
+                    <ul id="lista-grupos"></ul>
+                </div>
+
+                <div id="detalle-materias" style="display:none;">
+                    <strong>Materias sin grupo:</strong>
+                    <ul id="lista-materias"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="detalle-acciones" style="margin-top:15px;">
+            <button id="btnEditarEvento" class="btn btn-primary">Editar</button>
+            <button id="btnEliminarEvento" class="btn btn-danger">Eliminar</button>
+            <button id="btnCerrarDetalle" class="btn btn-secondary">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!--Editar-->
+<div id="modalEditarEvento" class="modal-evento" style="display:none;">
+    <div class="modal-crear-content">
+        <span class="close-editar" id="closeEditar">&times;</span>
+        <h2>Editar evento</h2>
+
+        <form id="formEditarEvento">
+            <input type="hidden" id="editar-evento-id" />
+
+            <label for="editar-titulo">Título:</label>
+            <input type="text" id="editar-titulo" required>
+
+            <label for="editar-fecha-inicio">Fecha inicio:</label>
+            <input type="datetime-local" id="editar-fecha-inicio" required>
+
+            <label for="editar-fecha-final">Fecha final:</label>
+            <input type="datetime-local" id="editar-fecha-final">
+
+            <label for="editar-color">Color:</label>
+            <select id="editar-color" name="Color" required>
+                <option value="azul">Azul</option>
+                <option value="gris">Gris</option>
+            </select>
+
+
+            <label for="editar-descripcion">Descripción:</label>
+            <textarea id="editar-descripcion"></textarea>
+
+            <p class="titulo-seccion">Destinatarios:</p>
+
+            <div class="grupos-materias-container" id="editar-contenedorGruposMaterias">
+            </div>
+
+            <button type="submit">Guardar cambios</button>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+    <script>
+        var docenteIdGlobal = @docenteId;
+    </script>
+    <script src="~/Scripts/Docente/AgendaFullCalendar.js"></script>
+}
+
+@section styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
+    <link href="~/Content/Componentes/Calendario.css" rel="stylesheet" />
+}

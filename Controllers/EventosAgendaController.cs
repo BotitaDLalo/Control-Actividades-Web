@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -98,7 +99,19 @@ namespace ControlActividades.Controllers
             }
         }
 
-        public ActionResult Calendario()
+        public ActionResult IrACalendario()
+        {
+            if (User.IsInRole("Docente"))
+                return RedirectToAction("CalendarioDocentes");
+
+            if(User.IsInRole("Alumno"))
+                return RedirectToAction("CalendarioAlumnos");
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [Authorize(Roles = "Docente")]
+        public ActionResult CalendarioDocentes()
         {
             string userId = User.Identity.GetUserId();
             var docenteId = Db.tbDocentes
@@ -110,6 +123,205 @@ namespace ControlActividades.Controllers
             return View();
         }
 
+        [Authorize (Roles = "Alumno")]
+        public ActionResult CalendarioAlumnos()
+        {
+            string userId = User.Identity.GetUserId();
+            var alumnoId = Db.tbAlumnos
+                .Where(a => a.UserId == userId)
+                .Select(a => a.AlumnoId)
+                .FirstOrDefault();
+            ViewBag.AlumnoId = alumnoId;
+            return View();
+        }
+
+        //  SECCIÓN ALUMNOS
+        // Obtener eventos por fecha seleccionada en el calendario
+        public ActionResult ObtenerEventosAlumnoFecha(int alumnoId, string fecha)
+        {
+            try
+            {
+                if (!DateTime.TryParse(fecha, out DateTime fechaSeleccionada))
+                {
+                    return new HttpStatusCodeResult(400, "Fecha inválida.");
+                }
+
+                var fechaSoloDia = fechaSeleccionada.Date;
+
+                var gruposAlumno = Db.tbAlumnosGrupos
+                    .Where(a => a.AlumnoId == alumnoId)
+                    .Select(a => a.GrupoId)
+                    .ToList();
+
+                var materiasAlumno = Db.tbAlumnosMaterias
+                    .Where(a => a.AlumnoId == alumnoId)
+                    .Select(a => a.MateriaId)
+                    .ToList();
+
+                var eventosPorGrupos = from eg in Db.tbEventosGrupos
+                                       join ev in Db.tbEventosAgenda on eg.FechaId equals ev.EventoId
+                                       join d in Db.tbDocentes on ev.DocenteId equals d.DocenteId
+                                       where gruposAlumno.Contains(eg.GrupoId)
+                                             && DbFunctions.TruncateTime(ev.FechaInicio) <= fechaSoloDia
+                                             && DbFunctions.TruncateTime(ev.FechaFinal) >= fechaSoloDia
+                                       select new
+                                       {
+                                           ev.EventoId,
+                                           ev.Titulo,
+                                           ev.Descripcion,
+                                           ev.FechaInicio,
+                                           ev.FechaFinal,
+                                           ev.Color,
+                                           Docente = d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno
+                                       };
+
+                var eventosPorMaterias = from em in Db.tbEventosMaterias
+                                         join ev in Db.tbEventosAgenda on em.FechaId equals ev.EventoId
+                                         join d in Db.tbDocentes on ev.DocenteId equals d.DocenteId
+                                         where materiasAlumno.Contains(em.MateriaId)
+                                               && DbFunctions.TruncateTime(ev.FechaInicio) <= fechaSoloDia
+                                                && DbFunctions.TruncateTime(ev.FechaFinal) >= fechaSoloDia
+                                         select new
+                                         {
+                                             ev.EventoId,
+                                             ev.Titulo,
+                                             ev.Descripcion,
+                                             ev.FechaInicio,
+                                             ev.FechaFinal,
+                                             ev.Color,
+                                             Docente = d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno
+                                         };
+
+                var todos = eventosPorGrupos
+                    .Union(eventosPorMaterias)
+                    .Distinct()
+                    .ToList();
+
+                return Json(new { ok = true, eventos = todos }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Obtener evento individual para mostrar sus detalles
+        [HttpGet]
+        public ActionResult ObtenerEventoAlumnoId(int eventoId, int alumnoId)
+        {
+            try
+            {
+                var evento = Db.tbEventosAgenda.FirstOrDefault(e => e.EventoId == eventoId);
+                if (evento == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new { ok = false, mensaje = "Evento no encontrado" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Obtener docente
+                var docente = Db.tbDocentes
+                    .Where(d => d.DocenteId == evento.DocenteId)
+                    .Select(d => new
+                    {
+                        NombreCompleto = d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno
+                    })
+                    .FirstOrDefault();
+
+                var materiasAlumno = Db.tbAlumnosMaterias
+                    .Where(a => a.AlumnoId == alumnoId)
+                    .Select(a => a.MateriaId)
+                    .ToList();
+
+                var gruposAlumno = Db.tbAlumnosGrupos
+                    .Where(a => a.AlumnoId == alumnoId)
+                    .Select(a => a.GrupoId)
+                    .ToList();
+
+
+                var materiasEvento = Db.tbEventosMaterias
+                    .Where(em => em.FechaId == eventoId)
+                    .Select(em => em.MateriaId)
+                    .ToList();
+
+                var gruposEvento = Db.tbEventosGrupos
+                    .Where(eg => eg.FechaId == eventoId)
+                    .Select(eg => eg.GrupoId)
+                    .ToList();
+
+  
+
+                bool esEventoPorGrupo = gruposEvento.Any();
+                List<int> materiasMostrar = new List<int>();
+                string nombreGrupoMostrar = null;
+
+                if (esEventoPorGrupo)
+                {
+                    // Toma del grupo principal
+                    int grupoPrincipal = gruposEvento.First();
+
+                    var materiasDelGrupo = Db.tbGruposMaterias
+                        .Where(gm => gm.GrupoId == grupoPrincipal)
+                        .Select(gm => gm.MateriaId)
+                        .ToList();
+
+                    materiasMostrar = materiasDelGrupo
+                        .Intersect(materiasAlumno)
+                        .ToList();
+
+                    // Mostar gruppo solo si el alumno pertenece a él
+                    if (gruposAlumno.Contains(grupoPrincipal))
+                    {
+                        nombreGrupoMostrar = Db.tbGrupos
+                            .Where(g => g.GrupoId == grupoPrincipal)
+                            .Select(g => g.NombreGrupo)
+                            .FirstOrDefault();
+                    }
+                }
+                else
+                {
+                    // Evento por materias sueltas
+                    materiasMostrar = materiasEvento
+                        .Intersect(materiasAlumno)
+                        .ToList();
+                }
+
+                // Cargar nombres de materias a mostrar
+                var materiasFinal = Db.tbMaterias
+                    .Where(m => materiasMostrar.Contains(m.MateriaId))
+                    .Select(m => new
+                    {
+                        m.MateriaId,
+                        m.NombreMateria
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    ok = true,
+                    evento = new
+                    {
+                        evento.EventoId,
+                        evento.Titulo,
+                        evento.Descripcion,
+                        FechaInicio = evento.FechaInicio.ToString("o"),
+                        FechaFinal = evento.FechaFinal.ToString("o"),
+                        evento.Color,
+                        Docente = docente?.NombreCompleto ?? "Docente desconocido"
+                    },
+                    esPorGrupo = esEventoPorGrupo,
+                    grupo = nombreGrupoMostrar,
+                    materias = materiasFinal
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+
+        //  SECCIÓN DOCENTES
         [Authorize]
         [HttpGet]
         public ActionResult ObtenerGruposYMaterias()
@@ -268,6 +480,7 @@ namespace ControlActividades.Controllers
                         JsonRequestBehavior.AllowGet);
         }
 
+        //tbEventosAgenda por docente
         [Authorize]
         [HttpGet]
         public ActionResult ObtenerEventosDocente()
@@ -291,6 +504,96 @@ namespace ControlActividades.Controllers
                 .ToList();
 
             return Json(eventos, JsonRequestBehavior.AllowGet);
+        }
+
+        //Eventos con tablas relacionadas tbMaterias y tbGrupos
+        [Authorize]
+        [HttpGet]
+        public ActionResult ObtenerEventoPorId(int id)
+        {
+            // Buscar evento principal
+            var eventoEntity = Db.tbEventosAgenda
+                .FirstOrDefault(e => e.EventoId == id);
+
+            if (eventoEntity == null)
+            {
+                Response.StatusCode = 404;
+                return Json(new { mensaje = "Evento no encontrado" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var evento = new
+            {
+                eventoId = eventoEntity.EventoId,
+                titulo = eventoEntity.Titulo,
+                descripcion = eventoEntity.Descripcion,
+                fechaInicio = eventoEntity.FechaInicio.ToString("o"), // ISO 8601
+                fechaFinal = eventoEntity.FechaFinal.ToString("o"),
+                color = eventoEntity.Color
+            };
+
+            // Materias asociadas al evento (ids)
+            var materiasEventoIds = Db.tbEventosMaterias
+                .Where(em => em.FechaId == id)
+                .Select(em => em.MateriaId)
+                .ToList();
+
+            // Grupos asociados al evento (ids)
+            var gruposEventoIds = Db.tbEventosGrupos
+                .Where(eg => eg.FechaId == id)
+                .Select(eg => eg.GrupoId)
+                .ToList();
+
+            // Grupos que contienen alguna de las materias del evento
+            var gruposPorMateriasIds = Db.tbGruposMaterias
+                .Where(gm => materiasEventoIds.Contains(gm.MateriaId))
+                .Select(gm => gm.GrupoId)
+                .ToList();
+            
+            // Unión de ambos sin repetir
+            var gruposMostrarIds = gruposEventoIds
+                .Union(gruposPorMateriasIds)
+                .Distinct()
+                .ToList();
+
+            // Cargar grupos con todas sus materias
+            var gruposConMaterias = Db.tbGrupos
+                .Where(g => gruposMostrarIds.Contains(g.GrupoId))
+                .Select(g => new
+                {
+                    grupoId = g.GrupoId,
+                    nombre = g.NombreGrupo,
+                    materias = Db.tbGruposMaterias
+                        .Where(gm => gm.GrupoId == g.GrupoId)
+                        .Join(Db.tbMaterias,
+                              gm => gm.MateriaId,
+                              m => m.MateriaId,
+                              (gm, m) => new
+                              {
+                                  materiaId = m.MateriaId,
+                                  nombre = m.NombreMateria,
+                                  isSelected = materiasEventoIds.Contains(m.MateriaId)
+                              })
+                        .ToList()
+                })
+                .ToList();
+
+            // Materias sin grupos asociadas al evento:
+            // materias que están en tbEventosMaterias pero no en tbGruposMaterias (no pertenecen a ningún grupo)
+            var materiasSueltas = Db.tbMaterias
+                .Where(m => materiasEventoIds.Contains(m.MateriaId)
+                            && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
+                .Select(m => new { materiaId = m.MateriaId, nombre = m.NombreMateria })
+                .ToList();
+
+            bool esPersonal = !gruposConMaterias.Any() && !materiasSueltas.Any();
+
+            return Json(new
+            {
+                evento = evento,
+                esPersonal = esPersonal,
+                gruposConMaterias = gruposConMaterias,
+                materiasSueltas = materiasSueltas
+            }, JsonRequestBehavior.AllowGet);
         }
 
         [Authorize]
@@ -323,45 +626,111 @@ namespace ControlActividades.Controllers
             return Json(eventos, JsonRequestBehavior.AllowGet);
         }
 
+
+        //Obtener Evento para editar
         [Authorize]
-        [HttpPut]
-        public async Task<ActionResult> EditarEvento(EventoEditarDTO model)
+        [HttpGet]
+        public async Task<ActionResult> GetEvento(int id)
+        {
+            var evento = await Db.tbEventosAgenda
+                .Include(e => e.EventosGrupos)
+                .Include(e => e.EventosMaterias)
+                .FirstOrDefaultAsync(e => e.EventoId == id);
+
+            if (evento == null)
+                return HttpNotFound("Evento no encontrado");
+
+            return Json(new
+            {
+                eventoId = evento.EventoId,
+                titulo = evento.Titulo,
+                descripcion = evento.Descripcion,
+                fechaInicio = evento.FechaInicio,
+                fechaFinal = evento.FechaFinal,
+                color = evento.Color,
+
+                gruposSeleccionados = evento.EventosGrupos.Select(g => g.GrupoId).ToList(),
+                materiasSeleccionadas = evento.EventosMaterias.Select(m => m.MateriaId).ToList()
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public ActionResult EditarEvento(EventoEditarDTO model)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    Response.StatusCode = 400; // Bad Request
+                    Response.StatusCode = 400;
                     return Json(new { mensaje = "Datos inválidos" });
                 }
 
-                var eventoEditar = await Db.tbEventosAgenda.FindAsync(model.EventoId);
-                if (eventoEditar == null) {
-                    Response.StatusCode = 404; // Not Found
+                var evento = Db.tbEventosAgenda.Find(model.EventoId);
+
+                if (evento == null)
+                {
+                    Response.StatusCode = 404;
                     return Json(new { mensaje = "Evento no encontrado" });
                 }
 
-                if (model.FechaFinal < model.FechaInicio)
+                
+                // Actualizar datos del evento
+                evento.Titulo = model.Titulo;
+                evento.Descripcion = model.Descripcion;
+                evento.Color = model.Color;
+                evento.FechaInicio = model.FechaInicio;
+                evento.FechaFinal = model.FechaFinal;
+
+                
+                // Actualizar grupos asignados
+                var gruposActuales = Db.tbEventosGrupos
+                    .Where(x => x.FechaId == model.EventoId)
+                    .ToList();
+
+                foreach (var item in gruposActuales)
+                    Db.tbEventosGrupos.Remove(item);
+
+                if (model.GruposSeleccionados != null)
                 {
-                    Response.StatusCode = 400;
-                    return Json(new { mensaje = "La fecha final no puede ser anterior a la fecha de inicio" });
+                    foreach (var idGrupo in model.GruposSeleccionados)
+                    {
+                        Db.tbEventosGrupos.Add(new tbEventosGrupos
+                        {
+                            FechaId = model.EventoId,        
+                            GrupoId = idGrupo
+                        });
+                    }
                 }
 
-                eventoEditar.Titulo = model.Titulo;
-                eventoEditar.Descripcion = model.Descripcion;
-                eventoEditar.FechaInicio = model.FechaInicio;
-                eventoEditar.FechaFinal = model.FechaFinal;
-                eventoEditar.Color = model.Color;
-                
-                await Db.SaveChangesAsync();
+                // Actualizar materias asignadas
+                var materiasActuales = Db.tbEventosMaterias
+                    .Where(x => x.FechaId == model.EventoId)  
+                    .ToList();
+
+                foreach (var item in materiasActuales)
+                    Db.tbEventosMaterias.Remove(item);
+
+                if (model.MateriasSeleccionadas != null)
+                {
+                    foreach (var idMat in model.MateriasSeleccionadas)
+                    {
+                        Db.tbEventosMaterias.Add(new tbEventosMaterias
+                        {
+                            FechaId = model.EventoId,         
+                            MateriaId = idMat
+                        });
+                    }
+                }
+
+                Db.SaveChanges();
 
                 return Json(new { mensaje = "Evento actualizado correctamente" });
-
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
-                Response.StatusCode = 500; //Internal Server Error
-                return Json(new { mensaje = "Error al actualizar el evento ", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al editar evento", error = ex.Message });
             }
         }
 
@@ -371,24 +740,37 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var eventoEliminar = await Db.tbEventosAgenda.FindAsync(id);
-                if (eventoEliminar == null)
+                var evento = await Db.tbEventosAgenda.FindAsync(id);
+                if (evento == null)
                 {
-                    Response.StatusCode = 400; // Bad Request
+                    Response.StatusCode = 404;
                     return Json(new { mensaje = "Evento no encontrado" }, JsonRequestBehavior.AllowGet);
                 }
 
-                Db.tbEventosAgenda.Remove(eventoEliminar);
+                // Eliminar grupos relacionados
+                var grupos = Db.tbEventosGrupos.Where(g => g.FechaId == id).ToList();
+                foreach (var g in grupos)
+                    Db.tbEventosGrupos.Remove(g);
+
+                // Eliminar materias relacionadas
+                var materias = Db.tbEventosMaterias.Where(m => m.FechaId == id).ToList();
+                foreach (var m in materias)
+                    Db.tbEventosMaterias.Remove(m);
+
+                // Eliminar evento principal
+                Db.tbEventosAgenda.Remove(evento);
+
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Evento eliminado" }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Evento eliminado correctamente" }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; //Internal Server Error
-                return Json(new { mensaje = "Error al eliminar el evento ", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al eliminar el evento", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
 
         protected override void Dispose(bool disposing)
         {

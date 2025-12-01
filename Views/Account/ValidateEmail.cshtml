@@ -1,38 +1,67 @@
 ﻿@{ 
+    Layout = null;
     ViewBag.Title = "Validar email";
 }
 
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
     <!--<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">-->
-    @*<link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />*@
-
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" />
+    <link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/Variables/colors.css")" rel="stylesheet" />
     <title>Validar correo</title>
 </head>
 <body>
-    <div class="logo">
-        <img src="@Url.Content("~/Content/Iconos/iconizer-LOGO HORIZONTAL-AzulF.svg")" alt="Logo" class="mx-auto d-block" />
-    </div>
-    <div class="verify-box">
 
+    <section class="signin-section">
+        <div class="container-fluid">
+            <!--Contenedor de logo y form-->
+            <div class="row g-0 auth-row">
+                <div class="col-lg-6" style="background-color:var(--fondo2); border-top-right-radius: 150px; ">
+                    <div class="auth-cover-wrapper bg-primary-100">
+                        <div class="auth-cover">
+                            <div class="title text-center">
+                                <div class="cover-image">
+                                    <img src="~/Content/Iconos/logo2.svg" alt="" />
+                                </div>
+                                <h1 class="titulo-color mb-10">APRENDE +</h1>
+                            </div>
+                            <div>
+                                <h2 class="text-center" style="color:white;">Bienvenido</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="login-header">
-            <header>Validar correo</header>
+                <div class="col-lg-6">
+                    <div class="signin-wrapper">
+                        <div class="form-wrapper">
+                            <div class="login-header">
+                                <header>Ingresa tu correo electrónico</header>
+                            </div>
+                            @using (Html.BeginForm("ValidateEmail", "Account", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <div class="input-box">
+                                    <input name="email" type="text" class="input-field" id="email" autocomplete="off" required />
+                                    <label for="email">Correo electrónico</label>
+                                </div>
+                                <div class="input-box">
+                                    <input type="submit" class="input-submit" value="Verificar" />
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </section>
 
-        @using (Html.BeginForm("ValidateEmail", "Account", FormMethod.Post))
-        {
-            @Html.AntiForgeryToken()
-            <div class="input-box">
-                <input name="email" type="text" class="input-field" id="email" autocomplete="off" required />
-                <label for="email">Correo electrónico</label>
-            </div>
-            <div class="input-box">
-                <input type="submit" class="input-submit" value="Verificar" />
-            </div>
-        }
-    </div>
 </body>
 </html>
 @section Scripts {

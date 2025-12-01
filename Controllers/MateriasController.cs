@@ -2,6 +2,7 @@
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -28,18 +29,20 @@ namespace ControlMaterias.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private NotificacionesService _notifServ;
 
         public MateriasController()
         {
         }
 
-        public MateriasController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
+        public MateriasController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, NotificacionesService notificacionesService)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+            Ns = notificacionesService;
         }
 
         public ApplicationSignInManager SignInManager
@@ -99,6 +102,18 @@ namespace ControlMaterias.Controllers
             set
             {
                 _fg = value;
+            }
+        }
+
+        public NotificacionesService Ns
+        {
+            get
+            {
+                return _notifServ ?? (_notifServ = new NotificacionesService(_db));
+            }
+            private set
+            {
+                _notifServ = value;
             }
         }
 
@@ -503,6 +518,7 @@ namespace ControlMaterias.Controllers
 
         //Controlador para crear un aviso funciona desde dentro de la materia
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> CrearAviso(tbAvisos avisos)
         {
             if (avisos == null)
@@ -525,6 +541,12 @@ namespace ControlMaterias.Controllers
 
                 Db.tbAvisos.Add(nuevoAviso);
                 await Db.SaveChangesAsync();
+
+                await Ns.NotificacionCrearAviso(
+                    nuevoAviso,
+                    nuevoAviso.GrupoId,
+                    nuevoAviso.MateriaId
+                );
 
                 return Json(new { mensaje = "Aviso creado con éxito" }, JsonRequestBehavior.AllowGet);
             }

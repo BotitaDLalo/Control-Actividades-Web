@@ -5,7 +5,7 @@
 function ocultarLoader() {
     setTimeout(() => {
         $("#loader").removeClass("visible");
-    }, 100); // retrasa x milisegundos para ver la animación
+    }, 10); // retrasa x milisegundos para ver la animación
 }
 
 
