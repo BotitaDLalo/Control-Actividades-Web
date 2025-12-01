@@ -498,3 +498,7 @@ button {
     cursor: pointer;
     transition: color 0.3s;
 }
+
+.swal2-container {
+    z-index: 99999 !important;
+}
