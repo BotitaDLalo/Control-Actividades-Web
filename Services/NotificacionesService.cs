@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FirebaseAdmin.Messaging;
+using NPOI.XWPF.UserModel;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -67,53 +69,95 @@ namespace ControlActividades.Services
         #region Crear notificaciones
         public async Task NotificacionCrearAviso(tbAvisos aviso, int? grupoId, int? materiaId)
         {
-            List<int> lsAlumnosId = new List<int>();
-
-            if (grupoId != null)
+            try
             {
-                lsAlumnosId = await Db.tbAlumnosGrupos
-                    .Where(a => a.GrupoId == grupoId)
-                    .Select(a => a.AlumnoId)
+                List<int> lsAlumnosId = new List<int>();
+
+                if (grupoId != null)
+                {
+                    lsAlumnosId = await Db.tbAlumnosGrupos
+                        .Where(a => a.GrupoId == grupoId)
+                        .Select(a => a.AlumnoId)
+                        .ToListAsync();
+                }
+                else if (materiaId != null)
+                {
+                    lsAlumnosId = await Db.tbAlumnosMaterias
+                        .Where(a => a.MateriaId == materiaId)
+                        .Select(a => a.AlumnoId).ToListAsync();
+                }
+
+                //Lista de alumnos a notificar
+                var lsAlumnosUserIds = await Db.tbAlumnos
+                    .Where(a => lsAlumnosId.Contains(a.AlumnoId))
+                    .Select(a => a.UserId)
                     .ToListAsync();
+
+                var lsFcmTokens = await Db.tbUsuariosFcmTokens
+                    .Where(a => lsAlumnosUserIds.Contains(a.UserId))
+                    .Select(a => new UsuarioFcmToken { FcmToken = a.Token, UserId = a.UserId })
+                    .ToListAsync();
+
+                ElementosNotificacion notificacion = new ElementosNotificacion()
+                {
+                    LsUsuariosFcmTokens = lsFcmTokens,
+                    Titulo = aviso.Titulo,
+                    Descripcion = aviso.Descripcion,
+                };
+
+                foreach (var t in lsFcmTokens)
+                {
+                    System.Diagnostics.Debug.WriteLine("TOKEN: " + t.FcmToken);
+                }
+
+                await FCM.SendBatchNotificationsAsync(
+                    lsFcmTokens.Select(a => a.FcmToken).ToList(),
+                    notificacion.Titulo,
+                    notificacion.Descripcion
+                );
+
+                var messageId = Guid.NewGuid().ToString();
+
+                //Una notificación por usuario
+                foreach (var userId in lsAlumnosUserIds)
+                {
+                    await GuardarNotificacionAsync(
+                        userId,
+                        messageId,
+                        notificacion.Titulo,
+                        notificacion.Descripcion
+                    );
+                }
             }
-            else if (materiaId != null)
+            catch (Exception ex)
             {
-                lsAlumnosId = await Db.tbAlumnosMaterias
-                    .Where(a => a.MateriaId == materiaId)
-                    .Select(a => a.AlumnoId).ToListAsync();
+                System.Diagnostics.Debug.WriteLine("Error en Notificacion de Crear Aviso: " + ex.Message);
             }
-
-            //Lista de alumnos a notificar
-            var lsAlumnosUserIds = await Db.tbAlumnos
-                .Where(a => lsAlumnosId.Contains(a.AlumnoId))
-                .Select(a => a.UserId)
-                .ToListAsync();
-
-            var lsFcmTokens = await Db.tbUsuariosFcmTokens
-                .Where(a => lsAlumnosUserIds.Contains(a.UserId))
-                .Select(a => new UsuarioFcmToken { FcmToken = a.Token, UserId = a.UserId })
-                .ToListAsync();
-
-            ElementosNotificacion notificacion = new ElementosNotificacion()
-            {
-                LsUsuariosFcmTokens = lsFcmTokens,
-                Titulo = aviso.Titulo,
-                Descripcion = aviso.Descripcion,
-            };
-
-            foreach (var t in lsFcmTokens)
-            {
-                System.Diagnostics.Debug.WriteLine("TOKEN: " + t.FcmToken);
-            }
-
-            await FCM.SendBatchNotificationsAsync(
-                lsFcmTokens.Select(a => a.FcmToken).ToList(),
-                notificacion.Titulo,
-                notificacion.Descripcion
-            );
             
 
-            //await DetonarNotificaciones(notificacion);
+        }
+
+        public async Task GuardarNotificacionAsync(string userId, string messageId, string title, string body)
+        {
+            try
+            {
+                var noti = new tbNotificaciones
+                {
+                    UserId = userId,
+                    MessageId = messageId,
+                    Title = title,
+                    Body = body,
+                    FechaRecibido = DateTime.Now
+                };
+
+                _db.tbNotificaciones.Add(noti);
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error al guardar notificación: " + ex.Message);
+            }
+            
         }
 
 
