@@ -12,3 +12,22 @@
 @section Scripts{
     <script src="~/Scripts/Docente/Grupos/mostrarMateriasGrupo.js"></script>
 }
+
+<script>
+    // Guardar el grupo seleccionado en localStorage para que otras vistas/scripts lo usen
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            var gid = @grupoId;
+            if (gid && gid !== 0) {
+                localStorage.setItem('grupoIdSeleccionado', String(gid));
+            }
+            // limpiar materia seleccionada al entrar al contexto de grupo
+            localStorage.removeItem('materiaIdSeleccionada');
+
+            // Intentar cargar alumnos si el script está presente
+            if (typeof cargarAlumnosAsignados === 'function') {
+                cargarAlumnosAsignados();
+            }
+        } catch (e) { console.warn('No se pudo establecer grupoIdSeleccionado en storage', e); }
+    });
+</script>

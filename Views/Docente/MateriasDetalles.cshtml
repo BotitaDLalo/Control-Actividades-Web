@@ -114,14 +114,17 @@
     <script>
         let materiaIdGlobal = '@materiaId';
         let grupoIdGlobal = '@grupoId';
+        // Persist current materia/grupo selection so alumnos list can be restored
+        try {
+            if (materiaIdGlobal) localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal));
+            if (grupoIdGlobal && grupoIdGlobal !== '0') localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal));
+        } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
     </script>
     @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/docente")
-    @Scripts.Render("~/bundles/docentegrupos")
-    <script src="~/Scripts/Docente/Grupos/DetalleMateria.js"></script>
-    <script src="~/Scripts/Docente/Grupos/scriptsAvisos.js"></script>
     <script src="~/Scripts/Docente/Grupos/scriptsAlumnos.js"></script>
+    <script src="~/Scripts/Docente/Grupos/scriptsAvisos.js"></script>
     <script src="~/Scripts/Docente/Grupos/scriptsActividades.js"></script>
+    <script src="~/Scripts/Docente/Grupos/DetalleMateria.js"></script>
 }
 
 <div class="modal fade" id="entregablesModal" tabindex="-1" aria-hidden="true">

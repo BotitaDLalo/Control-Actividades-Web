@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
+using System.IO;
 
 namespace ControlActividades.Services
 {
@@ -30,12 +31,28 @@ namespace ControlActividades.Services
 
             var rutaArchivo = HostingEnvironment.MapPath("~/App_Data/push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json");
 
-            FirebaseApp.Create(new AppOptions
+            // Si no existe el archivo de credenciales, no inicializamos Firebase
+            if (string.IsNullOrEmpty(rutaArchivo) || !File.Exists(rutaArchivo))
             {
-                Credential = GoogleCredential.FromFile(rutaArchivo)
-            });
+                // Registrar advertencia y salir sin provocar excepción de archivo no encontrado
+                Console.WriteLine($"FCMService: archivo de credenciales no encontrado en '{rutaArchivo}'. Firebase no se inicializará.");
+                return;
+            }
 
-            _initialized = true;
+            try
+            {
+                FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromFile(rutaArchivo)
+                });
+
+                _initialized = true;
+            }
+            catch (Exception ex)
+            {
+                // Registrar el error pero no lanzar para no romper la aplicación si falla FCM
+                Console.WriteLine($"FCMService: error al inicializar Firebase - {ex.Message}");
+            }
         }
         /*
         public async Task<bool> SendNotificationAsync(string targetToken, string title, string body)

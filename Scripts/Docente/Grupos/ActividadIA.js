@@ -29,7 +29,10 @@ function mostrarOpcionesSugerencias(texto) {
         '<p class="text-muted">No se recibieron sugerencias válidas</p>';
 }
 
-document.getElementById('btnSugerencias').addEventListener('click', async () => {
+// Guardar referencias y añadir listeners con comprobación de existencia
+const btnSugerenciasEl = document.getElementById('btnSugerencias');
+if (btnSugerenciasEl) {
+    btnSugerenciasEl.addEventListener('click', async () => {
     const nombre = document.getElementById('nombre').value;
     const descripcion = document.getElementById('descripcion').value;
 
@@ -51,7 +54,8 @@ document.getElementById('btnSugerencias').addEventListener('click', async () => 
                 Error al generar sugerencias: ${error.message}
             </div>`;
     }
-});
+    });
+}
 
 
 async function obtenerRecomendaciones(nombre, descripcion) {
@@ -115,4 +119,19 @@ document.getElementById('btnAplicarSugerencia').addEventListener('click', functi
     } else {
         alert('¡Por favor selecciona una opción antes de continuar!');
     }
-});
+    });
+}
+const btnAplicarEl = document.getElementById('btnAplicarSugerencia');
+if (btnAplicarEl) {
+    btnAplicarEl.addEventListener('click', function () {
+        const seleccionado = document.querySelector('input[name="opcionDescripcion"]:checked');
+        const descripcionTextarea = document.getElementById('descripcion');
+
+        if (seleccionado && descripcionTextarea) {
+            descripcionTextarea.value = seleccionado.value;
+            try { const m = document.getElementById('sugerenciasModal'); if (m) bootstrap.Modal.getInstance(m)?.hide(); } catch (e) { /* ignore */ }
+        } else {
+            alert('¡Por favor selecciona una opción antes de continuar!');
+        }
+    });
+}
