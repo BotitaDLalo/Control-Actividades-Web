@@ -17,6 +17,15 @@
         locale: "es",
         height: "auto",
 
+        eventDisplay: "block",
+        
+        views: {
+            dayGridMonth: {
+                dayMaxEvents: 3,
+                dayMaxEventRows: true
+            }
+        },
+
         // Cuando se selecciona un día 
         dateClick: function (info) {
             abrirModal(info.dateStr);
@@ -28,20 +37,28 @@
                 .then(res => res.json())
                 .then(data => {
 
-                    
+                    console.log("Eventos obtenidos:", data);
                     if (!Array.isArray(data)) {
                         successCallback([]);
                         return;
                     }
 
-                    const eventos = data.map(e => ({
-                        id: e.eventoId,
-                        title: e.titulo,
-                        start: e.fechaInicio,
-                        end: e.fechaFinal,
-                        backgroundColor: e.color === "azul" ? "#007bff" : "#6c757d",
-                        borderColor: "transparent",
-                    }));
+                    const eventos = data.map(e => {
+
+                        const final = convertirFechaNetAInput(e.fechaFinal);
+
+                        return {
+                            id: e.eventoId,
+                            title: e.titulo,
+                            start:
+                                convertirFechaNetAInput(e.fechaInicio),
+                            end:
+                                ajustarFechaFin(final),
+                            color: e.color === "azul" ? "#007bff" : "#6c757d",
+                            borderColor: "transparent"
+                            
+                        };
+                    });
 
                     successCallback(eventos);
                 })
@@ -50,9 +67,17 @@
                     failureCallback(err);
                 });
         }
+
+
     });
 
     calendar.render();
+
+    function ajustarFechaFin(fecha) {
+        const date = new Date(fecha);
+        date.setDate(date.getDate() + 1);
+        return date.toISOString().split("T")[0];
+    }
 
     // MODAL
     
@@ -254,6 +279,7 @@
                 document.getElementById("modalCrearEvento").style.display = "none"; //oculta el modal
                 calendar.refetchEvents(); // Recargar eventos
                 
+
 
             } else {
                 Swal.fire({
@@ -645,7 +671,16 @@ function activarLogicaEditar() {
 document.getElementById("formEditarEvento").addEventListener("submit", async function (e) {
         e.preventDefault();
 
-    if (!confirm("¿Deseas editar este evento?")) return;
+    const result = await Swal.fire({
+        title: "¿Editar este evento?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, editarlo"
+    });
+
+    if (!result.isConfirmed) return;
 
     // Construir modelo para enviarlo al backend
     const modelo = {
@@ -679,11 +714,19 @@ document.getElementById("formEditarEvento").addEventListener("submit", async fun
         const data = await resp.json();
 
         if (!resp.ok) {
-            alert(data.mensaje || "Error al actualizar evento");
+            Swal.fire({
+                title: "Error",
+                text: "Ocurrió un error al editar el evento",
+                icon: "error"
+            });
             return;
         }
 
-        alert("Evento actualizado correctamente");
+        Swal.fire({
+            title: "Evento editado",
+            text: "Se editó correctamente la información",
+            icon: "success"
+        });
 
         // Cerrar modal
         document.getElementById("modalEditarEvento").style.display = "none";

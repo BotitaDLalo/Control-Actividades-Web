@@ -176,7 +176,31 @@ namespace ControlActividades.Controllers
             return Ok();
         }
 
-        
+        [HttpGet]
+        [Authorize]
+        [Route("ObtenerNotificaciones")]
+        public IHttpActionResult ObtenerNotificacionesUsuario()
+        {
+            var userId = User.Identity.GetUserId();
+            if (userId == null)
+            {
+                return BadRequest("Usuario no encontrado");
+            }
+            var notificaciones = Db.tbNotificaciones
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.FechaRecibido)
+                .Select(n => new Notificacion
+                {
+                    UserId = n.UserId,
+                    MessageId = n.MessageId,
+                    Title = n.Title,
+                    Body = n.Body,
+                    FechaRecibido = n.FechaRecibido
+                })
+                .ToList();
+            return Ok(notificaciones);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

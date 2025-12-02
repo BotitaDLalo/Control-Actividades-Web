@@ -49,6 +49,16 @@
                 .nav-bar .header-icons .dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; }
             }
 
+            .noti-item:hover {
+                background: #f8f9fa;
+                cursor: pointer;
+            }
+
+            .lista-notis {
+                max-height: 250px;
+                overflow-y: auto;
+            }
+
             /* make svg icons follow currentColor */
             .nav-bar .header-icons svg { fill: currentColor; }
         </style>
@@ -72,6 +82,7 @@
                     </div>
                     <div class="px-2">
                         <small class="text-muted">No hay notificaciones recientes.</small>
+                        <div class="lista-notificaciones"></div>
                     </div>
                 </div>
 
