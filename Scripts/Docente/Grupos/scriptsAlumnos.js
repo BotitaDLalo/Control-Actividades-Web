@@ -12,8 +12,13 @@ window.__docente_scriptsAlumnosInitialized = true;
 // Esperar a que el DOM esté completamente cargado antes de ejecutar el código
 document.addEventListener("DOMContentLoaded", function () {
 
-    // Cargar alumnos asignados a la materia
-    cargarAlumnosAsignados();
+    // Cargar alumnos asignados a la materia (intenta usar variable global o localStorage)
+    try {
+        const mid = typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal ? materiaIdGlobal : (window.materiaIdGlobal || localStorage.getItem('materiaIdSeleccionada') || null);
+        cargarAlumnosAsignados(mid);
+    } catch (e) {
+        cargarAlumnosAsignados();
+    }
 
     //Cargar actividades a la materia
     
@@ -109,7 +114,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     let summary = `Total leídos: ${result.TotalLeidos}\nAgregados: ${result.Agregados.length}\nOmitidos: ${result.Omitidos.length}\nNo encontrados: ${result.NoEncontrados.length}`;
                     Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
 
-                    cargarAlumnosAsignados(materiaIdGlobal);
+                    // If API returned the list of alumnos, render them directly. Otherwise refetch by materiaId.
+                    if (result && Array.isArray(result.Alumnos) && result.Alumnos.length > 0) {
+                        cargarAlumnosAsignados(result.Alumnos);
+                    } else {
+                        const mid2 = typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal ? materiaIdGlobal : (window.materiaIdGlobal || localStorage.getItem('materiaIdSeleccionada') || null);
+                        cargarAlumnosAsignados(mid2);
+                    }
 
                     // Limpiar input
                     input.value = '';
@@ -236,23 +247,47 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 //Carga los alumnos a la materia y los muestra en el div
-async function cargarAlumnosAsignados(materiaIdGlobal) {
+async function cargarAlumnosAsignados(materiaOrAlumnos) {
     try {
-        // Hacer la petición al servidor
-        const response = await fetch(`/Materias/ObtenerAlumnosPorMateria?materiaId=${materiaIdGlobal}`);
+        const contenedor = document.getElementById("listaAlumnosAsignados");
+        if (!contenedor) return;
 
-        if (!response.ok) {
-            throw new Error("No se pudieron cargar los alumnos.");
+        let alumnos = null;
+
+        // Si recibimos directamente un array de alumnos (resultado de la importación), renderizarlo
+        if (Array.isArray(materiaOrAlumnos)) {
+            alumnos = materiaOrAlumnos;
+        } else {
+            // Determinar materiaId
+            const materiaIdToUse = (typeof materiaOrAlumnos !== 'undefined' && materiaOrAlumnos) ? materiaOrAlumnos : (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal ? materiaIdGlobal : (window.materiaIdGlobal || localStorage.getItem('materiaIdSeleccionada')));
+            if (!materiaIdToUse) {
+                contenedor.innerHTML = `<p class="text-muted">No hay materia seleccionada para mostrar alumnos.</p>`;
+                return;
+            }
+
+            // Hacer la petición al servidor
+            const response = await fetch(`/Materias/ObtenerAlumnosPorMateria?materiaId=${materiaIdToUse}`);
+            if (!response.ok) {
+                // intentar leer mensaje del servidor
+                let txt = '';
+                try { txt = await response.text(); } catch (e) { }
+                throw new Error(txt || "No se pudieron cargar los alumnos.");
+            }
+
+            // Convertir la respuesta a JSON
+            alumnos = await response.json();
+            if (!Array.isArray(alumnos)) {
+                // Si el endpoint devolvió objeto con mensaje o vacío
+                contenedor.innerHTML = `<p class="text-muted">No hay alumnos asignados a esta materia.</p>`;
+                return;
+            }
         }
 
-        // Convertir la respuesta a JSON
-        const alumnos = await response.json();
+        // Limpiar contenido anterior
+        contenedor.innerHTML = "";
 
-        // Seleccionar el contenedor donde se mostrará la lista
-        const contenedor = document.getElementById("listaAlumnosAsignados");
-        contenedor.innerHTML = ""; // Limpiar contenido anterior
         // Verificar si hay alumnos
-        if (alumnos.length === 0) {
+        if (!alumnos || alumnos.length === 0) {
             contenedor.innerHTML = `<p class="text-muted">No hay alumnos asignados a esta materia.</p>`;
             return;
         }
@@ -267,39 +302,47 @@ async function cargarAlumnosAsignados(materiaIdGlobal) {
 
             //  Agregar el nombre del alumno
             const spanNombre = document.createElement("span");
-            spanNombre.textContent = `${alumno.ApellidoPaterno} ${alumno.ApellidoMaterno} ${alumno.Nombre}`;
+            // soportar distintos shapes (EmailVerificadoAlumno o join result)
+            const nombre = alumno.Nombre || alumno.nombre || "";
+            const ap = alumno.ApellidoPaterno || alumno.apellidoPaterno || "";
+            const am = alumno.ApellidoMaterno || alumno.apellidoMaterno || "";
+            spanNombre.textContent = `${ap} ${am} ${nombre}`.trim();
             divAlumno.appendChild(spanNombre);
 
             //  Contenedor de botón
             const divBotones = document.createElement("div");
 
             //  Botón "Eliminar del grupo" dentro de un menú desplegable
-            const dropdown = document.createElement("div");
-            dropdown.classList.add("dropdown");
+            // Mostrar opción de eliminar solo si tenemos AlumnoMateriaId (viene del endpoint ObtenerAlumnosPorMateria)
+            const alumnoMateriaId = alumno.AlumnoMateriaId || alumno.alumnoMateriaId || null;
+            if (alumnoMateriaId) {
+                const dropdown = document.createElement("div");
+                dropdown.classList.add("dropdown");
 
-            const btnDropdown = document.createElement("button");
-            btnDropdown.classList.add("btn", "btn-danger", "btn-sm", "dropdown-toggle");
-            btnDropdown.textContent = "Opciones";
-            btnDropdown.setAttribute("data-bs-toggle", "dropdown");
+                const btnDropdown = document.createElement("button");
+                btnDropdown.classList.add("btn", "btn-danger", "btn-sm", "dropdown-toggle");
+                btnDropdown.textContent = "Opciones";
+                btnDropdown.setAttribute("data-bs-toggle", "dropdown");
 
-            const dropdownMenu = document.createElement("ul");
-            dropdownMenu.classList.add("dropdown-menu");
+                const dropdownMenu = document.createElement("ul");
+                dropdownMenu.classList.add("dropdown-menu");
 
-            const eliminarItem = document.createElement("li");
-            const eliminarLink = document.createElement("a");
-            eliminarLink.classList.add("dropdown-item");
-            eliminarLink.href = "#";
-            eliminarLink.textContent = "Eliminar del grupo";
-            eliminarLink.onclick = function () {
-                eliminardelgrupo(alumno.alumnoMateriaId);
-            };
+                const eliminarItem = document.createElement("li");
+                const eliminarLink = document.createElement("a");
+                eliminarLink.classList.add("dropdown-item");
+                eliminarLink.href = "#";
+                eliminarLink.textContent = "Eliminar del grupo";
+                eliminarLink.onclick = function () {
+                    eliminardelgrupo(alumnoMateriaId);
+                };
 
-            eliminarItem.appendChild(eliminarLink);
-            dropdownMenu.appendChild(eliminarItem);
-            dropdown.appendChild(btnDropdown);
-            dropdown.appendChild(dropdownMenu);
+                eliminarItem.appendChild(eliminarLink);
+                dropdownMenu.appendChild(eliminarItem);
+                dropdown.appendChild(btnDropdown);
+                dropdown.appendChild(dropdownMenu);
 
-            divBotones.appendChild(dropdown);
+                divBotones.appendChild(dropdown);
+            }
             divAlumno.appendChild(divBotones);
 
             // Agregar alumno a la lista
