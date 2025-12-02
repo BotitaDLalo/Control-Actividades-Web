@@ -59,6 +59,18 @@
                 overflow-y: auto;
             }
 
+            .notiIndicador {
+                position: absolute;
+                top: 4px; 
+                right: 4px;
+                width: 10px;
+                height: 10px;
+                background: red;
+                border-radius: 50%;
+                display: none; /* Oculto por defecto */
+                z-index: 10;
+            }
+
             /* make svg icons follow currentColor */
             .nav-bar .header-icons svg { fill: currentColor; }
         </style>
@@ -71,17 +83,20 @@
             <div class="header-icons d-flex align-items-center" style="gap:8px;">
                 <!-- Notifications button -->
                 <button id="notificaciones-icono" class="btn btn-link position-relative p-2" type="button" title="Notificaciones">
+                    <!--Punto rojo que indica nueva notificación-->
+                    <span id="notificaciones-indicador" class="notiIndicador"></span>
+
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
-                        <path d="M8 16a2 2 0 0 0 1.985-1.75H6.015A2 2 0 0 0 8 16zm.104-14.36A1 1 0 0 0 7.002 1a1 1 0 0 0-.102.64C6.324 2.65 5.5 4.388 5.5 7v2.086l-.634 1.9A1 1 0 0 0 5.834 12h4.332a1 1 0 0 0 .968-.014l-.634-1.9V7c0-2.612-.824-4.35-1.4-5.36z"/>
+                        <path d="M8 16a2 2 0 0 0 1.985-1.75H6.015A2 2 0 0 0 8 16zm.104-14.36A1 1 0 0 0 7.002 1a1 1 0 0 0-.102.64C6.324 2.65 5.5 4.388 5.5 7v2.086l-.634 1.9A1 1 0 0 0 5.834 12h4.332a1 1 0 0 0 .968-.014l-.634-1.9V7c0-2.612-.824-4.35-1.4-5.36z" />
                     </svg>
                 </button>
 
                 <div id="notificaciones-panel" class="notificaciones-container" aria-hidden="true">
                     <div class="p-2">
-                        <strong>Notificaciones</strong>
+                        <strong style="display:none;">Notificaciones</strong>
                     </div>
                     <div class="px-2">
-                        <small class="text-muted">No hay notificaciones recientes.</small>
+                        <small class="text-muted" style="display:none;">No hay notificaciones recientes.</small>
                         <div class="lista-notificaciones"></div>
                     </div>
                 </div>

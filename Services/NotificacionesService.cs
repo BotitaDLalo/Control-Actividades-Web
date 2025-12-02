@@ -11,6 +11,7 @@ using ControlActividades.Controllers;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using static Google.Apis.Requests.RequestError;
+using Microsoft.AspNet.SignalR;
 
 namespace ControlActividades.Services
 {
@@ -152,6 +153,9 @@ namespace ControlActividades.Services
 
                 _db.tbNotificaciones.Add(noti);
                 await _db.SaveChangesAsync();
+
+                //Enviar notificación en tiempo real
+                EnviaNotificacionTiempoReal(userId, noti);
             }
             catch (Exception ex)
             {
@@ -160,6 +164,17 @@ namespace ControlActividades.Services
             
         }
 
+        public void EnviaNotificacionTiempoReal(string userId, tbNotificaciones notificacion) { 
+        
+            var hub = GlobalHost.ConnectionManager.GetHubContext<NotificacionesHub>();
+
+            hub.Clients.User(userId).nuevaNotificacion(new
+            {
+                Title = notificacion.Title,
+                Body = notificacion.Body,
+                FechaRecibido = notificacion.FechaRecibido.ToString("O")
+            });
+        }
 
         public async Task NotificacionRegistrarAlumnoClase(List<int> lsAlumnosId, int docenteId, int grupoId = -1, int materiaId = -1)
         {

@@ -34,6 +34,7 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     <script src="~/Scripts/sidebar.js"></script>
+    
     <script type="module" src="~/Scripts/Firebase/firebase.js"></script>
 
     <!--SPINNER DE CARGA-->
@@ -42,12 +43,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    @*<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>*@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
+
     <script src="~/Scripts/sidebar.js"></script>
     <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
 
     <script type="module">
         import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
@@ -58,6 +61,7 @@
         });
     </script>
 
+    @*<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>*@
     @RenderSection("scripts", required: false)
 </body>
 </html>
