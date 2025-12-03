@@ -1,4 +1,11 @@
-﻿using System;
+﻿using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,16 +13,10 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Helpers;
+using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Security;
 using System.Web.UI.HtmlControls;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin.Security;
 
 namespace ControlActividades.Controllers
 {
@@ -457,10 +458,29 @@ namespace ControlActividades.Controllers
 
                 // Para obtener más información sobre cómo habilitar la confirmación de cuentas y el restablecimiento de contraseña, visite https://go.microsoft.com/fwlink/?LinkID=320771
                 var token = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                var resetlink = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = token }, protocol: Request.Url.Scheme);
+                
+                var resetlink = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { userId = user.Id,
+                        code = token },
+                    protocol: Request.Url.Scheme
+                );
 
+                //PLANTILLA HTML
+                var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/ResetPassword.html");
+                var html = System.IO.File.ReadAllText(templatePath);
+
+                //Se reemplaza link en el archivo html por el link real
+                html = html.Replace("{{link}}", resetlink);
+
+                //Enviar correo
                 var emailService = new Services.EmailService();
-                await emailService.SendEmailAsync(user.Email, "Restablecer contraseña", "Para restablecer la contraseña, haga clic <a href=\"" + resetlink + "\">aquí</a>");
+                await emailService.SendEmailAsync(
+                    user.Email, 
+                    "Restablecer contraseña",
+                    html    
+                );
 
                 // *usando identity* await UserManager.SendEmailAsync(user.Id, "Restablecer contraseña", "Para restablecer la contraseña, haga clic <a href=\"" + resetlink + "\">aquí</a>");
 
