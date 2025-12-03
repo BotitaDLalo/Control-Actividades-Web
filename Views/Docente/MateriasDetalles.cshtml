@@ -23,7 +23,7 @@
     <nav class="materia-nav">
         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
-        <button class="tab-button" onclick="abrirEntregables()">Entregables</button>
+        <button class="tab-button" onclick="cambiarSeccion('entregables')">Entregables</button>
         <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
         <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
     </nav>
@@ -56,8 +56,11 @@
         </div>
 
         <div id="seccion-entregables" class="seccion" style="display: none;">
-            <p>Entregables — abre el modal para ver (aún sin contenido)</p>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entregablesModal">Ver Entregables</button>
+            <div class="divider"></div>
+            <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
+            <div id="listaEntregables" class="mt-2">
+                <p class="text-muted">Aún no hay entregables configurados.</p>
+            </div>
         </div>
 
         <div id="seccion-alumnos" class="seccion" style="display: none;">
