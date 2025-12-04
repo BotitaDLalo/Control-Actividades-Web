@@ -413,6 +413,7 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\cards.css" />
     <Content Include="Content\Componentes\cards.css" />
+    <Content Include="Content\Componentes\header.css" />
     <Content Include="Content\Variables\fuentes.css" />
     <Content Include="Content\Componentes\carga.css" />
     <Content Include="Content\Dashboard\cards.css" />

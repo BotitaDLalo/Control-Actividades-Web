@@ -1,79 +1,9 @@
 ﻿@using System.Web
 <div class="nav-bar">
     <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom">
-        <style>
-            /* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
-            .nav-bar { position: relative; }
-            .nav-bar .header-icons {
-                position: fixed;
-                right: 16px;
-                top: 12px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                z-index: 3000;
-            }
+        <link rel="stylesheet" href="~/Content/Componentes/header.css" />
+        <link rel="stylesheet" href="~/Content/Variables/colors.css" />
 
-            .nav-bar .header-icons .btn-link,
-            .nav-bar .header-icons .btn {
-                color: #5a5a5a;
-                background: transparent;
-                border: none;
-            }
-
-            .nav-bar .header-icons .btn-link:hover,
-            .nav-bar .header-icons .btn:hover {
-                color: #2f2f2f;
-                background-color: rgba(0,0,0,0.04);
-            }
-
-            /* position notification panel and user dropdown relative to the header-icons container */
-            .nav-bar .header-icons .notificaciones-container {
-                position: absolute;
-                top: calc(100% + 8px);
-                right: 0;
-                z-index: 3050;
-            }
-
-            .nav-bar .header-icons .dropdown-menu {
-                position: absolute;
-                top: calc(100% + 8px);
-                right: 0;
-                z-index: 3050;
-            }
-
-            /* Responsive: on small screens put icons back in header flow */
-            @@media (max-width: 991px) {
-                .nav-bar .header-icons { position: static; top: auto; right: auto; margin-left: auto; }
-                .nav-bar .header-icons .notificaciones-container,
-                .nav-bar .header-icons .dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; }
-            }
-
-            .noti-item:hover {
-                background: #f8f9fa;
-                cursor: pointer;
-            }
-
-            .lista-notis {
-                max-height: 250px;
-                overflow-y: auto;
-            }
-
-            .notiIndicador {
-                position: absolute;
-                top: 4px; 
-                right: 4px;
-                width: 10px;
-                height: 10px;
-                background: red;
-                border-radius: 50%;
-                display: none; /* Oculto por defecto */
-                z-index: 10;
-            }
-
-            /* make svg icons follow currentColor */
-            .nav-bar .header-icons svg { fill: currentColor; }
-        </style>
         <div class="container-fluid d-flex align-items-center">
             <div class="me-auto">
                 @* Page title: prefer ViewBag.PageHeader set by views; fallback to default label *@
@@ -106,13 +36,13 @@
                     <button class="btn btn-link p-2 dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" type="button" title="Usuario">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
                             <path d="M11 10a3 3 0 1 0-6 0 4.5 4.5 0 1 0 6 0z" />
-                            <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0-1A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0-1A6 6 0 1 1 8 2a6 6 0 0 1 0 12z" />
                         </svg>
                     </button>
 
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
                         <div class="user-info px-3 py-2 d-flex align-items-center">
-                            <img class="iconos1-nav me-2" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
+                            <img class="iconos1-nav me-2" src="@Url.Content(" ~ /Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
                             <div>
                                 <div class="dropdown-item mb-0">@User.Identity.Name</div>
                                 <div class="text-muted small">@(User.Identity.IsAuthenticated ? (User.Identity.Name ?? "") : "Invitado")</div>
@@ -122,8 +52,8 @@
 
                         @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "px-3 py-2" }))
                         {
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-danger w-100">Cerrar sesión</button>
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger w-100">Cerrar sesión</button>
                         }
                     </div>
                 </div>
