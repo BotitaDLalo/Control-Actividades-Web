@@ -32,5 +32,8 @@ namespace ControlActividades.Models.db
         public virtual ICollection<tbAlumnosMaterias> AlumnosMaterias { get; set; }
         
         public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
+        
+        // Estatus general del alumno (por ejemplo: Activo, Inactivo, Dado de Baja)
+        public string Estatus { get; set; }
     }
 }

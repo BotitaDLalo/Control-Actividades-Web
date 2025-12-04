@@ -57,9 +57,23 @@
 
         <div id="seccion-entregables" class="seccion" style="display: none;">
             <div class="divider"></div>
+            <!-- Filtro por actividad -->
+            <div class="mb-3 row" style="align-items:center; gap:8px;">
+                <label for="buscarActividadEntregables" class="col-auto col-form-label">Buscar actividad:</label>
+                <div class="col-md-4">
+                    <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
+                </div>
+                <label for="selectActividadEntregables" class="col-auto col-form-label">Filtrar por actividad:</label>
+                <div class="col-auto">
+                    <select id="selectActividadEntregables" class="form-select">
+                        <option value="0">-- Seleccione una actividad --</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
             <div id="listaEntregables" class="mt-2">
-                <p class="text-muted">Aún no hay entregables configurados.</p>
+                <p class="text-muted">Selecciona una actividad para ver los entregables.</p>
             </div>
         </div>
 
@@ -72,7 +86,7 @@
                     
                     @if (User != null && User.IsInRole("Docente"))
                     {
-                        <button id="btnImportarAlumnos" class="btn btn-success ms-2" title="Importar desde Excel"><i class="fas fa-file-excel" style="margin-right:8px"></i>Importar Alumnos</button>
+                        <button type="button" id="btnImportarAlumnos" class="btn btn-success ms-2" title="Importar desde Excel"><i class="fas fa-file-excel" style="margin-right:8px"></i>Importar Alumnos</button>
                         <input type="file" id="fileImportarAlumnos" accept=".xlsx,.xls" style="display:none" />
                     }
                 </div>

@@ -64,61 +64,73 @@ function convertirUrlsEnEnlaces(texto) {
 }
 
 // Carga entregables: lista de actividades y un botón para ver entregables por actividad
+var actividadesCache = [];
 async function cargarEntregablesDeMateria(materiaId) {
-    const cont = document.getElementById('listaEntregables');
+    var sel = document.getElementById('selectActividadEntregables');
+    var cont = document.getElementById('listaEntregables');
     if (!cont) return;
-    cont.innerHTML = '<p>Cargando entregables...</p>';
+    cont.innerHTML = '<p class="text-muted">Cargando actividades...</p>';
     try {
         const resp = await fetch(`/api/Actividades/ObtenerActividadesPorMateria?materiaId=${encodeURIComponent(materiaId)}`);
         if (!resp.ok) throw new Error('No se pudieron cargar actividades');
         const actividades = await resp.json();
         if (!actividades || actividades.length === 0) {
             cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>';
+            if (sel) sel.innerHTML = '<option value="0">-- Sin actividades --</option>';
             return;
         }
-        // Render list of activities with a button to load entregables
-        cont.innerHTML = '';
-        actividades.forEach(act => {
-            const card = document.createElement('div');
-            card.className = 'actividad-card mb-2';
-            card.innerHTML = `
-                <div class="actividad-head d-flex justify-content-between align-items-center" style="padding:10px; border:1px solid #e0e0e0; border-radius:6px; background:#fff;">
-                    <div>
-                        <strong>${act.NombreActividad || act.NombreActividad}</strong>
-                        <div class="text-muted small">Fecha límite: ${act.FechaLimite || ''}</div>
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-primary ver-entregables-btn" data-actividadid="${act.ActividadId}">Ver entregables</button>
-                    </div>
-                </div>
-                <div class="entregables-list mt-2" id="entregables_activity_${act.ActividadId}" style="display:none; padding:8px;"></div>
-            `;
-            cont.appendChild(card);
-        });
-
-        // attach handlers
-        cont.querySelectorAll('.ver-entregables-btn').forEach(btn => {
-            btn.addEventListener('click', async function () {
-                const actividadId = this.dataset.actividadid;
-                const target = document.getElementById('entregables_activity_' + actividadId);
-                if (!target) return;
-                if (target.style.display === 'block') { target.style.display = 'none'; return; }
-                target.style.display = 'block';
-                target.innerHTML = '<p class="text-muted">Cargando entregables...</p>';
-                try {
-                    const r = await fetch(`/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`);
-                    if (!r.ok) throw new Error('No se pudieron cargar entregables');
-                    const data = await r.json();
-                    renderEntregablesForActivity(data, target);
-                } catch (e) {
-                    target.innerHTML = `<p class="text-danger">Error al cargar entregables</p>`;
-                }
+        // cache and populate select
+        actividadesCache = actividades;
+        if (sel) {
+            sel.innerHTML = '<option value="0">-- Seleccione una actividad --</option>';
+            actividades.forEach(a => {
+                var opt = document.createElement('option');
+                opt.value = a.ActividadId || a.actividadId || a.ActividadId;
+                opt.textContent = a.NombreActividad || a.nombreActividad || ('Actividad ' + opt.value);
+                sel.appendChild(opt);
             });
-        });
-
+            sel.onchange = function () {
+                var id = parseInt(this.value || '0');
+                if (id > 0) cargarEntregablesPorActividad(id);
+                else cont.innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
+            };
+        }
+        // attach search input behavior
+        var busc = document.getElementById('buscarActividadEntregables');
+        if (busc) {
+            var debounceTimer = null;
+            busc.value = '';
+            busc.oninput = function () {
+                clearTimeout(debounceTimer);
+                var q = this.value.trim().toLowerCase();
+                debounceTimer = setTimeout(function () {
+                    // filter actividadesCache
+                    if (!actividadesCache || actividadesCache.length === 0) return;
+                    var matches = actividadesCache.filter(function (it) {
+                        var nombre = (it.NombreActividad || it.nombreActividad || '') + '';
+                        return nombre.toLowerCase().indexOf(q) !== -1;
+                    });
+                    // repoblar select with matches
+                    sel.innerHTML = '<option value="0">-- Seleccione una actividad --</option>';
+                    matches.forEach(function (a) {
+                        var opt = document.createElement('option');
+                        opt.value = a.ActividadId || a.actividadId || a.ActividadId;
+                        opt.textContent = a.NombreActividad || a.nombreActividad || ('Actividad ' + opt.value);
+                        sel.appendChild(opt);
+                    });
+                    // if only one match, select it
+                    if (matches.length === 1) {
+                        sel.value = matches[0].ActividadId || matches[0].actividadId || matches[0].ActividadId;
+                        sel.dispatchEvent(new Event('change'));
+                    }
+                }, 250);
+            };
+        }
+        cont.innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
     } catch (err) {
         console.error(err);
-        cont.innerHTML = '<p class="text-danger">Error al cargar entregables.</p>';
+        cont.innerHTML = '<p class="text-danger">Error al cargar actividades.</p>';
+        if (sel) sel.innerHTML = '<option value="0">-- Error --</option>';
     }
 }
 
@@ -142,17 +154,25 @@ function renderEntregablesForActivity(data, container) {
     data.AlumnosEntregables.forEach(a => {
         const item = document.createElement('div');
         item.className = 'list-group-item d-flex justify-content-between align-items-start';
-        item.innerHTML = `
-            <div>
-                <div><strong>${a.NombreUsuario || (a.Nombres + ' ' + a.ApellidoPaterno)}</strong></div>
-                <div class="small text-muted">Entregado: ${a.FechaEntrega ? new Date(a.FechaEntrega).toLocaleString() : '—'}</div>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-primary" onclick="verRespuestaEntrega(${a.EntregaId || 0})">Ver</button>
-                <span class="badge bg-secondary">${a.Calificacion >= 0 ? a.Calificacion : '—'}</span>
-            </div>
-        `;
+        const left = document.createElement('div');
+        left.innerHTML = `<div><strong>${a.NombreUsuario || (a.Nombres + ' ' + a.ApellidoPaterno)}</strong></div><div class="small text-muted">Entregado: ${a.FechaEntrega ? new Date(a.FechaEntrega).toLocaleString() : '—'}</div>`;
+        const right = document.createElement('div'); right.className = 'd-flex gap-2 align-items-center';
+        const btn = document.createElement('button'); btn.className = 'btn btn-sm btn-primary btn-ver-entrega'; btn.textContent = 'Ver';
+        btn.dataset.entregaid = a.EntregaId || 0; btn.dataset.respuesta = a.Respuesta || '';
+        btn.dataset.alumnonombre = (a.NombreUsuario || (a.Nombres + ' ' + a.ApellidoPaterno)) || '';
+        const badge = document.createElement('span'); badge.className = 'badge bg-secondary'; badge.textContent = (a.Calificacion >= 0 ? a.Calificacion : '—');
+        right.appendChild(btn); right.appendChild(badge);
+        item.appendChild(left); item.appendChild(right);
         list.appendChild(item);
+    });
+    // attach listeners for ver buttons
+    list.querySelectorAll('.btn-ver-entrega').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var entregaId = parseInt(this.dataset.entregaid || '0');
+            var respuesta = this.dataset.respuesta || '';
+            var nombre = this.dataset.alumnonombre || '';
+            Swal.fire({ title: 'Respuesta de ' + nombre, html: '<pre style="text-align:left; white-space:pre-wrap;">' + (respuesta || 'Sin respuesta') + '</pre>', width: 800 });
+        });
     });
     container.appendChild(list);
 }

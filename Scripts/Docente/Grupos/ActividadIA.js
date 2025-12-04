@@ -109,18 +109,7 @@ function limpiarTexto(texto) {
         .trim();
 }
 
-document.getElementById('btnAplicarSugerencia').addEventListener('click', function () {
-    const seleccionado = document.querySelector('input[name="opcionDescripcion"]:checked');
-    const descripcionTextarea = document.getElementById('descripcion');
-
-    if (seleccionado && descripcionTextarea) {
-        descripcionTextarea.value = seleccionado.value;
-        bootstrap.Modal.getInstance('#sugerenciasModal').hide();
-    } else {
-        alert('¡Por favor selecciona una opción antes de continuar!');
-    }
-    });
-}
+// attach handler safely to apply suggestion button
 const btnAplicarEl = document.getElementById('btnAplicarSugerencia');
 if (btnAplicarEl) {
     btnAplicarEl.addEventListener('click', function () {
@@ -129,7 +118,13 @@ if (btnAplicarEl) {
 
         if (seleccionado && descripcionTextarea) {
             descripcionTextarea.value = seleccionado.value;
-            try { const m = document.getElementById('sugerenciasModal'); if (m) bootstrap.Modal.getInstance(m)?.hide(); } catch (e) { /* ignore */ }
+            try {
+                const m = document.getElementById('sugerenciasModal');
+                if (m && window.bootstrap && typeof bootstrap.Modal.getInstance === 'function') {
+                    const modal = bootstrap.Modal.getInstance(m);
+                    if (modal && typeof modal.hide === 'function') modal.hide();
+                }
+            } catch (e) { /* ignore */ }
         } else {
             alert('¡Por favor selecciona una opción antes de continuar!');
         }
