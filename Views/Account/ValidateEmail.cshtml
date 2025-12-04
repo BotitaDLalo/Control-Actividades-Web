@@ -17,50 +17,35 @@
 </head>
 <body>
 
-    <section class="signin-section">
-        <div class="container-fluid">
-            <!--Contenedor de logo y form-->
-            <div class="row g-0 auth-row">
-                <div class="col-lg-6" style="background-color:var(--fondo2); border-top-right-radius: 150px; ">
-                    <div class="auth-cover-wrapper bg-primary-100">
-                        <div class="auth-cover">
-                            <div class="title text-center">
-                                <div class="cover-image">
-                                    <img src="~/Content/Iconos/logo2.svg" alt="" />
-                                </div>
-                                <h1 class="titulo-color mb-10">APRENDE +</h1>
-                            </div>
-                            <div>
-                                <h2 class="text-center" style="color:white;">Bienvenido</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-lg-6">
-                    <div class="signin-wrapper">
-                        <div class="form-wrapper">
-                            <div class="login-header">
-                                <header>Ingresa tu correo electrónico</header>
-                            </div>
-                            @using (Html.BeginForm("ValidateEmail", "Account", FormMethod.Post))
-                            {
-                                @Html.AntiForgeryToken()
-                                <div class="input-box">
-                                    <input name="email" type="text" class="input-field" id="email" autocomplete="off" required />
-                                    <label for="email">Correo electrónico</label>
-                                </div>
-                                <div class="input-box">
-                                    <input type="submit" class="input-submit" value="Verificar" />
-                                </div>
-                            }
-
-                        </div>
-                    </div>
+    <!--Contenedor de logo y form-->
+    <div class="auth-container">
+        <!--LEFT-->
+        <div class="left-side">
+            <img src="~/Content/Iconos/logo2.svg" alt="Logo" class="logo-img" />
+            <h2 class="welcome-text">Bienvenido</h2>
+        </div>
+        <!--RIGHT-->
+        <div class="right-side">
+            <div class="form-wrapper">
+                <div class="login-header">
+                    <header>Ingresa tu correo electrónico</header>
                 </div>
+                @using (Html.BeginForm("ValidateEmail", "Account", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="input-box">
+                        <input name="email" type="text" class="input-field" id="email" autocomplete="off" required />
+                        <label for="email">Correo electrónico</label>
+                    </div>
+                    <div class="input-box">
+                        <input type="submit" class="input-submit" value="Verificar" />
+                    </div>
+                }
+
             </div>
         </div>
-    </section>
+    </div>
 
 </body>
 </html>
