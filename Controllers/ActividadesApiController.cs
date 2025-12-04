@@ -192,7 +192,7 @@ namespace ControlActividades.Controllers
             }
             catch (Exception e)
             {
-                return Content(HttpStatusCode.BadRequest,new { e.Message });
+                return Content(HttpStatusCode.BadRequest, new { e.Message });
             }
 
         }
@@ -224,7 +224,7 @@ namespace ControlActividades.Controllers
         public async Task<IHttpActionResult> ObtenerActividad(int id)
         {
             var activity = await Db.tbActividades.FindAsync(id);
-            if (activity == null) return Content(HttpStatusCode.NotFound,"Actividad no encontrada"); // Retorna un mensaje adecuado si no se encuentra la actividad
+            if (activity == null) return Content(HttpStatusCode.NotFound, "Actividad no encontrada"); // Retorna un mensaje adecuado si no se encuentra la actividad
 
             return Ok(activity); // Si la actividad se encuentra, la retornamos
         }
@@ -257,7 +257,7 @@ namespace ControlActividades.Controllers
                 // Generar automáticamente la fecha de creación
                 nuevaActividad.FechaCreacion = DateTime.Now;
 
-                
+
                 nuevaActividad.TipoActividadId = 1;
 
                 // Guardar la actividad en la base de datos
@@ -290,14 +290,31 @@ namespace ControlActividades.Controllers
         public async Task<IHttpActionResult> ActualizarActividad(int id, tbActividades updatedActivity)
         {
             var dbActivity = await Db.tbActividades.FindAsync(id);
-            if (dbActivity is null) return  Content(HttpStatusCode.NotFound,"Actividad no encontrada");
+            if (dbActivity is null) return Content(HttpStatusCode.NotFound, "Actividad no encontrada");
 
+            // Actualización de campos
             dbActivity.NombreActividad = updatedActivity.NombreActividad;
-            dbActivity.Descripcion = updatedActivity.Descripcion;
+            dbActivity.Descripcion = updatedActivity.Descripcion; // Manejo de nulos por si acaso
             dbActivity.FechaLimite = updatedActivity.FechaLimite;
+            dbActivity.Puntaje = updatedActivity.Puntaje;
 
             await Db.SaveChangesAsync();
-            return Ok(dbActivity); // Retorna solo la actividad actualizada
+
+            // --- CAMBIO AQUÍ ---
+            // En lugar de devolver 'Ok(dbActivity)' que tiene las relaciones infinitas,
+            // creamos un objeto anónimo simple con SOLO los datos que necesita Flutter.
+            var respuestaLimpia = new
+            {
+                ActividadId = dbActivity.ActividadId,
+                NombreActividad = dbActivity.NombreActividad,
+                Descripcion = dbActivity.Descripcion, // O DescripcionActividad según tu modelo
+                FechaLimite = dbActivity.FechaLimite,
+                Puntaje = dbActivity.Puntaje,
+                MateriaId = dbActivity.MateriaId,
+                TipoActividadId = dbActivity.TipoActividadId
+            };
+
+            return Ok(respuestaLimpia);
         }
 
 

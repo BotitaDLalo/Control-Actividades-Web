@@ -387,6 +387,84 @@ namespace ControlActividades.Controllers
             }
         }
 
+        [HttpPost] // Opcionalmente, podrías usar [HttpDelete] si la plataforma lo permite, pero [HttpPost] es común para acciones en Web API.
+        [Route("EliminarAlumnoMateria")]
+        public async Task<IHttpActionResult> EliminarAlumnoDeMateria([FromBody] AlumnoEliminarRequest request)
+        {
+            try
+            {
+                int materiaId = request.MateriaId;
+                int alumnoId = request.AlumnoId;
+
+                if (materiaId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Materia y Alumno son obligatorios." });
+                }
+
+                // 1. Buscar la relación en la tabla tbAlumnosMaterias
+                var relacionAEliminar = await Db.tbAlumnosMaterias
+                    .FirstOrDefaultAsync(am => am.MateriaId == materiaId && am.AlumnoId == alumnoId);
+
+                if (relacionAEliminar == null)
+                {
+                    // Si la relación no existe, podría significar que ya fue eliminado o que los datos son incorrectos.
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en la materia especificada." });
+                }
+
+                // 2. Eliminar la relación
+                Db.tbAlumnosMaterias.Remove(relacionAEliminar);
+
+                // 3. Guardar cambios en la base de datos
+                await Db.SaveChangesAsync();
+
+                // 4. Retornar éxito
+                return Ok(new { mensaje = "Alumno eliminado de la materia correctamente." });
+            }
+            catch (Exception e)
+            {
+                // Manejo de excepciones
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + e.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("EliminarAlumnoGrupo")]
+        public async Task<IHttpActionResult> EliminarAlumnoDeGrupo([FromBody] AlumnoEliminarGrupoRequest request)
+        {
+            try
+            {
+                int grupoId = request.GrupoId;
+                int alumnoId = request.AlumnoId;
+
+                if (grupoId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Grupo y Alumno son obligatorios." });
+                }
+
+                // 1. Buscar la relación en la tabla tbAlumnosGrupos
+                var relacionAEliminar = await Db.tbAlumnosGrupos
+                    .FirstOrDefaultAsync(ag => ag.GrupoId == grupoId && ag.AlumnoId == alumnoId);
+
+                if (relacionAEliminar == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en el grupo especificado." });
+                }
+
+                // 2. Eliminar la relación
+                Db.tbAlumnosGrupos.Remove(relacionAEliminar);
+
+                // 3. Guardar cambios en la base de datos
+                await Db.SaveChangesAsync();
+
+                // 4. Retornar éxito
+                return Ok(new { mensaje = "Alumno eliminado del grupo correctamente." });
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno del grupo: " + e.Message });
+            }
+        }
+
         [HttpPost]
         [Route("CancelarEnvioActividadAlumno")]
         public async Task<IHttpActionResult> CancelarEnvioActividadAlumno([FromBody] CancelarEnvioActividadAlumno datosCancelacion)
@@ -727,6 +805,8 @@ namespace ControlActividades.Controllers
             }
         }
 
+        // Dentro de tu AlumnoApiController.cs o la clase donde se encuentra el método
+
         private async Task<List<EmailVerificadoAlumno>> ObtenerListaAlumnos(List<int> lsAlumnosId)
         {
             try
@@ -741,6 +821,10 @@ namespace ControlActividades.Controllers
 
                         EmailVerificadoAlumno alumno = new EmailVerificadoAlumno()
                         {
+                            // 🎯 LÍNEA AÑADIDA: Asignar el ID del alumno al DTO de respuesta
+                            AlumnoId = alumnoDatos.AlumnoId,
+                            // O si tu DTO usa la propiedad 'Id': Id = alumnoDatos.AlumnoId, 
+
                             Email = userName?.Email ?? "",
                             UserName = userName?.UserName ?? "",
                             Nombre = alumnoDatos.Nombre,
@@ -750,9 +834,7 @@ namespace ControlActividades.Controllers
 
                         lsAlumnos.Add(alumno);
                     }
-
                 }
-
                 return lsAlumnos;
             }
             catch (Exception)

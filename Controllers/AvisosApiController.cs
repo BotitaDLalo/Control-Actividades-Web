@@ -27,10 +27,10 @@ namespace ControlActividades.Controllers
         private NotificacionesService _notifServ;
         public AvisosApiController() { }
 
-        public AvisosApiController(ApplicationUserManager userManager, 
-            ApplicationSignInManager signInManager, 
-            RoleManager<IdentityRole> roleManager, 
-            ApplicationDbContext DbContext, 
+        public AvisosApiController(ApplicationUserManager userManager,
+            ApplicationSignInManager signInManager,
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDbContext DbContext,
             FuncionalidadesGenerales fg,
             NotificacionesService notifServ
             )
@@ -170,7 +170,7 @@ namespace ControlActividades.Controllers
                     GrupoId = nuevoAviso.GrupoId,
                     MateriaId = nuevoAviso.MateriaId
                 };
-                
+
                 return Ok(res);
             }
             catch (Exception)
@@ -191,7 +191,7 @@ namespace ControlActividades.Controllers
 
         [HttpGet]
         [Route("ConsultarAvisosCreados")]
-        public IHttpActionResult  ConsultarAvisos([FromBody] PeticionConsultarAvisos consultarAvisos)
+        public IHttpActionResult ConsultarAvisos([FromBody] PeticionConsultarAvisos consultarAvisos)
         {
             try
             {
@@ -206,7 +206,7 @@ namespace ControlActividades.Controllers
                 }
                 else if (materiaId != 0)
                 {
-                    lsAvisos =  Db.tbAvisos.Where(a => a.MateriaId == materiaId).ToList();
+                    lsAvisos = Db.tbAvisos.Where(a => a.MateriaId == materiaId).ToList();
                 }
 
                 foreach (var aviso in lsAvisos)
@@ -241,6 +241,68 @@ namespace ControlActividades.Controllers
             catch (Exception)
             {
                 return BadRequest();
+            }
+        }
+        public class AvisoDto
+        {
+            // 🚨 IMPORTANTE: Asegúrate de que los nombres de las propiedades coincidan EXACTAMENTE 
+            // con el JSON que envías desde Dart (AvisoId, Titulo, Descripcion)
+            public int AvisoId { get; set; }
+            public string Titulo { get; set; }
+            public string Descripcion { get; set; }
+            // Si hay otros campos (como DocenteId, GrupoId, etc.) que necesita el ORM 
+            // para la validación, inclúyelos si el NoticeModel de Dart los envía.
+            // Por ahora, solo usamos los que se editan y el ID.
+        }
+
+
+        [HttpPost]
+        [Route("ActualizarAviso")]
+        public async Task<IHttpActionResult> ActualizarAviso(AvisoDto avisoActualizado)
+        {
+            try
+            {
+                if (avisoActualizado.AvisoId <= 0)
+                {
+                    return BadRequest("ID de aviso no válido.");
+                }
+
+                // 1. Usamos FindAsync igual que en tu método ActualizarActividad
+                var dbAviso = await Db.tbAvisos.FindAsync(avisoActualizado.AvisoId);
+
+                if (dbAviso == null)
+                {
+                    return Content(HttpStatusCode.NotFound, "Aviso no encontrado");
+                }
+
+                // 2. Actualización de campos
+                dbAviso.Titulo = avisoActualizado.Titulo;
+                dbAviso.Descripcion = avisoActualizado.Descripcion;
+
+                // 3. Guardar cambios
+                await Db.SaveChangesAsync();
+
+                // 4. Proyección Limpia (Igual que en ActualizarActividad)
+                // Esto evita el Error 500 por referencias circulares.
+                var respuestaLimpia = new
+                {
+                    AvisoId = dbAviso.AvisoId,
+                    Titulo = dbAviso.Titulo,
+                    Descripcion = dbAviso.Descripcion,
+                    DocenteId = dbAviso.DocenteId,
+                    GrupoId = dbAviso.GrupoId,
+                    MateriaId = dbAviso.MateriaId,
+                    FechaCreacion = dbAviso.FechaCreacion,
+                    // Si tienes el nombre del docente disponible en el objeto cargado (por caché de EF), lo enviamos.
+                    // Si no, enviamos un string genérico o nulo, ya que Flutter probablemente ya tiene el nombre.
+               
+                };
+
+                return Ok(respuestaLimpia);
+            }
+            catch (Exception e)
+            {
+                return BadRequest("Error al actualizar: " + e.Message);
             }
         }
 
