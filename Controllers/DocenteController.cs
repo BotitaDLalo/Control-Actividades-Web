@@ -103,7 +103,8 @@ namespace ControlActividades.Controllers
             // Propagar la sección solicitada (si viene en query string) para que la vista la pueda usar
             ViewBag.Seccion = Request.QueryString["seccion"] ?? string.Empty;
 
-            return View();
+
+            return View("GruposStandalone");
         }
 
         public ActionResult Perfil()
@@ -126,12 +127,12 @@ namespace ControlActividades.Controllers
             return View(aviso);
         }
 
-        
+
         public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
         {
             if (!materiaId.HasValue)
             {
-                
+
                 return RedirectToAction("Index");
             }
 
