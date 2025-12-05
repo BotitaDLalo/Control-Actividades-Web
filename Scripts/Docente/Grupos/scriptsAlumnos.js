@@ -93,28 +93,7 @@ async function eliminardelgrupo(enlaceId) {
 window.cargarAlumnosAsignados = cargarAlumnosAsignados;
 window.eliminardelgrupo = eliminardelgrupo;
 
-// Cambiar estatus del alumno (realiza llamada al servidor)
-async function setAlumnoEstatus(alumnoId, estatus) {
-    try {
-        // intentar llamada a endpoint que actualice estado en MateriasController
-        const resp = await fetch('/Materias/ActualizarEstatusAlumno', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ AlumnoId: alumnoId, Estatus: estatus })
-        });
-        if (!resp.ok) {
-            let txt = await resp.text().catch(() => '');
-            console.warn('No se pudo actualizar estatus:', resp.status, txt);
-            if (window.Swal && typeof Swal.fire === 'function') Swal.fire('Error', 'No se pudo cambiar estatus', 'error');
-            else alert('No se pudo cambiar estatus');
-            return;
-        }
-        // refrescar lista para ver cambio y mostrar notificación
-        if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
-        if (window.Swal && typeof Swal.fire === 'function') Swal.fire('Éxito', 'Estatus actualizado a: ' + estatus, 'success');
-        else alert('Estatus actualizado a: ' + estatus);
-    } catch (e) { console.error(e); if (window.Swal && typeof Swal.fire === 'function') Swal.fire('Error', 'Error al cambiar estatus', 'error'); else alert('Error al cambiar estatus'); }
-}
+// NOTE: Estatus change UI/endpoint was removed; no client-side function needed.
 
 // Import button handling
 document.addEventListener('DOMContentLoaded', function () {

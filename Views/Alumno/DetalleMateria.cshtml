@@ -1,85 +1,74 @@
 @model ControlActividades.Models.db.tbMaterias
 @{
     Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
-    ViewData["Title"] = "Inicio - Alumno";
+    ViewData["Title"] = "Materia - Alumno";
 
-    int alumnoId = ViewBag.AlumnoId;
-    int grupoId = ViewBag.GrupoId ?? 0;
+    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId : 0;
+    var hasModel = Model != null;
 }
 
-<div id="alumno-datos" data-alumnoid="@alumnoId"></div>
-<div class="materia-container">
-    <div class="materia-header" id="materiaHeader">
-        <h2>@Model.NombreMateria</h2>
-        <div class="materia-info">
-            <span>Código de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
-            <i class="fas fa-cog"></i>
-        </div>
+@if (!hasModel)
+{
+    <div class="container my-4">
+        <div class="alert alert-warning">No se encontró la materia solicitada. Vuelve a <a href="@Url.Action("Index","Alumno")">Tus clases</a>.</div>
     </div>
-
-    <ul class="nav nav-tabs" id="grupoTabs">
-        <li class="nav-item">
-            <a class="nav-link active" id="avisos-tab" data-bs-toggle="tab" href="#avisos">Avisos</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="actividades-tab" data-bs-toggle="tab" href="#actividades">Actividades</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="calificaciones-tab" data-bs-toggle="tab" href="#calificaciones">Calificaciones</a>
-        </li>
-    </ul>
-
-
-    <!--Contenido de cada pestaña-->
-    <div class="tab-content mt-3">
-        <div class="tab-pane fade show active" id="avisos">
-            <h3>Avisos</h3>
-            <div id="contenidoAvisos"></div>
+}
+else
+{
+    <div id="alumno-datos" data-alumnoid="@alumnoId"></div>
+    <div class="materia-container">
+        <div class="materia-header" id="materiaHeader">
+            <h2>@Model.NombreMateria</h2>
+            <div class="materia-info">
+                <span>Código de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
+                <i class="fas fa-cog"></i>
+            </div>
         </div>
-        <div class="tab-pane fade" id="actividades">
-            <h3>Actividades</h3>
-            <div id="contenidoActividades"></div>
-        </div>
-        <div class="tab-pane fade" id="alumnos">
-            <h3>Alumnos</h3>
-            <div id="contenidoAlumnos"></div>
-        </div>
-        <div class="tab-pane fade" id="calificaciones">
-            <h3>Calificaciones</h3>
-            <div id="contenidoCalificaciones"></div>
-        </div>
-    </div>
 
-    <!-- <nav class="materia-nav">
-         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
-         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
-         <button class="tab-button" onclick="cambiarSeccion('calificaciones')">Calificaciones</button>
-     </nav>
-        -->
-    <div id="contenedor-dinamico" class="materia-content">
-        <div id="seccion-avisos" class="seccion">
+        <ul class="nav nav-tabs" id="grupoTabs">
+            <li class="nav-item"><a class="nav-link active" id="avisos-tab" data-bs-toggle="tab" href="#avisos">Avisos</a></li>
+            <li class="nav-item"><a class="nav-link" id="actividades-tab" data-bs-toggle="tab" href="#actividades">Actividades</a></li>
+            <li class="nav-item"><a class="nav-link" id="calificaciones-tab" data-bs-toggle="tab" href="#calificaciones">Calificaciones</a></li>
+        </ul>
+
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="avisos">
+                <h3>Avisos</h3>
+                <div id="contenidoAvisos"></div>
+            </div>
+            <div class="tab-pane fade" id="actividades">
+                <h3>Actividades</h3>
+                <div id="contenidoActividades">
+                    <div id="listaActividadesAlumno"></div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="alumnos">
+                <h3>Alumnos</h3>
+                <div id="contenidoAlumnos"></div>
+            </div>
+            <div class="tab-pane fade" id="calificaciones">
+                <h3>Calificaciones</h3>
+                <div id="contenidoCalificaciones"></div>
+            </div>
+        </div>
+
+        <div id="contenedor-dinamico" class="materia-content mt-3">
             <div id="listaDeAvisosDeMateria"></div>
-        </div>
-
-        <div id="seccion-actividades" class="seccion" style="display: none;">
-            <div class="divider"></div>
-            <div id="listaActividadesDeMateria"></div>
-        </div>
-
-        <div id="seccion-calificaciones" class="seccion" style="display: none;">
-            <h2>Calificaciones</h2>
+            <div id="listaActividadesDeMateria" class="mt-3"></div>
         </div>
     </div>
-</div>
+}
 
 @section Scripts{
     <script>
-        let alumnoIdGlobal = '@alumnoId';
+        var alumnoIdGlobal = @alumnoId;
+        var materiaIdGlobal = @(hasModel ? Model.MateriaId : 0);
     </script>
-    @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/alumno")
+    <script src="~/Scripts/Alumno/actividades.js"></script>
+    <script src="~/Scripts/Alumno/actividadDetalle.js"></script>
+    <script src="~/Scripts/Alumno/Avisos.js"></script>
 }
 
 @section Styles{
-    @Styles.Render("~/Content/Alumno/css")
+    <link href="~/Content/Alumno/materias.css" rel="stylesheet" />
 }

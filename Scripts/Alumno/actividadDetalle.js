@@ -24,7 +24,24 @@ async function verificarEnvio() {
         if (!resp.ok) return;
         const data = await resp.json();
         if (data && data.AlumnoActividadId && data.Status) {
-            document.getElementById('estadoEntrega').innerHTML = '<p>Ya entregado. Fecha: ' + new Date(data.FechaEntrega).toLocaleString() + '</p>';
+            var estadoHtml = '<p>Ya entregado. Fecha: ' + new Date(data.FechaEntrega).toLocaleString() + '</p>';
+            // intentar parsear respuesta para extraer archivos
+            try {
+                var parsed = JSON.parse(data.Respuesta || 'null');
+                if (parsed && parsed.Archivos && Array.isArray(parsed.Archivos) && parsed.Archivos.length > 0) {
+                    estadoHtml += '<p>Archivos adjuntos:</p><ul>';
+                    parsed.Archivos.forEach(function (a) { estadoHtml += '<li><a href="' + a + '" target="_blank">' + a.split('/').pop() + '</a></li>'; });
+                    estadoHtml += '</ul>';
+                } else if (parsed && parsed.Respuesta) {
+                    estadoHtml += '<div><strong>Respuesta:</strong><pre>' + parsed.Respuesta + '</pre></div>';
+                } else {
+                    if (data.Respuesta) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + data.Respuesta + '</pre></div>';
+                }
+            } catch (e) {
+                if (data.Respuesta) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + data.Respuesta + '</pre></div>';
+            }
+
+            document.getElementById('estadoEntrega').innerHTML = estadoHtml;
             document.getElementById('entregaForm').style.display = 'none';
             if (data.Calificacion !== null) {
                 document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: ' + data.Calificacion + '</p>';
@@ -35,22 +52,29 @@ async function verificarEnvio() {
 
 async function enviarEntrega() {
     const respuesta = document.getElementById('respuesta').value.trim();
-    if (!respuesta) { alert('Escribe una respuesta.'); return; }
+    const fileInput = document.getElementById('fileEntrega');
+    if (!respuesta && (!fileInput || !fileInput.files || fileInput.files.length === 0)) { alert('Agrega una respuesta o un archivo.'); return; }
 
-    const payload = {
-        ActividadId: actividadIdGlobal,
-        AlumnoId: alumnoIdGlobal,
-        Respuesta: respuesta,
-        FechaEntrega: new Date().toISOString()
-    };
+    const form = new FormData();
+    form.append('ActividadId', actividadIdGlobal);
+    form.append('AlumnoId', alumnoIdGlobal);
+    form.append('Respuesta', respuesta);
+    form.append('FechaEntrega', new Date().toISOString());
+
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+            form.append('files', fileInput.files[i]);
+        }
+    }
 
     try {
-        const resp = await fetch('/api/Alumnos/RegistrarEnvioActividadAlumno', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-        });
-        if (!resp.ok) throw new Error('Error al enviar');
-        const data = await resp.json();
-        alert('Enviado correctamente');
+        const resp = await fetch('/api/Alumnos/SubirEntrega', { method: 'POST', body: form });
+        if (!resp.ok) {
+            const txt = await resp.text().catch(() => '');
+            throw new Error(txt || 'Error al subir entrega');
+        }
+        const data = await resp.json().catch(() => null);
+        Swal.fire('Enviado', (data && data.mensaje) ? data.mensaje : 'Entrega registrada', 'success');
         verificarEnvio();
-    } catch (e) { alert('Error: ' + e.message); }
+    } catch (e) { Swal.fire('Error', e.message || 'No se pudo enviar', 'error'); }
 }
