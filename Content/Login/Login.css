@@ -13,86 +13,37 @@
 
 body {
     /* Center login both horizontally and vertically */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #f1f2f4;
-}
-
-.login-box {
-    position: relative;
-    width: 470px;
-    height: 580px;
-    padding: 10px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    background-color: white;
 }
 
 .signin-box {
-    position: relative;
-    width: 470px;
-    height: 650px;
-    padding: 10px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    min-height: auto;
 }
 
 .restablecer-box {
-    position: relative;
-    width: 470px;
-    height: 350px;
-    padding: 10px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    min-height: 350px;
 }
 
 .verify-box {
-    position: relative;
-    width: 470px;
-    height: 330px;
-    padding: 10px 30px;
-    background: #FFF;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    max-width: calc(100vw - 40px);
+    min-height: 330px;
 }
 
-/* Ensure auth boxes are centered in the viewport even if layout adds left margin */
-.login-box,
-.signin-box,
-.restablecer-box,
-.verify-box {
-    /* Fix to viewport center so login never appears shifted by surrounding layout */
-    position: fixed !important;
-    /* Use viewport units so centering is based on viewport even when an ancestor creates a containing block */
-    left: 50vw !important;
-    top: 50vh !important;
-    transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
-    z-index: 1100;
-}
 
 /* For very small screens use normal flow so box can scroll */
-@media (max-width: 600px) {
-    .login-box,
+@media (max-width: 850px) {
+
+ 
     .signin-box,
     .restablecer-box,
     .verify-box {
-        position: static !important;
-        transform: none !important;
-        left: auto !important;
-        top: auto !important;
-        margin: 20px auto !important;
-        max-width: calc(100% - 40px);
+        width: 90%;
+        max-width: 420px;
+    }
+
+    .logo img {
+        width: 180px;
     }
 }
 
@@ -265,6 +216,8 @@ button {
     padding: 0 30px;
     background: #FFF;
     border: 1px solid #CCC;
+    justify-content: center;
+    align-items: center;
 }
 
 .input-google {
@@ -306,19 +259,7 @@ button {
             text-decoration: none;
         }
 
-@media only screen and (max-width: 510px) {
-    .login-box {
-        padding: 10px 30px;
-        margin: 20px;
-    }
-}
 
-@media only screen and (max-width: 415px) {
-    .login-box {
-        padding: 10px 25px;
-        margin: 15px;
-    }
-}
 
 /* --- BOTÓN mostrar/ocultar contraseña --- */
 
@@ -366,3 +307,149 @@ button {
     height: 20px;
     pointer-events: none;
 }
+
+
+/*Personalizados*/
+.titulo-color{
+    color:var(--azul-twitter);
+    padding-top: 50px;
+}
+.mb-10 {
+    margin-bottom: 10px;
+}
+.titulo-bienvenida{
+    color:white;
+}
+.container-fluid {
+    padding-left: 0px;
+    padding-right: 40px;
+}
+
+
+/* Fila principal */
+.auth-row {
+    min-height: auto; /* que crezca según contenido */
+}
+
+.auth-cover-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centrar vertical dentro de su espacio */
+    align-items: center;
+    padding: 30px;
+    height: auto; /* importante para que no corte */
+}
+.auth-cover .cover-image img {
+    max-width: 300px;
+    width: 80%;
+    height: auto;
+}
+
+.auth-cover-wrapper .auth-cover .title {
+    text-align: cover;
+    margin-bottom: 40px;
+}
+
+
+.auth-cover-wrapper .auth-cover .cover-image {
+    max-width: 100%;
+    margin: auto;
+}
+
+    .auth-cover-wrapper .auth-cover .cover-image img {
+        width: 100%;
+    }
+
+
+.signin-wrapper {
+    background: #fff;
+    padding: 60px;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+    .signin-wrapper {
+        padding: 40px;
+    }
+}
+
+@media (max-width: 767px) {
+    .signin-wrapper {
+        padding: 30px;
+    }
+}
+
+.signin-wrapper .form-wrapper {
+    width: 100%;
+}
+
+
+
+/*Botones*/
+.main-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    padding: 15px 45px;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.4s ease-in-out;
+    border: 1px solid transparent;
+    overflow: hidden;
+}
+
+    .main-btn i {
+        font-size: 17px;
+    }
+
+    .main-btn svg {
+        fill: currentColor;
+    }
+
+    .main-btn:hover {
+        color: inherit;
+    }
+
+.danger-btn {
+    background: #d50100;
+    color: #fff;
+}
+
+    .danger-btn:hover {
+        color: #fff;
+    }
+
+.danger-btn-outline {
+    background: transparent;
+    color: #d50100;
+    border-color: #d50100;
+}
+
+    .danger-btn-outline:hover {
+        color: #fff;
+        background: #d50100;
+    }
+
+.danger-btn-light {
+    background: rgba(213, 1, 0, 0.12);
+    color: #d50100;
+}
+
+    .danger-btn-light:hover {
+        color: #d50100;
+    }

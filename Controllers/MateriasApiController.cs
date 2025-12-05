@@ -400,19 +400,29 @@ namespace ControlActividades.Controllers
 
         [HttpGet]
         [Route("ObtenerMateriasAlumno")]
-        public async Task<IHttpActionResult> ObtenerMateriasAlumno(int alumnoId)
+        public IHttpActionResult ObtenerMateriasAlumno(int alumnoId)
         {
             try
             {
                 var lsMateriasAlumnoId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == alumnoId).Select(a => a.MateriaId);
 
-                var lsMateriasSinGrupo = await Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
+
+                var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
                 {
                     a.MateriaId,
                     a.NombreMateria,
-                    a.Descripcion,
-                    actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).ToList()
-                }).ToListAsync();
+                    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new
+                    {
+                        b.ActividadId,
+                        b.NombreActividad,
+                        b.Descripcion,
+                        b.FechaCreacion,
+                        b.FechaLimite,
+                        b.TipoActividadId,
+                        b.Puntaje,
+                        b.MateriaId,
+                    }).ToList()
+                }).ToList();
 
                 //foreach (var materia in lsMateriasSinGrupo)
                 //{

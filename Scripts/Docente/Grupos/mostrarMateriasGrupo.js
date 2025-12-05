@@ -48,6 +48,20 @@
                     card.appendChild(docenteDiv);
                 }
 
+                // Redirect to materia details when clicking the card
+                card.addEventListener('click', function (e) {
+                    // avoid redirect if user clicked an inner actionable element in future
+                    if (e.target.closest('a') || e.target.closest('button')) return;
+                    try {
+                        // preserve group context
+                        const params = new URLSearchParams(window.location.search);
+                        const grupoId = params.get('grupoId') || '';
+                        window.location.href = `/Docente/MateriasDetalles?materiaId=${m.MateriaId}&grupoId=${grupoId}`;
+                    } catch (err) {
+                        console.warn('No se pudo redirigir a materia:', err);
+                    }
+                });
+
                 cont.appendChild(card);
             });
 

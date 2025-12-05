@@ -455,6 +455,10 @@ namespace ControlActividades.Models
 
         [Required]
         public string Color { get; set; }
+
+        public List<int> GruposSeleccionados { get; set; }
+        public List<int> MateriasSeleccionadas { get; set; }
+
     }
 
     public class AsociarMateriasRequest
@@ -468,6 +472,10 @@ namespace ControlActividades.Models
         public string Title { get; set; }
         public string Body { get; set; }
         public string ImageUrl { get; set; }
+    }
+    public class TokenDispositivo
+    {
+        public string Token { get; set; }
     }
 
 

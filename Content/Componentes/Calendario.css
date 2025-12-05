@@ -378,3 +378,127 @@ button {
     background: #b2b8c5;
     border-radius: 4px;
 }
+
+
+/*detalles de evento*/
+.modal-detalle-content {
+    position: relative;
+    background-color: white;
+    width: 480px;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 6% auto;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.close-detalle {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.detalle-meta p {
+    margin: 4px 0;
+}
+
+.detalle-descripcion p {
+    white-space: pre-wrap; /* mantiene saltos de línea */
+}
+
+#lista-grupos, #lista-materias {
+    margin: 6px 0 0 16px;
+    padding-left: 0;
+}
+
+    #lista-grupos li, #lista-materias li {
+        list-style: disc;
+        margin-left: 16px;
+    }
+
+
+/*VER DETALLE*/
+/* Grupo -> materias en detalle */
+.grupo-item-detalle {
+    margin-bottom: 10px;
+    padding: 6px 0;
+}
+
+.grupo-titulo-detalle {
+    font-weight: 700;
+    color: #0b5ed7; /* azul */
+    margin-bottom: 6px;
+}
+
+.materias-grupo-detalle {
+    margin: 0 0 0 14px;
+    padding-left: 0;
+}
+
+.materia-item-detalle {
+    list-style: disc;
+    margin-left: 18px;
+}
+
+/* Materias seleccionadas: normal */
+.materia-selected {
+    color: inherit;
+}
+
+/* Materias no seleccionadas: gris y tachadas */
+.materia-not-selected {
+    color: #999;
+    text-decoration: line-through;
+    opacity: 0.8;
+}
+
+/* Materias sueltas */
+.materia-suelta-detalle {
+    list-style: disc;
+    margin-left: 18px;
+    color: inherit;
+}
+
+
+#detalle-titulo {
+    font-size: 2rem; 
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+#descripcion-titulo {
+    font-size: 2rem; 
+    color: #444;
+    line-height: 1.4;
+    margin-bottom: 15px;
+    white-space: pre-line; /* Mantiene saltos de línea */
+}
+
+
+/*Scroll destinatarios detalle evento*/
+#detalle-destinatarios {
+    margin-top: 15px;
+}
+
+#detalle-destinatarios-scroll {
+    max-height: 250px; 
+    overflow-y: auto;
+    padding-right: 10px;
+    scrollbar-width: thin;
+}
+
+.close-editar {
+    position: absolute;
+    top: 5px;
+    right: 3px;
+    font-size: 30px;
+    color: #333;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.swal2-container {
+    z-index: 99999 !important;
+}

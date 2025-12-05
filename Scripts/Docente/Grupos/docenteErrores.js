@@ -27,34 +27,32 @@ function alertaDeErroresGenerales(error) {
     });
 }
 
-//funcion que activa la alerta y posteriormente cierra sesion
-
-function AlertaCierreSesion() {
-    let timerInterval;
-    Swal.fire({
-        title: "Parece que se perdió la conexión con tu sesión.",
-        html: "La cerraremos por seguridad y podrás volver a iniciar sesión en <b></b>.",
-        timer: 5000,
-        timerProgressBar: true,
-        position: "center",
-        allowOutsideClick: false, // Evita que se cierre al hacer clic fuera
-        didOpen: () => {
-            Swal.showLoading();
-            const timer = Swal.getPopup().querySelector("b");
-            timerInterval = setInterval(() => {
-                timer.textContent = `${Math.floor(Swal.getTimerLeft() / 1000)} segundos`;
-            }, 100);
-        },
-        willClose: () => {
-            clearInterval(timerInterval);
-            cerrarSesion();
-        }
-    }).then((result) => {
-        if (result.dismiss === Swal.DismissReason.timer) {
-            console.log("Cerrando sesión automáticamente.");
-        }
-    }); //Se cierra la sesion al no obtener el id del docente, ya que es necesario para todo. raramente se activara esto, pero es mejor tenerlo.
-}
+//function AlertaCierreSesion() {
+//    let timerInterval;
+//    Swal.fire({
+//        title: "Parece que se perdió la conexión con tu sesión.",
+//        html: "La cerraremos por seguridad y podrás volver a iniciar sesión en <b></b>.",
+//        timer: 5000,
+//        timerProgressBar: true,
+//        position: "center",
+//        allowOutsideClick: false, 
+//        didOpen: () => {
+//            Swal.showLoading();
+//            const timer = Swal.getPopup().querySelector("b");
+//            timerInterval = setInterval(() => {
+//                timer.textContent = `${Math.floor(Swal.getTimerLeft() / 1000)} segundos`;
+//            }, 100);
+//        },
+//        willClose: () => {
+//            clearInterval(timerInterval);
+//            cerrarSesion();
+//        }
+//    }).then((result) => {
+//        if (result.dismiss === Swal.DismissReason.timer) {
+//            console.log("Cerrando sesión automáticamente.");
+//        }
+//    });
+//}
 
 
 // Función para cerrar sesión

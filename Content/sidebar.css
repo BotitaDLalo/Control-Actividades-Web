@@ -373,7 +373,7 @@ div .sub-item {
     content: '' !important;
 }
 
-/* Some implementations use pseudo-elements on links — ensure they're removed in the sidebar */
+/* Some implementations use pseudo-elements on links ï¿½ ensure they're removed in the sidebar */
 .new-sidebar .nav-link::after,
 .app-sidebar .nav-link::after {
     display: none !important;

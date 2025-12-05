@@ -2,6 +2,7 @@
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -28,18 +29,45 @@ namespace ControlMaterias.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private NotificacionesService _notifServ;
 
         public MateriasController()
         {
         }
 
-        public MateriasController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
+        [HttpPost]
+        public async Task<ActionResult> ActualizarEstatusAlumno(int AlumnoId, int MateriaId, string Estatus)
+        {
+            try
+            {
+                // buscar la relación específica alumno-materia
+                var enlace = await Db.tbAlumnosMaterias.FirstOrDefaultAsync(a => a.AlumnoId == AlumnoId && a.MateriaId == MateriaId);
+                if (enlace == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "No se encontró relación alumno-materia." }, JsonRequestBehavior.AllowGet);
+                }
+
+                enlace.Estatus = Estatus;
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Estatus actualizado." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar estatus.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public MateriasController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, NotificacionesService notificacionesService)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+            Ns = notificacionesService;
         }
 
         public ApplicationSignInManager SignInManager
@@ -99,6 +127,18 @@ namespace ControlMaterias.Controllers
             set
             {
                 _fg = value;
+            }
+        }
+
+        public NotificacionesService Ns
+        {
+            get
+            {
+                return _notifServ ?? (_notifServ = new NotificacionesService(_db));
+            }
+            private set
+            {
+                _notifServ = value;
             }
         }
 
@@ -284,18 +324,25 @@ namespace ControlMaterias.Controllers
         {
             try
             {
+                // incluir correo del usuario relacionado (Identity User) para mostrar en la vista
                 var alumnos = await Db.tbAlumnosMaterias
                     .Where(am => am.MateriaId == materiaId)
                     .Join(Db.tbAlumnos,
                         am => am.AlumnoId,
                         a => a.AlumnoId,
-                        (am, a) => new
+                        (am, a) => new { am, a })
+                    .Join(Db.Users,
+                        x => x.a.UserId,
+                        u => u.Id,
+                        (x, u) => new
                         {
-                            am.AlumnoMateriaId,
-                            a.AlumnoId,
-                            a.Nombre,
-                            a.ApellidoPaterno,
-                            a.ApellidoMaterno
+                            x.am.AlumnoMateriaId,
+                            x.a.AlumnoId,
+                            x.a.Nombre,
+                            x.a.ApellidoPaterno,
+                            x.a.ApellidoMaterno,
+                            Email = u.Email,
+                            Estatus = x.a.Estatus ?? "Activo"
                         })
                     .OrderBy(a => a.ApellidoPaterno)
                     .ThenBy(a => a.ApellidoMaterno)
@@ -308,7 +355,8 @@ namespace ControlMaterias.Controllers
                     return Json(new { mensaje = "No se encontraron alumnos para la materia especificada." }, JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(alumnos, JsonRequestBehavior.AllowGet);
+                // Devolver lista junto con mensaje de OK
+                return Json(new { alumnos = alumnos }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -503,6 +551,7 @@ namespace ControlMaterias.Controllers
 
         //Controlador para crear un aviso funciona desde dentro de la materia
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> CrearAviso(tbAvisos avisos)
         {
             if (avisos == null)
@@ -525,6 +574,12 @@ namespace ControlMaterias.Controllers
 
                 Db.tbAvisos.Add(nuevoAviso);
                 await Db.SaveChangesAsync();
+
+                await Ns.NotificacionCrearAviso(
+                    nuevoAviso,
+                    nuevoAviso.GrupoId,
+                    nuevoAviso.MateriaId
+                );
 
                 return Json(new { mensaje = "Aviso creado con éxito" }, JsonRequestBehavior.AllowGet);
             }

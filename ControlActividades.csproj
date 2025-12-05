@@ -63,6 +63,15 @@
     <Reference Include="ExtendedNumerics.BigDecimal, Version=2025.1001.2.129, Culture=neutral, PublicKeyToken=65f1315a45ad8949, processorArchitecture=MSIL">
       <HintPath>packages\ExtendedNumerics.BigDecimal.2025.1001.2.129\lib\net48\ExtendedNumerics.BigDecimal.dll</HintPath>
     </Reference>
+    <Reference Include="FirebaseAdmin, Version=3.4.0.0, Culture=neutral, PublicKeyToken=97c8d00c348326ed, processorArchitecture=MSIL">
+      <HintPath>packages\FirebaseAdmin.3.4.0\lib\net462\FirebaseAdmin.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Api.Gax, Version=4.8.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
+      <HintPath>packages\Google.Api.Gax.4.8.0\lib\net462\Google.Api.Gax.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Api.Gax.Rest, Version=4.8.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
+      <HintPath>packages\Google.Api.Gax.Rest.4.8.0\lib\net462\Google.Api.Gax.Rest.dll</HintPath>
+    </Reference>
     <Reference Include="Google.Apis, Version=1.70.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
       <HintPath>packages\Google.Apis.1.70.0\lib\net462\Google.Apis.dll</HintPath>
     </Reference>
@@ -281,6 +290,12 @@
     </Reference>
     <Reference Include="System.Net.Http.WebRequest">
     </Reference>
+    <Reference Include="Unity.Abstractions, Version=5.11.7.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
+      <HintPath>packages\Unity.5.11.10\lib\net48\Unity.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Container, Version=5.11.11.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
+      <HintPath>packages\Unity.5.11.10\lib\net48\Unity.Container.dll</HintPath>
+    </Reference>
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
@@ -397,7 +412,7 @@
     <Content Include="Content\Docente\actividadesSeccion.css" />
     <Content Include="Content\Docente\alumnosSeccion.css" />
     <Content Include="Content\Docente\avisosSeccion.css" />
-    <Content Include="Content\Docente\Calendario.css" />
+    <Content Include="Content\Componentes\Calendario.css" />
     <Content Include="Content\Docente\Confirmacion.css" />
     <Content Include="Content\Docente\DetalleActividadesEstilos.css" />
     <Content Include="Content\Docente\footer.css" />
@@ -427,6 +442,8 @@
     <Content Include="Content\Iconos\LINK-26.svg" />
     <Content Include="Content\Iconos\LOGO HORIZONTAL-26.svg" />
     <Content Include="Content\Iconos\LOGO VERTICAL-26.svg" />
+    <Content Include="Content\Iconos\logo1.svg" />
+    <Content Include="Content\Iconos\logo2.svg" />
     <Content Include="Content\Iconos\Materia.svg" />
     <Content Include="Content\Iconos\Notificacion.svg" />
     <Content Include="Content\Iconos\NOTIFICACIONES-26.svg" />
@@ -443,6 +460,7 @@
     <Content Include="Content\Iconos\UPLOAD-26.svg" />
     <Content Include="Content\Iconos\WORD-26.svg" />
     <Content Include="Content\Iconos\x.svg" />
+    <Content Include="Content\Imgs\background-student.jpg" />
     <Content Include="Content\Login\Login.css" />
     <Content Include="Content\sidebar.css" />
     <Content Include="Content\Site.css" />
@@ -450,6 +468,7 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
     <Content Include="Scripts\Alumno\actividades.js" />
+    <Content Include="Scripts\Alumno\AgendaFullCalendar.js" />
     <Content Include="Scripts\Alumno\alumno.js" />
     <Content Include="Scripts\Alumno\Avisos.js" />
     <Content Include="Scripts\Alumno\Calendario.js" />
@@ -509,6 +528,9 @@
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
+    <Content Include="firebase-messaging-sw.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Scripts\Shared\headerNotifications.js" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
     <Content Include="Views\Alumno\Materias.cshtml.txt" />
@@ -553,7 +575,7 @@
     <Content Include="Views\Home\Calendario.cshtml" />
     <Content Include="Views\Alumno\_GruposPartial.cshtml" />
     <Content Include="Views\Alumno\_MateriasSinGrupoPartial.cshtml" />
-    <Content Include="Views\EventosAgenda\Calendario.cshtml" />
+    <Content Include="Views\EventosAgenda\CalendarioDocentes.cshtml" />
     <Content Include="Views\Dashboard\Index.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Docente\Grupos.cshtml" />
@@ -562,6 +584,7 @@
     <Content Include="Views\Alumno\Materias.cshtml" />
     <Content Include="Views\Docente\GruposStandalone.cshtml" />
     <Content Include="Views\Docente\MateriasSinGrupoStandalone.cshtml" />
+    <Content Include="Views\EventosAgenda\CalendarioAlumnos.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Alumno\css\" />
@@ -633,6 +656,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\Firebase\firebase.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Variables\colors.css" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

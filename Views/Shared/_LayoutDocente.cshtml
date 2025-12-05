@@ -18,14 +18,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     @*<link href="~/Content/sidebar.css" rel="stylesheet" />*@
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
     <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
 
 
     @*<style>
-        html {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-    </style>*@
+            html {
+                font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            }
+        </style>*@
 </head>
 <body>
     @*<div class="container">
@@ -43,8 +45,14 @@
         </div>
     </div>
 
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/sidebar.js"></script>
 
 
+    <script type="module" src="~/Scripts/Firebase/firebase.js"></script>
+
+    <!--SPINNER DE CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
     </div>
@@ -58,6 +66,14 @@
     <script src="~/Scripts/sidebar.js"></script>
     <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
 
+    <script type="module">
+        import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                registrarTokenFcm();
+            }, 500);
+        });
+    </script>
 
     @Scripts.Render("~/bundles/docente")
     @Scripts.Render("~/bundles/docentegrupos")
