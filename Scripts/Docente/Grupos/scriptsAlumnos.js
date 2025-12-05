@@ -13,7 +13,8 @@ function renderAlumnosTable(alumnos) {
 // This is a new comment added for clarity
     var table = document.createElement('table'); table.className = 'table table-striped';
     var thead = document.createElement('thead');
-    thead.innerHTML = '<tr><th>Nombre</th><th>Apellidos</th><th>Email</th><th>Estatus</th><th>Acciones</th></tr>';
+    // Removed Estatus column as requested
+    thead.innerHTML = '<tr><th>Nombre</th><th>Apellidos</th><th>Email</th><th>Acciones</th></tr>';
     table.appendChild(thead);
     var tbody = document.createElement('tbody');
     alumnos.forEach(function (a) {
@@ -31,9 +32,8 @@ function renderAlumnosTable(alumnos) {
         else if (a.IdentityUser && (a.IdentityUser.Email || a.IdentityUser.email)) email = a.IdentityUser.Email || a.IdentityUser.email;
         // fallback: sometimes the alumno object is nested inside another object
         else if (a.Alumno && (a.Alumno.Email || a.Alumno.email || a.Alumno.Correo)) email = a.Alumno.Email || a.Alumno.email || a.Alumno.Correo || '';
-        // mostrar columna estatus si viene
-        var est = a.Estatus || a.estatus || '';
-        tr.innerHTML = '<td>' + nombre + '</td><td>' + ap.trim() + '</td><td>' + email + '</td><td>' + (est ? ('<span class="badge bg-info">' + est + '</span>') : '') + '</td>';
+        // Do not show Estatus column — only show basic info
+        tr.innerHTML = '<td>' + nombre + '</td><td>' + ap.trim() + '</td><td>' + email + '</td>';
         var tdAcc = document.createElement('td');
         // action group: delete + estatus dropdown
         var grupoAcc = document.createElement('div'); grupoAcc.className = 'btn-group';
@@ -49,51 +49,14 @@ function renderAlumnosTable(alumnos) {
             grupoAcc.appendChild(delBtn);
         }
 
-        // estatus dropdown (manual toggle so it works even if bootstrap JS isn't loaded)
-        var dropBtn = document.createElement('button');
-        dropBtn.className = 'btn btn-sm btn-secondary dropdown-toggle dropdown-toggle-split';
-        dropBtn.type = 'button';
-        dropBtn.setAttribute('aria-expanded', 'false');
-        grupoAcc.appendChild(dropBtn);
-
-        var menu = document.createElement('ul'); menu.className = 'dropdown-menu';
-        // basic styling to ensure it's above table
-        menu.style.minWidth = '140px';
-        menu.style.zIndex = '2000';
-        var estados = ['Activo', 'Inactivo', 'Dado de Baja'];
-        estados.forEach(function (est) {
-            var li = document.createElement('li');
-            var aopt = document.createElement('a'); aopt.className = 'dropdown-item'; aopt.href = '#'; aopt.textContent = est;
-            aopt.addEventListener('click', function (ev) {
-                ev.preventDefault();
-                var alumnoId = a.AlumnoId || a.alumnoId || (a.Alumno && a.Alumno.AlumnoId) || null;
-                if (!alumnoId) {
-                    console.warn('No se pudo determinar AlumnoId para cambiar estatus');
-                    return;
-                }
-                setAlumnoEstatus(alumnoId, est);
-            });
-            li.appendChild(aopt);
-            menu.appendChild(li);
-        });
-        grupoAcc.appendChild(menu);
-        // Toggle handler: show/hide menu when clicking split button
-        dropBtn.addEventListener('click', function (ev) {
-            ev.stopPropagation();
-            // close other open menus
-            document.querySelectorAll('.dropdown-menu.show').forEach(function (m) { if (m !== menu) m.classList.remove('show'); });
-            menu.classList.toggle('show');
-            var isOpen = menu.classList.contains('show');
-            dropBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
+        // removed estatus dropdown — only delete button remains
         tdAcc.appendChild(grupoAcc);
         tr.appendChild(tdAcc);
         tbody.appendChild(tr);
     });
     table.appendChild(tbody);
     cont.appendChild(table);
-    // Close any open dropdown when clicking outside
-    document.addEventListener('click', function (ev) { document.querySelectorAll('.dropdown-menu.show').forEach(function (m) { m.classList.remove('show'); }); });
+    // No global dropdown handlers needed since dropdown was removed
 }
 
 async function cargarAlumnosAsignados(materiaOrAlumnos) {

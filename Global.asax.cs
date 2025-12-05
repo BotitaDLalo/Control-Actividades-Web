@@ -11,6 +11,9 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using System.Data.Entity;
+using ControlActividades.Migrations;
+using ControlActividades.Models;
 
 namespace ControlActividades
 {
@@ -18,6 +21,21 @@ namespace ControlActividades
     {
         protected void Application_Start()
         {
+            // Apply EF migrations automatically only in development (compilation debug="true").
+            // This avoids applying migrations automatically in production environments.
+            try
+            {
+                var isDebug = HttpContext.Current?.IsDebuggingEnabled ?? false;
+                if (isDebug)
+                {
+                    Database.SetInitializer(new MigrateDatabaseToLatestVersion<ApplicationDbContext, Configuration>());
+                }
+            }
+            catch
+            {
+                // If HttpContext is unavailable during some host scenarios, do not set initializer.
+            }
+
             AreaRegistration.RegisterAllAreas();
             GlobalConfiguration.Configure(WebApiConfig.Register);
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
