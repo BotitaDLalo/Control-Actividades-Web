@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 *.swp
 
 App_Data/push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json
+
+Web.config
