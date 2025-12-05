@@ -123,6 +123,7 @@ namespace ControlActividades.Models
     public class EmailVerificadoAlumno
     {
         [Required]
+        public int AlumnoId { get; set; }
         public string Email { get; set; }
 
         public string UserName { get; set; }
@@ -449,6 +450,24 @@ namespace ControlActividades.Models
         public string Body { get; set; }
         public string ImageUrl { get; set; }
     }
+    public class AlumnoEliminarRequest
+    {
+        public int MateriaId { get; set; }
+        public int AlumnoId { get; set; }
+    }
 
+    // En ModelosGenerales.cs
+
+    public class AlumnoEliminarGrupoRequest
+    {
+        public int GrupoId { get; set; }
+        public int AlumnoId { get; set; }
+    }
+    /*public class AvisoDto
+    {
+        public int AvisoId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+    }*/
 
 }

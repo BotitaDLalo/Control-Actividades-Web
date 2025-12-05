@@ -306,6 +306,7 @@ namespace ControlActividades.Controllers
             }
         }
 
+        /*
         [HttpPost]
         [Route("CrearMateriaGrupos")]
         public async Task<IHttpActionResult> CrearMateriaGrupos([FromBody] MateriaConGrupo materiaConGrupo)
@@ -366,6 +367,87 @@ namespace ControlActividades.Controllers
                 return Content(HttpStatusCode.InternalServerError, $"Internal server error: {innerException}");
             }
         }
+        */
+
+        // Funcion modificada para ver logs detallados del problema
+        [HttpPost]
+        [Route("CrearMateriaGrupos")]
+        public async Task<IHttpActionResult> CrearMateriaGrupos([FromBody] MateriaConGrupo materiaConGrupo)
+        {
+            try
+            {
+                Console.WriteLine($"[LOG] Iniciando CrearMateriaGrupos. DocenteId: {materiaConGrupo.DocenteId}, NombreMateria: {materiaConGrupo.NombreMateria}");
+
+                int docenteId = materiaConGrupo.DocenteId;
+                var lsGruposId = Db.tbGrupos.Where(a => a.DocenteId == docenteId).Select(a => a.GrupoId).ToList();
+                Console.WriteLine($"[LOG] Grupos del docente {docenteId}: {string.Join(", ", lsGruposId)}");
+
+                List<int> gruposVinculados = materiaConGrupo.Grupos;
+                Console.WriteLine($"[LOG] Grupos a vincular: {string.Join(", ", gruposVinculados)}");
+
+                if (gruposVinculados.All(a => lsGruposId.Contains(a)))
+                {
+                    Console.WriteLine("[LOG] Verificación de grupos pasada. Todos los grupos pertenecen al docente.");
+
+                    tbMaterias materia = new tbMaterias()
+                    {
+                        DocenteId = docenteId,
+                        NombreMateria = materiaConGrupo.NombreMateria,
+                        Descripcion = materiaConGrupo.Descripcion,
+                        CodigoAcceso = ObtenerClave()
+                        //CodigoColor = materiaG.CodigoColor,
+                    };
+
+                    Console.WriteLine($"[LOG] Creando materia con CodigoAcceso: {materia.CodigoAcceso}");
+                    Db.tbMaterias.Add(materia);
+                    await Db.SaveChangesAsync();
+                    Console.WriteLine($"[LOG] Materia creada exitosamente. MateriaId: {materia.MateriaId}");
+
+                    var idMateria = materia.MateriaId;
+
+                    foreach (var grupo in gruposVinculados)
+                    {
+                        Console.WriteLine($"[LOG] Vinculando materia {idMateria} con grupo {grupo}");
+                        tbGruposMaterias gruposMaterias = new tbGruposMaterias()
+                        {
+                            GrupoId = grupo,
+                            MateriaId = idMateria
+                        };
+
+                        Db.tbGruposMaterias.Add(gruposMaterias);
+                    }
+
+                    await Db.SaveChangesAsync();
+                    Console.WriteLine("[LOG] Vinculaciones guardadas exitosamente.");
+
+                    Console.WriteLine("[LOG] Consultando grupos actualizados...");
+                    var lsGruposMaterias = await ConsultaGrupos();
+                    Console.WriteLine($"[LOG] Consulta completada. Retornando {lsGruposMaterias?.Count ?? 0} grupos.");
+
+                    //return Ok(lsGruposMaterias);
+                    return Ok(new { mensaje = "Materia creada exitosamente", materiaId = idMateria });
+                }
+                else
+                {
+                    Console.WriteLine("[LOG] ERROR: Uno o más grupos no pertenecen al docente.");
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Un grupo no pertenece al docente" });
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                // Captura la excepción interna para más detalles
+                var innerException = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                Console.WriteLine($"[LOG] ERROR DbUpdateException: {innerException}");
+                return Content(HttpStatusCode.InternalServerError, $"Internal server error: {innerException}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LOG] ERROR General: {ex.Message}");
+                Console.WriteLine($"[LOG] StackTrace: {ex.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, $"Unexpected error: {ex.Message}");
+            }
+        }
+
 
 
         [HttpPut]
@@ -383,44 +465,96 @@ namespace ControlActividades.Controllers
             return Ok(await Db.tbMaterias.ToListAsync());
         }
 
+        /*
         [HttpDelete]
-        [Route("DeleteSubject")]
+        [Route("DeleteSubject/{id}")]
         public async Task<IHttpActionResult> DeleteSubject(int id)
         {
-            var dbSubject = await Db.tbMaterias.FindAsync(id);
-            if (dbSubject is null) return Content(HttpStatusCode.NotFound, "Materia no encontrada");
+            try
+            {
+                var dbSubject = await Db.tbMaterias.FindAsync(id);
+                if (dbSubject is null) return Content(HttpStatusCode.NotFound, "Materia no encontrada");
 
-            Db.tbMaterias.Remove(dbSubject);
-            await Db.SaveChangesAsync();
-            return Ok(await Db.tbMaterias.ToListAsync());
+                Db.tbMaterias.Remove(dbSubject);
+                await Db.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
+        */
+
+        // Nueva funcion para eliminar materias, primero elimina actividadaes asociadas
+        [HttpDelete]
+        [Route("DeleteSubject/{id}")]
+        public async Task<IHttpActionResult> DeleteSubject(int id)
+        {
+            try
+            {
+                var dbSubject = await Db.tbMaterias.FindAsync(id);
+                if (dbSubject == null) return Content(HttpStatusCode.NotFound, "Materia no encontrada");
+
+                // 1. Eliminar entregables relacionados con las actividades de esta materia
+                var activities = Db.tbActividades.Where(a => a.MateriaId == id).Select(a => a.ActividadId);
+                var submissions = Db.tbEntregablesAlumno.Where(e => activities.Contains(e.AlumnoActividadId));
+                Db.tbEntregablesAlumno.RemoveRange(submissions);
+
+                // 2. Eliminar actividades
+                var subjectActivities = Db.tbActividades.Where(a => a.MateriaId == id);
+                Db.tbActividades.RemoveRange(subjectActivities);
+
+                // 3. Eliminar registros de alumnos-materias
+                var alumnosMaterias = Db.tbAlumnosMaterias.Where(am => am.MateriaId == id);
+                Db.tbAlumnosMaterias.RemoveRange(alumnosMaterias);
+
+                // 4. Eliminar relaciones con grupos (esto removerá la materia de todos los grupos)
+                var gruposMaterias = Db.tbGruposMaterias.Where(gm => gm.MateriaId == id);
+                Db.tbGruposMaterias.RemoveRange(gruposMaterias);
+
+                // 5. Eliminar la materia
+                Db.tbMaterias.Remove(dbSubject);
+                await Db.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar materia: {ex.Message}");
+                return BadRequest();
+            }
+        }
+
+
+
+
         #endregion
 
         #region Alumno
 
         [HttpGet]
         [Route("ObtenerMateriasAlumno")]
-        public IHttpActionResult ObtenerMateriasAlumno(int alumnoId)
+        public async Task<IHttpActionResult> ObtenerMateriasAlumno(int alumnoId)
         {
             try
             {
                 var lsMateriasAlumnoId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == alumnoId).Select(a => a.MateriaId);
 
-
                 var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
                 {
                     a.MateriaId,
                     a.NombreMateria,
+                    a.Descripcion,
                     Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new
                     {
                         b.ActividadId,
+                        b.TipoActividadId,
                         b.NombreActividad,
                         b.Descripcion,
                         b.FechaCreacion,
                         b.FechaLimite,
-                        b.TipoActividadId,
                         b.Puntaje,
-                        b.MateriaId,
+                        b.MateriaId
                     }).ToList()
                 }).ToList();
 
