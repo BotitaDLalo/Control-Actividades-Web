@@ -2,6 +2,8 @@ using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
+using Newtonsoft.Json;
+using System.IO;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -52,6 +54,98 @@ namespace ControlActividades.Controllers
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+        }
+
+        [HttpPost]
+        [Route("SubirEntrega")]
+        public async Task<IHttpActionResult> SubirEntrega()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Current.Request;
+                if (httpRequest == null)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se recibió la solicitud." });
+
+                int actividadId = 0;
+                int alumnoId = 0;
+                string respuesta = httpRequest.Form["Respuesta"] ?? string.Empty;
+
+                int.TryParse(httpRequest.Form["ActividadId"], out actividadId);
+                int.TryParse(httpRequest.Form["AlumnoId"], out alumnoId);
+
+                if (actividadId == 0 || alumnoId == 0)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Faltan datos: AlumnoId o ActividadId." });
+
+                // Guardar archivos
+                var savedUrls = new List<string>();
+                var files = httpRequest.Files;
+                var uploadRoot = HttpContext.Current.Server.MapPath("~/Uploads/Entregas/");
+                var destFolder = Path.Combine(uploadRoot, actividadId.ToString(), alumnoId.ToString());
+                if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
+
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var file = files[i];
+                    if (file == null || file.ContentLength == 0) continue;
+                    var safeName = Path.GetFileName(file.FileName);
+                    var destPath = Path.Combine(destFolder, safeName);
+                    // evitar sobreescribir: agregar timestamp
+                    if (File.Exists(destPath))
+                    {
+                        var ts = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        destPath = Path.Combine(destFolder, ts + "_" + safeName);
+                    }
+                    file.SaveAs(destPath);
+                    var relative = 
+                        "/Uploads/Entregas/" + actividadId + "/" + alumnoId + "/" + Path.GetFileName(destPath);
+                    savedUrls.Add(relative);
+                }
+
+                // Crear registro en tbAlumnosActividades y tbEntregableAlumno
+                var actividad = new tbAlumnosActividades()
+                {
+                    ActividadId = actividadId,
+                    AlumnoId = alumnoId,
+                    FechaEntrega = DateTime.Now,
+                    EstatusEntrega = true,
+                    EntregablesAlumno = new tbEntregableAlumno()
+                    {
+                        Respuesta = BuildRespuestaWithFiles(respuesta, savedUrls)
+                    }
+                };
+
+                Db.tbAlumnosActividades.Add(actividad);
+                await Db.SaveChangesAsync();
+
+                var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
+                var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == datosAlumnoActividad.AlumnoActividadId).FirstOrDefaultAsync();
+
+                return Ok(new
+                {
+                    EntregaId = datosEntregable?.EntregaId ?? 0,
+                    AlumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0,
+                    Respuesta = datosEntregable?.Respuesta ?? string.Empty,
+                    Status = datosAlumnoActividad?.EstatusEntrega ?? false
+                });
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = ex.Message });
+            }
+        }
+
+        private string BuildRespuestaWithFiles(string respuesta, List<string> files)
+        {
+            // Guardar texto y enlaces a archivos en un JSON sencillo
+            try
+            {
+                var obj = new { Respuesta = respuesta ?? string.Empty, Archivos = files ?? new List<string>() };
+                return JsonConvert.SerializeObject(obj);
+            }
+            catch
+            {
+                return respuesta ?? string.Empty;
+            }
         }
 
         public ApplicationSignInManager SignInManager

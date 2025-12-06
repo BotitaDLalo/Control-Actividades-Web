@@ -204,12 +204,15 @@ namespace ControlActividades.Controllers
 
         public ActionResult DetalleMateria()
         {
-            return View();
+            // Evitar renderizar la vista sin un modelo válido.
+            // Esta vista debe cargarse desde la acción Clase(tipo="materia", id=...).
+            return RedirectToAction("Index");
         }
 
         public ActionResult DetalleGrupo()
         {
-            return View();
+            // Evitar renderizar la vista sin un modelo válido.
+            return RedirectToAction("Index");
         }
 
         public async Task<ActionResult> Avisos(int alumnoId)

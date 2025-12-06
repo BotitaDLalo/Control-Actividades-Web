@@ -2,15 +2,121 @@
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
 
-    int alumnoId = ViewBag.AlumnoId;
+    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId : 0;
 }
 
-<div class="inputs-content">
-    <div class="input-buscar">
-        <input type="text" placeholder="Buscar..." class="form-control" />
-        <!-- <button class="btn btn-primary">Buscar</button> -->
+<div class="container my-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h1 class="h3 mb-0">Tus clases</h1>
+            <p class="text-muted small mb-0">Accede a tus grupos y materias desde aquí</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <div class="input-group">
+                <input id="buscarClasesInput" type="text" class="form-control" placeholder="Buscar clases..." />
+                <button id="buscarBtn" class="btn btn-outline-secondary" type="button">Buscar</button>
+            </div>
+            <button id="btnAbrirUnirse" class="btn btn-primary">Entrar a una clase nueva</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div id="contenedorClases" class="row g-3">
+                <!-- Las tarjetas de clases se renderizan aquí por JS -->
+                <div id="estadoClases" class="col-12">
+                    <div class="card border-0 shadow-sm p-4 text-center text-muted">
+                        <p class="mb-0">Cargando tus clases...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Mis materias</h5>
+                    <p class="text-muted small">Listado de materias en las que estás inscrito</p>
+                    <div id="misMaterias" class="list-group">
+                        <div class="list-group-item text-muted">Cargando materias...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal simple para ingresar código de acceso -->
+    <div id="unirseModal" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Entrar a una clase</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="codigoAccesoInput" class="form-label">Código de acceso</label>
+                    <input id="codigoAccesoInput" class="form-control" placeholder="Ingresa el código" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btnUnirseConfirm" type="button" class="btn btn-primary">Entrar</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="content"></div>
+@section Scripts {
+    <script>
+        // Exponer alumnoId a scripts cliente
+        var alumnoIdGlobal = @alumnoId;
+    </script>
+    <script src="~/Scripts/Alumno/Clases.js"></script>
+    <script src="~/Scripts/Alumno/UnirseClase.js"></script>
+    <script>
+        // abrir modal cuando se presione el botón
+        document.addEventListener('DOMContentLoaded', function () {
+            var btn = document.getElementById('btnAbrirUnirse');
+            var modalEl = document.getElementById('unirseModal');
+            if (btn && modalEl) {
+                btn.addEventListener('click', function () {
+                    // usar bootstrap modal si está disponible
+                    try {
+                        var modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    } catch (e) {
+                        // fallback: mostrar clase show
+                        modalEl.classList.add('show');
+                    }
+                });
+            }
+
+            var btnConfirm = document.getElementById('btnUnirseConfirm');
+            if (btnConfirm) {
+                btnConfirm.addEventListener('click', function () {
+                    // llamar la función definida en UnirseClase.js
+                    if (typeof unirseAClase === 'function') {
+                        unirseAClase();
+                    } else {
+                        alert('Función de unirse no disponible');
+                    }
+                });
+            }
+
+            // Buscar local: filtra elementos en contenedorClases por nombre
+            var buscarBtn = document.getElementById('buscarBtn');
+            var buscarInput = document.getElementById('buscarClasesInput');
+            buscarBtn && buscarBtn.addEventListener('click', function () {
+                var q = buscarInput.value.trim().toLowerCase();
+                var cards = document.querySelectorAll('#contenedorClases .class-card');
+                if (!q) { cards.forEach(c => c.style.display = ''); return; }
+                cards.forEach(function (c) {
+                    var text = (c.innerText || '').toLowerCase();
+                    c.style.display = text.indexOf(q) >= 0 ? '' : 'none';
+                });
+            });
+        });
+    </script>
+}
 
