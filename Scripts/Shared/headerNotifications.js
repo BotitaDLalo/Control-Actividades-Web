@@ -34,6 +34,7 @@ function initHeaderNotifications() {
         }
         panel.style.display = "flex";
         panel.setAttribute('aria-hidden', 'false');
+        ocultarIndicadorNotificaciones();
     });
 
     //cerrar cuando se haga clic fuera
@@ -144,6 +145,15 @@ function insertarNotificacionEnPanel(notificacion) {
     `;
 
     listaNoti.insertAdjacentHTML('afterbegin', html);
+
+    //Eliminar la primera en la cola
+    const maxNotificaciones = 4;
+    const items = listaNoti.querySelectorAll(".noti-item");
+
+    if (items.length > maxNotificaciones) {
+        const eliminar = items[items.length - 1];
+        if (eliminar) eliminar.remove();
+    }
 
 }
 

@@ -94,6 +94,8 @@
 
 .notificaciones-container {
     border-radius: 8px;
+    display: none;
+    border-color: black;
 }
 
 .noti-item {

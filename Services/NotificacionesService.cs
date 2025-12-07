@@ -138,6 +138,27 @@ namespace ControlActividades.Services
 
         }
 
+        public async Task ColaDeNotificaciones(string userId)
+        {
+            const int maxNotificaciones = 4;
+            // Verificar el número de notificaciones existentes para el usuario
+            var notificaciones = await _db.tbNotificaciones
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.FechaRecibido)
+                .ToListAsync();
+
+            if (notificaciones.Count <= maxNotificaciones)
+            {
+                return;
+            }
+
+            var notificacionesAEliminar = notificaciones
+                .Skip(maxNotificaciones)
+                .ToList();
+            _db.tbNotificaciones.RemoveRange(notificacionesAEliminar);
+            await _db.SaveChangesAsync();
+        }
+
         public async Task GuardarNotificacionAsync(string userId, string messageId, string title, string body)
         {
             try
@@ -153,6 +174,9 @@ namespace ControlActividades.Services
 
                 _db.tbNotificaciones.Add(noti);
                 await _db.SaveChangesAsync();
+
+                //Meter la notificación en cola
+                await ColaDeNotificaciones(userId);
 
                 //Enviar notificación en tiempo real
                 EnviaNotificacionTiempoReal(userId, noti);
