@@ -116,6 +116,7 @@
 
             <div class="d-flex" style="gap:10px;">
                 <button id="btnCopiarMateria" class="btn btn-secondary">Copiar Materia</button>
+                <button id="btnCambiarCodigo" class="btn btn-warning">Cambiar código de clase</button>
                 <button id="btnEliminarMateria" class="btn btn-danger">Eliminar Materia</button>
             </div>
         </div>
@@ -184,6 +185,35 @@
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
                 });
+
+        // Cambiar código de clase (auto-generado con confirmación)
+        const btnCambiarCodigo = document.getElementById('btnCambiarCodigo');
+        if (btnCambiarCodigo) btnCambiarCodigo.addEventListener('click', async function () {
+            try {
+                const res = await Swal.fire({
+                    title: '¿Está seguro?',
+                    text: 'Se generará automáticamente un nuevo código de clase. ¿Desea continuar?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, generar código',
+                    cancelButtonText: 'No, cancelar'
+                });
+
+                if (!res.isConfirmed) return; // usuario canceló
+
+                const resp = await fetch(`/Materias/CambiarCodigoAuto?materiaId=${materiaIdGlobal}`, { method: 'POST' });
+                if (!resp.ok) {
+                    const txt = await resp.text();
+                    Swal.fire('Error', txt || 'No se pudo cambiar el código', 'error');
+                    return;
+                }
+
+                const j = await resp.json().catch(()=>null);
+                const nuevo = (j && (j.CodigoAcceso || j.codigoAcceso)) || '';
+                if (nuevo) document.getElementById('codigoAcceso').innerText = nuevo;
+                Swal.fire({ icon: 'success', title: 'Código actualizado', text: nuevo, showConfirmButton: false, timer: 1400 });
+            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo cambiar el código', 'error'); }
+        });
                 if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); return true; }
                 else { Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
             } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
@@ -193,7 +223,7 @@
         if (btnGuardarDescripcion) btnGuardarDescripcion.addEventListener('click', function () { guardarConfig(); });
 
         // rellenar inputs de configuracion con datos actuales
-        fetch(`/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`).then(r => r.json()).then(data => {
+        fetch(`/api/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`).then(r => r.json()).then(data => {
             if (data && data.NombreMateria) {
                 document.getElementById('configNombre').value = data.NombreMateria || '';
                 document.getElementById('configDescripcion').value = data.Descripcion || '';
@@ -222,7 +252,7 @@
         if (btnCopiar) btnCopiar.addEventListener('click', async function () {
             try {
                 // get current materia details
-                const respMat = await fetch(`/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`);
+                const respMat = await fetch(`/api/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`);
                 if (!respMat.ok) throw new Error('No se pudo obtener materia');
                 const mat = await respMat.json();
 
@@ -231,6 +261,18 @@
                 const crear = await fetch('/Materias/CrearMateria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevo) });
                 if (!crear.ok) { const t = await crear.text(); throw new Error(t || 'Error al crear copia'); }
                 const res = await crear.json();
+                const nuevoId = res.materiaId || res.MateriaId || 0;
+
+                // intentar copiar actividades de la materia original a la nueva
+                try {
+                    await fetch('/Materias/CopiarActividades', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ origenMateriaId: materiaIdGlobal, nuevoMateriaId: nuevoId })
+                    });
+                } catch (err) {
+                    console.warn('No se pudieron copiar actividades automáticamente', err);
+                }
+
                 // Inform using native alert and then redirect to Materias sin grupo
                 alert("Materia copiada con éxito. Se encuentra en 'Materias sin Grupo'.");
                 window.location.href = '/Docente/MateriasSinGrupo';

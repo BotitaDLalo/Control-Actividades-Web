@@ -22,6 +22,12 @@ using System.Web.Security;
 
 namespace ControlMaterias.Controllers
 {
+    public class CopiarActividadesRequest
+    {
+        public int origenMateriaId { get; set; }
+        public int nuevoMateriaId { get; set; }
+    }
+
     public class MateriasController : Controller
     {
         private ApplicationSignInManager _signInManager;
@@ -33,6 +39,109 @@ namespace ControlMaterias.Controllers
 
         public MateriasController()
         {
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
+        {
+            if (req == null || req.origenMateriaId <= 0 || req.nuevoMateriaId <= 0)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "Parámetros inválidos" }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var actividades = await Db.tbActividades.Where(a => a.MateriaId == req.origenMateriaId).ToListAsync();
+                if (actividades == null || actividades.Count == 0)
+                {
+                    return Json(new { mensaje = "No hay actividades para copiar" }, JsonRequestBehavior.AllowGet);
+                }
+
+                foreach (var a in actividades)
+                {
+                    var nueva = new tbActividades
+                    {
+                        NombreActividad = a.NombreActividad,
+                        Descripcion = a.Descripcion,
+                        FechaCreacion = DateTime.Now,
+                        FechaLimite = a.FechaLimite,
+                        TipoActividadId = a.TipoActividadId,
+                        Puntaje = a.Puntaje,
+                        MateriaId = req.nuevoMateriaId
+                    };
+                    Db.tbActividades.Add(nueva);
+                }
+
+                await Db.SaveChangesAsync();
+                return Json(new { mensaje = "Actividades copiadas" }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al copiar actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public async Task<ActionResult> CambiarCodigoAuto(int materiaId)
+        {
+            try
+            {
+                var materia = await Db.tbMaterias.FindAsync(materiaId);
+                if (materia == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "Materia no encontrada" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Generar código único simple
+                string nuevo;
+                var rnd = new Random();
+                do
+                {
+                    nuevo = new string(Enumerable.Range(0, 8).Select(_ => (char)rnd.Next('A', 'Z')).ToArray());
+                } while (Db.tbMaterias.Any(m => m.CodigoAcceso == nuevo));
+
+                materia.CodigoAcceso = nuevo;
+                await Db.SaveChangesAsync();
+
+                return Json(new { CodigoAcceso = nuevo }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar código", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CambiarCodigo(int materiaId, tbMaterias dto)
+        {
+            try
+            {
+                var materia = await Db.tbMaterias.FindAsync(materiaId);
+                if (materia == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "Materia no encontrada" }, JsonRequestBehavior.AllowGet);
+                }
+
+                if (dto == null || string.IsNullOrWhiteSpace(dto.CodigoAcceso))
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "Código inválido" }, JsonRequestBehavior.AllowGet);
+                }
+
+                materia.CodigoAcceso = dto.CodigoAcceso.Trim();
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Código actualizado" }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar código", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         [HttpPost]

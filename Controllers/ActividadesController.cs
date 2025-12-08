@@ -33,6 +33,41 @@ namespace ControlActividades.Controllers
         {
         }
 
+        // Controlador que obtiene todo lo de actividades que pertenecen a esa materia
+        [HttpGet]
+        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
+        {
+            try
+            {
+                var actividadesEntities = await Db.tbActividades
+                    .Where(a => a.MateriaId == materiaId)
+                    .ToListAsync();
+
+                if (actividadesEntities == null || actividadesEntities.Count == 0)
+                {
+                    Response.StatusCode = 404; // Not Found
+                    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var resultado = actividadesEntities.Select(a => new
+                {
+                    a.ActividadId,
+                    a.NombreActividad,
+                    a.Descripcion,
+                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    a.Puntaje
+                }).ToList();
+
+                return Json(resultado, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500; // Internal Server Error
+                return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
 
 
         public ActividadesController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
