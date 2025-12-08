@@ -8,6 +8,49 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!response.ok) {
                     throw new Error("Error en la respuesta de la API");
                 }
+
+async function cargarEntregablesPorActividad(actividadId) {
+    var cont = document.getElementById('listaEntregables');
+    if (!cont) return;
+    cont.innerHTML = '<p class="text-muted">Cargando entregables...</p>';
+
+    try {
+        // Intentar ambos endpoints: MVC y API
+        var endpoints = [
+            `/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`,
+            `/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`
+        ];
+
+        var resp = null;
+        for (var i = 0; i < endpoints.length; i++) {
+            try {
+                resp = await fetch(endpoints[i]);
+                if (resp.ok) break;
+            } catch (e) { resp = null; }
+        }
+
+        if (!resp || !resp.ok) {
+            cont.innerHTML = '<p class="text-danger">No se pudieron cargar los entregables.</p>';
+            return;
+        }
+
+        var data = await resp.json();
+        // data puede venir dentro de propiedades (si es MVC devuelve Ok(object))
+        // Normalizar al formato esperado por renderEntregablesForActivity
+        var normalized = data;
+        // Si la respuesta es el objeto RespuestaAlumnosEntregables
+        if (data && (data.AlumnosEntregables || typeof data.TotalEntregados !== 'undefined')) {
+            normalized = data;
+        } else if (data && data.d) {
+            normalized = data.d;
+        }
+
+        renderEntregablesForActivity(normalized, cont);
+    } catch (err) {
+        console.error('Error al cargar entregables por actividad:', err);
+        cont.innerHTML = '<p class="text-danger">Error al cargar entregables.</p>';
+    }
+}
                 return response.json();
             })
             .then(data => {

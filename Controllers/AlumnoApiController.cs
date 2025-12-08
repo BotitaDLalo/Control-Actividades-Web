@@ -101,31 +101,63 @@ namespace ControlActividades.Controllers
                     savedUrls.Add(relative);
                 }
 
-                // Crear registro en tbAlumnosActividades y tbEntregableAlumno
-                var actividad = new tbAlumnosActividades()
+                // Primero crear (o actualizar) el registro de tbAlumnosActividades
+                var existente = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+
+                if (existente == null)
                 {
-                    ActividadId = actividadId,
-                    AlumnoId = alumnoId,
-                    FechaEntrega = DateTime.Now,
-                    EstatusEntrega = true,
-                    EntregablesAlumno = new tbEntregableAlumno()
+                    existente = new tbAlumnosActividades
                     {
-                        Respuesta = BuildRespuestaWithFiles(respuesta, savedUrls)
-                    }
+                        ActividadId = actividadId,
+                        AlumnoId = alumnoId,
+                        FechaEntrega = DateTime.Now,
+                        EstatusEntrega = true
+                    };
+
+                    Db.tbAlumnosActividades.Add(existente);
+                    await Db.SaveChangesAsync();
+                }
+                else
+                {
+                    // actualizar fecha/estatus si ya existía
+                    existente.FechaEntrega = DateTime.Now;
+                    existente.EstatusEntrega = true;
+                    Db.Entry(existente).State = System.Data.Entity.EntityState.Modified;
+                    await Db.SaveChangesAsync();
+                }
+
+                // Luego crear o actualizar el entregable asociado
+                var existingEntregable = await Db.tbEntregablesAlumno.FirstOrDefaultAsync(e => e.AlumnoActividadId == existente.AlumnoActividadId);
+                if (existingEntregable != null)
+                {
+                    existingEntregable.Respuesta = BuildRespuestaWithFiles(respuesta, savedUrls);
+                    Db.Entry(existingEntregable).State = System.Data.Entity.EntityState.Modified;
+                    await Db.SaveChangesAsync();
+
+                    return Ok(new
+                    {
+                        EntregaId = existingEntregable.EntregaId,
+                        AlumnoActividadId = existente.AlumnoActividadId,
+                        Respuesta = existingEntregable.Respuesta ?? string.Empty,
+                        Status = existente.EstatusEntrega
+                    });
+                }
+
+                var entregable = new tbEntregableAlumno
+                {
+                    AlumnoActividadId = existente.AlumnoActividadId,
+                    Respuesta = BuildRespuestaWithFiles(respuesta, savedUrls)
                 };
 
-                Db.tbAlumnosActividades.Add(actividad);
+                Db.tbEntregablesAlumno.Add(entregable);
                 await Db.SaveChangesAsync();
-
-                var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
-                var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == datosAlumnoActividad.AlumnoActividadId).FirstOrDefaultAsync();
 
                 return Ok(new
                 {
-                    EntregaId = datosEntregable?.EntregaId ?? 0,
-                    AlumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0,
-                    Respuesta = datosEntregable?.Respuesta ?? string.Empty,
-                    Status = datosAlumnoActividad?.EstatusEntrega ?? false
+                    EntregaId = entregable?.EntregaId ?? 0,
+                    AlumnoActividadId = existente?.AlumnoActividadId ?? 0,
+                    Respuesta = entregable?.Respuesta ?? string.Empty,
+                    Status = existente?.EstatusEntrega ?? false
                 });
             }
             catch (Exception ex)
