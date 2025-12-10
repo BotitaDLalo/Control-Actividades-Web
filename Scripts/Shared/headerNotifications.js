@@ -86,6 +86,10 @@ function renderizarNotificaciones(notificaciones) {
 
     lista.innerHTML = html;
 }
+
+// Asegurar que se ejecute cuando la página cargue
+document.addEventListener("DOMContentLoaded", initSignalRNotifications);
+
 //Inicializar signalr 
 function initSignalRNotifications() {
     
@@ -112,8 +116,6 @@ function initSignalRNotifications() {
         });
 }
 
-// Asegurar que se ejecute cuando la página cargue
-document.addEventListener("DOMContentLoaded", initSignalRNotifications);
 
 
 // Punto rojo que indica nuevas notificaciones
@@ -147,7 +149,7 @@ function insertarNotificacionEnPanel(notificacion) {
     listaNoti.insertAdjacentHTML('afterbegin', html);
 
     //Eliminar la primera en la cola
-    const maxNotificaciones = 4;
+    const maxNotificaciones = 20; //Modificar también en NotificacionesService.cs
     const items = listaNoti.querySelectorAll(".noti-item");
 
     if (items.length > maxNotificaciones) {

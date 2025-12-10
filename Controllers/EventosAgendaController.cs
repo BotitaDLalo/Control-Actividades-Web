@@ -1,4 +1,11 @@
-﻿using System;
+﻿using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
@@ -6,12 +13,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Controllers
 {
@@ -22,6 +23,7 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private NotificacionesService _notifServ;
         public EventosAgendaController()
         {
         }
@@ -30,13 +32,15 @@ namespace ControlActividades.Controllers
             ApplicationSignInManager signInManager, 
             RoleManager<IdentityRole> roleManager, 
             ApplicationDbContext DbContext, 
-            FuncionalidadesGenerales fg)
+            FuncionalidadesGenerales fg,
+            NotificacionesService notificacionesService)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+            Ns = notificacionesService;
         }
 
 
@@ -98,7 +102,17 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
-
+        public NotificacionesService Ns
+        {
+            get
+            {
+                return _notifServ ?? (_notifServ = new NotificacionesService(_db));
+            }
+            private set
+            {
+                _notifServ = value;
+            }
+        }
         public ActionResult IrACalendario()
         {
             if (User.IsInRole("Docente"))
@@ -475,6 +489,20 @@ namespace ControlActividades.Controllers
             }
 
             await Db.SaveChangesAsync();
+
+            //ENVÍO DE NOTIFICACIONES
+
+            // Notificar a todos los grupos
+            foreach (var grupoId in gruposIds)
+            {
+                await Ns.NotificacionCrearEvento(evento, grupoId, null);
+            }
+
+            // Notificar a todas las materias
+            foreach (var materiaId in materiasIds)
+            {
+                await Ns.NotificacionCrearEvento(evento, null, materiaId);
+            }
 
             return Json(new { mensaje = "Evento guardado exitosamente" },
                         JsonRequestBehavior.AllowGet);
