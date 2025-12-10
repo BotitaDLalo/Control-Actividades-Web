@@ -39,9 +39,16 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var actividadesEntities = await Db.tbActividades
-                    .Where(a => a.MateriaId == materiaId)
-                    .ToListAsync();
+                bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
+
+                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
+                if (!esDocente)
+                {
+                    // Para alumnos: mostrar solo publicadas o programadas cuya fecha ya llegó
+                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
+                }
+
+                var actividadesEntities = await query.ToListAsync();
 
                 if (actividadesEntities == null || actividadesEntities.Count == 0)
                 {
