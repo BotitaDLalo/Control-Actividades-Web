@@ -154,9 +154,13 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var actividades = await Db.tbActividades
-                    .Where(a => a.MateriaId == materiaId)
-                    .ToListAsync();
+                bool esDocente = HttpContext.Current != null && HttpContext.Current.User != null && (HttpContext.Current.User.IsInRole("Docente") || HttpContext.Current.User.IsInRole("Administrador"));
+                var q = Db.tbActividades.Where(a => a.MateriaId == materiaId);
+                if (!esDocente)
+                {
+                    q = q.Where(a => a.Enviado == true);
+                }
+                var actividades = await q.ToListAsync();
 
                 var listaActividades = actividades.Select(a => new
                 {
@@ -167,6 +171,8 @@ namespace ControlActividades.Controllers
                     FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                     TipoActividadId = a.TipoActividadId,
                     Puntaje = a.Puntaje,
+                    Enviado = a.Enviado,
+                    FechaProgramada = a.FechaProgramada,
                     MateriaId = a.MateriaId
                 }).ToList();
 
@@ -292,12 +298,40 @@ namespace ControlActividades.Controllers
             var dbActivity = await Db.tbActividades.FindAsync(id);
             if (dbActivity is null) return  Content(HttpStatusCode.NotFound,"Actividad no encontrada");
 
-            dbActivity.NombreActividad = updatedActivity.NombreActividad;
-            dbActivity.Descripcion = updatedActivity.Descripcion;
-            dbActivity.FechaLimite = updatedActivity.FechaLimite;
+            var prevEnviado = dbActivity.Enviado;
+
+            dbActivity.NombreActividad = updatedActivity.NombreActividad ?? dbActivity.NombreActividad;
+            dbActivity.Descripcion = updatedActivity.Descripcion ?? dbActivity.Descripcion;
+            dbActivity.FechaLimite = updatedActivity.FechaLimite != default(DateTime) ? updatedActivity.FechaLimite : dbActivity.FechaLimite;
+            dbActivity.Puntaje = updatedActivity.Puntaje;
+
+            dbActivity.Enviado = updatedActivity.Enviado ?? dbActivity.Enviado;
+            dbActivity.FechaProgramada = updatedActivity.FechaProgramada ?? dbActivity.FechaProgramada;
 
             await Db.SaveChangesAsync();
-            return Ok(dbActivity); // Retorna solo la actividad actualizada
+
+            // si cambió a publicado ahora -> asignar alumnos
+            bool ahoraPublicado = (prevEnviado != true) && (dbActivity.Enviado == true || (dbActivity.Enviado == null && dbActivity.FechaProgramada.HasValue && dbActivity.FechaProgramada.Value <= DateTime.Now));
+            if (ahoraPublicado)
+            {
+                var alumnosMateria = await Db.tbAlumnosMaterias.Where(am => am.MateriaId == dbActivity.MateriaId).Select(am => am.AlumnoId).ToListAsync();
+                foreach (var alumnoId in alumnosMateria)
+                {
+                    var existe = await Db.tbAlumnosActividades.AnyAsync(aa => aa.ActividadId == dbActivity.ActividadId && aa.AlumnoId == alumnoId);
+                    if (!existe)
+                    {
+                        Db.tbAlumnosActividades.Add(new tbAlumnosActividades {
+                            ActividadId = dbActivity.ActividadId,
+                            AlumnoId = alumnoId,
+                            FechaEntrega = DateTime.Now,
+                            EstatusEntrega = false
+                        });
+                    }
+                }
+                await Db.SaveChangesAsync();
+            }
+
+            return Ok(dbActivity);
         }
 
 

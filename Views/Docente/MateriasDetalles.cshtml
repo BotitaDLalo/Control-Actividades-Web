@@ -51,6 +51,15 @@
                     </button>
                 </div>
             </div>
+            <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+                <label style="margin:0;">Filtro: </label>
+                <select id="filtroActividades" class="form-select" style="width:auto; display:inline-block;">
+                    <option value="all">Todas</option>
+                    <option value="borrador">Borradores</option>
+                    <option value="publicadas">Publicadas</option>
+                    <option value="programadas">Programadas</option>
+                </select>
+            </div>
             <div class="divider"></div>
             <div id="listaActividadesDeMateria"></div>
         </div>
@@ -58,17 +67,14 @@
         <div id="seccion-entregables" class="seccion" style="display: none;">
             <div class="divider"></div>
             <!-- Filtro por actividad -->
-            <div class="mb-3 row" style="align-items:center; gap:8px;">
-                <label for="buscarActividadEntregables" class="col-auto col-form-label">Buscar actividad:</label>
-                <div class="col-md-4">
-                    <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
-                </div>
-                <label for="selectActividadEntregables" class="col-auto col-form-label">Filtrar por actividad:</label>
-                <div class="col-auto">
-                    <select id="selectActividadEntregables" class="form-select">
-                        <option value="0">-- Seleccione una actividad --</option>
-                    </select>
-                </div>
+            <div class="mb-3 entregables-filters">
+                <label for="buscarActividadEntregables" class="col-form-label">Buscar actividad:</label>
+                <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
+
+                <label for="selectActividadEntregables" class="mb-0">Filtrar por actividad:</label>
+                <select id="selectActividadEntregables" class="form-select form-select-sm">
+                    <option value="0">-- Seleccione una actividad --</option>
+                </select>
             </div>
 
             <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
@@ -143,6 +149,16 @@
     <script src="~/Scripts/Docente/Grupos/scriptsAvisos.js"></script>
     <script src="~/Scripts/Docente/Grupos/scriptsActividades.js"></script>
     <script src="~/Scripts/Docente/Grupos/DetalleMateria.js"></script>
+
+    <script>
+        // attach filter listener
+        document.addEventListener('DOMContentLoaded', function () {
+            var filtro = document.getElementById('filtroActividades');
+            if (filtro) {
+                filtro.addEventListener('change', function () { cargarActividadesDeMateria(); });
+            }
+        });
+    </script>
 }
 
 <div class="modal fade" id="entregablesModal" tabindex="-1" aria-hidden="true">

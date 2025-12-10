@@ -27,6 +27,13 @@ namespace ControlActividades.Models.db
 
         public int MateriaId { get; set; }
 
+        // Indica si la actividad fue enviada/publicada a los alumnos.
+        // true = publicada/enviada, false = borrador, null = programada / publicar después
+        public bool? Enviado { get; set; }
+
+        // Opcional: fecha programada para publicación (puede usarse si Enviado == null)
+        public DateTime? FechaProgramada { get; set; }
+
 
         public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
         public virtual cTiposActividades TiposActividades { get; set; }

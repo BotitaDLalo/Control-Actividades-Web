@@ -375,6 +375,7 @@
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
+    <Compile Include="Services\ScheduledPublishingService.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>

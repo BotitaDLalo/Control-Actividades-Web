@@ -26,6 +26,16 @@
                         <option value="">Cargando...</option>
                     </select>
 
+                    <label for="estatusPublicacion" class="mt-2">Estatus de publicación:</label>
+                    <select id="estatusPublicacion" class="form-select">
+                        <option value="true">Publicar ahora</option>
+                        <option value="null">Publicar después (programar)</option>
+                        <option value="false">Borrador</option>
+                    </select>
+
+                    <label for="fechaProgramada" class="mt-2">Fecha programada (solo si eliges "Publicar después"):</label>
+                    <input type="datetime-local" id="fechaProgramada" class="form-control">
+
                     <div class="d-flex align-items-center mt-2">
                         <div class="form-check me-3">
                             <input class="form-check-input" type="checkbox" id="sinPuntaje">

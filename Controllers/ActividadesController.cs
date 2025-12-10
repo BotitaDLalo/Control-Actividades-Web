@@ -156,7 +156,9 @@ namespace ControlActividades.Controllers
                         a.Descripcion,
                         a.FechaCreacion,
                         a.FechaLimite,
-                        a.Puntaje
+                        a.Puntaje,
+                        a.Enviado,
+                        a.FechaProgramada
                     })
                     .FirstOrDefaultAsync();
 

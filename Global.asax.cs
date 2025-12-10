@@ -41,6 +41,13 @@ namespace ControlActividades
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            // Start scheduled publishing service for programadas
+            try
+            {
+                ControlActividades.Services.ScheduledPublishingService.Start();
+            }
+            catch { }
         }
 
         protected void Application_BeginRequest(Object sender, EventArgs e)

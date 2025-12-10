@@ -551,36 +551,46 @@ namespace ControlMaterias.Controllers
                     FechaLimite = actividadDto.FechaLimite,
                     TipoActividadId = actividadDto.TipoActividadId,
                     Puntaje = actividadDto.Puntaje,
-                    MateriaId = actividadDto.MateriaId
+                    MateriaId = actividadDto.MateriaId,
+                    Enviado = actividadDto.Enviado,
+                    FechaProgramada = actividadDto.FechaProgramada
                 };
 
                 Db.tbActividades.Add(nuevaActividad);
                 await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID
 
-                // Obtener los alumnos que pertenecen a la materia
-                var alumnosMateria = await Db.tbAlumnosMaterias
-                    .Where(am => am.MateriaId == actividadDto.MateriaId)
-                    .Select(am => am.AlumnoId)
-                    .ToListAsync();
+                // Solo asignar a alumnos si la actividad está publicada inmediatamente
+                // o si está programada y la fecha programada ya pasó
+                bool publicarAhora = nuevaActividad.Enviado == true;
+                bool programadaYA = nuevaActividad.Enviado == null && nuevaActividad.FechaProgramada.HasValue && nuevaActividad.FechaProgramada.Value <= DateTime.Now;
 
-                // Crear registros en la tabla AlumnoActividad para cada alumno
-                foreach (var alumnoId in alumnosMateria)
+                if (publicarAhora || programadaYA)
                 {
-                    var alumnoActividad = new tbAlumnosActividades
-                    {
-                        ActividadId = nuevaActividad.ActividadId,
-                        AlumnoId = alumnoId,
-                        FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
-                        EstatusEntrega = false
-                    };
+                    // Obtener los alumnos que pertenecen a la materia
+                    var alumnosMateria = await Db.tbAlumnosMaterias
+                        .Where(am => am.MateriaId == actividadDto.MateriaId)
+                        .Select(am => am.AlumnoId)
+                        .ToListAsync();
 
-                    Db.tbAlumnosActividades.Add(alumnoActividad);
+                    // Crear registros en la tabla AlumnoActividad para cada alumno
+                    foreach (var alumnoId in alumnosMateria)
+                    {
+                        var alumnoActividad = new tbAlumnosActividades
+                        {
+                            ActividadId = nuevaActividad.ActividadId,
+                            AlumnoId = alumnoId,
+                            FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
+                            EstatusEntrega = false
+                        };
+
+                        Db.tbAlumnosActividades.Add(alumnoActividad);
+                    }
+
+                    // Guardar los cambios en la tabla AlumnoActividad
+                    await Db.SaveChangesAsync();
                 }
 
-                // Guardar los cambios en la tabla AlumnoActividad
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Actividad creada y asignada a los alumnos con éxito", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Actividad creada correctamente", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -598,9 +608,14 @@ namespace ControlMaterias.Controllers
             try
             {
                 // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
-                var actividadesEntities = await Db.tbActividades
-                    .Where(a => a.MateriaId == materiaId)
-                    .ToListAsync();
+                bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
+                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
+                if (!esDocente)
+                {
+                    // para alumnos mostrar actividades publicadas o programadas (visibles)
+                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada != null));
+                }
+                var actividadesEntities = await query.ToListAsync();
 
                 if (actividadesEntities == null || actividadesEntities.Count == 0)
                 {
@@ -615,7 +630,9 @@ namespace ControlMaterias.Controllers
                     a.Descripcion,
                     FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
                     FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    a.Puntaje
+                    a.Puntaje,
+                    Enviado = a.Enviado,
+                    FechaProgramada = a.FechaProgramada
                 }).ToList();
 
                 return Json(resultado, JsonRequestBehavior.AllowGet);
