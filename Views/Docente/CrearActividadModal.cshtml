@@ -72,9 +72,32 @@
     // Cargar tipos de actividades cuando se abra el modal
     document.addEventListener('DOMContentLoaded', function () {
         var crearModal = document.getElementById('crearActividadModal');
-        if (crearModal) {
+            if (crearModal) {
+            function toInputDateTimeLocal(dt) {
+                if (!(dt instanceof Date)) return '';
+                const pad = (n) => n < 10 ? '0' + n : n;
+                const year = dt.getFullYear();
+                const month = pad(dt.getMonth() + 1);
+                const day = pad(dt.getDate());
+                const hours = pad(dt.getHours());
+                const minutes = pad(dt.getMinutes());
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
             crearModal.addEventListener('show.bs.modal', function () {
                 cargarTiposActividad();
+
+                try {
+                    // If we are not editing an existing actividad, set default time to 23:59 (fin del día)
+                    if (!window.editingActividadId) {
+                        const input = document.getElementById('fechaHoraLimite');
+                        if (input) {
+                            const now = new Date();
+                            const defaultDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0, 0);
+                            input.value = toInputDateTimeLocal(defaultDate);
+                        }
+                    }
+                } catch (e) { console.warn('No se pudo establecer la fecha por defecto:', e); }
             });
 
             // Cuando se oculta el modal, restablecer al modo de creación

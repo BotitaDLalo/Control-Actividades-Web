@@ -1,6 +1,12 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿// Prevent duplicate initialization when script is loaded multiple times
+if (window.__agendaFullCalendarInitialized) {
+    console.warn('AgendaFullCalendar already initialized, skipping duplicate load');
+} else {
+    window.__agendaFullCalendarInitialized = true;
 
-    console.log("FullCalendar inicializando...");
+    document.addEventListener("DOMContentLoaded", function () {
+
+        console.log("FullCalendar inicializando...");
     //modal
     //modal-detalles
     //modal-crear
@@ -107,22 +113,29 @@
         cargarEventosDia(fecha);
     }
     
-    btnCerrar.addEventListener("click", () => {
-        modal.style.display = "none";
-        listaEventos.innerHTML = "";
-        modalEvento.style.display = "none";
-    });
+    if (btnCerrar) {
+        btnCerrar.addEventListener("click", () => {
+            if (modal) modal.style.display = "none";
+            if (listaEventos) listaEventos.innerHTML = "";
+            const modalEventoEl = document.getElementById('modalEvento');
+            if (modalEventoEl) modalEventoEl.style.display = "none";
+        });
+    }
 
     // Modal de creación. Agregar nuevo evento
-    btnAgregar.addEventListener("click", () => {
-        modalCrear.style.display = "flex";
-        cargarGruposMaterias();
-    });
+    if (btnAgregar) {
+        btnAgregar.addEventListener("click", () => {
+            if (modalCrear) modalCrear.style.display = "flex";
+            cargarGruposMaterias();
+        });
+    }
 
-    btnCerrarCrear.addEventListener("click", () => {
-        modalCrear.style.display = "none";
-        limpiarFormularioEvento();
-    });
+    if (btnCerrarCrear) {
+        btnCerrarCrear.addEventListener("click", () => {
+            if (modalCrear) modalCrear.style.display = "none";
+            limpiarFormularioEvento();
+        });
+    }
 
     window.addEventListener("click", function (e) {
         if (e.target === modalCrear) {
@@ -298,7 +311,7 @@
             });
         }
     });
-    btnAgregar
+    // stray token removed and ensure limpiar function exists
     function limpiarFormularioEvento() {
         $("#formEvento")[0].reset();
         $("#FechaInicio").val("");
@@ -350,7 +363,10 @@
         }
     }
 
-});
+    });
+
+    // end initialized block
+}
 
 function convertirFechaNetAInput(fechaNet) {
     const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));

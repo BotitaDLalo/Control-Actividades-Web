@@ -9,7 +9,11 @@
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = false;
+            // Enable automatic migrations so pending model changes are applied
+            // automatically. Allow data loss for development convenience; remove
+            // or set to false for production environments.
+            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true;
         }
 
         protected override void Seed(ControlActividades.Models.ApplicationDbContext context)
