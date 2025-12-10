@@ -612,8 +612,8 @@ namespace ControlMaterias.Controllers
                 var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
                 if (!esDocente)
                 {
-                    // para alumnos mostrar actividades publicadas o programadas (visibles)
-                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada != null));
+                    // para alumnos mostrar actividades publicadas o programadas cuyo horario ya se cumplió
+                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
                 var actividadesEntities = await query.ToListAsync();
 

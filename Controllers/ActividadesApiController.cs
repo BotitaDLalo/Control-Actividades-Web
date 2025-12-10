@@ -158,7 +158,8 @@ namespace ControlActividades.Controllers
                 var q = Db.tbActividades.Where(a => a.MateriaId == materiaId);
                 if (!esDocente)
                 {
-                    q = q.Where(a => a.Enviado == true);
+                    // Para alumnos: publicar solo si Enviado == true o si es programada y la fecha programada ya pasó
+                    q = q.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
                 var actividades = await q.ToListAsync();
 
