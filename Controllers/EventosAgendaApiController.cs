@@ -158,6 +158,46 @@ namespace ControlActividades.Controllers
             }
         }
 
+        // Nuevo metodo para consultar los evetos para el Alumno
+        [HttpGet]
+        [Route("ObtenerEventosAlumno")]
+        public async Task<IHttpActionResult> ObtenerEventosAlumno(int alumnoId)
+        {
+            try
+            {
+                // Obtener todos los eventos
+                var lsEventos = await ConsultaEventos();
+                var eventosDinamicos = lsEventos.Cast<dynamic>();
+
+                // Obtener los grupos del alumno
+                var gruposAlumno = await Db.tbAlumnosGrupos
+                    .Where(ag => ag.AlumnoId == alumnoId)
+                    .Select(ag => ag.GrupoId)
+                    .ToListAsync();
+
+                // Obtener las materias relacionadas con esos grupos (si es necesario)
+                var materiasAlumno = await Db.tbGruposMaterias
+                    .Where(gm => gruposAlumno.Contains(gm.GrupoId))
+                    .Select(gm => gm.MateriaId)
+                    .ToListAsync();
+
+                // Filtrar eventos que pertenezcan a los grupos o materias del alumno
+                var eventosFiltrados = eventosDinamicos
+                    .Where(e =>
+                        (e.GrupoId != null && gruposAlumno.Contains((int)e.GrupoId)) ||
+                        (e.MateriaId != null && materiasAlumno.Contains((int)e.MateriaId))
+                    )
+                    .ToList();
+
+                return Ok(eventosFiltrados);
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.BadRequest, new { e.Message });
+            }
+        }
+
+
 
         [HttpPost]
         [Route("CrearEventos")]
