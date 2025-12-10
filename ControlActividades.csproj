@@ -353,6 +353,10 @@
     <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512082128312_FixModel.cs" />
+    <Compile Include="Migrations\202512082128312_FixModel.Designer.cs">
+      <DependentUpon>202512082128312_FixModel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\db\cTiposActividades.cs" />
@@ -663,6 +667,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202510031833068_InitialMigration.resx">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512082128312_FixModel.resx">
+      <DependentUpon>202512082128312_FixModel.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
