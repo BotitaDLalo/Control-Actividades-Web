@@ -500,6 +500,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\Componentes\FullCalendarGeneral.js" />
     <Content Include="Scripts\Componentes\componenteAvisos.js" />
     <Content Include="Scripts\dev\measureCardSize.js" />
     <Content Include="Scripts\Docente\Agenda.js" />

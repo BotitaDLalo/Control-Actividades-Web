@@ -213,27 +213,16 @@ namespace ControlActividades.Services
         //SECCIÓN DE NOTIFICACIONES PARA -ALUMNOS- CUANDO EL DOCENTE HACE UNA ACCIÓN
 
         // Notificación cuando el docente crea una actividad
-        public async Task NotificacionCrearActividad(tbActividades actividad)
+        public async Task NotificacionCrearActividad(tbActividades actividad, int materiaId)
         {
-            var titulo = actividad.NombreActividad;
-            var materiaId = actividad.MateriaId;
+            var (usuariosIds, tokens) = await ObtenerDestinatarios(null, materiaId);
 
-            var lsAlumnosIds = await Db.tbAlumnosMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.AlumnoId).ToListAsync();
-
-            var lsAlumnosUsersIds = await Db.tbAlumnos.Where(a => lsAlumnosIds.Contains(a.AlumnoId)).Select(a => a.UserId).ToListAsync();
-
-            //List<string> lsFcmTokens = await Db.tbUsuariosFcmTokens.Where(a => lsAlumnosUsersIds.Contains(a.UserId)).Select(a => a.Token).ToListAsync();
-
-            List<UsuarioFcmToken> lsUsuariosFcmTokens = await Db.tbUsuariosFcmTokens.Where(a => lsAlumnosUsersIds.Contains(a.UserId)).Select(a => new UsuarioFcmToken { UserId = a.UserId, FcmToken = a.Token }).ToListAsync();
-
-            ElementosNotificacion notificacion = new ElementosNotificacion()
-            {
-                LsUsuariosFcmTokens = lsUsuariosFcmTokens,
-                Titulo = "Nueva tarea: " + titulo,
-                Descripcion = ""
-            };
-
-           // await DetonarNotificaciones(notificacion);
+            await ProcesarNotificacion(
+                usuariosIds,
+                tokens,
+                actividad.NombreActividad,
+                actividad.Descripcion
+            );
         }
 
         // Notificación cuando el docente crea un aviso

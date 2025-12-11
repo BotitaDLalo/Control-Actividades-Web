@@ -34,11 +34,17 @@
             <label for="descripcion">Descripción:</label>
             <textarea id="descripcion" name="Descripcion" required></textarea>
 
-            <label for="FechaInicio">Fecha Inicio:</label>
-            <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
-
-            <label for="FechaFinal">Fecha Final:</label>
-            <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+            <div class="fechas-juntas">
+                <div class="campo-fecha">
+                    <label for="FechaInicio">Fecha Inicio:</label>
+                    <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
+                </div
+>
+                <div class="campo-fecha">
+                    <label for="FechaFinal">Fecha Final:</label>
+                    <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+                </div>
+            </div>
 
             <label for="color">Color:</label>
             <select id="color" name="Color" required>
@@ -47,7 +53,7 @@
             </select>
 
             <h3>Grupos y Materias</h3>
-            <div id="contenedorGruposMaterias"></div>
+            <div id="contenedorGruposMaterias" class="contenedor-grupos-materias"></div>
             <button type="submit">Guardar</button>
 
 
