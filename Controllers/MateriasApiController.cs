@@ -214,6 +214,8 @@ namespace ControlActividades.Controllers
                 {
                     a.MateriaId,
                     a.NombreMateria,
+                    a.Descripcion,
+                    a.CodigoAcceso,
                     Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b=> new
                     {
                         b.ActividadId,
@@ -545,6 +547,7 @@ namespace ControlActividades.Controllers
                     a.MateriaId,
                     a.NombreMateria,
                     a.Descripcion,
+                    a.CodigoAcceso,
                     Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new
                     {
                         b.ActividadId,
