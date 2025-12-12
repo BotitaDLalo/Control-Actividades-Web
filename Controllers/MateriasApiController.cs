@@ -451,7 +451,7 @@ namespace ControlActividades.Controllers
         }
 
 
-
+        /*
         [HttpPut]
         [Route("UpdateSubject")]
         public async Task<IHttpActionResult> UpdateSubject(tbMaterias updatedSubject)
@@ -466,6 +466,62 @@ namespace ControlActividades.Controllers
             await Db.SaveChangesAsync();
             return Ok(await Db.tbMaterias.ToListAsync());
         }
+        */
+
+        // Nueva función para actualizar materias
+        [HttpPut]
+        [Route("UpdateSubject")]
+        public async Task<IHttpActionResult> UpdateSubject([FromBody] dynamic updateData)
+        {
+            try
+            {
+                Console.WriteLine($"[LOG] Iniciando UpdateSubject con datos: {updateData}");
+
+                // Extraer los valores del JSON dinámico
+                int materiaId = updateData.MateriaId;
+                string nombreMateria = updateData.NombreMateria;
+                string descripcion = updateData.Descripcion;
+
+                Console.WriteLine($"[LOG] MateriaId: {materiaId}, Nombre: {nombreMateria}, Descripcion: {descripcion}");
+
+                // Buscar la materia en la base de datos
+                var dbSubject = await Db.tbMaterias.FindAsync(materiaId);
+                if (dbSubject == null)
+                {
+                    Console.WriteLine($"[LOG] ERROR: Materia con ID {materiaId} no encontrada");
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "Materia no encontrada" });
+                }
+
+                // Verificar que el docente actual tenga permisos (opcional, dependiendo de tu lógica de seguridad)
+                // Aquí puedes agregar validación si es necesario
+
+                // Actualizar los campos
+                dbSubject.NombreMateria = nombreMateria;
+                dbSubject.Descripcion = descripcion;
+
+                await Db.SaveChangesAsync();
+                Console.WriteLine($"[LOG] Materia actualizada exitosamente");
+
+                // Retornar la materia actualizada en lugar de todas las materias
+                var updatedSubject = new
+                {
+                    MateriaId = dbSubject.MateriaId,
+                    NombreMateria = dbSubject.NombreMateria,
+                    Descripcion = dbSubject.Descripcion,
+                    CodigoAcceso = dbSubject.CodigoAcceso,
+                    CodigoColor = dbSubject.CodigoColor
+                };
+
+                return Ok(updatedSubject);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LOG] ERROR en UpdateSubject: {ex.Message}");
+                Console.WriteLine($"[LOG] StackTrace: {ex.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Error interno del servidor", detalle = ex.Message });
+            }
+        }
+
 
         /*
         [HttpDelete]
