@@ -77,15 +77,28 @@ function renderizarNotificaciones(notificaciones) {
     notificaciones.forEach(n => {
         html += `
             <div class="noti-item p-2 border-bottom">
-                <div><strong>${n.Title}</strong></div>
-                <div class="small text-muted">${n.Body}</div>
-                <div class="small text-secondary">${new Date(n.FechaRecibido).toLocaleString()}</div>
+                <div class="noti-left">
+                    <div class="noti-icono">
+                        <img src="/Content/Iconos/AGENDA-26.svg" alt="noti-icono">
+                    </div>
+                </div>
+
+                <div class="noti-contenido">
+                    <div><strong>${n.Title}</strong></div>
+                    <div class="small text-muted">${n.Body}</div>
+                    <div class="small text-secondary">${new Date(n.FechaRecibido).toLocaleString()}</div>
+                </div>    
+
+                <div class="noti-opciones">
+                    <button class="noti-menu">x</button>
+                </div>  
             </div>
         `;
     });
 
     lista.innerHTML = html;
 }
+
 
 // Asegurar que se ejecute cuando la página cargue
 document.addEventListener("DOMContentLoaded", initSignalRNotifications);
