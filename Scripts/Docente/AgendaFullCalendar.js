@@ -163,8 +163,11 @@ if (window.__agendaFullCalendarInitialized) {
             const resp = await fetch("/EventosAgenda/ObtenerGruposYMaterias");
             const data = await resp.json();
 
-            const contenedor = document.getElementById("contenedorGruposMaterias");
-            contenedor.innerHTML = ""; // limpiar
+            const contGrupos = document.getElementById("contenedorGrupos");
+            const contSueltas = document.getElementById("contenedorMateriasSueltas");
+
+            contGrupos.innerHTML = "";
+            contSueltas.innerHTML = "";
 
             // Grupos
             data.grupos.forEach(grupo => {
@@ -183,42 +186,40 @@ if (window.__agendaFullCalendarInitialized) {
                     <button type="button" class="btn-expandir" data-grupo=${grupo.GrupoId}">▶</button>
                 </div>
 
-                <div class="materias-del-grupo hidden"></div>
+                <div class="materias-del-grupo collapse"></div>
             `;
 
-                //Contenedor para meter las materias
+                //Contenedor para meter las materias de los grupos
                 const contMaterias = divGrupo.querySelector(".materias-del-grupo");
 
                 grupo.Materias.forEach(mat => {
                     const divMat = document.createElement("div");
                     divMat.innerHTML = `
-                    <label>
-                        <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
-                        ${mat.NombreMateria}
-                    </label>
-                `;
+                        <label>
+                            <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
+                            ${mat.NombreMateria}
+                        </label>
+                    `;
                     contMaterias.appendChild(divMat);
                 });
 
-                contenedor.appendChild(divGrupo);
+                contGrupos.appendChild(divGrupo);
             });
+
 
             // Materias sin grupos
             if (data.materiasSueltas.length > 0) {
-                const titulo = document.createElement("h4");
-                titulo.textContent = "Materias sin grupo";
-                contenedor.appendChild(titulo);
 
                 data.materiasSueltas.forEach(mat => {
                     const divMat = document.createElement("div");
                     divMat.classList.add("materia-suelta-item");
                     divMat.innerHTML = `
-                    <label>
-                        <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
-                        ${mat.NombreMateria}
-                    </label>
-                `;
-                    contenedor.appendChild(divMat);
+                        <label>
+                            <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
+                            ${mat.NombreMateria}
+                        </label>
+                    `;
+                    contSueltas.appendChild(divMat);
                 });
             }
 
@@ -229,6 +230,29 @@ if (window.__agendaFullCalendarInitialized) {
             console.error("Error cargando grupos y materias:", err);
         }
     }
+
+    //Cambiar tabs de grupos y materias sueltas
+    document.querySelectorAll(".nav-link").forEach(btn => {
+        btn.addEventListener("click", function () {
+
+            const tabId = this.dataset.tab;
+
+            // Quitar estado activo de botones
+            document.querySelectorAll(".nav-link").forEach(b => b.classList.remove("active"));
+
+            // Activar botón actual
+            this.classList.add("active");
+
+            // Ocultar TODAS las pestañas
+            document.querySelectorAll(".tab-pane").forEach(tab => {
+                tab.classList.remove("active", "show");
+            });
+
+            // Mostrar pestaña seleccionada
+            document.getElementById(tabId).classList.add("active", "show");
+        });
+    });
+
 
         function activarExpandibles() {
             const botonesexpandir = document.querySelectorAll(".btn-expandir");

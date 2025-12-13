@@ -31,3 +31,23 @@
 .campo-fecha input{
     width: 100%
 }
+
+.tab-pane {
+    display: none;
+}
+
+    .tab-pane.active.show {
+        display: block;
+    }
+
+.nav-link {
+    background-color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer; /* cursor de mano */
+}
+    .nav-link.active {
+        background: var(--azul-twitter) !important;
+        color: white !important;
+        font-weight: bold;
+    }

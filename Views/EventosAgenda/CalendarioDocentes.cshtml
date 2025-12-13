@@ -52,8 +52,30 @@
                 <option value="gris">Gris</option>
             </select>
 
-            <h3>Grupos y Materias</h3>
-            <div id="contenedorGruposMaterias" class="contenedor-grupos-materias"></div>
+            <h3>Destinatarios</h3>
+            <div class="tab-style-4 card-style mb-30">
+                <nav class="nav nav-tabs">
+                    <button type="button" class="nav-link active" data-tab="tabGrupos">
+                        Grupos
+                    </button>
+
+                    <button type="button" class="nav-link" data-tab="tabMateriasSueltas">
+                        Materias sin grupo
+                    </button>
+                </nav>
+
+                <div class="tab-content">
+                    <!--Contenedor de grupos-->
+                    <div id="tabGrupos" class="tab-pane fade active show">
+                        <div id="contenedorGrupos"></div>
+                    </div>
+
+                    <!--Contenedor de materias sueltas-->
+                    <div id="tabMateriasSueltas" class="tab-pane fade">
+                        <div id="contenedorMateriasSueltas"></div>
+                    </div>
+                </div>
+            </div>
             <button type="submit">Guardar</button>
 
 

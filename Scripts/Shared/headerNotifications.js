@@ -84,8 +84,8 @@ function renderizarNotificaciones(notificaciones) {
                 </div>
 
                 <div class="noti-contenido">
-                    <div><strong>${n.Title}</strong></div>
-                    <div class="small text-muted">${n.Body}</div>
+                    <div><strong>Docente creó un evento</strong></div>
+                    <div class="small text-muted">${n.Title}</div>
                     <div class="small text-secondary">${new Date(n.FechaRecibido).toLocaleString()}</div>
                 </div>    
 

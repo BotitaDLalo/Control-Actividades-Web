@@ -335,15 +335,15 @@ button {
 
 /* Cards de cada grupo dentro del modal */
 .grupo-item {
-    background: #f5f7fa;
-    padding: 12px;
-    margin-bottom: 12px;
+    background: white;
+    padding: 6px;
+    margin-bottom: 8px;
     border-radius: 8px;
-    border-left: 6px solid #4e73df;
+    
 }
 
     .grupo-item > label {
-        font-size: 17px;
+        font-size: 14px;
         font-weight: bold;
         cursor: pointer;
     }
