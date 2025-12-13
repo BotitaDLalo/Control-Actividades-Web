@@ -17,6 +17,7 @@ namespace ControlActividades.Models.db
         public  string MessageId { get; set; }
         public  string Title {  get; set; }
         public  string Body {  get; set; }
+        public string Tipo { get; set; }
         public DateTime FechaRecibido { get; set; }
         public virtual ApplicationUser IdentityUser { get; set; }
     }

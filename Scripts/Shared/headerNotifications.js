@@ -75,11 +75,12 @@ function renderizarNotificaciones(notificaciones) {
     let html = "";
 
     notificaciones.forEach(n => {
+        const icono = obtenerIcono(n.Tipo);
         html += `
             <div class="noti-item p-2 border-bottom">
                 <div class="noti-left">
                     <div class="noti-icono">
-                        <img src="/Content/Iconos/AGENDA-26.svg" alt="noti-icono">
+                        <img src="${icono}" class="icono-svg" alt="noti-icono">
                     </div>
                 </div>
 
@@ -142,6 +143,19 @@ function ocultarIndicadorNotificaciones() {
     if (indicador) indicador.style.display = "none";
 }
 
+function obtenerIcono(tipo) {
+    switch (tipo) {
+        case 'Aviso':
+            return "/Content/Iconos/notiAviso.svg";
+        case 'ActividadCreada':
+            return "/Content/Iconos/notiActividadCreada.svg";
+        case 'Evento':
+            return "/Content/Iconos/notiEvento.svg";
+        default:
+            return "/Content/Iconos/NOTIFICACION-26.svg";
+    }
+}
+
 //Insertar notificación en el panel tiempo real
 function insertarNotificacionEnPanel(notificacion) {
     const panel = document.getElementById("notificaciones-panel");
@@ -150,12 +164,25 @@ function insertarNotificacionEnPanel(notificacion) {
     const listaNoti = panel.querySelector(".lista-notificaciones");
     if (!listaNoti) return; 
 
+    const icono = obtenerIcono(notificacion.Tipo);
+
     //Insertamos
     const html = `
         <div class="noti-item p-2 border-bottom">
-            <div><strong>${notificacion.Title}</strong></div>
-            <div class="small text-muted">${notificacion.Body}</div>
-            <div class="small text-secondary">${new Date(notificacion.FechaRecibido).toLocaleString()}</div>
+            <div class="noti-left">
+                <div class="noti-icono">
+                    <img src="${icono}" class="icono-svg" alt="icono-noti">
+                </div>
+            </div>
+            <div class="noti-contenido">
+                <div><strong>Docente creó un evento</strong></div>
+                <div class="small text-muted">${notificacion.Title}</div>
+                <div class="small text-secondary">${new Date(notificacion.FechaRecibido).toLocaleString()}</div>
+            </div>
+
+            <div class="noti-opciones">
+                <button class="noti-menu">x</button>
+            </div>
         </div>
     `;
 

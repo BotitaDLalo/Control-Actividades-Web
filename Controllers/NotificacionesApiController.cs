@@ -195,6 +195,7 @@ namespace ControlActividades.Controllers
                     MessageId = n.MessageId,
                     Title = n.Title,
                     Body = n.Body,
+                    Tipo = n.Tipo,
                     FechaRecibido = n.FechaRecibido
                 })
                 .ToList();

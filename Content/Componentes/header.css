@@ -128,12 +128,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: black;
+    color: deepskyblue;
 }
  
-.noti_icono img{
-    width: 20px;
-    height: 20px;
+.icono-svg{
+    width: 25px;
+    height: 25px;   
+    color: mediumspringgreen;
 }
 
 /*Centro. Info de notificación*/

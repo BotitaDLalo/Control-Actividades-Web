@@ -390,6 +390,8 @@ namespace ControlActividades.Models
 
         public string Body { get; set; }
 
+        public string Tipo { get; set; }
+
         public DateTime FechaRecibido { get; set; }
     }
 

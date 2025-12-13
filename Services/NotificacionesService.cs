@@ -69,22 +69,6 @@ namespace ControlActividades.Services
             }
         }
 
-        public enum TipoNotificacion
-        {
-            //Notificaciones para alumnos
-            Aviso,
-            Evento,
-            TareaCreada,
-            TareaCalificada,
-
-            //Notificaciones para docentes
-            TareaEntregada,
-            ComentarioEnTarea,
-            ComentarioEnAviso,
-
-            //Notificaciones generales
-            RecordatorioEvento
-        }
 
         public async Task ColaDeNotificaciones(string userId)
         {
@@ -107,7 +91,7 @@ namespace ControlActividades.Services
             await _db.SaveChangesAsync();
         }
 
-        public async Task GuardarNotificacionAsync(string userId, string messageId, string title, string body)
+        public async Task GuardarNotificacionAsync(string userId, string messageId, string title, string body, string tipo)
         {
             try
             {
@@ -117,7 +101,8 @@ namespace ControlActividades.Services
                     MessageId = messageId,
                     Title = title,
                     Body = body,
-                    FechaRecibido = DateTime.Now
+                    FechaRecibido = DateTime.Now,
+                    Tipo = tipo
                 };
 
                 _db.tbNotificaciones.Add(noti);
@@ -144,6 +129,7 @@ namespace ControlActividades.Services
             {
                 Title = notificacion.Title,
                 Body = notificacion.Body,
+                Tipo = notificacion.Tipo,
                 FechaRecibido = notificacion.FechaRecibido.ToString("O")
             });
         }
@@ -188,7 +174,7 @@ namespace ControlActividades.Services
 
         //NOTIFICACIÓN GENERAL PARA TODAS LAS ACCIONES
         public async Task ProcesarNotificacion(List<string> destinatariosUserId,
-                                               List<UsuarioFcmToken> tokens, string titulo, string cuerpo
+                                               List<UsuarioFcmToken> tokens, string titulo, string cuerpo, string tipo
                                                )
         {
 
@@ -203,7 +189,7 @@ namespace ControlActividades.Services
             //Guardar una notificación por usuario
             foreach (var userId in destinatariosUserId)
             {
-                await GuardarNotificacionAsync(userId, messageId, titulo, cuerpo);
+                await GuardarNotificacionAsync(userId, messageId, titulo, cuerpo, tipo);
             }
 
         }
@@ -221,7 +207,8 @@ namespace ControlActividades.Services
                 usuariosIds,
                 tokens,
                 actividad.NombreActividad,
-                actividad.Descripcion
+                actividad.Descripcion,
+                TiposNotificaciones.ActividadCreada
             );
         }
 
@@ -234,7 +221,8 @@ namespace ControlActividades.Services
                 usuariosIds,
                 tokens,
                 aviso.Titulo,
-                aviso.Descripcion
+                aviso.Descripcion,
+                TiposNotificaciones.Aviso
             );
 
 
@@ -315,7 +303,8 @@ namespace ControlActividades.Services
                     usuariosIds,
                     tokens,
                     titulo,
-                    descripcion
+                    descripcion,
+                    TiposNotificaciones.Evento
                 );
 
             }
