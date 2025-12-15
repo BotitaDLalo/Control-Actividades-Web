@@ -76,6 +76,7 @@ function renderizarNotificaciones(notificaciones) {
 
     notificaciones.forEach(n => {
         const icono = obtenerIcono(n.Tipo);
+        const encabezado = obtenerEncabezado(n);
         html += `
             <div class="noti-item p-2 border-bottom">
                 <div class="noti-left">
@@ -85,7 +86,7 @@ function renderizarNotificaciones(notificaciones) {
                 </div>
 
                 <div class="noti-contenido">
-                    <div><strong>Docente creó un evento</strong></div>
+                    <div><strong>${encabezado}</strong></div>
                     <div class="small text-muted">${n.Title}</div>
                     <div class="small text-secondary">${new Date(n.FechaRecibido).toLocaleString()}</div>
                 </div>    
@@ -156,6 +157,23 @@ function obtenerIcono(tipo) {
     }
 }
 
+function obtenerEncabezado(notificacion) {
+    switch (notificacion.Tipo) {
+        case 'Aviso':
+            return `Nuevo aviso en ${notificacion.Materia || 'tu materia'}`;
+
+        case 'ActividadCreada':
+            return `Nueva actividad en ${notificacion.Materia || 'tu materia'}`;
+
+        case 'Evento':
+            return 'Evento asignado';
+
+        default:
+            return 'Nueva notificación';
+    }
+}
+
+
 //Insertar notificación en el panel tiempo real
 function insertarNotificacionEnPanel(notificacion) {
     const panel = document.getElementById("notificaciones-panel");
@@ -165,6 +183,7 @@ function insertarNotificacionEnPanel(notificacion) {
     if (!listaNoti) return; 
 
     const icono = obtenerIcono(notificacion.Tipo);
+    const encabezado = obtenerEncabezado(notificacion);
 
     //Insertamos
     const html = `
@@ -175,7 +194,7 @@ function insertarNotificacionEnPanel(notificacion) {
                 </div>
             </div>
             <div class="noti-contenido">
-                <div><strong>Docente creó un evento</strong></div>
+                <div><strong>${encabezado}</strong></div>
                 <div class="small text-muted">${notificacion.Title}</div>
                 <div class="small text-secondary">${new Date(notificacion.FechaRecibido).toLocaleString()}</div>
             </div>
