@@ -127,6 +127,7 @@ namespace ControlActividades.Services
 
             hub.Clients.User(userId).nuevaNotificacion(new
             {
+                NotificacionId = notificacion.NotificacionId,
                 Title = notificacion.Title,
                 Body = notificacion.Body,
                 Tipo = notificacion.Tipo,

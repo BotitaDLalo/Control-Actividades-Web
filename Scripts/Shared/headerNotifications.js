@@ -78,7 +78,7 @@ function renderizarNotificaciones(notificaciones) {
         const icono = obtenerIcono(n.Tipo);
         const encabezado = obtenerEncabezado(n);
         html += `
-            <div class="noti-item p-2 border-bottom">
+            <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}">
                 <div class="noti-left">
                     <div class="noti-icono">
                         <img src="${icono}" class="icono-svg" alt="noti-icono">
@@ -92,7 +92,7 @@ function renderizarNotificaciones(notificaciones) {
                 </div>    
 
                 <div class="noti-opciones">
-                    <button class="noti-menu">x</button>
+                    <button class="noti-menu btn-borrar-noti">x</button>
                 </div>  
             </div>
         `;
@@ -187,7 +187,7 @@ function insertarNotificacionEnPanel(notificacion) {
 
     //Insertamos
     const html = `
-        <div class="noti-item p-2 border-bottom">
+        <div class="noti-item p-2 border-bottom" data-id="${notificacion.NotificacionId}">
             <div class="noti-left">
                 <div class="noti-icono">
                     <img src="${icono}" class="icono-svg" alt="icono-noti">
@@ -200,7 +200,7 @@ function insertarNotificacionEnPanel(notificacion) {
             </div>
 
             <div class="noti-opciones">
-                <button class="noti-menu">x</button>
+                <button class="noti-menu btn-borrar-noti">x</button>
             </div>
         </div>
     `;
@@ -218,4 +218,29 @@ function insertarNotificacionEnPanel(notificacion) {
 
 }
 
+//Eliminar notificación
+document.addEventListener("click", async function (e) {
 
+    const btn = e.target.closest(".btn-borrar-noti");
+    if (!btn) return;
+
+    const notiItem = btn.closest(".noti-item");
+    const notiId = notiItem?.dataset.id;
+
+    if (!notiId) return;
+
+    try {
+        const resp = await fetch(`/api/Notificaciones/EliminarNotificacion/${notiId}`, {
+            method: "DELETE"
+        });
+
+        if (resp.ok) {
+            notiItem.remove();
+        } else {
+            console.error("No se pudo eliminar la notificación");
+        }
+    } catch (err) {
+        console.error("Error eliminando notificación", err);
+    }
+
+});

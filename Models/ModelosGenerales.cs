@@ -382,6 +382,7 @@ namespace ControlActividades.Models
 
     public class Notificacion
     {
+        public int NotificacionId { get; set; }
         public string UserId { get; set; }
 
         public string MessageId { get; set; }
