@@ -83,6 +83,7 @@ namespace ControlMaterias.Controllers
             }
         }
 
+        [HttpPost]
         public async Task<ActionResult> CambiarCodigoAuto(int materiaId)
         {
             try

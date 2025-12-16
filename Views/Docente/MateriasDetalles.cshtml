@@ -149,6 +149,7 @@
     <script src="~/Scripts/Docente/Grupos/scriptsAvisos.js"></script>
     <script src="~/Scripts/Docente/Grupos/scriptsActividades.js"></script>
     <script src="~/Scripts/Docente/Grupos/DetalleMateria.js"></script>
+    <script src="~/Scripts/Docente/Grupos/cambiarCodigoMateria.js"></script>
 
     <script>
         // attach filter listener
@@ -201,35 +202,6 @@
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
                 });
-
-        // Cambiar código de clase (auto-generado con confirmación)
-        const btnCambiarCodigo = document.getElementById('btnCambiarCodigo');
-        if (btnCambiarCodigo) btnCambiarCodigo.addEventListener('click', async function () {
-            try {
-                const res = await Swal.fire({
-                    title: '¿Está seguro?',
-                    text: 'Se generará automáticamente un nuevo código de clase. ¿Desea continuar?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, generar código',
-                    cancelButtonText: 'No, cancelar'
-                });
-
-                if (!res.isConfirmed) return; // usuario canceló
-
-                const resp = await fetch(`/Materias/CambiarCodigoAuto?materiaId=${materiaIdGlobal}`, { method: 'POST' });
-                if (!resp.ok) {
-                    const txt = await resp.text();
-                    Swal.fire('Error', txt || 'No se pudo cambiar el código', 'error');
-                    return;
-                }
-
-                const j = await resp.json().catch(()=>null);
-                const nuevo = (j && (j.CodigoAcceso || j.codigoAcceso)) || '';
-                if (nuevo) document.getElementById('codigoAcceso').innerText = nuevo;
-                Swal.fire({ icon: 'success', title: 'Código actualizado', text: nuevo, showConfirmButton: false, timer: 1400 });
-            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo cambiar el código', 'error'); }
-        });
                 if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); return true; }
                 else { Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
             } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }

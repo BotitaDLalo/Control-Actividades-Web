@@ -41,49 +41,37 @@
     });
 
 
-    const geminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyAoXeYbMKSLVxFsAFgHF9rJOppK8Xz2txg";
-
-
+    // Proxy requests to server-side endpoint to avoid exposing API keys in client
     async function sendMessageToGemini(message) {
         try {
-            const response = await fetch(geminiApiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+            const response = await fetch('/api/IA/GenerarContenido', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: message
-                                }
-                            ]
-                        }
-                    ]
+                    model: 'gemini-2.5-flash',
+                    contents: [ { parts: [ { text: message } ] } ]
                 })
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Respuesta completa de la API:", data);
-
-                // Ahora accedemos al texto correcto en la respuesta
-                if (data.candidates && data.candidates.length > 0) {
-                    const botResponse = data.candidates[0].content.parts[0].text; // Accediendo al texto
-                    return botResponse;  // Retornamos el texto del modelo
-                } else {
-                    console.error("No se encontraron candidatos en la respuesta");
-                    return null;
-                }
-            } else {
-                const errorData = await response.json();
-                console.error("Error en la respuesta de Gemini:", response.status, response.statusText, errorData);
-                alert(`Error en la solicitud: ${errorData.error.message}`);
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                console.error('Error desde servidor al solicitar Gemini:', response.status, data);
                 return null;
             }
+
+            // The server returns the raw response from Google; try to extract text
+            if (data && data.candidates && data.candidates.length > 0) {
+                return data.candidates[0].content.parts[0].text;
+            }
+
+            // Fallback: try common shapes
+            if (data && data.output) return data.output;
+            if (typeof data === 'string') return data;
+
+            console.error('Respuesta inesperada de GenerarContenido:', data);
+            return null;
         } catch (error) {
-            console.error("Error al comunicarse con la API de Gemini:", error);
+            console.error('Error al comunicar con el endpoint server /api/IA/GenerarContenido:', error);
             return null;
         }
     }
