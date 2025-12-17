@@ -394,6 +394,7 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Administrador\administrador.css" />
     <Content Include="Content\Alumno\avisosSeccion.css" />
     <Content Include="Content\Alumno\Calendario.css" />
     <Content Include="Content\Alumno\Cards.css" />
@@ -423,6 +424,7 @@
     <Content Include="Content\Componentes\cards.css" />
     <Content Include="Content\Componentes\header.css" />
     <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\notiAviso-Azul.svg" />
     <Content Include="Content\Iconos\notiEvento.svg" />
     <Content Include="Content\Iconos\notiAviso.svg" />
     <Content Include="Content\Iconos\notiActividadCreada.svg" />
@@ -490,6 +492,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Scripts\Administrador\Autorizar.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
     <Content Include="Scripts\Alumno\actividades.js" />
     <Content Include="Scripts\Alumno\AgendaFullCalendar.js" />

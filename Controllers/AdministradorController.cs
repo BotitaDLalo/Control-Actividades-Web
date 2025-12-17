@@ -23,6 +23,7 @@ namespace ControlActividades.Controllers
         private FuncionalidadesGenerales _fg;
         private Services.EmailService _emailService;
 
+        #region Constantes
         public AdministradorController() { }
 
         public AdministradorController(ApplicationUserManager userManager, 
@@ -110,6 +111,7 @@ namespace ControlActividades.Controllers
                 _emailService = value;
             }
         }
+        #endregion
 
 
         public async Task<ActionResult> Index()
@@ -131,7 +133,8 @@ namespace ControlActividades.Controllers
                     Nombre = d.Nombre,
                     Email = email,
                     Autorizado = autorizado,
-                    EnvioCorreo = envioCorreo
+                    EnvioCorreo = envioCorreo,
+                    UserId = d.UserId
                 };
                 lsDocentesAdministrar.Add(docente);
             }
@@ -139,6 +142,7 @@ namespace ControlActividades.Controllers
             return View(lsDocentesAdministrar);
         }
 
+        #region Metodos de la tabla
         private static string EstadoAutorizado(bool? status)
         {
             if (status == null)
@@ -332,7 +336,42 @@ namespace ControlActividades.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
         }
+        #endregion
 
+        #region Ingreso como docente
+        [HttpPost]
+        [Authorize(Roles = "Administrador")]
+        public ActionResult IngresarComoDocente(string userId)
+        {
+            // SOLO para prueba
+            if (string.IsNullOrEmpty(userId))
+            {
+                //Poner mensaje de error "El docente no existe, etc"
+                return RedirectToAction("Index");
+            }
+            /*
+            //Evita impersonaciones dobles
+            if (Session["IsImpersonating"] != null && Session["ImpersonatedUserId"]?.ToString() != userId)
+            {
+                return RedirectToAction("Index");
+            }*/
+
+            string adminId = User.Identity.GetUserId();
+            if (string.IsNullOrEmpty(adminId))
+            {
+                return RedirectToAction("Index");
+            }
+
+            //Guardar la sesión del admin
+            Session["AdminOriginalId"] = adminId;
+            Session["IsImpersonating"] = true;
+
+            Session["ImpersonateUserId"] = userId;
+
+
+            return RedirectToAction("Index");
+        }
+        #endregion
         protected override void Dispose(bool disposing)
         {
             if (disposing)
