@@ -51,21 +51,21 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="btnPublicarActividad">Publicar</button>
-                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#sugerenciasModal" id="btnSugerencias">Sugerencias</button>
+                <button type="button" class="btn btn-secondary" id="btnSugerencias">Sugerencias</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="sugerenciasModal" tabindex="-1" aria-labelledby="sugerenciasModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="sugerenciasModal" tabindex="-1" aria-labelledby="sugerenciasModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="sugerenciasModalLabel">Sugerencias</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <div id="sugerenciasLista" class="list-group">
+                <div id="sugerenciasLista" class="">
                 </div>
             </div>
             <div class="modal-footer">
@@ -183,5 +183,14 @@
         }
     }
 </script>
+<style>
+    /* Styles para mejorar visual de sugerencias */
+    .suggestion-card { border: 1px solid #e9eefb; border-radius: 8px; }
+    .suggestion-title { font-size: 1rem; color: #0b5ed7; }
+    .suggestion-text { font-size: .95rem; color: #333; max-height: 160px; overflow: auto; }
+    .suggestion-card .form-check-input { width: 18px; height: 18px; }
+    /* ensure radio focus visible */
+    .suggestion-card:focus-within { box-shadow: 0 0 0 3px rgba(13,110,253,0.12); }
+</style>
 
 
