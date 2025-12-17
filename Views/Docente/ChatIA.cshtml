@@ -1,0 +1,21 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+}
+
+<div class="container mt-3">
+    <h3>Chatear con IA</h3>
+
+    <div id="chatBox" style="border:1px solid #ccc;border-radius:6px;padding:10px;height:400px;overflow:auto;background:#fff;">
+        <!-- mensajes aparecerán aquí -->
+    </div>
+
+    <div class="input-group mt-2">
+        <input id="promptInput" class="form-control" placeholder="Escribe tu mensaje..." />
+        <button id="sendBtn" class="btn btn-primary">Enviar</button>
+    </div>
+</div>
+
+@section scripts{
+    <script>window.appBase='@Url.Content("~")';</script>
+    <script src="/Scripts/Docente/IAChat.js"></script>
+}

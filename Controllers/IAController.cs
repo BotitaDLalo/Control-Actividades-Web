@@ -304,6 +304,11 @@ namespace ControlActividades.Controllers
                 return Content(HttpStatusCode.Forbidden, new { mensaje = "API key no configurada en el servidor (GenerarContenido)" });
 
             var model = body.Value<string>("model") ?? ConfigurationManager.AppSettings["GoogleModel"] ?? "text-bison-001";
+            // Allow runtime forced model for testing (keeps behavior consistent with other endpoints)
+            lock (_forcedModelLock)
+            {
+                if (!string.IsNullOrWhiteSpace(_forcedModel)) model = _forcedModel;
+            }
 
             // Try to obtain service account token first; fall back to API key
             string serviceAccountPath = Environment.GetEnvironmentVariable("GOOGLE_SERVICE_ACCOUNT_FILE")
@@ -344,15 +349,50 @@ namespace ControlActividades.Controllers
             string url;
             string payload;
 
+            // Detect gemini-like models which expect v1beta 'generateContent' with 'contents' array
+            var effectiveModel = model ?? (ConfigurationManager.AppSettings["GoogleModel"] ?? "text-bison-001");
+            var isGemini = !string.IsNullOrWhiteSpace(effectiveModel) && effectiveModel.IndexOf("gemini", StringComparison.OrdinalIgnoreCase) >= 0;
+
             if (hasContents)
             {
+                // If the caller already supplied 'contents', call v1beta endpoint
                 url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent" + (bearerToken == null ? $"?key={apiKeyVar}" : "");
                 var clone = (JObject)body.DeepClone();
                 clone.Remove("model");
                 payload = clone.ToString();
             }
+            else if (isGemini)
+            {
+                // Convert prompt/text into 'contents' shape expected by gemini models
+                url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent" + (bearerToken == null ? $"?key={apiKeyVar}" : "");
+                var clone = (JObject)body.DeepClone();
+                clone.Remove("model");
+
+                // Extract text from known locations
+                string textVal = null;
+                try
+                {
+                    if (clone["prompt"] != null)
+                    {
+                        textVal = clone["prompt"]?["text"]?.ToString();
+                    }
+                }
+                catch { }
+                if (string.IsNullOrWhiteSpace(textVal) && clone["text"] != null)
+                {
+                    textVal = clone.Value<string>("text");
+                }
+
+                var contentsObj = new JObject(
+                    new JProperty("contents", new JArray(
+                        new JObject(new JProperty("parts", new JArray(new JObject(new JProperty("text", textVal ?? "")))))
+                    ))
+                );
+                payload = contentsObj.ToString();
+            }
             else
             {
+                // Default: call v1 generate endpoint with prompt object (for text-bison and similar)
                 url = $"https://generativelanguage.googleapis.com/v1/models/{model}:generate" + (bearerToken == null ? $"?key={apiKeyVar}" : "");
                 var clone = (JObject)body.DeepClone();
                 clone.Remove("model");
@@ -373,9 +413,102 @@ namespace ControlActividades.Controllers
                     var resp = await _client.SendAsync(reqMsg);
                     var txt = await resp.Content.ReadAsStringAsync();
 
+                    // Log request/response for debugging (writes to App_Data/GenerarContenido_requests.log)
                     try
                     {
-                        var parsed = string.IsNullOrWhiteSpace(txt) ? null : JToken.Parse(txt);
+                        TryAppendLog("GenerarContenido_requests.log", $"URL: {url}\nPAYLOAD:\n{payload}\nSTATUS: {(int)resp.StatusCode} {resp.ReasonPhrase}\nRESPONSE:\n{txt}\n---\n");
+                    }
+                    catch { }
+
+                    // If provider returned an empty body or non-success, try gemini v1beta fallbacks (if not already using gemini)
+                    if ((!resp.IsSuccessStatusCode || string.IsNullOrWhiteSpace(txt)) && !isGemini)
+                    {
+                        var fallbackModels = new[] { "gemini-2.5-flash", "gemini-1.5-flash" };
+
+                        // Extract a representative text from the incoming body
+                        string textForFallback = null;
+                        try { textForFallback = body["prompt"]?["text"]?.ToString(); } catch { }
+                        if (string.IsNullOrWhiteSpace(textForFallback) && body["text"] != null)
+                        {
+                            textForFallback = body.Value<string>("text");
+                        }
+                        // If still empty and messages array provided (OpenAI style), concatenate contents
+                        if (string.IsNullOrWhiteSpace(textForFallback) && body["messages"] != null)
+                        {
+                            try
+                            {
+                                var msgs = body["messages"] as JArray;
+                                if (msgs != null)
+                                {
+                                    var sb = new StringBuilder();
+                                    foreach (var m in msgs)
+                                    {
+                                        var c = m["content"]?.ToString();
+                                        if (!string.IsNullOrWhiteSpace(c))
+                                        {
+                                            if (sb.Length > 0) sb.Append("\n");
+                                            sb.Append(c);
+                                        }
+                                    }
+                                    textForFallback = sb.ToString();
+                                }
+                            }
+                            catch { }
+                        }
+
+                        foreach (var fm in fallbackModels)
+                        {
+                            try
+                            {
+                                var urlFb = $"https://generativelanguage.googleapis.com/v1beta/models/{fm}:generateContent" + (bearerToken == null ? $"?key={apiKeyVar}" : "");
+                                var contentsObj = new JObject(
+                                    new JProperty("contents", new JArray(
+                                        new JObject(new JProperty("parts", new JArray(new JObject(new JProperty("text", textForFallback ?? "")))) )
+                                    ))
+                                );
+                                var payloadFb = contentsObj.ToString();
+
+                                using (var reqFb = new HttpRequestMessage(HttpMethod.Post, urlFb))
+                                {
+                                    reqFb.Content = new StringContent(payloadFb, Encoding.UTF8, "application/json");
+                                    if (!string.IsNullOrWhiteSpace(bearerToken)) reqFb.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
+                                    var respFb = await _client.SendAsync(reqFb);
+                                    var txtFb = await respFb.Content.ReadAsStringAsync();
+
+                                    try { TryAppendLog("GenerarContenido_requests.log", $"FALLBACK URL: {urlFb}\nPAYLOAD:\n{payloadFb}\nSTATUS: {(int)respFb.StatusCode} {respFb.ReasonPhrase}\nRESPONSE:\n{txtFb}\n---\n"); } catch { }
+
+                                    if (respFb.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(txtFb))
+                                    {
+                                        try
+                                        {
+                                            var parsedFb = JToken.Parse(txtFb);
+                                            return Ok(parsedFb ?? (object)new { detalle = txtFb });
+                                        }
+                                        catch
+                                        {
+                                            return Ok(new { detalle = txtFb });
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                TryAppendLog("GenerarContenido_requests.log", $"FALLBACK EXCEPTION calling {fm}: {ex.Message}\n");
+                            }
+                        }
+                    }
+
+                    // If provider returned an empty body, return a clearer message to the client
+                    if (string.IsNullOrWhiteSpace(txt))
+                    {
+                        var info = new { mensaje = "Respuesta vacía del proveedor generativo", status = (int)resp.StatusCode };
+                        return Content(resp.StatusCode, info);
+                    }
+
+                    try
+                    {
+                        var parsed = JToken.Parse(txt);
                         if (resp.IsSuccessStatusCode) return Ok(parsed ?? (object)new { detalle = txt });
                         return Content(resp.StatusCode, parsed ?? (object)new { detalle = txt });
                     }
