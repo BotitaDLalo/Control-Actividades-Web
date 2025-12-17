@@ -426,6 +426,7 @@
     <Content Include="Content\Iconos\notiEvento.svg" />
     <Content Include="Content\Iconos\notiAviso.svg" />
     <Content Include="Content\Iconos\notiActividadCreada.svg" />
+    <Content Include="Content\Iconos\notiActividadCreada-Azul.svg" />
     <Content Include="Content\Variables\fuentes.css" />
     <Content Include="Content\Componentes\carga.css" />
     <Content Include="Content\Dashboard\cards.css" />

@@ -147,9 +147,9 @@ function ocultarIndicadorNotificaciones() {
 function obtenerIcono(tipo) {
     switch (tipo) {
         case 'Aviso':
-            return "/Content/Iconos/notiAviso.svg";
+            return "/Content/Iconos/notiAviso-Azul.svg";
         case 'ActividadCreada':
-            return "/Content/Iconos/notiActividadCreada.svg";
+            return "/Content/Iconos/notiActividadCreada-Azul.svg";
         case 'Evento':
             return "/Content/Iconos/notiEvento.svg";
         default:
