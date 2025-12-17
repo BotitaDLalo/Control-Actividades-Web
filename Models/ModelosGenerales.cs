@@ -361,6 +361,16 @@ namespace ControlActividades.Models
         public List<MateriaRes> Materias { get; set; }
     }
 
+    public class ActividadRes
+    {
+        public int ActividadId { get; set; }
+        public string NombreActividad { get; set; }
+        public string Descripcion { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public DateTime FechaLimite { get; set; }
+        public int Puntaje { get; set; }
+    }
+
     public class MateriaRes
     {
         public int MateriaId { get; set; }
@@ -369,7 +379,7 @@ namespace ControlActividades.Models
 
         public string Descripcion { get; set; }
 
-        public List<tbActividades> Actividades { get; set; }
+        public List<ActividadRes> Actividades { get; set; }
     }
 
     public class UnirseAClaseMRespuesta

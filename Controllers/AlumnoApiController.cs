@@ -170,6 +170,7 @@ namespace ControlActividades.Controllers
             return Content(HttpStatusCode.NotFound, new { mensaje = "Código de acceso no válido" });
         }
 
+        /*
         [HttpPost]
         [Route("UnirseAClaseM")]
         public async Task<IHttpActionResult> UnirseAClaseM([FromBody] UnirseAClaseRequest request)
@@ -283,6 +284,217 @@ namespace ControlActividades.Controllers
                 return BadRequest();
             }
         }
+        */
+
+        // Nuevo metodo para registrarse mediante codigo de clase
+        [HttpPost]
+        [Route("UnirseAClaseM")]
+        public async Task<IHttpActionResult> UnirseAClaseM([FromBody] UnirseAClaseRequest request)
+        {
+            try
+            {
+                // 1. Validación del request
+                if (request == null || string.IsNullOrEmpty(request.CodigoAcceso) || request.AlumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new 
+                    { 
+                        mensaje = "Datos de solicitud inválidos: AlumnoId y CodigoAcceso son obligatorios."
+                    });
+                }
+
+                // 2. Normalizar código a mayúsculas para comparación case-insensitive
+                var codigoNormalizado = request.CodigoAcceso.Trim().ToUpper();
+
+                // 3. Buscar grupo con comparación case-insensitive
+                var grupo = await Db.tbGrupos
+                    .FirstOrDefaultAsync(g => g.CodigoAcceso.ToUpper() == codigoNormalizado);
+
+                if (grupo != null)
+                {
+                    // 4. Validar que el docente existe
+                    var docente = await Db.tbDocentes
+                        .FirstOrDefaultAsync(d => d.DocenteId == grupo.DocenteId);
+
+                    if (docente == null)
+                    {
+                        return Content(HttpStatusCode.NotFound, new
+                        {
+                            mensaje = "Docente no encontrado. El grupo no tiene un docente asociado válido."
+                        });
+                    }
+
+                    // 5. ✅ VALIDAR si el alumno YA ESTÁ registrado en este grupo
+                    var alumnoYaEnGrupo = await Db.tbAlumnosGrupos
+                        .AnyAsync(ag => ag.AlumnoId == request.AlumnoId && ag.GrupoId == grupo.GrupoId);
+
+                    if (alumnoYaEnGrupo)
+                    {
+                        // El alumno ya está registrado en este grupo
+                        return Content(HttpStatusCode.Conflict, new
+                        {
+                            mensaje = $"Ya estás registrado en el grupo '{grupo.NombreGrupo}'. No puedes unirte nuevamente.",
+                            grupoId = grupo.GrupoId,
+                            nombreGrupo = grupo.NombreGrupo,
+                            esGrupo = true
+                        });
+                    }
+
+                    // 6. Obtener materias del grupo
+                    var lsMateriasId = await Db.tbGruposMaterias
+                        .Where(gm => gm.GrupoId == grupo.GrupoId)
+                        .Select(gm => gm.MateriaId)
+                        .ToListAsync();
+
+                    var lsMaterias = await Db.tbMaterias
+                        .Where(m => lsMateriasId.Contains(m.MateriaId))
+                        .Select(m => new MateriaRes
+                        {
+                            MateriaId = m.MateriaId,
+                            NombreMateria = m.NombreMateria,
+                            Descripcion = m.Descripcion,
+                            Actividades = Db.tbActividades
+                                .Where(a => a.MateriaId == m.MateriaId)
+                                .Select(a => new ActividadRes
+                                {
+                                    ActividadId = a.ActividadId,
+                                    NombreActividad = a.NombreActividad,
+                                    Descripcion = a.Descripcion,
+                                    FechaCreacion = a.FechaCreacion,
+                                    FechaLimite = a.FechaLimite,
+                                    Puntaje = a.Puntaje
+                                })
+                                .ToList()
+                        })
+                        .ToListAsync();
+
+                    // 7. Crear respuesta del grupo
+                    var grupoRes = new GrupoRes()
+                    {
+                        GrupoId = grupo.GrupoId,
+                        NombreGrupo = grupo.NombreGrupo,
+                        Descripcion = grupo.Descripcion,
+                        CodigoAcceso = grupo.CodigoAcceso,
+                        CodigoColor = grupo.CodigoColor,
+                        Materias = lsMaterias
+                    };
+
+                    // 8. Crear relación alumno-grupo
+                    var nuevaRelacion = new tbAlumnosGrupos
+                    {
+                        AlumnoId = request.AlumnoId,
+                        GrupoId = grupo.GrupoId
+                    };
+
+                    Db.tbAlumnosGrupos.Add(nuevaRelacion);
+                    await Db.SaveChangesAsync();
+
+                    // 9. Retornar respuesta exitosa
+                    var respuesta = new UnirseAClaseMRespuesta()
+                    {
+                        Grupo = grupoRes,
+                        EsGrupo = true
+                    };
+
+                    return Ok(respuesta);
+                }
+
+                // 10. Si no es grupo, buscar materia con comparación case-insensitive
+                var materia = await Db.tbMaterias
+                    .FirstOrDefaultAsync(m => m.CodigoAcceso.ToUpper() == codigoNormalizado);
+
+                if (materia != null)
+                {
+                    // 11. Validar que el docente existe
+                    var docente = await Db.tbDocentes
+                        .FirstOrDefaultAsync(d => d.DocenteId == materia.DocenteId);
+
+                    if (docente == null)
+                    {
+                        return Content(HttpStatusCode.NotFound, new
+                        {
+                            mensaje = "Docente no encontrado. La materia no tiene un docente asociado válido."
+                        });
+                    }
+
+                    // 12. ✅ VALIDAR si el alumno YA ESTÁ registrado en esta materia
+                    var alumnoYaEnMateria = await Db.tbAlumnosMaterias
+                        .AnyAsync(am => am.AlumnoId == request.AlumnoId && am.MateriaId == materia.MateriaId);
+
+                    if (alumnoYaEnMateria)
+                    {
+                        // El alumno ya está registrado en esta materia
+                        return Content(HttpStatusCode.Conflict, new
+                        {
+                            mensaje = $"Ya estás registrado en la materia '{materia.NombreMateria}'. No puedes unirte nuevamente.",
+                            materiaId = materia.MateriaId,
+                            nombreMateria = materia.NombreMateria,
+                            esGrupo = false
+                        });
+                    }
+
+                    // 13. Crear respuesta de la materia
+                    var materiaRes = new MateriaRes()
+                    {
+                        MateriaId = materia.MateriaId,
+                        NombreMateria = materia.NombreMateria,
+                        Descripcion = materia.Descripcion,
+                        Actividades = await Db.tbActividades
+                            .Where(a => a.MateriaId == materia.MateriaId)
+                            .Select(a => new ActividadRes
+                            {
+                                ActividadId = a.ActividadId,
+                                NombreActividad = a.NombreActividad,
+                                Descripcion = a.Descripcion,
+                                FechaCreacion = a.FechaCreacion,
+                                FechaLimite = a.FechaLimite,
+                                Puntaje = a.Puntaje
+                            })
+                            .ToListAsync()
+                    };
+
+                    // 14. Crear relación alumno-materia
+                    var nuevaRelacion = new tbAlumnosMaterias
+                    {
+                        AlumnoId = request.AlumnoId,
+                        MateriaId = materia.MateriaId
+                    };
+
+                    Db.tbAlumnosMaterias.Add(nuevaRelacion);
+                    await Db.SaveChangesAsync();
+
+                    // 15. Retornar respuesta exitosa
+                    var respuesta = new UnirseAClaseMRespuesta()
+                    {
+                        Materia = materiaRes,
+                        EsGrupo = false
+                    };
+
+                    return Ok(respuesta);
+                }
+
+                // 16. Código no encontrado - ni en grupos ni en materias
+                return Content(HttpStatusCode.NotFound, new
+                {
+                    mensaje = "Código de acceso inválido o inexistente. Verifica que el código sea correcto."
+                });
+            }
+            catch (Exception ex)
+            {
+                // 17. Logging del error
+                // _logger.LogError(ex, "Error al unirse a clase para AlumnoId: {AlumnoId}, Codigo: {Codigo}", 
+                //     request?.AlumnoId, request?.CodigoAcceso);
+
+                // 18. Retornar error 500 con mensaje genérico
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error interno del servidor. Inténtalo de nuevo más tarde."
+                });
+            }
+        }
+
+
+
+
 
         [HttpPost]
         [Route("RegistrarEnvioActividadAlumno")]
