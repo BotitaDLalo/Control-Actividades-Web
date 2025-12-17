@@ -11,6 +11,7 @@ using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
 
 namespace ControlActividades.Controllers
 {
@@ -111,6 +112,15 @@ namespace ControlActividades.Controllers
                 _emailService = value;
             }
         }
+
+        private IAuthenticationManager AuthenticationManager
+        {
+            get
+            {
+                return HttpContext.GetOwinContext().Authentication;
+            }
+        }
+
         #endregion
 
 
@@ -340,8 +350,8 @@ namespace ControlActividades.Controllers
 
         #region Ingreso como docente
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
-        public ActionResult IngresarComoDocente(string userId)
+        //[Authorize(Roles = "Administrador")]
+        public async Task<ActionResult> IngresarComoDocente(string userId)
         {
             // SOLO para prueba
             if (string.IsNullOrEmpty(userId))
@@ -365,11 +375,34 @@ namespace ControlActividades.Controllers
             //Guardar la sesión del admin
             Session["AdminOriginalId"] = adminId;
             Session["IsImpersonating"] = true;
-
             Session["ImpersonateUserId"] = userId;
 
+            // CERRAR SESIÓN DEL ADMINISTRADOR E INICIAR COMO DOCENTE                      
+            
+            // Obtener docente
+            var docente = await UserManager.FindByIdAsync(userId);
+            if(docente == null)
+            {
+                return RedirectToAction("Index");
+            }
 
-            return RedirectToAction("Index");
+            if(!await UserManager.IsInRoleAsync(userId, "Docente"))
+            {
+                return RedirectToAction("Index");
+            }
+
+            //Cerrar sesión del admin
+            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+
+            // Iniciar sesión como docente sin contraseña
+            await SignInManager.SignInAsync(
+                docente,
+                isPersistent: false,
+                rememberBrowser: false
+            );
+
+            //Redirigir al home del docente
+            return RedirectToAction("Index", "Docente");
         }
         #endregion
         protected override void Dispose(bool disposing)
