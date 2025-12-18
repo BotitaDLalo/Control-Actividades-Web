@@ -17,8 +17,5 @@ namespace ControlActividades.Models.db
         [Required]
         public virtual int MateriaId { get; set; }
         public virtual tbMaterias Materias { get; set; }
-
-        // Estatus del alumno en esta materia (por ejemplo: Activo, Inactivo, Dado de Baja)
-        public string Estatus { get; set; }
     }
 }

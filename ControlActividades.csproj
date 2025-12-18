@@ -372,7 +372,9 @@
     <Compile Include="Models\db\tbAvisos.cs" />
     <Compile Include="Models\db\tbCalificaciones.cs" />
     <Compile Include="Models\db\tbDocentes.cs" />
+    <Compile Include="Models\db\tbEntregaActividadAlumno.cs" />
     <Compile Include="Models\db\tbEntregableAlumno.cs" />
+    <Compile Include="Models\db\tbEntregables.cs" />
     <Compile Include="Models\db\tbEventosAgenda.cs" />
     <Compile Include="Models\db\tbEventosGrupos.cs" />
     <Compile Include="Models\db\tbEventosMaterias.cs" />
@@ -687,6 +689,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Scripts\Componentes\PantallaCarga.js" />
+    <EmbeddedResource Include="Migrations\202512140000398_Refactorizacion_Dos.resx">
+      <DependentUpon>202512140000398_Refactorizacion_Dos.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
