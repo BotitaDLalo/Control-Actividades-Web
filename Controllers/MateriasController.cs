@@ -1,4 +1,4 @@
-﻿using ControlActividades;
+using ControlActividades;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
@@ -22,8 +22,15 @@ using System.Web.Security;
 
 namespace ControlMaterias.Controllers
 {
+    public class CopiarActividadesRequest
+    {
+        public int origenMateriaId { get; set; }
+        public int nuevoMateriaId { get; set; }
+    }
+
     public class MateriasController : Controller
     {
+        #region Propiedades
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
         private RoleManager<IdentityRole> _roleManager;
@@ -34,32 +41,6 @@ namespace ControlMaterias.Controllers
         public MateriasController()
         {
         }
-
-        [HttpPost]
-        public async Task<ActionResult> ActualizarEstatusAlumno(int AlumnoId, int MateriaId, string Estatus)
-        {
-            try
-            {
-                // buscar la relación específica alumno-materia
-                var enlace = await Db.tbAlumnosMaterias.FirstOrDefaultAsync(a => a.AlumnoId == AlumnoId && a.MateriaId == MateriaId);
-                if (enlace == null)
-                {
-                    Response.StatusCode = 404;
-                    return Json(new { mensaje = "No se encontró relación alumno-materia." }, JsonRequestBehavior.AllowGet);
-                }
-
-                enlace.Estatus = Estatus;
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Estatus actualizado." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al actualizar estatus.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
         public MateriasController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, NotificacionesService notificacionesService)
         {
             UserManager = userManager;
@@ -140,6 +121,37 @@ namespace ControlMaterias.Controllers
             {
                 _notifServ = value;
             }
+        }
+
+        #endregion
+
+
+        [HttpGet]
+        public ActionResult GrupoMaterias(int? grupoId)
+        {
+            if (!grupoId.HasValue)
+            {
+                return RedirectToAction("Grupos");
+            }
+
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            ViewBag.GrupoId = grupoId.Value;
+
+            //return View("Grupos/GrupoMaterias");
+            return View("~/Views/Materias/GrupoMaterias.cshtml");
+        }
+
+        [HttpGet]
+        public ActionResult MateriasSinGrupo()
+        {
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            return View("MateriasSinGrupoStandalone");
         }
 
         [HttpPost]
@@ -239,7 +251,7 @@ namespace ControlMaterias.Controllers
                     .Where(a => a.Nombre.Contains(query) ||
                                 a.ApellidoPaterno.Contains(query) ||
                                 a.ApellidoMaterno.Contains(query) ||
-                                usuarioIds.Contains(a.UserId)) 
+                                usuarioIds.Contains(a.UserId))
                     .Select(a => new
                     {
                         a.IdentityUser.Email,
@@ -342,7 +354,7 @@ namespace ControlMaterias.Controllers
                             x.a.ApellidoPaterno,
                             x.a.ApellidoMaterno,
                             Email = u.Email,
-                            Estatus = x.a.Estatus ?? "Activo"
+                            //Estatus = x.a.Estatus ?? "Activo"
                         })
                     .OrderBy(a => a.ApellidoPaterno)
                     .ThenBy(a => a.ApellidoMaterno)
@@ -424,12 +436,12 @@ namespace ControlMaterias.Controllers
             }
 
             // Verificar que el tipo de actividad exista en la base de datos
-            var tipoActividadExiste = await Db.cTiposActividades.AnyAsync(t => t.TipoActividadId == actividadDto.TipoActividadId);
-            if (!tipoActividadExiste)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "El tipo de actividad especificado no existe." }, JsonRequestBehavior.AllowGet);
-            }
+            //var tipoActividadExiste = await Db.cTiposActividades.AnyAsync(t => t.TipoActividadId == actividadDto.TipoActividadId);
+            //if (!tipoActividadExiste)
+            //{
+            //    Response.StatusCode = 400; // Bad Request
+            //    return Json(new { mensaje = "El tipo de actividad especificado no existe." }, JsonRequestBehavior.AllowGet);
+            //}
 
             try
             {
@@ -440,36 +452,55 @@ namespace ControlMaterias.Controllers
                     Descripcion = actividadDto.Descripcion,
                     FechaCreacion = DateTime.Now,
                     FechaLimite = actividadDto.FechaLimite,
-                    TipoActividadId = actividadDto.TipoActividadId,
+                    //TipoActividadId = actividadDto.TipoActividadId,
                     Puntaje = actividadDto.Puntaje,
-                    MateriaId = actividadDto.MateriaId
+                    MateriaId = actividadDto.MateriaId,
+                    Enviado = actividadDto.Enviado,
+                    FechaProgramada = actividadDto.FechaProgramada
                 };
 
                 Db.tbActividades.Add(nuevaActividad);
                 await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID
 
-                // Obtener los alumnos que pertenecen a la materia
-                var alumnosMateria = await Db.tbAlumnosMaterias
-                    .Where(am => am.MateriaId == actividadDto.MateriaId)
-                    .Select(am => am.AlumnoId)
-                    .ToListAsync();
+                // Solo asignar a alumnos si la actividad está publicada inmediatamente
+                // o si está programada y la fecha programada ya pasó
+                bool publicarAhora = nuevaActividad.Enviado == true;
+                bool programadaYA = nuevaActividad.Enviado == null && nuevaActividad.FechaProgramada.HasValue && nuevaActividad.FechaProgramada.Value <= DateTime.Now;
 
-                // Crear registros en la tabla AlumnoActividad para cada alumno
-                foreach (var alumnoId in alumnosMateria)
+                if (publicarAhora || programadaYA)
                 {
-                    var alumnoActividad = new tbAlumnosActividades
-                    {
-                        ActividadId = nuevaActividad.ActividadId,
-                        AlumnoId = alumnoId,
-                        FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
-                        EstatusEntrega = false
-                    };
+                    // Obtener los alumnos que pertenecen a la materia
+                    var alumnosMateria = await Db.tbAlumnosMaterias
+                        .Where(am => am.MateriaId == actividadDto.MateriaId)
+                        .Select(am => am.AlumnoId)
+                        .ToListAsync();
 
-                    Db.tbAlumnosActividades.Add(alumnoActividad);
+                    // Crear registros en la tabla AlumnoActividad para cada alumno
+                    foreach (var alumnoId in alumnosMateria)
+                    {
+                        //var alumnoActividad = new tbAlumnosActividades
+                        //{
+                        //    ActividadId = nuevaActividad.ActividadId,
+                        //    AlumnoId = alumnoId,
+                        //    FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
+                        //    EstatusEntrega = false
+                        //};
+
+                        //Db.tbAlumnosActividades.Add(alumnoActividad);
+                    }
+
+                    // Guardar los cambios en la tabla AlumnoActividad
+                    //await Db.SaveChangesAsync();
                 }
 
                 // Guardar los cambios en la tabla AlumnoActividad
                 await Db.SaveChangesAsync();
+
+                //Envío de notificación a los alumnos dentro de la materia
+                await Ns.NotificacionCrearActividad(
+                    nuevaActividad,
+                    nuevaActividad.MateriaId
+                    );
 
                 return Json(new { mensaje = "Actividad creada y asignada a los alumnos con éxito", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
             }
@@ -480,6 +511,47 @@ namespace ControlMaterias.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
+        {
+            if (req == null || req.origenMateriaId <= 0 || req.nuevoMateriaId <= 0)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "Parámetros inválidos" }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var actividades = await Db.tbActividades.Where(a => a.MateriaId == req.origenMateriaId).ToListAsync();
+                if (actividades == null || actividades.Count == 0)
+                {
+                    return Json(new { mensaje = "No hay actividades para copiar" }, JsonRequestBehavior.AllowGet);
+                }
+
+                foreach (var a in actividades)
+                {
+                    var nueva = new tbActividades
+                    {
+                        NombreActividad = a.NombreActividad,
+                        Descripcion = a.Descripcion,
+                        FechaCreacion = DateTime.Now,
+                        FechaLimite = a.FechaLimite,
+                        //TipoActividadId = a.TipoActividadId,
+                        Puntaje = a.Puntaje,
+                        MateriaId = req.nuevoMateriaId
+                    };
+                    Db.tbActividades.Add(nueva);
+                }
+
+                await Db.SaveChangesAsync();
+                return Json(new { mensaje = "Actividades copiadas" }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al copiar actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
 
         //Controlador que obtiene  todo lo de actividades que pertecenen a esa materia
@@ -489,9 +561,14 @@ namespace ControlMaterias.Controllers
             try
             {
                 // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
-                var actividadesEntities = await Db.tbActividades
-                    .Where(a => a.MateriaId == materiaId)
-                    .ToListAsync();
+                bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
+                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
+                if (!esDocente)
+                {
+                    // para alumnos mostrar actividades publicadas o programadas cuyo horario ya se cumplió
+                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
+                }
+                var actividadesEntities = await query.ToListAsync();
 
                 if (actividadesEntities == null || actividadesEntities.Count == 0)
                 {
@@ -506,7 +583,9 @@ namespace ControlMaterias.Controllers
                     a.Descripcion,
                     FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
                     FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    a.Puntaje
+                    a.Puntaje,
+                    Enviado = a.Enviado,
+                    FechaProgramada = a.FechaProgramada
                 }).ToList();
 
                 return Json(resultado, JsonRequestBehavior.AllowGet);
@@ -548,7 +627,7 @@ namespace ControlMaterias.Controllers
         }
 
 
-
+        #region Avisos
         //Controlador para crear un aviso funciona desde dentro de la materia
         [HttpPost]
         [Authorize]
@@ -642,9 +721,6 @@ namespace ControlMaterias.Controllers
             }
         }
 
-
-
-
         //Controlador para eliminar un aviso
         [HttpDelete]
         public async Task<ActionResult> EliminarAviso(int id)
@@ -708,8 +784,6 @@ namespace ControlMaterias.Controllers
             }
         }
 
-
-
         //Controlador para obtener informacion de un aviso para despeus editar
         [HttpGet]
         public async Task<ActionResult> ObtenerAvisoPorId(int avisoId)
@@ -741,9 +815,6 @@ namespace ControlMaterias.Controllers
             }
         }
 
-
-
-
         //Editar aviso
         [HttpPut]
         public async Task<ActionResult> EditarAviso(tbAvisos model)
@@ -770,9 +841,11 @@ namespace ControlMaterias.Controllers
                 return Json(new { mensaje = "Error al actualizar el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+        #endregion
 
 
-       
+
+
         [HttpPost]
         public async Task<ActionResult> CrearMateria(tbMaterias materia)
         {
@@ -851,6 +924,23 @@ namespace ControlMaterias.Controllers
             }
         }
 
+        public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
+        {
+            if (!materiaId.HasValue)
+            {
+                return RedirectToAction("Index");
+            }
+
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            ViewBag.MateriaId = materiaId.Value;
+            ViewBag.GrupoId = grupoId ?? 0;
+
+            return View("MateriasDetalles");
+        }
+
 
         [HttpDelete]
         public async Task<ActionResult> EliminarMateria(int id)
@@ -889,8 +979,6 @@ namespace ControlMaterias.Controllers
             }
         }
 
-
-
         [HttpPost]
         public async Task<ActionResult> ActualizarMateria(int materiaId, tbMaterias materiaDto)
         {
@@ -912,10 +1000,10 @@ namespace ControlMaterias.Controllers
                 {
                     materiaExistente.NombreMateria = materiaDto.NombreMateria;
                 }
-                
+
                 materiaExistente.Descripcion = string.IsNullOrWhiteSpace(materiaDto.Descripcion)
                     ? null
-                :materiaDto.Descripcion;
+                : materiaDto.Descripcion;
 
 
                 await Db.SaveChangesAsync();
@@ -940,6 +1028,91 @@ namespace ControlMaterias.Controllers
             }
         }
 
+        public async Task<ActionResult> CambiarCodigoAuto(int materiaId)
+        {
+            try
+            {
+                var materia = await Db.tbMaterias.FindAsync(materiaId);
+                if (materia == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "Materia no encontrada" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Generar código único simple
+                string nuevo;
+                var rnd = new Random();
+                do
+                {
+                    nuevo = new string(Enumerable.Range(0, 8).Select(_ => (char)rnd.Next('A', 'Z')).ToArray());
+                } while (Db.tbMaterias.Any(m => m.CodigoAcceso == nuevo));
+
+                materia.CodigoAcceso = nuevo;
+                await Db.SaveChangesAsync();
+
+                return Json(new { CodigoAcceso = nuevo }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar código", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CambiarCodigo(int materiaId, tbMaterias dto)
+        {
+            try
+            {
+                var materia = await Db.tbMaterias.FindAsync(materiaId);
+                if (materia == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "Materia no encontrada" }, JsonRequestBehavior.AllowGet);
+                }
+
+                if (dto == null || string.IsNullOrWhiteSpace(dto.CodigoAcceso))
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "Código inválido" }, JsonRequestBehavior.AllowGet);
+                }
+
+                materia.CodigoAcceso = dto.CodigoAcceso.Trim();
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Código actualizado" }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar código", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ActualizarEstatusAlumno(int AlumnoId, int MateriaId, string Estatus)
+        {
+            try
+            {
+                // buscar la relación específica alumno-materia
+                var enlace = await Db.tbAlumnosMaterias.FirstOrDefaultAsync(a => a.AlumnoId == AlumnoId && a.MateriaId == MateriaId);
+                if (enlace == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "No se encontró relación alumno-materia." }, JsonRequestBehavior.AllowGet);
+                }
+
+                //enlace.Estatus = Estatus;
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Estatus actualizado." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar estatus.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
 
         protected override void Dispose(bool disposing)

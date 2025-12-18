@@ -10,30 +10,29 @@ namespace ControlActividades.Models.db
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public  int AlumnoId { get; set; }
+        public int AlumnoId { get; set; }
 
         [Required]
         public string ApellidoPaterno { get; set; }
 
         [Required]
         public string ApellidoMaterno { get; set; }
-        
+
         [Required]
         public string Nombre { get; set; }
 
         public virtual ApplicationUser IdentityUser { get; set; }
-        
+
         [ForeignKey("IdentityUser")]
         [Required]
         public string UserId { get; set; }
 
         public virtual ICollection<tbAlumnosGrupos> AlumnosGrupos { get; set; }
-        
+
         public virtual ICollection<tbAlumnosMaterias> AlumnosMaterias { get; set; }
-        
-        public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
-        
-        // Estatus general del alumno (por ejemplo: Activo, Inactivo, Dado de Baja)
-        public string Estatus { get; set; }
+
+        //public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
+
+        public virtual ICollection<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set;  }
     }
 }
