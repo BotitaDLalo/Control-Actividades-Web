@@ -356,7 +356,8 @@ namespace ControlActividades.Models
 
         public string CodigoAcceso { get; set; }
 
-        public string CodigoColor { get; set; }
+        // 🔧 CORREGIDO: CodigoColor ahora es nullable para evitar errores de serialización cuando el valor es null
+        public string CodigoColor { get; set; } = "#2196F3"; // Valor por defecto: azul
 
         public List<MateriaRes> Materias { get; set; }
     }

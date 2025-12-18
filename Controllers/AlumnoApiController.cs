@@ -374,7 +374,8 @@ namespace ControlActividades.Controllers
                         NombreGrupo = grupo.NombreGrupo,
                         Descripcion = grupo.Descripcion,
                         CodigoAcceso = grupo.CodigoAcceso,
-                        CodigoColor = grupo.CodigoColor,
+                        // 🔧 CORREGIDO: Asignar color por defecto si es null para evitar errores de serialización
+                        CodigoColor = string.IsNullOrEmpty(grupo.CodigoColor) ? "#2196F3" : grupo.CodigoColor,
                         Materias = lsMaterias
                     };
 
