@@ -207,8 +207,8 @@ namespace ControlActividades.Controllers
             {
                 if (_userManager != null)
                 {
-                    _user_manager.Dispose();
-                    _user_manager = null;
+                    _userManager.Dispose();
+                    _userManager = null;
                 }
 
                 if (_db != null)
