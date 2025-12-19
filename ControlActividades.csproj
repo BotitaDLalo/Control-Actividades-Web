@@ -431,6 +431,14 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\cards.css" />
+    <Content Include="Content\Componentes\cards.css" />
+    <Content Include="Content\Componentes\header.css" />
+    <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\notiEvento.svg" />
+    <Content Include="Content\Iconos\notiAviso.svg" />
+    <Content Include="Content\Iconos\notiActividadCreada.svg" />
+    <Content Include="Content\Iconos\notiActividadCreada-Azul.svg" />
+    <Content Include="Content\Variables\fuentes.css" />
     <Content Include="Content\Componentes\carga.css" />
     <Content Include="Content\Dashboard\cards.css" />
     <Content Include="Content\Dashboard\content.css" />
@@ -512,6 +520,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\Componentes\FullCalendarGeneral.js" />
     <Content Include="Scripts\Componentes\componenteAvisos.js" />
     <Content Include="Scripts\dev\measureCardSize.js" />
     <Content Include="Scripts\Docente\Agenda.js" />
@@ -558,7 +567,10 @@
     <Content Include="firebase-messaging-sw.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Scripts\jquery.signalR-2.4.3.js" />
+    <Content Include="Scripts\jquery.signalR-2.4.3.min.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
+    <Content Include="Templates\Emails\ResetPassword.html" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
     <Content Include="Views\Alumno\Materias.cshtml.txt" />
     <Content Include="Views\Docente\Grupos.cshtml.txt" />

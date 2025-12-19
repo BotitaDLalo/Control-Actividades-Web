@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
@@ -191,6 +191,7 @@ namespace ControlActividades.Controllers
                 .OrderByDescending(n => n.FechaRecibido)
                 .Select(n => new Notificacion
                 {
+                    NotificacionId = n.NotificacionId,
                     UserId = n.UserId,
                     MessageId = n.MessageId,
                     Title = n.Title,
@@ -200,6 +201,23 @@ namespace ControlActividades.Controllers
                 })
                 .ToList();
             return Ok(notificaciones);
+        }
+
+
+        //[Authorize]
+        [HttpDelete]
+        [Route("EliminarNotificacion/{id}")]
+        public async Task<IHttpActionResult> EliminarNotificacion(int id)
+        {
+            var noti = await Db.tbNotificaciones.FindAsync(id);
+            if (noti == null) {
+                return NotFound();
+            }
+
+            Db.tbNotificaciones.Remove(noti);
+            await Db.SaveChangesAsync();
+
+            return Ok();
         }
 
         protected override void Dispose(bool disposing)

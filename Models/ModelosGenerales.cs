@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -384,6 +384,7 @@ namespace ControlActividades.Models
 
     public class Notificacion
     {
+        public int NotificacionId { get; set; }
         public string UserId { get; set; }
 
         public string MessageId { get; set; }

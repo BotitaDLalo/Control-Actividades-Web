@@ -1,6 +1,8 @@
-﻿@using System.Web
+@using System.Web
 <div class="nav-bar">
     <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom">
+        <link rel="stylesheet" href="~/Content/Componentes/header.css" />
+        <link rel="stylesheet" href="~/Content/Variables/colors.css" />
         <style>
             /* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
             .nav-bar {
@@ -86,6 +88,7 @@
             <div class="header-icons d-flex align-items-center" style="gap:8px;">
                 <!-- Notifications button -->
                 <button id="notificaciones-icono" class="btn btn-link position-relative p-2" type="button" title="Notificaciones">
+                    <span id="notificaciones-indicador" class="notiIndicador"></span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell-fill" viewBox="0 0 16 16">
                         <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901" />
                     </svg>
@@ -93,10 +96,10 @@
 
                 <div id="notificaciones-panel" class="notificaciones-container" aria-hidden="true">
                     <div class="p-2">
-                        <strong>Notificaciones</strong>
+                        <strong style="display:none;">Notificaciones</strong>
                     </div>
                     <div class="px-2">
-                        <small class="text-muted">No hay notificaciones recientes.</small>
+                        <small class="text-muted" style="display:none;">No hay notificaciones recientes.</small>
                         <div class="lista-notificaciones"></div>
                     </div>
                 </div>
@@ -116,7 +119,7 @@
 
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
                         <div class="user-info px-3 py-2 d-flex align-items-center">
-                            <img class="iconos1-nav me-2" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
+                            <img class="iconos1-nav me-2" src="@Url.Content(" ~ /Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
                             <div>
                                 <div class="dropdown-item mb-0">@User.Identity.Name</div>
                                 <div class="text-muted small">@(User.Identity.IsAuthenticated ? (User.Identity.Name ?? "") : "Invitado")</div>
@@ -126,8 +129,8 @@
 
                         @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "px-3 py-2" }))
                         {
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-danger w-100">Cerrar sesión</button>
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger w-100">Cerrar sesión</button>
                         }
                     </div>
                 </div>

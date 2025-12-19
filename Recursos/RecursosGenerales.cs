@@ -72,4 +72,12 @@ namespace ControlActividades
             return "Error desconocido";
         }
     }
+
+    public static class TiposNotificaciones
+    {
+        public const string Aviso = "Aviso";
+        public const string Evento = "Evento";
+        public const string ActividadCreada = "ActividadCreada";
+
+    }
 }

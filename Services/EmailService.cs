@@ -28,11 +28,13 @@ namespace ControlActividades.Services
                 emailGenerado.From.Add(MailboxAddress.Parse(fromConf));
                 emailGenerado.To.Add(MailboxAddress.Parse(email));
                 emailGenerado.Subject = subject; //TODO: Preparar el titulo del correo
-                emailGenerado.Body = new TextPart(TextFormat.Html) { Text = htmlMessage }; //TODO: poner codigo para cambio de password
+                emailGenerado.Body = new TextPart(TextFormat.Html) { 
+                    Text = htmlMessage
+                }; //TODO: poner codigo para cambio de password
 
                 using (var smtp = new SmtpClient())
                 {
-                    smtp.Connect(serverConf, int.Parse(portConf), SecureSocketOptions.SslOnConnect);
+                    smtp.Connect(serverConf, int.Parse(portConf), SecureSocketOptions.Auto);
                     smtp.Authenticate(fromConf, passwordConf);
                     smtp.Send(emailGenerado);
                     smtp.Disconnect(true);
