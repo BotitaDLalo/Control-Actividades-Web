@@ -9,7 +9,7 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
             <h1 class="h3 mb-0">Tus clases</h1>
-            <p class="text-muted small mb-0">Accede a tus grupos y materias desde aquí</p>
+            <p class="text-muted small mb-0">Accede a tus grupos y materias desde aquÃ­</p>
         </div>
 
         <div class="d-flex gap-2">
@@ -24,7 +24,7 @@
     <div class="row">
         <div class="col-md-8">
             <div id="contenedorClases" class="row g-3">
-                <!-- Las tarjetas de clases se renderizan aquí por JS -->
+                <!-- Las tarjetas de clases se renderizan aquï¿½ por JS -->
                 <div id="estadoClases" class="col-12">
                     <div class="card border-0 shadow-sm p-4 text-center text-muted">
                         <p class="mb-0">Cargando tus clases...</p>
@@ -37,7 +37,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Mis materias</h5>
-                    <p class="text-muted small">Listado de materias en las que estás inscrito</p>
+                    <p class="text-muted small">Listado de materias en las que estï¿½s inscrito</p>
                     <div id="misMaterias" class="list-group">
                         <div class="list-group-item text-muted">Cargando materias...</div>
                     </div>
@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <!-- Modal simple para ingresar código de acceso -->
+    <!-- Modal simple para ingresar cï¿½digo de acceso -->
     <div id="unirseModal" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
@@ -55,8 +55,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="codigoAccesoInput" class="form-label">Código de acceso</label>
-                    <input id="codigoAccesoInput" class="form-control" placeholder="Ingresa el código" />
+                    <label for="codigoAccesoInput" class="form-label">Cï¿½digo de acceso</label>
+                    <input id="codigoAccesoInput" class="form-control" placeholder="Ingresa el cï¿½digo" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -75,13 +75,13 @@
     <script src="~/Scripts/Alumno/Clases.js"></script>
     <script src="~/Scripts/Alumno/UnirseClase.js"></script>
     <script>
-        // abrir modal cuando se presione el botón
+        // abrir modal cuando se presione el botï¿½n
         document.addEventListener('DOMContentLoaded', function () {
             var btn = document.getElementById('btnAbrirUnirse');
             var modalEl = document.getElementById('unirseModal');
             if (btn && modalEl) {
                 btn.addEventListener('click', function () {
-                    // usar bootstrap modal si está disponible
+                    // usar bootstrap modal si estï¿½ disponible
                     try {
                         var modal = new bootstrap.Modal(modalEl);
                         modal.show();
@@ -95,11 +95,11 @@
             var btnConfirm = document.getElementById('btnUnirseConfirm');
             if (btnConfirm) {
                 btnConfirm.addEventListener('click', function () {
-                    // llamar la función definida en UnirseClase.js
+                    // llamar la funciï¿½n definida en UnirseClase.js
                     if (typeof unirseAClase === 'function') {
                         unirseAClase();
                     } else {
-                        alert('Función de unirse no disponible');
+                        alert('Funciï¿½n de unirse no disponible');
                     }
                 });
             }

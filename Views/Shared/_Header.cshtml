@@ -9,6 +9,10 @@
                 position: relative;
             }
 
+            .navbar {
+                overflow: visible !important;
+            }
+
                 .nav-bar .header-icons {
                     position: fixed;
                     right: 16px;
@@ -47,6 +51,14 @@
                         z-index: 3050;
                     }
 
+            .iconos1-nav {
+                width: 64px;
+                height: 64px;
+                object-fit: contain;
+                border-radius: 50%;
+            }
+
+
             /* Responsive: on small screens put icons back in header flow */
             @@media (max-width: 991px) {
                 .nav-bar .header-icons {
@@ -78,6 +90,12 @@
             .nav-bar .header-icons svg {
                 fill: currentColor;
             }
+
+            .dropdown-menu {
+                z-index: 9999;
+                overflow-y: auto;
+            }
+
         </style>
         <div class="container-fluid d-flex align-items-center">
             <div class="me-auto">
@@ -108,9 +126,9 @@
                 <div class="nav-item dropdown">
                     <button class="btn btn-link p-2 dropdown-toggle" style="width:80px;" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" type="button" title="Usuario">
                         @*<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
-            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
-        </svg>*@
+                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                        </svg>*@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
                             <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
                             <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
@@ -119,7 +137,7 @@
 
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
                         <div class="user-info px-3 py-2 d-flex align-items-center">
-                            <img class="iconos1-nav me-2" src="@Url.Content(" ~ /Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
+                            <img class="iconos1-nav me-2" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
                             <div>
                                 <div class="dropdown-item mb-0">@User.Identity.Name</div>
                                 <div class="text-muted small">@(User.Identity.IsAuthenticated ? (User.Identity.Name ?? "") : "Invitado")</div>
@@ -129,8 +147,10 @@
 
                         @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "px-3 py-2" }))
                         {
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-outline-danger w-100">Cerrar sesión</button>
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                Cerrar sesión
+                            </button>
                         }
                     </div>
                 </div>
