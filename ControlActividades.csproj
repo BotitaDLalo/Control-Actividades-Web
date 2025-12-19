@@ -633,6 +633,7 @@
     <Folder Include="Content\Alumno\css\" />
     <Folder Include="Content\Images\" />
     <Folder Include="Dashboard\" />
+    <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Eventos\" />
     <Folder Include="Views\Grupos\" />

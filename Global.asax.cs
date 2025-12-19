@@ -25,11 +25,11 @@ namespace ControlActividades
             // This avoids applying migrations automatically in production environments.
             try
             {
-                var isDebug = HttpContext.Current?.IsDebuggingEnabled ?? false;
-                if (isDebug)
-                {
-                    Database.SetInitializer(new MigrateDatabaseToLatestVersion<ApplicationDbContext, Configuration>());
-                }
+                // Disable automatic migrations at application start to avoid runtime migration failures
+                // (some migrations in the Migrations folder try to add the same column twice and cause
+                // SQL exceptions that block the app from starting). We avoid applying migrations here
+                // to allow the app to run; apply migrations manually when ready.
+                Database.SetInitializer<ApplicationDbContext>(null);
             }
             catch
             {

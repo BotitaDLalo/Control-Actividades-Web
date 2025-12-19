@@ -90,7 +90,9 @@
             if (response) {
                 const botMessage = document.createElement("div");
                 botMessage.classList.add("bot-message");
-                botMessage.textContent = response;
+                // Sanitize response to remove Markdown-like formatting (bold/italic/code blocks)
+                const cleaned = sanitizeResponse(String(response));
+                botMessage.textContent = cleaned;
                 chatContent.appendChild(botMessage);
             } else {
                 mostrarError();
@@ -100,6 +102,32 @@
         });
 
         userInput.value = "";
+    }
+
+    // Remove common markdown formatting so the chat looks like a natural conversation
+    function sanitizeResponse(text) {
+        if (!text) return text;
+        // Remove fenced code blocks ```...```
+        text = text.replace(/```[\s\S]*?```/g, '');
+        // Remove inline code `...`
+        text = text.replace(/`([^`]*)`/g, '$1');
+        // Replace bold **text** and __text__
+        text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+        text = text.replace(/__(.*?)__/g, '$1');
+        // Replace italic *text* and _text_
+        // Avoid removing list markers like "* item" by only replacing when a closing marker exists
+        text = text.replace(/\*(.*?)\*/g, '$1');
+        text = text.replace(/_(.*?)_/g, '$1');
+        // Remove markdown headers like ### Title
+        text = text.replace(/^\s*#{1,6}\s*/gm, '');
+        // Convert HTML entities if any (basic)
+        text = text.replace(/&nbsp;/g, ' ')
+                   .replace(/&amp;/g, '&')
+                   .replace(/&lt;/g, '<')
+                   .replace(/&gt;/g, '>');
+        // Collapse excessive blank lines
+        text = text.replace(/\n{3,}/g, '\n\n');
+        return text.trim();
     }
 
     function mostrarError() {
