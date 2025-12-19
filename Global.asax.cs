@@ -21,19 +21,15 @@ namespace ControlActividades
     {
         protected void Application_Start()
         {
-            // Apply EF migrations automatically only in development (compilation debug="true").
-            // This avoids applying migrations automatically in production environments.
+
             try
             {
-                // Disable automatic migrations at application start to avoid runtime migration failures
-                // (some migrations in the Migrations folder try to add the same column twice and cause
-                // SQL exceptions that block the app from starting). We avoid applying migrations here
-                // to allow the app to run; apply migrations manually when ready.
+
                 Database.SetInitializer<ApplicationDbContext>(null);
             }
             catch
             {
-                // If HttpContext is unavailable during some host scenarios, do not set initializer.
+
             }
 
             AreaRegistration.RegisterAllAreas();
@@ -42,7 +38,7 @@ namespace ControlActividades
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-            // Start scheduled publishing service for programadas
+  
             try
             {
                 ControlActividades.Services.ScheduledPublishingService.Start();
@@ -52,14 +48,14 @@ namespace ControlActividades
 
         protected void Application_BeginRequest(Object sender, EventArgs e)
         {
-            // Force request/response encoding to UTF-8 to avoid mojibake
+
             try
             {
                 HttpContext.Current.Request.ContentEncoding = Encoding.UTF8;
                 HttpContext.Current.Response.ContentEncoding = Encoding.UTF8;
                 HttpContext.Current.Response.HeaderEncoding = Encoding.UTF8;
 
-                // Ensure Content-Type header includes charset
+
                 var resp = HttpContext.Current.Response;
                 if (!string.IsNullOrEmpty(resp.ContentType))
                 {
@@ -75,7 +71,7 @@ namespace ControlActividades
             }
             catch
             {
-                // ignore in case HttpContext is not available
+
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const chatIcon = document.getElementById("chatIcon");
     const iaChatModal = document.getElementById("iaChatModal");
     const closeChat = document.getElementById("closeChat");
@@ -41,7 +41,7 @@
     });
 
 
-    // Proxy requests to server-side endpoint to avoid exposing API keys in client
+
     async function sendMessageToGemini(message) {
         try {
             const response = await fetch('/api/IA/GenerarContenido', {
@@ -90,7 +90,7 @@
             if (response) {
                 const botMessage = document.createElement("div");
                 botMessage.classList.add("bot-message");
-                // Sanitize response to remove Markdown-like formatting (bold/italic/code blocks)
+
                 const cleaned = sanitizeResponse(String(response));
                 botMessage.textContent = cleaned;
                 chatContent.appendChild(botMessage);
