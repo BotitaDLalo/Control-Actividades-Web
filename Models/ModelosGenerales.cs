@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -10,6 +10,8 @@ namespace ControlActividades.Models
     public class AsignarCalificacionPeticion
     {
         public int EntregaId { get; set; }
+
+        public int EntregableId { get; set; }
 
         public int Calificacion { get; set; }
     }
@@ -393,7 +395,8 @@ namespace ControlActividades.Models
 
         public string Body { get; set; }
 
-        public string Tipo { get; set; }
+        //public string Tipo { get; set; }
+        public int TipoId { get; set; }
 
         public DateTime FechaRecibido { get; set; }
     }
@@ -484,4 +487,26 @@ namespace ControlActividades.Models
     }
 
 
+    public class EnvioRes
+    {
+        //        EntregaId = datosEntregable.EntregaId,
+        //        AlumnoActividadId = entregaActividadId,
+        //        Respuesta = datosEntregable?.Respuesta ?? "",
+        //        Status = datosAlumnoActividad.EstatusEntrega,
+        //        FechaEntrega = fechaEntrega,
+        //        Calificacion = calificacion
+        public int  EntregaActividadAlumnoId { get; set; } 
+        
+        public int EntregableId {  get; set; }
+
+        public string Contenido { get; set; }
+
+        public int EstadoEntregaId { get; set; }
+
+        public DateTime FechaEntrega { get; set; }
+
+        public string Calificacion { get; set; }
+
+        public bool EstadoEntrega { get; set; }    
+    }
 }

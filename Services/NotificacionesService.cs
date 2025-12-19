@@ -102,7 +102,7 @@ namespace ControlActividades.Services
                     Title = title,
                     Body = body,
                     FechaRecibido = DateTime.Now,
-                    Tipo = tipo
+                    TipoId = 1
                 };
 
                 _db.tbNotificaciones.Add(noti);
@@ -130,7 +130,7 @@ namespace ControlActividades.Services
                 NotificacionId = notificacion.NotificacionId,
                 Title = notificacion.Title,
                 Body = notificacion.Body,
-                Tipo = notificacion.Tipo,
+                Tipo = notificacion.TipoId,
                 FechaRecibido = notificacion.FechaRecibido.ToString("O")
             });
         }

@@ -332,6 +332,7 @@
     <Compile Include="Controllers\AlumnoApiController.cs" />
     <Compile Include="Controllers\AlumnoController.cs" />
     <Compile Include="Controllers\AvisosApiController.cs" />
+    <Compile Include="Controllers\CargaMasivaController.cs" />
     <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\DocenteApiController.cs" />
     <Compile Include="Controllers\DocenteController.cs" />
@@ -353,16 +354,23 @@
     <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202512082128312_FixModel.cs" />
-    <Compile Include="Migrations\202512082128312_FixModel.Designer.cs">
-      <DependentUpon>202512082128312_FixModel.cs</DependentUpon>
+    <Compile Include="Migrations\202512132237150_Refactorizacion.cs" />
+    <Compile Include="Migrations\202512132237150_Refactorizacion.Designer.cs">
+      <DependentUpon>202512132237150_Refactorizacion.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202512130441299_AddTipoToNotificaciones.cs" />
-    <Compile Include="Migrations\202512130441299_AddTipoToNotificaciones.Designer.cs">
-      <DependentUpon>202512130441299_AddTipoToNotificaciones.cs</DependentUpon>
+    <Compile Include="Migrations\202512140000398_Refactorizacion_Dos.cs" />
+    <Compile Include="Migrations\202512140000398_Refactorizacion_Dos.Designer.cs">
+      <DependentUpon>202512140000398_Refactorizacion_Dos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512180521233_Modifica_Nombre_cTipoNotificacion.cs" />
+    <Compile Include="Migrations\202512180521233_Modifica_Nombre_cTipoNotificacion.Designer.cs">
+      <DependentUpon>202512180521233_Modifica_Nombre_cTipoNotificacion.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\db\cEstadoEntrega.cs" />
+    <Compile Include="Models\db\cTipoEntrega.cs" />
+    <Compile Include="Models\db\cTipoNotificacion.cs" />
     <Compile Include="Models\db\cTiposActividades.cs" />
     <Compile Include="Models\db\tbActividades.cs" />
     <Compile Include="Models\db\tbAlumnos.cs" />
@@ -372,7 +380,9 @@
     <Compile Include="Models\db\tbAvisos.cs" />
     <Compile Include="Models\db\tbCalificaciones.cs" />
     <Compile Include="Models\db\tbDocentes.cs" />
+    <Compile Include="Models\db\tbEntregaActividadAlumno.cs" />
     <Compile Include="Models\db\tbEntregableAlumno.cs" />
+    <Compile Include="Models\db\tbEntregables.cs" />
     <Compile Include="Models\db\tbEventosAgenda.cs" />
     <Compile Include="Models\db\tbEventosGrupos.cs" />
     <Compile Include="Models\db\tbEventosMaterias.cs" />
@@ -391,6 +401,7 @@
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
+    <Compile Include="Services\ScheduledPublishingService.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -681,15 +692,15 @@
     <EmbeddedResource Include="Migrations\202510031833068_InitialMigration.resx">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512082128312_FixModel.resx">
-      <DependentUpon>202512082128312_FixModel.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202512132237150_Refactorizacion.resx">
+      <DependentUpon>202512132237150_Refactorizacion.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512130441299_AddTipoToNotificaciones.resx">
-      <DependentUpon>202512130441299_AddTipoToNotificaciones.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202512140000398_Refactorizacion_Dos.resx">
+      <DependentUpon>202512140000398_Refactorizacion_Dos.cs</DependentUpon>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Scripts\Componentes\PantallaCarga.js" />
+    <EmbeddedResource Include="Migrations\202512180521233_Modifica_Nombre_cTipoNotificacion.resx">
+      <DependentUpon>202512180521233_Modifica_Nombre_cTipoNotificacion.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />

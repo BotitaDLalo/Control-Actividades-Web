@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
@@ -196,7 +196,7 @@ namespace ControlActividades.Controllers
                     MessageId = n.MessageId,
                     Title = n.Title,
                     Body = n.Body,
-                    Tipo = n.Tipo,
+                    TipoId = n.TipoId,
                     FechaRecibido = n.FechaRecibido
                 })
                 .ToList();
