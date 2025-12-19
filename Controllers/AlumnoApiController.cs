@@ -503,58 +503,166 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var actividadId = entregable.ActividadId;
-                var alumnoId = entregable.AlumnoId;
-                var respuesta = entregable.Respuesta;
-                var fechaEntrega = entregable.FechaEntrega;
-
-                var fechaLimite = Db.tbActividades.Where(a => a.ActividadId == actividadId).Select(a => a.FechaLimite).FirstOrDefault();
-
-                tbAlumnosActividades actividad = new tbAlumnosActividades()
+                // 1. ✅ VALIDACIÓN de parámetros
+                if (entregable == null)
                 {
-                    ActividadId = actividadId,
-                    AlumnoId = alumnoId,
-                    FechaEntrega = DateTime.Parse(fechaEntrega),
+                    return Content(HttpStatusCode.BadRequest, new
+                    {
+                        mensaje = "El objeto de entrega es requerido."
+                    });
+                }
+
+                if (entregable.ActividadId <= 0 || entregable.AlumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new
+                    {
+                        mensaje = "ActividadId y AlumnoId deben ser mayores a 0.",
+                        ActividadId = entregable.ActividadId,
+                        AlumnoId = entregable.AlumnoId
+                    });
+                }
+
+                // 2. ✅ Validar que la actividad existe
+                var actividad = await Db.tbActividades
+                    .FirstOrDefaultAsync(a => a.ActividadId == entregable.ActividadId);
+
+                if (actividad == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new
+                    {
+                        mensaje = $"La actividad con ID {entregable.ActividadId} no existe."
+                    });
+                }
+
+                // 3. ✅ Validar formato de fecha
+                DateTime fechaEntregaParsed;
+                if (!DateTime.TryParse(entregable.FechaEntrega, out fechaEntregaParsed))
+                {
+                    return Content(HttpStatusCode.BadRequest, new
+                    {
+                        mensaje = "El formato de FechaEntrega no es válido. Use formato ISO: yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss",
+                        FechaRecibida = entregable.FechaEntrega
+                    });
+                }
+
+                // 4. ✅ Verificar si ya existe una entrega del alumno para esta actividad
+                var entregaExistente = await Db.tbAlumnosActividades
+                    .FirstOrDefaultAsync(a => a.ActividadId == entregable.ActividadId && a.AlumnoId == entregable.AlumnoId);
+
+                if (entregaExistente != null)
+                {
+                    // Actualizar la entrega existente
+                    entregaExistente.FechaEntrega = fechaEntregaParsed;
+                    entregaExistente.EstatusEntrega = true;
+
+                    // Buscar el entregable asociado
+                    var entregableExistente = await Db.tbEntregablesAlumno
+                        .FirstOrDefaultAsync(e => e.AlumnoActividadId == entregaExistente.AlumnoActividadId);
+
+                    if (entregableExistente != null)
+                    {
+                        entregableExistente.Respuesta = entregable.Respuesta ?? "";
+                    }
+                    else
+                    {
+                        // Crear nuevo entregable si no existe
+                        var nuevoEntregable = new tbEntregableAlumno()
+                        {
+                            AlumnoActividadId = entregaExistente.AlumnoActividadId,
+                            Respuesta = entregable.Respuesta ?? ""
+                        };
+                        Db.tbEntregablesAlumno.Add(nuevoEntregable);
+                    }
+
+                    await Db.SaveChangesAsync();
+
+                    // Retornar datos actualizados
+                    var entregableActualizado = await Db.tbEntregablesAlumno
+                        .FirstOrDefaultAsync(e => e.AlumnoActividadId == entregaExistente.AlumnoActividadId);
+
+                    var calificacionActualizada = await Db.tbCalificaciones
+                        .Where(c => c.EntregaId == entregableActualizado.EntregaId)
+                        .Select(c => c.Calificacion)
+                        .FirstOrDefaultAsync();
+
+                    return Ok(new
+                    {
+                        mensaje = "Entrega actualizada correctamente.",
+                        EntregaId = entregableActualizado.EntregaId,
+                        AlumnoActividadId = entregaExistente.AlumnoActividadId,
+                        Respuesta = entregableActualizado?.Respuesta ?? "",
+                        Status = entregaExistente.EstatusEntrega,
+                        Calificacion = calificacionActualizada != 0 ? calificacionActualizada : -1
+                    });
+                }
+
+                // 5. ✅ CREAR nueva entrega
+                tbAlumnosActividades nuevaActividad = new tbAlumnosActividades()
+                {
+                    ActividadId = entregable.ActividadId,
+                    AlumnoId = entregable.AlumnoId,
+                    FechaEntrega = fechaEntregaParsed,
                     EstatusEntrega = true,
                     EntregablesAlumno = new tbEntregableAlumno()
                     {
-                        Respuesta = respuesta
+                        Respuesta = entregable.Respuesta ?? ""
                     }
                 };
 
-                Db.tbAlumnosActividades.Add(actividad);
-
+                Db.tbAlumnosActividades.Add(nuevaActividad);
                 await Db.SaveChangesAsync();
 
+                // 6. ✅ Obtener datos guardados para la respuesta
+                var datosAlumnoActividad = await Db.tbAlumnosActividades
+                    .Where(a => a.ActividadId == entregable.ActividadId && a.AlumnoId == entregable.AlumnoId)
+                    .FirstOrDefaultAsync();
 
-                var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
+                if (datosAlumnoActividad == null)
+                {
+                    return Content(HttpStatusCode.InternalServerError, new
+                    {
+                        mensaje = "Error: No se pudo recuperar los datos de la entrega después de guardar."
+                    });
+                }
 
+                int alumnoActividadId = datosAlumnoActividad.AlumnoActividadId;
 
-                var alumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0;
-
-                var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividadId).FirstOrDefaultAsync();
+                var datosEntregable = await Db.tbEntregablesAlumno
+                    .FirstOrDefaultAsync(a => a.AlumnoActividadId == alumnoActividadId);
 
                 if (datosAlumnoActividad != null && datosEntregable != null)
                 {
                     int entregaId = datosEntregable.EntregaId;
 
-                    var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).Select(a => a.Calificacion).FirstOrDefaultAsync();
+                    var calificacion = await Db.tbCalificaciones
+                        .Where(a => a.EntregaId == entregaId)
+                        .Select(a => a.Calificacion)
+                        .FirstOrDefaultAsync();
 
                     return Ok(new
                     {
+                        mensaje = "Actividad registrada exitosamente.",
                         EntregaId = datosEntregable.EntregaId,
                         AlumnoActividadId = alumnoActividadId,
                         Respuesta = datosEntregable?.Respuesta ?? "",
                         Status = datosAlumnoActividad.EstatusEntrega,
-                        Calificacion = calificacion
+                        Calificacion = calificacion != 0 ? calificacion : -1
                     });
                 }
 
-                return BadRequest();
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error: No se pudo guardar completamente la entrega."
+                });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest();
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error al registrar el envío de la actividad.",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
             }
         }
 
@@ -564,39 +672,105 @@ namespace ControlActividades.Controllers
         {
             try
             {
-
-                var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId).Select(a => new { a.AlumnoActividadId, a.FechaEntrega, a.EstatusEntrega }).FirstOrDefaultAsync();
-
-
-                var alumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0;
-
-                var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
-
-                var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividadId).FirstOrDefaultAsync();
-
-                if (datosAlumnoActividad != null && datosEntregable != null)
+                // 1. ✅ VALIDACIÓN de parámetros
+                if (ActividadId <= 0 || AlumnoId <= 0)
                 {
-                    int entregaId = datosEntregable.EntregaId;
-
-                    var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).Select(a => a.Calificacion).FirstOrDefaultAsync();
-
-                    return Ok(new
+                    return Content(HttpStatusCode.BadRequest, new
                     {
-                        EntregaId = datosEntregable.EntregaId,
-                        AlumnoActividadId = alumnoActividadId,
-                        Respuesta = datosEntregable?.Respuesta ?? "",
-                        Status = datosAlumnoActividad.EstatusEntrega,
-                        FechaEntrega = fechaEntrega,
-                        Calificacion = calificacion
+                        mensaje = "Los parámetros ActividadId y AlumnoId deben ser mayores a 0.",
+                        ActividadId = ActividadId,
+                        AlumnoId = AlumnoId
                     });
                 }
 
-                return BadRequest();
+                // 2. ✅ Verificar que la actividad existe
+                var actividadExiste = await Db.tbActividades
+                    .AnyAsync(a => a.ActividadId == ActividadId);
 
+                if (!actividadExiste)
+                {
+                    return Content(HttpStatusCode.NotFound, new
+                    {
+                        mensaje = $"La actividad con ID {ActividadId} no existe."
+                    });
+                }
+
+                // 3. ✅ Buscar datos del alumno y su actividad
+                var datosAlumnoActividad = await Db.tbAlumnosActividades
+                    .Where(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId)
+                    .Select(a => new
+                    {
+                        a.AlumnoActividadId,
+                        a.FechaEntrega,
+                        a.EstatusEntrega
+                    })
+                    .FirstOrDefaultAsync();
+
+                // 4. ✅ Si no hay envío, retornar respuesta vacía (no error)
+                if (datosAlumnoActividad == null)
+                {
+                    return Ok(new
+                    {
+                        mensaje = "El alumno no ha entregado esta actividad.",
+                        EntregaId = 0,
+                        AlumnoActividadId = 0,
+                        Respuesta = "",
+                        Status = false,
+                        FechaEntrega = (DateTime?)null,
+                        Calificacion = -1
+                    });
+                }
+
+                int alumnoActividadId = datosAlumnoActividad.AlumnoActividadId;
+                var fechaEntrega = datosAlumnoActividad.FechaEntrega;
+
+                // 5. ✅ Buscar entregable
+                var datosEntregable = await Db.tbEntregablesAlumno
+                    .FirstOrDefaultAsync(a => a.AlumnoActividadId == alumnoActividadId);
+
+                // 6. ✅ Si hay actividad pero no entregable, retornar respuesta parcial
+                if (datosEntregable == null)
+                {
+                    return Ok(new
+                    {
+                        mensaje = "La actividad se registró pero sin contenido de entrega.",
+                        EntregaId = 0,
+                        AlumnoActividadId = alumnoActividadId,
+                        Respuesta = "",
+                        Status = datosAlumnoActividad.EstatusEntrega,
+                        FechaEntrega = fechaEntrega,
+                        Calificacion = -1
+                    });
+                }
+
+                // 7. ✅ Buscar calificación
+                int entregaId = datosEntregable.EntregaId;
+                var calificacion = await Db.tbCalificaciones
+                    .Where(a => a.EntregaId == entregaId)
+                    .Select(a => a.Calificacion)
+                    .FirstOrDefaultAsync();
+
+                // 8. ✅ Retornar respuesta completa
+                return Ok(new
+                {
+                    EntregaId = datosEntregable.EntregaId,
+                    AlumnoActividadId = alumnoActividadId,
+                    Respuesta = datosEntregable?.Respuesta ?? "",
+                    Status = datosAlumnoActividad.EstatusEntrega,
+                    FechaEntrega = fechaEntrega,
+                    Calificacion = calificacion != 0 ? calificacion : -1
+                });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest();
+                // 9. ✅ Logging detallado del error
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error al obtener los envíos de la actividad.",
+                    error = ex.Message,
+                    ActividadId = ActividadId,
+                    AlumnoId = AlumnoId
+                });
             }
         }
 
