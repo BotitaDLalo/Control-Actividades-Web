@@ -34,11 +34,17 @@
             <label for="descripcion">Descripción:</label>
             <textarea id="descripcion" name="Descripcion" required></textarea>
 
-            <label for="FechaInicio">Fecha Inicio:</label>
-            <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
-
-            <label for="FechaFinal">Fecha Final:</label>
-            <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+            <div class="fechas-juntas">
+                <div class="campo-fecha">
+                    <label for="FechaInicio">Fecha Inicio:</label>
+                    <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
+                </div
+>
+                <div class="campo-fecha">
+                    <label for="FechaFinal">Fecha Final:</label>
+                    <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+                </div>
+            </div>
 
             <label for="color">Color:</label>
             <select id="color" name="Color" required>
@@ -46,8 +52,30 @@
                 <option value="gris">Gris</option>
             </select>
 
-            <h3>Grupos y Materias</h3>
-            <div id="contenedorGruposMaterias"></div>
+            <h3>Destinatarios</h3>
+            <div class="tab-style-4 card-style mb-30">
+                <nav class="nav nav-tabs">
+                    <button type="button" class="nav-link active" data-tab="tabGrupos">
+                        Grupos
+                    </button>
+
+                    <button type="button" class="nav-link" data-tab="tabMateriasSueltas">
+                        Materias sin grupo
+                    </button>
+                </nav>
+
+                <div class="tab-content">
+                    <!--Contenedor de grupos-->
+                    <div id="tabGrupos" class="tab-pane fade active show">
+                        <div id="contenedorGrupos"></div>
+                    </div>
+
+                    <!--Contenedor de materias sueltas-->
+                    <div id="tabMateriasSueltas" class="tab-pane fade">
+                        <div id="contenedorMateriasSueltas"></div>
+                    </div>
+                </div>
+            </div>
             <button type="submit">Guardar</button>
 
 

@@ -22,74 +22,64 @@
     <title>Registrar</title>
 </head>
 <body>
-  
-    <section class="signin-section">
-        <div class="container-fluid">
-            <!--Contenedor de logo y form-->
-            <div class="row g-0 auth-row">
-                <div class="col-lg-6" style="background-color:var(--fondo2); border-top-right-radius: 150px; ">
-                    <div class="auth-cover-wrapper bg-primary-100">
-                        <div class="auth-cover">
-                            <div class="title text-center">
-                                <div class="cover-image">
-                                    <img src="~/Content/Iconos/logo2.svg" alt="" />
-                                </div>
-                                <h1 class="titulo-color mb-10">APRENDE +</h1>
-                            </div>
-                            <div>
-                                <h2 class="text-center" style="color:white;">Bienvenido</h2>
-                            </div>
-                        </div>
-                    </div>
+
+
+    <!--Contenedor de logo y form-->
+    <div class="auth-container">
+        <!--LEFT-->
+
+        <div class="left-side">
+            <img src="~/Content/Iconos/logo2.svg" alt="Logo" class="logo-img" />
+            <h2 class="welcome-text">Bienvenido</h2>
+        </div>
+
+        <!--RIGHT-->
+
+        <div class="right-side">
+            <div class="form-wrapper">
+                <div class="login-header">
+                    <header>Registro</header>
                 </div>
 
-                <div class="col-lg-6">
-                    <div class="signin-wrapper">
-                        <div class="form-wrapper">
-                            <div class="login-header">
-                                <header>Registro</header>
-                            </div>
+                @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-signin" }))
+                {
+                    @Html.AntiForgeryToken()
 
-                            @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-signin" }))
-                            {
-                                @Html.AntiForgeryToken()
-
-                                <div class="input-box">
-                                    <input name="ApellidoPaterno" type="text" class="input-field" autocomplete="off" required />
-                                    <label for="apellidoPaterno">Apellido Paterno</label>
-                                </div>
-                                <div class="input-box">
-                                    <input name="ApellidoMaterno" type="text" class="input-field" autocomplete="off" required />
-                                    <label for="apellidoMaterno">Apellido Materno</label>
-                                </div>
-                                <div class="input-box">
-                                    <input name="Nombres" type="text" class="input-field" autocomplete="off" required />
-                                    <label for="nombres">Nombres</label>
-                                </div>
-                                <div class="input-box">
-                                    <input name="Password" type="password" class="input-field" autocomplete="off" required />
-                                    <label for="password">Contraseña</label>
-                                </div>
-
-                                @*<select name="TipoUsuario" class="form-select form-select-lg mb-3" style="font-size:1em;color:#555;">*@
-                                <select name="Role" class="form-control form-control-lg mb-3" style="font-size:1em;color:#555;">
-                                    <option selected>Elige tu rol</option>
-                                    <option value="Docente">Docente</option>
-                                    <option value="Alumno">Alumno</option>
-                                </select>
-
-
-                                <div class="input-box">
-                                    <input type="submit" class="input-submit" value="Registrarse" />
-                                </div>
-                            }
-
-                        </div>
+                    <div class="input-box">
+                        <input name="ApellidoPaterno" type="text" class="input-field" autocomplete="off" required />
+                        <label for="apellidoPaterno">Apellido Paterno</label>
                     </div>
-                </div>
+                    <div class="input-box">
+                        <input name="ApellidoMaterno" type="text" class="input-field" autocomplete="off" required />
+                        <label for="apellidoMaterno">Apellido Materno</label>
+                    </div>
+                    <div class="input-box">
+                        <input name="Nombres" type="text" class="input-field" autocomplete="off" required />
+                        <label for="nombres">Nombres</label>
+                    </div>
+                    <div class="input-box">
+                        <input name="Password" type="password" class="input-field" autocomplete="off" required />
+                        <label for="password">Contraseña</label>
+                    </div>
+
+                    @*<select name="TipoUsuario" class="form-select form-select-lg mb-3" style="font-size:1em;color:#555;">*@
+                    <select name="Role" class="form-control form-control-lg mb-3" style="font-size:1em;color:#555;">
+                        <option selected>Elige tu rol</option>
+                        <option value="Docente">Docente</option>
+                        <option value="Alumno">Alumno</option>
+                    </select>
+
+
+                    <div class="input-box">
+                        <input type="submit" class="input-submit" value="Registrarse" />
+                    </div>
+                }
+
             </div>
         </div>
-    </section>
+
+    </div>
+
 
 
 </body>

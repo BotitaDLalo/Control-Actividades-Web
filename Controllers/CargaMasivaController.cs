@@ -57,13 +57,13 @@ namespace ControlActividades.Controllers
             {
                 var httpRequest = HttpContext.Current.Request;
                 if (httpRequest == null || httpRequest.Files.Count == 0)
-                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se recibió archivo." });
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se recibiï¿½ archivo." });
 
                 var file = httpRequest.Files[0];
                 if (file == null || file.ContentLength == 0)
-                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Archivo vacío." });
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Archivo vacï¿½o." });
 
-                // Leer parámetros opcionales
+                // Leer parï¿½metros opcionales
                 int grupoId = 0;
                 int materiaId = 0;
                 int.TryParse(httpRequest.Form["GrupoId"], out grupoId);
@@ -103,7 +103,7 @@ namespace ControlActividades.Controllers
                     var cell = row.GetCell(0);
                     var text = cell?.ToString()?.Trim();
                     if (string.IsNullOrWhiteSpace(text)) continue;
-                    // Validación simple de email
+                    // Validaciï¿½n simple de email
                     if (!text.Contains("@"))
                     {
                         continue;
@@ -207,8 +207,8 @@ namespace ControlActividades.Controllers
             {
                 if (_userManager != null)
                 {
-                    _user_manager.Dispose();
-                    _user_manager = null;
+                    _userManager.Dispose();
+                    _userManager = null;
                 }
 
                 if (_db != null)

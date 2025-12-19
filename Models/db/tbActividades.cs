@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace ControlActividades.Models.db
 
         public DateTime FechaLimite { get; set; }
 
-        public int TipoActividadId { get; set; }
+        //public int TipoActividadId { get; set; }
 
         public int Puntaje {  get; set; }
 
@@ -35,8 +35,11 @@ namespace ControlActividades.Models.db
         public DateTime? FechaProgramada { get; set; }
 
 
-        public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
-        public virtual cTiposActividades TiposActividades { get; set; }
+        //public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
+        //public virtual cTiposActividades TiposActividades { get; set; }
+        
+        public virtual ICollection<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set; }
+        
         public virtual tbMaterias Materias { get; set; }
     }
 }

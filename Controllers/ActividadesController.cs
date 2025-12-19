@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,11 +13,11 @@ using System.Web.Security;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlMaterias.Controllers;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using System.Net;
 
 
 namespace ControlActividades.Controllers
@@ -74,8 +75,6 @@ namespace ControlActividades.Controllers
                 return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
-
-
 
         public ActividadesController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
         {
@@ -224,245 +223,249 @@ namespace ControlActividades.Controllers
         }
 
 
-        [HttpPost]
-        public async Task<ActionResult> ObtenerActividadesParaEvaluar(EvaluacionRequest request)
-        {
-            try
-            {
-                if (request == null || request.Alumnos == null || !request.Alumnos.Any() || request.ActividadId <= 0)
-                {
-                    Response.StatusCode = 400; // Bad Request
-                    return Json(new { error = "Datos inválidos en la solicitud" }, JsonRequestBehavior.AllowGet);
-                }
+        //[HttpPost]
+        //public async Task<ActionResult> ObtenerActividadesParaEvaluar(EvaluacionRequest request)
+        //{
+        //    try
+        //    {
+        //        if (request == null || request.Alumnos == null || !request.Alumnos.Any() || request.ActividadId <= 0)
+        //        {
+        //            Response.StatusCode = 400; // Bad Request
+        //            return Json(new { error = "Datos inválidos en la solicitud" }, JsonRequestBehavior.AllowGet);
+        //        }
 
-                // Extraer los ID de los alumnos
-                var alumnoIds = request.Alumnos.Select(a => a.AlumnoId).ToList();
+        //        // Extraer los ID de los alumnos
+        //        var alumnoIds = request.Alumnos.Select(a => a.AlumnoId).ToList();
 
-                // Obtener actividades de los alumnos para la actividad específica
-                var alumnosActividades = await Db.tbAlumnosActividades
-                    .Where(aa => alumnoIds.Contains(aa.AlumnoId) && aa.ActividadId == request.ActividadId)
-                    .Include(aa => aa.Alumnos) // Incluir datos del alumno directamente
-                    .ToListAsync();
+        //        // Obtener actividades de los alumnos para la actividad específica
+        //        //var alumnosActividades = await Db.tbAlumnosActividades
+        //        //    .Where(aa => alumnoIds.Contains(aa.AlumnoId) && aa.ActividadId == request.ActividadId)
+        //        //    .Include(aa => aa.Alumnos)
+        //        //    .ToListAsync();
 
-                if (!alumnosActividades.Any())
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { error = $"No se encontraron registros para la actividadId {request.ActividadId}" }, JsonRequestBehavior.AllowGet);
-                }
+        //        var alumnosEntregas = await Db.tbEntregaActividadAlumno.Where(a => alumnoIds.Contains(a.AlumnoId) && a.ActividadId == request.ActividadId)
+        //            .Include(a=>a.tbAlumnos).ToListAsync();
 
-                // Separar en no entregados
-                var noEntregados = alumnosActividades
-                    .Where(aa => !aa.EstatusEntrega)
-                    .Select(aa => new
-                    {
-                        aa.AlumnoActividadId,
-                        aa.Alumnos.AlumnoId,
-                        aa.Alumnos.Nombre,
-                        aa.Alumnos.ApellidoPaterno,
-                        aa.Alumnos.ApellidoMaterno
-                    })
-                    .ToList();
+        //        if (!alumnosEntregas.Any())
+        //        {
+        //            Response.StatusCode = 404; // Not Found
+        //            return Json(new { error = $"No se encontraron registros para la actividadId {request.ActividadId}" }, JsonRequestBehavior.AllowGet);
+        //        }
 
-                // Obtener entregas con datos de alumnos
-                var entregadosIds = alumnosActividades
-                    .Where(aa => aa.EstatusEntrega)
-                    .Select(aa => aa.AlumnoActividadId)
-                    .ToList();
+        //        // Separar en no entregados
+        //        var noEntregados = alumnosActividades
+        //            .Where(aa => !aa.EstatusEntrega)
+        //            .Select(aa => new
+        //            {
+        //                aa.AlumnoActividadId,
+        //                aa.Alumnos.AlumnoId,
+        //                aa.Alumnos.Nombre,
+        //                aa.Alumnos.ApellidoPaterno,
+        //                aa.Alumnos.ApellidoMaterno
+        //            })
+        //            .ToList();
 
-                var entregados = await Db.tbEntregablesAlumno
-                    .Where(ea => entregadosIds.Contains(ea.AlumnoActividadId))
-                    .ToListAsync();
+        //        // Obtener entregas con datos de alumnos
 
-                var entregadosFormato = entregados
-                    .Select(ea => new
-                    {
-                        AlumnoActividad = alumnosActividades.FirstOrDefault(aa => aa.AlumnoActividadId == ea.AlumnoActividadId),
-                        Entrega = new
-                        {
-                            ea.EntregaId,
-                            ea.AlumnoActividadId,
-                            ea.Respuesta
-                        }
-                    })
-                    .Select(e => new
-                    {
-                        e.AlumnoActividad.AlumnoActividadId,
-                        FechaEntrega = e.AlumnoActividad.FechaEntrega,
-                        EstatusEntrega = true,
-                        e.AlumnoActividad.Alumnos.AlumnoId,
-                        e.AlumnoActividad.Alumnos.Nombre,
-                        e.AlumnoActividad.Alumnos.ApellidoPaterno,
-                        e.AlumnoActividad.Alumnos.ApellidoMaterno,
-                        Entrega = e.Entrega
-                    })
-                    .ToList();
+        //        var entregadosIds = alumnosActividades
+        //            .Where(aa => aa.EstatusEntrega)
+        //            .Select(aa => aa.AlumnoActividadId)
+        //            .ToList();
 
-                // Retornar resultado en formato JSON
-                return Json(new
-                {
-                    NoEntregados = noEntregados,
-                    Entregados = entregadosFormato
-                }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        var entregados = await Db.tbEntregablesAlumno
+        //            .Where(ea => entregadosIds.Contains(ea.AlumnoActividadId))
+        //            .ToListAsync();
+
+        //        var entregadosFormato = entregados
+        //            .Select(ea => new
+        //            {
+        //                AlumnoActividad = alumnosActividades.FirstOrDefault(aa => aa.AlumnoActividadId == ea.AlumnoActividadId),
+        //                Entrega = new
+        //                {
+        //                    ea.EntregaId,
+        //                    ea.AlumnoActividadId,
+        //                    ea.Respuesta
+        //                }
+        //            })
+        //            .Select(e => new
+        //            {
+        //                e.AlumnoActividad.AlumnoActividadId,
+        //                FechaEntrega = e.AlumnoActividad.FechaEntrega,
+        //                EstatusEntrega = true,
+        //                e.AlumnoActividad.Alumnos.AlumnoId,
+        //                e.AlumnoActividad.Alumnos.Nombre,
+        //                e.AlumnoActividad.Alumnos.ApellidoPaterno,
+        //                e.AlumnoActividad.Alumnos.ApellidoMaterno,
+        //                Entrega = e.Entrega
+        //            })
+        //            .ToList();
+
+        //        // Retornar resultado en formato JSON
+        //        return Json(new
+        //        {
+        //            //NoEntregados = noEntregados,
+        //            Entregados = entregadosFormato
+        //        }, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 500; // Internal Server Error
+        //        return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
 
         //Si un alumno es agregado a la materia 
-        [HttpPost]
-        public async Task<ActionResult> AsignarActividadesPendientes(int alumnoId)
-        {
-            try
-            {
-                // Verificar si el alumno existe
-                var alumnoExiste = await Db.tbAlumnos.AnyAsync(a => a.AlumnoId == alumnoId);
-                if (!alumnoExiste)
-                {
-                    Response.StatusCode = 400; // Bad Request
-                    return Json(new { mensaje = "El alumno no existe." }, JsonRequestBehavior.AllowGet);
-                }
+        //[HttpPost]
+        //public async Task<ActionResult> AsignarActividadesPendientes(int alumnoId)
+        //{
+        //    try
+        //    {
+        //        // Verificar si el alumno existe
+        //        var alumnoExiste = await Db.tbAlumnos.AnyAsync(a => a.AlumnoId == alumnoId);
+        //        if (!alumnoExiste)
+        //        {
+        //            Response.StatusCode = 400; // Bad Request
+        //            return Json(new { mensaje = "El alumno no existe." }, JsonRequestBehavior.AllowGet);
+        //        }
 
-                // Obtener la materia del alumno
-                var materiasAlumno = await Db.tbAlumnosMaterias
-                    .Where(am => am.AlumnoId == alumnoId)
-                    .Select(am => am.MateriaId)
-                    .ToListAsync();
+        //        // Obtener la materia del alumno
+        //        var materiasAlumno = await Db.tbAlumnosMaterias
+        //            .Where(am => am.AlumnoId == alumnoId)
+        //            .Select(am => am.MateriaId)
+        //            .ToListAsync();
 
-                if (!materiasAlumno.Any())
-                {
-                    Response.StatusCode = 400; // Bad Request
-                    return Json(new { mensaje = "El alumno no está inscrito en ninguna materia." }, JsonRequestBehavior.AllowGet);
-                }
+        //        if (!materiasAlumno.Any())
+        //        {
+        //            Response.StatusCode = 400; // Bad Request
+        //            return Json(new { mensaje = "El alumno no está inscrito en ninguna materia." }, JsonRequestBehavior.AllowGet);
+        //        }
 
-                // Buscar actividades que no tiene asignadas en esas materias
-                var actividadesPendientes = await Db.tbActividades
-                    .Where(a => materiasAlumno.Contains(a.MateriaId) &&
-                                !Db.tbAlumnosActividades.Any(aa => aa.AlumnoId == alumnoId && aa.ActividadId == a.ActividadId))
-                    .ToListAsync();
+        //        // Buscar actividades que no tiene asignadas en esas materias
+        //        var actividadesPendientes = await Db.tbActividades
+        //            .Where(a => materiasAlumno.Contains(a.MateriaId) &&
+        //                        !Db.tbAlumnosActividades.Any(aa => aa.AlumnoId == alumnoId && aa.ActividadId == a.ActividadId))
+        //            .ToListAsync();
 
-                // Asignar cada actividad pendiente al alumno
-                foreach (var actividad in actividadesPendientes)
-                {
-                    var nuevaRelacion = new tbAlumnosActividades
-                    {
-                        ActividadId = actividad.ActividadId,
-                        AlumnoId = alumnoId,
-                        FechaEntrega = DateTime.Now, // Se actualiza cuando entregue
-                        EstatusEntrega = false
-                    };
+        //        // Asignar cada actividad pendiente al alumno
+        //        foreach (var actividad in actividadesPendientes)
+        //        {
+        //            var nuevaRelacion = new tbAlumnosActividades
+        //            {
+        //                ActividadId = actividad.ActividadId,
+        //                AlumnoId = alumnoId,
+        //                FechaEntrega = DateTime.Now, // Se actualiza cuando entregue
+        //                EstatusEntrega = false
+        //            };
 
-                    Db.tbAlumnosActividades.Add(nuevaRelacion);
-                }
+        //            Db.tbAlumnosActividades.Add(nuevaRelacion);
+        //        }
 
-                await Db.SaveChangesAsync();
+        //        await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Actividades asignadas al nuevo alumno." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al asignar actividades.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        return Json(new { mensaje = "Actividades asignadas al nuevo alumno." }, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 500; // Internal Server Error
+        //        return Json(new { mensaje = "Error al asignar actividades.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
 
 
 
         // Controlador para registrar o actualizar una calificación
-        [HttpPost]
-        public async Task<ActionResult> RegistrarCalificacion(CalificacionDto calificacionDto)
-        {
-            if (calificacionDto == null)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
-            }
+        //[HttpPost]
+        //public async Task<ActionResult> RegistrarCalificacion(CalificacionDto calificacionDto)
+        //{
+        //    if (calificacionDto == null)
+        //    {
+        //        Response.StatusCode = 400; // Bad Request
+        //        return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
+        //    }
 
-            // Verificar si la entrega existe
-            var entregaExiste = await Db.tbEntregablesAlumno.AnyAsync(e => e.EntregaId == calificacionDto.EntregaId);
-            if (!entregaExiste)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "La entrega especificada no existe." }, JsonRequestBehavior.AllowGet);
-            }
+        //    // Verificar si la entrega existe
+        //    var entregaExiste = await Db.tbEntregablesAlumno.AnyAsync(e => e.EntregaId == calificacionDto.EntregaId);
+        //    if (!entregaExiste)
+        //    {
+        //        Response.StatusCode = 400; // Bad Request
+        //        return Json(new { mensaje = "La entrega especificada no existe." }, JsonRequestBehavior.AllowGet);
+        //    }
 
-            try
-            {
-                // Buscar si ya existe una calificación para esta entrega
-                var calificacionExistente = await Db.tbCalificaciones
-                    .FirstOrDefaultAsync(c => c.EntregaId == calificacionDto.EntregaId);
+        //    try
+        //    {
+        //        // Buscar si ya existe una calificación para esta entrega
+        //        var calificacionExistente = await Db.tbCalificaciones
+        //            .FirstOrDefaultAsync(c => c.EntregaId == calificacionDto.EntregaId);
 
-                if (calificacionExistente != null)
-                {
-                    // Actualizar calificación existente
-                    calificacionExistente.Calificacion = calificacionDto.Calificacion;
-                    calificacionExistente.Comentarios = calificacionDto.Comentario;
-                    calificacionExistente.FechaCalificacionAsignada = DateTime.Now;
+        //        if (calificacionExistente != null)
+        //        {
+        //            // Actualizar calificación existente
+        //            calificacionExistente.Calificacion = calificacionDto.Calificacion;
+        //            calificacionExistente.Comentarios = calificacionDto.Comentario;
+        //            calificacionExistente.FechaCalificacionAsignada = DateTime.Now;
 
-                    // En EF6 no se necesita Update(), solo modificar propiedades y guardar
-                }
-                else
-                {
-                    // Crear nueva calificación
-                    var nuevaCalificacion = new tbCalificaciones
-                    {
-                        EntregaId = calificacionDto.EntregaId,
-                        FechaCalificacionAsignada = DateTime.Now,
-                        Comentarios = calificacionDto.Comentario,
-                        Calificacion = calificacionDto.Calificacion
-                    };
+        //            // En EF6 no se necesita Update(), solo modificar propiedades y guardar
+        //        }
+        //        else
+        //        {
+        //            // Crear nueva calificación
+        //            var nuevaCalificacion = new tbCalificaciones
+        //            {
+        //                EntregaId = calificacionDto.EntregaId,
+        //                FechaCalificacionAsignada = DateTime.Now,
+        //                Comentarios = calificacionDto.Comentario,
+        //                Calificacion = calificacionDto.Calificacion
+        //            };
 
-                    Db.tbCalificaciones.Add(nuevaCalificacion);
-                }
+        //            Db.tbCalificaciones.Add(nuevaCalificacion);
+        //        }
 
-                await Db.SaveChangesAsync();
+        //        await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Calificación guardada correctamente." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al registrar la calificación.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        return Json(new { mensaje = "Calificación guardada correctamente." }, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 500; // Internal Server Error
+        //        return Json(new { mensaje = "Error al registrar la calificación.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
         // Endpoint to return tipos de actividades for populating select in modal
-        [HttpGet]
-        public async Task<ActionResult> ObtenerTiposActividades()
-        {
-            try
-            {
-                var existe = await Db.cTiposActividades.AnyAsync();
-                if (!existe)
-                {
-                    // Insertar tipos por defecto
-                    var porDefecto = new List<cTiposActividades>
-                    {
-                        new cTiposActividades { Nombre = "Tarea" },
-                        new cTiposActividades { Nombre = "Examen" },
-                        new cTiposActividades { Nombre = "Cuestionario" }
-                    };
+        //[HttpGet]
+        //public async Task<ActionResult> ObtenerTiposActividades()
+        //{
+        //    try
+        //    {
+        //        var existe = await Db.cTiposActividades.AnyAsync();
+        //        if (!existe)
+        //        {
+        //            // Insertar tipos por defecto
+        //            var porDefecto = new List<cTiposActividades>
+        //            {
+        //                new cTiposActividades { Nombre = "Tarea" },
+        //                new cTiposActividades { Nombre = "Examen" },
+        //                new cTiposActividades { Nombre = "Cuestionario" }
+        //            };
 
-                    Db.cTiposActividades.AddRange(porDefecto);
-                    await Db.SaveChangesAsync();
-                }
+        //            Db.cTiposActividades.AddRange(porDefecto);
+        //            await Db.SaveChangesAsync();
+        //        }
 
-                var tipos = await Db.cTiposActividades
-                    .Select(t => new { t.TipoActividadId, t.Nombre })
-                    .ToListAsync();
+        //        var tipos = await Db.cTiposActividades
+        //            .Select(t => new { t.TipoActividadId, t.Nombre })
+        //            .ToListAsync();
 
-                return Json(tipos, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        return Json(tipos, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 500;
+        //        return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
         // Nuevo: actualizar actividad (compatible con fetch PUT desde JS)
         [HttpPut]
@@ -512,28 +515,16 @@ namespace ControlActividades.Controllers
                     return Json(new { mensaje = "Actividad no encontrada." }, JsonRequestBehavior.AllowGet);
                 }
 
-                var alumnoActividad = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == activity.ActividadId);
-
-                if (alumnoActividad != null)
+                //var alumnoActividad = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == activity.ActividadId);
+                var existenEntregas = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == activity.ActividadId).AnyAsync();
+                
+                
+                if (existenEntregas)
                 {
-                    var entrega = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividad.AlumnoActividadId).FirstOrDefaultAsync();
-                    if (entrega != null)
-                    {
-                        var calificacion = await Db.tbCalificaciones.FirstOrDefaultAsync(a => a.EntregaId == entrega.EntregaId);
-
-                        if (calificacion != null)
-                        {
-                            Db.tbCalificaciones.Remove(calificacion);
-                            Db.tbEntregablesAlumno.Remove(entrega);
-                            Db.tbAlumnosActividades.Remove(alumnoActividad);
-                        }
-                        else
-                        {
-                            Db.tbEntregablesAlumno.Remove(entrega);
-                            Db.tbAlumnosActividades.Remove(alumnoActividad);
-                        }
-                    }
+                    Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    return Json(new { mensaje = "Error al eliminar la actividad." }, JsonRequestBehavior.AllowGet);
                 }
+
 
                 Db.tbActividades.Remove(activity);
                 await Db.SaveChangesAsync();

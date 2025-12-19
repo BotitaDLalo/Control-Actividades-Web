@@ -221,7 +221,7 @@ namespace ControlActividades.Controllers
                         b.Descripcion,
                         b.FechaCreacion,
                         b.FechaLimite,
-                        b.TipoActividadId,
+                        //b.TipoActividadId,
                         b.Puntaje,
                         b.MateriaId,
                     }).ToList()
@@ -418,7 +418,7 @@ namespace ControlActividades.Controllers
                         b.Descripcion,
                         b.FechaCreacion,
                         b.FechaLimite,
-                        b.TipoActividadId,
+                        //b.TipoActividadId,
                         b.Puntaje,
                         b.MateriaId,
                     }).ToList()

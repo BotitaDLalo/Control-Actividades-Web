@@ -3,6 +3,7 @@
     console.log("FullCalendar inicializando vista alumno...");
 
     const calendarEl = document.getElementById("calendar");
+
     const modal = document.getElementById("modalEvento");
     const btnCerrar = document.querySelector(".close-modal12");
     const listaEventos = document.getElementById("listaEventos");

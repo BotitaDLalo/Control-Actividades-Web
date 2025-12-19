@@ -10,7 +10,13 @@ if (window.__agendaFullCalendarInitialized) {
     //modal
     //modal-detalles
     //modal-crear
-    //modal-editar
+        //modal-editar
+
+        //JERARQUÍA
+        //CALENDARIO CON TODOS LOS EVENTO
+        //MODAL CON EVENTOS DEL DÍA SELECCIONADO
+        //MODAL CREAR EVENTO    ||  MODAL DETALLES EVENTO ESPECÍFICO
+                                    //MODAL EDITAR EVENTO
 
     const calendarEl = document.getElementById("calendar");
 
@@ -18,6 +24,7 @@ if (window.__agendaFullCalendarInitialized) {
     const modalCrear = document.getElementById("modalCrearEvento");
     const btnCerrarCrear = document.querySelector(".close-crear");
 
+    // Inicializar FullCalendar
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
         locale: "es",
@@ -88,13 +95,13 @@ if (window.__agendaFullCalendarInitialized) {
     // MODAL
     
     const modal = document.getElementById("modalEvento");
-    const btnCerrar = document.querySelector(".close-modal12");
     const btnAgregar = document.getElementById("btnAgregarEvento");
     const formContainer = document.getElementById("formEventoContainer");
     const listaEventos = document.getElementById("listaEventos");
     const textoFecha = document.getElementById("fechaSeleccionadaTexto");
+    const btnCerrar = document.querySelector(".close-modal12");
 
-    //MODAL QUE MUESTRA LOS EVENTOS DEL DÍA
+    //MODAL QUE MUESTRA LOS EVENTOS DEL DÍA SELECCIONADO
     function convertirFecha(fecha) {
         // Asegurar formato ISO (YYYY-MM-DD)
         const fechaISO = fecha.replace(/\//g, "-");
@@ -102,6 +109,7 @@ if (window.__agendaFullCalendarInitialized) {
         const fechaObj = new Date(fechaISO + "T00:00");
         return fechaObj.toLocaleDateString("es-ES");
     }
+
     function abrirModal(fecha) {
         textoFecha.textContent = convertirFecha(fecha);
         modal.style.display = "flex";
@@ -155,8 +163,11 @@ if (window.__agendaFullCalendarInitialized) {
             const resp = await fetch("/EventosAgenda/ObtenerGruposYMaterias");
             const data = await resp.json();
 
-            const contenedor = document.getElementById("contenedorGruposMaterias");
-            contenedor.innerHTML = ""; // limpiar
+            const contGrupos = document.getElementById("contenedorGrupos");
+            const contSueltas = document.getElementById("contenedorMateriasSueltas");
+
+            contGrupos.innerHTML = "";
+            contSueltas.innerHTML = "";
 
             // Grupos
             data.grupos.forEach(grupo => {
@@ -164,55 +175,104 @@ if (window.__agendaFullCalendarInitialized) {
                 const divGrupo = document.createElement("div");
                 divGrupo.classList.add("grupo-item");
 
+                //Encabezado con botón expandir, checkbox y nombre
+
                 divGrupo.innerHTML = `
-                <label>
-                    <input type="checkbox" class="chk-grupo" data-grupo="${grupo.GrupoId}">
-                    <strong>${grupo.NombreGrupo}</strong>
-                </label>
-                <div class="materias-del-grupo" style="margin-left: 20px;"></div>
+                <div class="grupo-header">
+                    <label>
+                        <input type="checkbox" class="chk-grupo" data-grupo="${grupo.GrupoId}">
+                        <strong>${grupo.NombreGrupo}</strong>
+                    </label>
+                    <button type="button" class="btn-expandir" data-grupo=${grupo.GrupoId}">▶</button>
+                </div>
+
+                <div class="materias-del-grupo collapse"></div>
             `;
 
+                //Contenedor para meter las materias de los grupos
                 const contMaterias = divGrupo.querySelector(".materias-del-grupo");
 
                 grupo.Materias.forEach(mat => {
                     const divMat = document.createElement("div");
                     divMat.innerHTML = `
-                    <label>
-                        <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
-                        ${mat.NombreMateria}
-                    </label>
-                `;
+                        <label>
+                            <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
+                            ${mat.NombreMateria}
+                        </label>
+                    `;
                     contMaterias.appendChild(divMat);
                 });
 
-                contenedor.appendChild(divGrupo);
+                contGrupos.appendChild(divGrupo);
             });
+
 
             // Materias sin grupos
             if (data.materiasSueltas.length > 0) {
-                const titulo = document.createElement("h4");
-                titulo.textContent = "Materias sin grupo";
-                contenedor.appendChild(titulo);
 
                 data.materiasSueltas.forEach(mat => {
                     const divMat = document.createElement("div");
                     divMat.classList.add("materia-suelta-item");
                     divMat.innerHTML = `
-                    <label>
-                        <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
-                        ${mat.NombreMateria}
-                    </label>
-                `;
-                    contenedor.appendChild(divMat);
+                        <label>
+                            <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
+                            ${mat.NombreMateria}
+                        </label>
+                    `;
+                    contSueltas.appendChild(divMat);
                 });
             }
 
+            activarExpandibles();
             activarLogicaCheckBoxes();
         }
         catch (err) {
             console.error("Error cargando grupos y materias:", err);
         }
     }
+
+    //Cambiar tabs de grupos y materias sueltas
+    document.querySelectorAll(".nav-link").forEach(btn => {
+        btn.addEventListener("click", function () {
+
+            const tabId = this.dataset.tab;
+
+            // Quitar estado activo de botones
+            document.querySelectorAll(".nav-link").forEach(b => b.classList.remove("active"));
+
+            // Activar botón actual
+            this.classList.add("active");
+
+            // Ocultar TODAS las pestañas
+            document.querySelectorAll(".tab-pane").forEach(tab => {
+                tab.classList.remove("active", "show");
+            });
+
+            // Mostrar pestaña seleccionada
+            document.getElementById(tabId).classList.add("active", "show");
+        });
+    });
+
+
+        function activarExpandibles() {
+            const botonesexpandir = document.querySelectorAll(".btn-expandir");
+            botonesexpandir.forEach(boton => {
+                boton.addEventListener("click", function () {
+                    const grupoId = this.dataset.grupo;
+                    const contenedorMaterias = this.closest(".grupo-item").querySelector(".materias-del-grupo");
+
+                    // Si está oculto, mostrarlo; si está visible, ocultarlo
+                    const estaOculto = contenedorMaterias.classList.contains("hidden");
+                    if (estaOculto) {
+                        contenedorMaterias.classList.remove("hidden");
+                        this.textContent = "▼"; // Cambiar ícono a "colapsar"
+                    } else {
+                        contenedorMaterias.classList.add("hidden");
+                        this.textContent = "▶"; // Cambiar ícono a "expandir"
+                    }
+                });
+            });
+        }
 
     function activarLogicaCheckBoxes() {
 

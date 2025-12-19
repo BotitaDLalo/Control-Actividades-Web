@@ -51,21 +51,21 @@ namespace ControlActividades.Services
 
                         foreach (var alumnoId in alumnoIds)
                         {
-                            var exists = await db.tbAlumnosActividades.AnyAsync(aa => aa.ActividadId == act.ActividadId && aa.AlumnoId == alumnoId);
-                            if (!exists)
-                            {
-                                db.tbAlumnosActividades.Add(new tbAlumnosActividades
-                                {
-                                    ActividadId = act.ActividadId,
-                                    AlumnoId = alumnoId,
-                                    FechaEntrega = DateTime.Now,
-                                    EstatusEntrega = false
-                                });
-                            }
+                            //var exists = await db.tbAlumnosActividades.AnyAsync(aa => aa.ActividadId == act.ActividadId && aa.AlumnoId == alumnoId);
+                            //if (!exists)
+                            //{
+                            //    db.tbAlumnosActividades.Add(new tbAlumnosActividades
+                            //    {
+                            //        ActividadId = act.ActividadId,
+                            //        AlumnoId = alumnoId,
+                            //        FechaEntrega = DateTime.Now,
+                            //        EstatusEntrega = false
+                            //    });
+                            //}
                         }
                     }
 
-                    await db.SaveChangesAsync();
+                    //await db.SaveChangesAsync();
                 }
             }
             catch { }
