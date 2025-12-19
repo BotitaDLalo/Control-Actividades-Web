@@ -17,6 +17,44 @@
     height: 180%;
 }
 
+/* Estilos para la sección de entregables - alinear filtros en una sola línea */
+.entregables-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+    padding: 12px 18px;
+}
+
+.entregables-filters label {
+    margin: 0;
+    font-weight: 500;
+}
+
+.entregables-filters input#buscarActividadEntregables {
+    width: 420px; /* ajustar según espacio */
+}
+
+.entregables-filters select#selectActividadEntregables {
+    width: auto;
+    min-width: 220px;
+}
+
+@media (max-width: 900px) {
+    .entregables-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .entregables-filters input#buscarActividadEntregables {
+        width: 100%;
+    }
+
+    .entregables-filters select#selectActividadEntregables {
+        width: 100%;
+    }
+}
+
 /* small label with docente name placed bottom-right inside card-layout/card container */
 .card-docente {
     position: absolute;

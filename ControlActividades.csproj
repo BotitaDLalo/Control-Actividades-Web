@@ -341,6 +341,7 @@
     <Compile Include="Controllers\GruposApiController.cs" />
     <Compile Include="Controllers\GruposController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\IAController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MateriasApiController.cs" />
     <Compile Include="Controllers\MateriasController.cs" />
@@ -529,6 +530,7 @@
     <Content Include="Scripts\Docente\footer.js" />
     <Content Include="Scripts\Docente\Grupos\ActividadIA.js" />
     <Content Include="Scripts\Docente\Grupos\Calendario.js" />
+    <Content Include="Scripts\Docente\Grupos\cambiarCodigoMateria.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleActividad.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleMateria.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleMateriaIconos.js" />
@@ -544,6 +546,7 @@
     <Content Include="Scripts\Docente\Grupos\scriptsAvisos.js" />
     <Content Include="Scripts\Docente\Grupos\VistaMateriasD.js" />
     <Content Include="Scripts\Docente\IA.js" />
+    <Content Include="Scripts\Docente\IAChat.js" />
     <Content Include="Scripts\Docente\layout.js" />
     <Content Include="Content\bootstrap-grid.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
@@ -608,6 +611,7 @@
     <Content Include="Views\Shared\_Sidebar.cshtml" />
     <Content Include="Views\Docente\GrupoActionsModal.cshtml" />
     <Content Include="Views\Docente\GrupoMaterias.cshtml" />
+    <Content Include="Views\Docente\ChatIA.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
