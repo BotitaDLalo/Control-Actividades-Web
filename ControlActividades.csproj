@@ -435,6 +435,7 @@
     <Content Include="Content\Componentes\cards.css" />
     <Content Include="Content\Componentes\header.css" />
     <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\ojo-azul.svg" />
     <Content Include="Content\Iconos\notiAviso-Azul.svg" />
     <Content Include="Content\Iconos\notiEvento.svg" />
     <Content Include="Content\Iconos\notiAviso.svg" />
