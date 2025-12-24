@@ -16,7 +16,7 @@ namespace ControlActividades.Services
         private readonly string _projectId;
         private readonly GoogleCredential _googleCredential;
         private readonly string uriApiGoogle = "https://www.googleapis.com/auth/firebase.messaging";
-        private readonly string uriFile = HostingEnvironment.MapPath("~/App_Data/firebase.json");
+        private readonly string uriFile = HostingEnvironment.MapPath("~/App_Data/push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json");
 
         public FCMService()
         {
