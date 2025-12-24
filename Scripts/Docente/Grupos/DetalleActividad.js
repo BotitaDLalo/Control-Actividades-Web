@@ -204,3 +204,119 @@ function convertirUrlsEnEnlaces(texto) {
     var urlRegex = /(https?:\/\/[^\s]+)/g;
     return texto.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
 }
+
+// Mostrar la respuesta (archivos / texto) de un alumno en el modal
+function verRespuesta(alumnoActividadId) {
+    try {
+        const lista = actividadesData.entregados || actividadesData.Entregados || [];
+        const found = lista.find(function (e) {
+            if (!e) return false;
+            if (e.AlumnoActividadId && e.AlumnoActividadId === alumnoActividadId) return true;
+            if (e.AlumnoActividad && e.AlumnoActividad.AlumnoActividadId === alumnoActividadId) return true;
+            return false;
+        });
+
+        if (!found) {
+            console.warn('No se encontró la entrega para AlumnoActividadId', alumnoActividadId);
+            alert('No se encontró la respuesta del alumno.');
+            return;
+        }
+
+        // intentar extraer texto/archivos
+        var respuestaRaw = null;
+        if (found.Entrega && (found.Entrega.Respuesta || found.Entrega.respuesta)) respuestaRaw = found.Entrega.Respuesta || found.Entrega.respuesta;
+        if (!respuestaRaw && (found.Respuesta || found.respuesta)) respuestaRaw = found.Respuesta || found.respuesta;
+
+        var html = '';
+        if (respuestaRaw) {
+            try {
+                var parsed = JSON.parse(respuestaRaw);
+                if (parsed) {
+                    if (parsed.Archivos && Array.isArray(parsed.Archivos) && parsed.Archivos.length > 0) {
+                        html += '<p><strong>Archivos adjuntos:</strong></p><ul>';
+                        parsed.Archivos.forEach(function (a) { html += '<li><a href="' + a + '" target="_blank">' + a.split('/').pop() + '</a></li>'; });
+                        html += '</ul>';
+                    }
+                    if (parsed.Respuesta) {
+                        html += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(parsed.Respuesta) + '</pre></div>';
+                    }
+                }
+            } catch (err) {
+                // no es JSON
+                html = '<div><strong>Respuesta:</strong><pre>' + escapeHtml(String(respuestaRaw)) + '</pre></div>';
+            }
+        } else {
+            html = '<p>No hay respuesta registrada.</p>';
+        }
+
+        var textoElem = document.getElementById('texto-respuesta');
+        if (textoElem) textoElem.innerHTML = html;
+        var modalEl = document.getElementById('respuestaModal');
+        if (modalEl) {
+            var modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error al mostrar la respuesta.');
+    }
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/\"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+// Abrir modal de calificar y preparar el formulario
+function abrirModalCalificar(entregaId, puntajeMaximo) {
+    try {
+        var entregaInput = document.getElementById('entregaId');
+        if (entregaInput) entregaInput.value = entregaId || 0;
+        var calInput = document.getElementById('calificacion');
+        if (calInput) {
+            calInput.min = 0;
+            calInput.max = puntajeMaximo || 100;
+            calInput.value = '';
+        }
+        var modalEl = document.getElementById('calificarModal');
+        if (modalEl) {
+            var modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Manejar envío de calificación desde el modal (form id = formCalificacion)
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('formCalificacion');
+    if (!form) return;
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var entregaId = parseInt(document.getElementById('entregaId').value || '0', 10);
+        var cal = parseInt(document.getElementById('calificacion').value || '0', 10);
+        if (!entregaId || isNaN(cal)) { alert('Entrega o calificación inválida'); return; }
+        try {
+            const resp = await fetch('/api/Actividades/AsignarCalificacion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ EntregaId: entregaId, Calificacion: cal })
+            });
+            if (!resp.ok) throw new Error('Error al guardar la calificación');
+            // cerrar modal
+            var modalEl = document.getElementById('calificarModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            Swal.fire({ icon: 'success', title: 'Calificación guardada', timer: 1200, showConfirmButton: false });
+            // recargar lista
+            prepararAlumnosYActividades();
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', err.message || 'No se pudo guardar', 'error');
+        }
+    });
+});

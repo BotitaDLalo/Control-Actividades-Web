@@ -196,6 +196,13 @@ namespace ControlActividades.Controllers
             return View("MateriasSinGrupoStandalone");
         }
 
+        [HttpGet]
+        public ActionResult ChatIA()
+        {
+            // Vista simple para chatear con la API de IA
+            return View();
+        }
+
         [HttpPost]
         public JsonResult CrearGrupo(tbGrupos grupo)
         {

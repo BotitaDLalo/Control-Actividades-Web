@@ -227,3 +227,56 @@
     border-radius: 8px;
     z-index: -1;
 }
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .actividad-item {
+        padding: 12px;
+    }
+
+    .actividad-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .icono {
+        font-size: 22px;
+        color: #007bff;
+        margin-right: 0;
+        margin-bottom: 4px;
+    }
+
+    .info strong {
+        font-size: 18px;
+    }
+
+    .fecha-publicado,
+    .fecha-entrega {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .fecha-entrega {
+        text-align: left;
+        margin-top: 0;
+    }
+
+    .botones-container {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+    }
+
+    .editar-btn, .eliminar-btn, .btn-ir-actividades {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .actividad-descripcion.visible {
+        max-height: 800px;
+    }
+}

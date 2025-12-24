@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const chatIcon = document.getElementById("chatIcon");
     const iaChatModal = document.getElementById("iaChatModal");
     const closeChat = document.getElementById("closeChat");
@@ -41,49 +41,37 @@
     });
 
 
-    const geminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyAoXeYbMKSLVxFsAFgHF9rJOppK8Xz2txg";
-
 
     async function sendMessageToGemini(message) {
         try {
-            const response = await fetch(geminiApiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+            const response = await fetch('/api/IA/GenerarContenido', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: message
-                                }
-                            ]
-                        }
-                    ]
+                    model: 'gemini-2.5-flash',
+                    contents: [ { parts: [ { text: message } ] } ]
                 })
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Respuesta completa de la API:", data);
-
-                // Ahora accedemos al texto correcto en la respuesta
-                if (data.candidates && data.candidates.length > 0) {
-                    const botResponse = data.candidates[0].content.parts[0].text; // Accediendo al texto
-                    return botResponse;  // Retornamos el texto del modelo
-                } else {
-                    console.error("No se encontraron candidatos en la respuesta");
-                    return null;
-                }
-            } else {
-                const errorData = await response.json();
-                console.error("Error en la respuesta de Gemini:", response.status, response.statusText, errorData);
-                alert(`Error en la solicitud: ${errorData.error.message}`);
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                console.error('Error desde servidor al solicitar Gemini:', response.status, data);
                 return null;
             }
+
+            // The server returns the raw response from Google; try to extract text
+            if (data && data.candidates && data.candidates.length > 0) {
+                return data.candidates[0].content.parts[0].text;
+            }
+
+            // Fallback: try common shapes
+            if (data && data.output) return data.output;
+            if (typeof data === 'string') return data;
+
+            console.error('Respuesta inesperada de GenerarContenido:', data);
+            return null;
         } catch (error) {
-            console.error("Error al comunicarse con la API de Gemini:", error);
+            console.error('Error al comunicar con el endpoint server /api/IA/GenerarContenido:', error);
             return null;
         }
     }
@@ -102,7 +90,9 @@
             if (response) {
                 const botMessage = document.createElement("div");
                 botMessage.classList.add("bot-message");
-                botMessage.textContent = response;
+
+                const cleaned = sanitizeResponse(String(response));
+                botMessage.textContent = cleaned;
                 chatContent.appendChild(botMessage);
             } else {
                 mostrarError();
@@ -112,6 +102,32 @@
         });
 
         userInput.value = "";
+    }
+
+    // Remove common markdown formatting so the chat looks like a natural conversation
+    function sanitizeResponse(text) {
+        if (!text) return text;
+        // Remove fenced code blocks ```...```
+        text = text.replace(/```[\s\S]*?```/g, '');
+        // Remove inline code `...`
+        text = text.replace(/`([^`]*)`/g, '$1');
+        // Replace bold **text** and __text__
+        text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+        text = text.replace(/__(.*?)__/g, '$1');
+        // Replace italic *text* and _text_
+        // Avoid removing list markers like "* item" by only replacing when a closing marker exists
+        text = text.replace(/\*(.*?)\*/g, '$1');
+        text = text.replace(/_(.*?)_/g, '$1');
+        // Remove markdown headers like ### Title
+        text = text.replace(/^\s*#{1,6}\s*/gm, '');
+        // Convert HTML entities if any (basic)
+        text = text.replace(/&nbsp;/g, ' ')
+                   .replace(/&amp;/g, '&')
+                   .replace(/&lt;/g, '<')
+                   .replace(/&gt;/g, '>');
+        // Collapse excessive blank lines
+        text = text.replace(/\n{3,}/g, '\n\n');
+        return text.trim();
     }
 
     function mostrarError() {

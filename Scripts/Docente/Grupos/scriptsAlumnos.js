@@ -99,16 +99,20 @@ window.eliminardelgrupo = eliminardelgrupo;
 document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('btnImportarAlumnos');
     function createAndOpenFileInput(grupoId) {
+        // Evitar abrir el diálogo más de una vez simultáneamente
+        if (window._importDialogOpen) return;
+        window._importDialogOpen = true;
+
         var input = document.getElementById('fileImportarAlumnos');
         if (input) { try { input.remove(); } catch (e) { } }
         input = document.createElement('input'); input.type = 'file'; input.accept = '.xlsx,.xls'; input.id = 'fileImportarAlumnos'; input.style.display = 'none';
         document.body.appendChild(input);
         input.addEventListener('change', async function (ev) {
-            var file = ev.target.files && ev.target.files[0]; if (!file) return;
-            var fd = new FormData(); fd.append('file', file);
-            if (grupoId) fd.append('GrupoId', grupoId);
-            if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) fd.append('MateriaId', materiaIdGlobal);
             try {
+                var file = ev.target.files && ev.target.files[0]; if (!file) return;
+                var fd = new FormData(); fd.append('file', file);
+                if (grupoId) fd.append('GrupoId', grupoId);
+                if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) fd.append('MateriaId', materiaIdGlobal);
                 var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd });
                 var json = await resp.json().catch(function(){return {};});
                 if (!resp.ok) { alert(json.mensaje || 'Error importar'); return; }
@@ -137,9 +141,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
                 }
-            } catch (e) { console.error(e); alert('Error al subir archivo'); }
+            } catch (e) {
+                console.error(e); alert('Error al subir archivo');
+            } finally {
+                // Limpiar y permitir futuras aperturas
+                try { input.remove(); } catch (e) { }
+                window._importDialogOpen = false;
+            }
         });
-        setTimeout(function () { try { input.click(); } catch (e) { console.error(e); } }, 10);
+        setTimeout(function () { try { input.click(); } catch (e) { console.error(e); window._importDialogOpen = false; } }, 10);
     }
 
     if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); createAndOpenFileInput(); });

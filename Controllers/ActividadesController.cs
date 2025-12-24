@@ -34,7 +34,6 @@ namespace ControlActividades.Controllers
         {
         }
 
-
         // Controlador que obtiene todo lo de actividades que pertenecen a esa materia
         [HttpGet]
         public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
@@ -76,8 +75,6 @@ namespace ControlActividades.Controllers
                 return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
-
-
 
         public ActividadesController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
         {

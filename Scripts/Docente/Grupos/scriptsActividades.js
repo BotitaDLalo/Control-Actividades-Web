@@ -60,6 +60,16 @@ async function registrarActividad() {
         Puntaje: sinPuntajeCheckbox && sinPuntajeCheckbox.checked ? (intNull()) : puntaje,
         MateriaId: parseInt(materiaIdGlobal, 10)
     };
+    // publicar ahora / despues / borrador
+    try {
+        const est = document.getElementById('estatusPublicacion').value;
+        if (est === 'true') actividad.Enviado = true;
+        else if (est === 'false') actividad.Enviado = false;
+        else actividad.Enviado = null;
+
+        const fechaProg = document.getElementById('fechaProgramada').value;
+        if (fechaProg) actividad.FechaProgramada = fechaProg;
+    } catch (e) { }
 
     try {
         // Deshabilitar botón y mostrar spinner
@@ -197,10 +207,24 @@ function renderizarActividades(actividades) {
     }
     actividades.reverse();
 
+    // get filter
+    const filtroEl = document.getElementById('filtroActividades');
+    const filtro = filtroEl ? filtroEl.value : 'all';
+
     actividades.forEach(actividad => {
+        // skip by filter
+        const estadoKey = actividad.Enviado === true ? 'publicada' : (actividad.Enviado === false ? 'borrador' : (actividad.FechaProgramada ? 'programada' : 'borrador'));
+        if (filtro !== 'all') {
+            if (filtro === 'borrador' && estadoKey !== 'borrador') return;
+            if (filtro === 'publicadas' && estadoKey !== 'publicada') return;
+            if (filtro === 'programadas' && estadoKey !== 'programada') return;
+        }
         const actividadItem = document.createElement('div');
         actividadItem.classList.add('actividad-item');
         const descripcionActividadConEnlace = convertirUrlsEnEnlaces(actividad.Descripcion);
+
+        // estado
+        const estado = actividad.Enviado === true ? 'Publicado' : (actividad.Enviado === false ? 'Borrador' : (actividad.FechaProgramada ? 'Programada' : 'Borrador'));
 
         actividadItem.innerHTML = `
             <div class="actividad-header">
@@ -208,6 +232,7 @@ function renderizarActividades(actividades) {
                 <div class="info">
                     <strong>${actividad.NombreActividad}</strong>
                     <p class="fecha-publicado">Publicado: ${formatearFecha(actividad.FechaCreacion)}</p>
+                    <p class="badge-estado" style="margin-top:6px;"><span class="badge bg-secondary">${estado}</span></p>
                     <p class="puntaje" style="font-weight: bold; color: #d35400;">Puntaje: ${actividad.Puntaje}</p>
                     <p class="actividad-descripcion oculto">${descripcionActividadConEnlace}</p>
                     <p class="ver-completo">Ver completo</p>
@@ -354,6 +379,19 @@ async function editarActividad(id) {
         document.getElementById('descripcion').value = data.Descripcion || '';
         document.getElementById('fechaHoraLimite').value = toInputDateTimeValue(data.FechaLimite || data.FechaCreacion);
         document.getElementById('puntaje').value = data.Puntaje || 0;
+        // set publication status and scheduled date
+        try {
+            var estEl = document.getElementById('estatusPublicacion');
+            var fechaProgEl = document.getElementById('fechaProgramada');
+            if (estEl) {
+                if (data.Enviado === true) estEl.value = 'true';
+                else if (data.Enviado === false) estEl.value = 'false';
+                else estEl.value = 'null';
+            }
+            if (fechaProgEl) {
+                fechaProgEl.value = toInputDateTimeValue(data.FechaProgramada || '');
+            }
+        } catch (e) { }
 
         // establecer materia global si no existe
         if (!materiaIdGlobal && window.materiaIdGlobal) materiaIdGlobal = window.materiaIdGlobal;
@@ -416,6 +454,17 @@ async function actualizarActividad(id) {
         Puntaje: sinPuntajeCheckbox && sinPuntajeCheckbox.checked ? null : puntaje,
         TipoActividadId: 1
     };
+
+    // incluir estatus y fecha programada si aplica
+    try {
+        const est = document.getElementById('estatusPublicacion').value;
+        if (est === 'true') body.Enviado = true;
+        else if (est === 'false') body.Enviado = false;
+        else body.Enviado = null;
+
+        const fechaProg = document.getElementById('fechaProgramada').value;
+        if (fechaProg) body.FechaProgramada = fechaProg;
+    } catch (e) { }
 
     const endpoints = [
         `/api/Actividades/ActualizarActividad?id=${id}`,

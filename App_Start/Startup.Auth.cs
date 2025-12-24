@@ -8,6 +8,8 @@ using Microsoft.Owin.Security.Google;
 using Owin;
 using System;
 using System.Configuration;
+using System.IO;
+using System.Web.Hosting;
 
 namespace ControlActividades
 {
@@ -72,6 +74,69 @@ namespace ControlActividades
             else
             {
             }
+
+            // Background validation of Generative API key and basic connectivity to the HuggingFace Inference endpoint.
+            try
+            {
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    try
+                    {
+                        var apiKey = Environment.GetEnvironmentVariable("GENERATIVE_API_KEY")
+                                     ?? ConfigurationManager.AppSettings["GenerativeApiKey"];
+
+                        if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "REPLACE_WITH_SERVER_KEY")
+                        {
+                            try
+                            {
+                                var filePath = HostingEnvironment.MapPath("~/App_Data/GENERATIVE_API_KEY.txt");
+                                if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                                {
+                                    var fileKey = File.ReadAllText(filePath).Trim();
+                                    if (!string.IsNullOrWhiteSpace(fileKey)) apiKey = fileKey;
+                                }
+                            }
+                            catch { }
+                        }
+                        var model = ConfigurationManager.AppSettings["HuggingFaceModel"] ?? "gpt2";
+                        if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "REPLACE_WITH_SERVER_KEY")
+                        {
+                            System.Diagnostics.Trace.TraceWarning("Generative API key no configurada. Las funciones IA no estarán disponibles.");
+                            return;
+                        }
+
+                        using (var http = new System.Net.Http.HttpClient())
+                        {
+                            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                            http.Timeout = TimeSpan.FromSeconds(6);
+                            // Hacer una petición HEAD/GET ligera para comprobar si el endpoint responde
+                            var url = $"https://router.huggingface.co/models/{model}";
+                            try
+                            {
+                                var r = await http.GetAsync(url);
+                                if (!r.IsSuccessStatusCode)
+                                {
+                                    var body = await r.Content.ReadAsStringAsync();
+                                    System.Diagnostics.Trace.TraceWarning($"HuggingFace connectivity check: {(int)r.StatusCode} {r.StatusCode} - {body}");
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Trace.TraceInformation("HuggingFace connectivity check OK");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Trace.TraceWarning($"HuggingFace connectivity check failed: {ex.Message}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.TraceWarning($"Error durante verificación background de la key generativa: {ex.Message}");
+                    }
+                });
+            }
+            catch { }
         }
     }
 }

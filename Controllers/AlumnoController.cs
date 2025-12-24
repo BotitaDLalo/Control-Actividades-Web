@@ -274,6 +274,23 @@ namespace ControlActividades.Controllers
             return PartialView("_Actividades");
         }
 
+        [HttpGet]
+        public ActionResult ActividadDetalle(int actividadId)
+        {
+            try
+            {
+                string userId = User.Identity.GetUserId();
+                var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
+                ViewBag.AlumnoId = alumnoId;
+                ViewBag.ActividadId = actividadId;
+                return View();
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("Index");
+            }
+        }
+
         public ActionResult Alumnos()
         {
             return PartialView("_Alumnos");

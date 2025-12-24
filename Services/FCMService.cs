@@ -81,7 +81,14 @@ namespace ControlActividades.Services
         // Enviar notificaciones por lotes
         public async Task SendBatchNotificationsAsync(List<string> targetTokens, string title, string body)
         {
-            //Obtiene el lote de tokens
+            // Validar que Firebase fue inicializado correctamente
+            if (!_initialized || FirebaseMessaging.DefaultInstance == null)
+            {
+                Console.WriteLine("FCMService: Firebase no está inicializado. Omitiendo envío de notificaciones.");
+                return;
+            }
+
+            // Construir mensajes
             var messages = targetTokens.Select(token => new Message
             {
                 Token = token,
@@ -92,50 +99,56 @@ namespace ControlActividades.Services
                 }
             }).ToList();
 
-            var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
-
-
-
-            // Evaluar cada respuesta
-            for (int i = 0; i < response.Responses.Count; i++)
+            try
             {
-                var result = response.Responses[i];
+                var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
 
-                // Evitar index desalineado
-                if (i >= targetTokens.Count)
-                    continue;
-
-                var token = targetTokens[i];
-
-                if (!result.IsSuccess)
+                // Evaluar cada respuesta
+                for (int i = 0; i < response.Responses.Count; i++)
                 {
-                    var error = result.Exception;
+                    var result = response.Responses[i];
 
-                    Console.WriteLine($"Error enviando a {token}: {error}");
+                    // Evitar index desalineado
+                    if (i >= targetTokens.Count)
+                        continue;
 
-                    bool debeEliminar = false;
+                    var token = targetTokens[i];
 
-                    if (error is FirebaseMessagingException fcmEx)
+                    if (!result.IsSuccess)
                     {
-                        if (fcmEx.ErrorCode == ErrorCode.NotFound ||
-                            fcmEx.ErrorCode == ErrorCode.InvalidArgument)
+                        var error = result.Exception;
+
+                        Console.WriteLine($"Error enviando a {token}: {error}");
+
+                        bool debeEliminar = false;
+
+                        if (error is FirebaseMessagingException fcmEx)
+                        {
+                            if (fcmEx.ErrorCode == ErrorCode.NotFound ||
+                                fcmEx.ErrorCode == ErrorCode.InvalidArgument)
+                            {
+                                debeEliminar = true;
+                            }
+                        }
+
+                        // si Firebase devuelve el mensaje en lugar del ErrorCode
+                        if (error != null && (error.Message.Contains("registration-token-not-registered") ||
+                            error.Message.Contains("invalid-registration-token")))
                         {
                             debeEliminar = true;
                         }
-                    }
 
-                    // si Firebase devuelve el mensaje en lugar del ErrorCode
-                    if (error.Message.Contains("registration-token-not-registered") ||
-                        error.Message.Contains("invalid-registration-token"))
-                    {
-                        debeEliminar = true;
-                    }
-
-                    if (debeEliminar)
-                    {
-                        await EliminarTokenInvalido(token);
+                        if (debeEliminar)
+                        {
+                            await EliminarTokenInvalido(token);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                // Registrar error sin lanzar para no romper el flujo de la app
+                Console.WriteLine($"FCMService: error enviando notificaciones - {ex.Message}");
             }
         }
 
