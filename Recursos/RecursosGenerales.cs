@@ -73,11 +73,10 @@ namespace ControlActividades
         }
     }
 
-    public static class TiposNotificaciones
+    public enum TiposNotificaciones
     {
-        public const string Aviso = "Aviso";
-        public const string Evento = "Evento";
-        public const string ActividadCreada = "ActividadCreada";
-
+        Aviso = 1,
+        Evento = 2,
+        ActividadCreada = 3
     }
 }
