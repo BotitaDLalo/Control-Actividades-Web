@@ -87,6 +87,8 @@ namespace ControlActividades.Models
 
     public class DocentesValidacion
     {
+        public string UserId { get; set; }
+
         public int DocenteId { get; set; }
 
         [Required]

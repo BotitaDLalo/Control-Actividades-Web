@@ -163,9 +163,14 @@
                     </button>
                 </td>
                 <td>
-                    <button class="btn btn-danger btn-ver">
-                        Ingresar como docente
-                    </button>
+                    @using (Html.BeginForm("IngresarComoDocente", "Administrador", FormMethod.Post))
+                    {
+                        @Html.Hidden("userId", docente.UserId)
+
+                        <button type="submit" class="btn-ver">
+                            <img src="~/Content/Iconos/ojo-azul.svg" alt="Ingresar como docente" width="20">
+                        </button>
+                    }
                 </td>
             </tr>
         }

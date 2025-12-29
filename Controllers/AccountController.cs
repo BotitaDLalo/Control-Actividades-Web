@@ -29,6 +29,7 @@ namespace ControlActividades.Controllers
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
 
+        #region Métodos
         public AccountController()
         {
         }
@@ -101,6 +102,7 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
+        #endregion
 
         #region Web 
         //

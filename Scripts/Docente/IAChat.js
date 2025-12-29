@@ -13,10 +13,35 @@
             wrapper.innerHTML = '<div style="display:inline-block;background:#007bff;color:#fff;padding:8px;border-radius:8px;max-width:80%">'+htmlText+'</div>';
         } else {
             wrapper.style.textAlign = 'left';
+            // For assistant messages remove common markdown decorations so text looks conversational
             wrapper.innerHTML = '<div style="display:inline-block;background:#f1f1f1;color:#000;padding:8px;border-radius:8px;max-width:80%">'+htmlText+'</div>';
         }
         chat.appendChild(wrapper);
         chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Remove common markdown formatting so assistant responses appear as plain conversational text
+    function sanitizeMarkdown(raw) {
+        if (!raw) return '';
+        var s = String(raw);
+        // Remove fenced code blocks ```...```
+        s = s.replace(/```[\s\S]*?```/g, '');
+        // Remove inline code `...`
+        s = s.replace(/`([^`]*)`/g, '$1');
+        // Remove bold **text** and __text__
+        s = s.replace(/\*\*(.*?)\*\*/g, '$1');
+        s = s.replace(/__(.*?)__/g, '$1');
+        // Remove italic *text* and _text_ (only when closed)
+        s = s.replace(/\*(.*?)\*/g, '$1');
+        s = s.replace(/_(.*?)_/g, '$1');
+        // Remove markdown headers like ### Title
+        s = s.replace(/^\s*#{1,6}\s*/gm, '');
+        // Convert simple markdown lists to plain lines
+        s = s.replace(/^-\s+/gm, '• ');
+        s = s.replace(/^\d+\.\s+/gm, function(m){ return m; });
+        // Collapse multiple blank lines
+        s = s.replace(/\n{3,}/g, '\n\n');
+        return s.trim();
     }
 
     function escapeHtml(unsafe) {
@@ -71,7 +96,9 @@
                 }
             } catch(e){ generated = JSON.stringify(data); }
 
-            appendMessage('assistant', generated);
+            // sanitize assistant output to remove markdown-like decorations
+            var cleaned = sanitizeMarkdown(generated);
+            appendMessage('assistant', cleaned);
         } catch(e){
             appendMessage('assistant', 'Error interno: ' + e.message);
         }
