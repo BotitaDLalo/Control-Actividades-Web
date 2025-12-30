@@ -75,8 +75,12 @@ namespace ControlActividades
 
     public enum TiposNotificaciones
     {
-        Aviso = 1,
-        Evento = 2,
-        ActividadCreada = 3
+        ActividadCalificada = 1,
+        ActividadCreada = 2,
+        ActividadEntregada = 3,
+        Aviso = 4,
+        Evento = 5,
+        GrupoAsignado = 6,
+        MateriaAsignada = 7
     }
 }
