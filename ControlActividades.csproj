@@ -612,6 +612,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\Componentes\FullCalendarGeneral.js" />
     <Content Include="Scripts\Componentes\componenteAvisos.js" />
+    <Content Include="Scripts\Componentes\PantallaCarga.js" />
     <Content Include="Scripts\dataTables.dataTables.js" />
     <Content Include="Scripts\dataTables.dataTables.min.js" />
     <Content Include="Scripts\dev\measureCardSize.js" />
@@ -713,6 +714,7 @@
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
     <Content Include="Views\Docente\ChatIA.cshtml" />
+    <Content Include="Views\Shared\_Header.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
