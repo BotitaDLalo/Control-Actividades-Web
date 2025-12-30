@@ -75,8 +75,8 @@ function renderizarNotificaciones(notificaciones) {
     let html = "";
 
     notificaciones.forEach(n => {
-        const icono = obtenerIcono(n.Tipo);
-        const encabezado = obtenerEncabezado(n);
+        const icono = obtenerIcono(n.TipoId);
+        const encabezado = obtenerEncabezado(n.TipoId);
         html += `
             <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}">
                 <div class="noti-left">
@@ -144,29 +144,56 @@ function ocultarIndicadorNotificaciones() {
     if (indicador) indicador.style.display = "none";
 }
 
-function obtenerIcono(tipo) {
-    switch (tipo) {
-        case 'Aviso':
-            return "/Content/Iconos/notiAviso-Azul.svg";
-        case 'ActividadCreada':
+function obtenerIcono(tipoId) {
+    switch (tipoId) {
+        case 1:
+            return "/Content/Iconos/notiActividadCalificada.svg";
+
+        case 2:
             return "/Content/Iconos/notiActividadCreada-Azul.svg";
-        case 'Evento':
+
+        case 3:
+            return "/Content/Iconos/notiActividadEntregada.svg";
+
+        case 4:
+            return "/Content/Iconos/notiAviso-Azul.svg";
+
+        case 5:
             return "/Content/Iconos/notiEvento.svg";
+
+        case 6:
+            return "/Content/Iconos/notiGrupoAsinado.svg";
+
+        case 7:
+            return "/Content/Iconos/notiMateriaAsignada.svg";
+
         default:
             return "/Content/Iconos/NOTIFICACION-26.svg";
     }
 }
 
 function obtenerEncabezado(notificacion) {
-    switch (notificacion.Tipo) {
-        case 'Aviso':
-            return `Nuevo aviso en ${notificacion.Materia || 'tu materia'}`;
+    switch (notificacion) {
+        case 1:
+            return `Actividad calificada en ${notificacion.Materia || 'tu materia'}`;
 
-        case 'ActividadCreada':
+        case 2:
             return `Nueva actividad en ${notificacion.Materia || 'tu materia'}`;
 
-        case 'Evento':
-            return 'Evento asignado';
+        case 3:
+            return 'Alumno entregó tarea';
+
+        case 4:
+            return `Nuevo aviso en ${notificacion.Materia || 'tu materia'}`;
+
+        case 5:
+            return `Evento asignado en ${notificacion.Materia || 'tu materia'}`;
+
+        case 6:
+            return 'Te asignaron a un grupo';
+
+        case 7:
+            return 'Te asignaron a la materia ';
 
         default:
             return 'Nueva notificación';

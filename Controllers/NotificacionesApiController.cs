@@ -186,6 +186,7 @@ namespace ControlActividades.Controllers
             {
                 return BadRequest("Usuario no encontrado");
             }
+            
             var notificaciones = Db.tbNotificaciones
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.FechaRecibido)
@@ -197,6 +198,7 @@ namespace ControlActividades.Controllers
                     Title = n.Title,
                     Body = n.Body,
                     TipoId = n.TipoId,
+                    TipoNotificacion = n.cTipoNotificacion.Nombre,
                     FechaRecibido = n.FechaRecibido
                 })
                 .ToList();
