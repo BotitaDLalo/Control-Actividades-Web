@@ -78,7 +78,7 @@ function renderizarNotificaciones(notificaciones) {
         const icono = obtenerIcono(n.TipoId);
         const encabezado = obtenerEncabezado(n.TipoId);
         html += `
-            <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}">
+            <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}" data-tipo="${n.TipoId}">
                 <div class="noti-left">
                     <div class="noti-icono">
                         <img src="${icono}" class="icono-svg" alt="noti-icono">
@@ -243,6 +243,62 @@ function insertarNotificacionEnPanel(notificacion) {
         if (eliminar) eliminar.remove();
     }
 
+}
+
+//Redirigir al hacer clic en la notificación
+document.addEventListener("click", function (e) {
+    const item = e.target.closest(".noti-item");
+
+    if (!item) return;
+
+    //Si se presiona el botón de borrar, no redirigir
+    if (e.target.classList.contains("btn-borrar-noti")) return;
+
+    try {
+        //Obtener detalles de la notificación para redirigir
+        const tipoId = parseInt(item.dataset.tipo);
+        redirigir(tipoId);
+    }
+    catch (err) {
+        console.error("Error redirigiendo desde notificación", err);
+    }
+});
+
+function redirigir(tipoId) {
+    switch (tipoId) {
+
+        case 1:
+            window.location.href = "/Actividades/MisCalificaciones";
+            break;
+
+        case 2:
+            window.location.href = "/Actividades/";
+            break;
+
+        case 3:
+            window.location.href = "/Actividades/MisCalificaciones";
+            break;
+
+        case 4:
+            window.location.href = "/Actividades/MisCalificaciones";
+            break;
+
+        case 5:
+            window.location.href = "/EventosAgenda/CalendarioAlumnos";
+            break;
+
+        case 6:
+            window.location.href = "/Actividades/MisCalificaciones";
+            break;
+
+        case 7:
+            window.location.href = "/Actividades/MisCalificaciones";
+            break;
+
+        default:
+            console.warn("Tipo de notificación desconocido para redirección");
+            
+    }
 }
 
 //Eliminar notificación
