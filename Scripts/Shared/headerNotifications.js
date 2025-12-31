@@ -78,7 +78,10 @@ function renderizarNotificaciones(notificaciones) {
         const icono = obtenerIcono(n.TipoId);
         const encabezado = obtenerEncabezado(n.TipoId);
         html += `
-            <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}" data-tipo="${n.TipoId}">
+            <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}"
+                                                     data-tipo="${n.TipoId}"
+                                                     data-materia="${n.MateriaId ?? ''}"
+                                                     data-grupo="${n.GrupoId ?? ''}">
                 <div class="noti-left">
                     <div class="noti-icono">
                         <img src="${icono}" class="icono-svg" alt="noti-icono">
@@ -214,7 +217,10 @@ function insertarNotificacionEnPanel(notificacion) {
 
     //Insertamos
     const html = `
-        <div class="noti-item p-2 border-bottom" data-id="${notificacion.NotificacionId}">
+        <div class="noti-item p-2 border-bottom" data-id="${notificacion.NotificacionId}"
+                                                 data-tipo="${notificacion.TipoId}"
+                                                 data-materia="${notificacion.MateriaId ?? ''}"
+                                                 data-grupo="${notificacion.GrupoId ?? ''}">
             <div class="noti-left">
                 <div class="noti-icono">
                     <img src="${icono}" class="icono-svg" alt="icono-noti">
@@ -257,42 +263,51 @@ document.addEventListener("click", function (e) {
     try {
         //Obtener detalles de la notificación para redirigir
         const tipoId = parseInt(item.dataset.tipo);
-        redirigir(tipoId);
+        const materiaId = item.dataset.materia;
+        const grupoId = item.dataset.grupo;
+        redirigir(tipoId, materiaId, grupoId);
     }
     catch (err) {
         console.error("Error redirigiendo desde notificación", err);
     }
 });
 
-function redirigir(tipoId) {
+function redirigir(tipoId, materiaId, grupoId) {
     switch (tipoId) {
 
+        //Actividad Calificada
         case 1:
-            window.location.href = "/Actividades/MisCalificaciones";
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
             break;
 
+        //Actividad creada
         case 2:
-            window.location.href = "/Actividades/";
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
             break;
-
+       
+        //Actividad Entregada (NOTIFICACIÓN PARA DOCENTE)
         case 3:
             window.location.href = "/Actividades/MisCalificaciones";
             break;
 
+        //Aviso
         case 4:
-            window.location.href = "/Actividades/MisCalificaciones";
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
             break;
 
+        //Evento
         case 5:
             window.location.href = "/EventosAgenda/CalendarioAlumnos";
             break;
 
+        //Grupo asignado
         case 6:
             window.location.href = "/Actividades/MisCalificaciones";
             break;
 
+        //Materia Asignada
         case 7:
-            window.location.href = "/Actividades/MisCalificaciones";
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
             break;
 
         default:

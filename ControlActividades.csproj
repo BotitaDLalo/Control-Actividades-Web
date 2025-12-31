@@ -450,6 +450,14 @@
     <Compile Include="Migrations\202512281756187_SeedTiposNotificacion.Designer.cs">
       <DependentUpon>202512281756187_SeedTiposNotificacion.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.cs" />
+    <Compile Include="Migrations\202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.Designer.cs">
+      <DependentUpon>202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs" />
+    <Compile Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.Designer.cs">
+      <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\db\cEstadoEntrega.cs" />
@@ -797,6 +805,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512281756187_SeedTiposNotificacion.resx">
       <DependentUpon>202512281756187_SeedTiposNotificacion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.resx">
+      <DependentUpon>202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.resx">
+      <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
