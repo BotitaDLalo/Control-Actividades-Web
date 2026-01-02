@@ -1,0 +1,57 @@
+﻿@using roles = ControlActividades.Roles;
+
+@{
+    Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
+    ViewBag.Title = "Grupos";
+    ViewBag.PageHeader = "Gestionar Grupos";
+
+    //int usuarioId = ViewBag.UsuarioId;
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-end align-items-center mb-3">
+        <div class="ms-3">
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#gruposModal">
+                Crear
+                Grupo
+            </button>
+        </div>
+    </div>
+
+    <div id="listaGrupos" class="content"></div>
+
+    @if (User.IsInRole(roles.DOCENTE))
+    {
+        @Html.Partial("GruposModal")
+        @Html.Partial("GrupoActionsModal")
+    }
+    @*@Html.Partial("MateriasModal")*@
+</div>
+
+@section scripts {
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+        });
+
+
+
+        // Cuando se abra el modal de crear grupo, cargar las materias disponibles en el modal
+        var modalEl = document.getElementById('gruposModal');
+        if (modalEl) {
+            modalEl.addEventListener('show.bs.modal', function () {
+                if (typeof cargarMaterias === 'function') cargarMaterias();
+            });
+        }
+
+    </script>
+    <script src="~/Scripts/Grupos/grupos.js"></script>
+    @*@Scripts.Render("~/bundles/CardsGruposMaterias")*@
+    @*@Scripts.Render("~/bundles/DocenteGrupos")*@
+}

@@ -533,20 +533,20 @@
     <Content Include="Content\Dashboard\content.css" />
     <Content Include="Content\Dashboard\nav-bar.css" />
     <Content Include="Content\Dashboard\sidebar.css" />
-    <Content Include="Content\Docente\actividadesSeccion.css" />
-    <Content Include="Content\Docente\alumnosSeccion.css" />
-    <Content Include="Content\Docente\avisosSeccion.css" />
+    <Content Include="Content\Materias\actividadesSeccion.css" />
+    <Content Include="Content\Materias\alumnosSeccion.css" />
+    <Content Include="Content\Materias\avisosSeccion.css" />
     <Content Include="Content\Componentes\Calendario.css" />
     <Content Include="Content\Docente\Confirmacion.css" />
-    <Content Include="Content\Docente\DetalleActividadesEstilos.css" />
+    <Content Include="Content\Materias\DetalleActividadesEstilos.css" />
     <Content Include="Content\Docente\footer.css" />
     <Content Include="Content\Docente\IA.css" />
     <Content Include="Content\Docente\Layout.css" />
-    <Content Include="Content\Docente\MateriaDetallesEstilos.css" />
-    <Content Include="Content\Docente\MateriaDetallesEstilosBotonesEtc.css" />
-    <Content Include="Content\Docente\Materias.css" />
+    <Content Include="Content\Materias\MateriaDetallesEstilos.css" />
+    <Content Include="Content\Materias\MateriaDetallesEstilosBotonesEtc.css" />
+    <Content Include="Content\Materias\Materias.css" />
     <Content Include="Content\Docente\Notificaciones.css" />
-    <Content Include="Content\Docente\VistaMateriasD.css" />
+    <Content Include="Content\Materias\VistaMateriasD.css" />
     <Content Include="Content\Iconos\1-26.svg" />
     <Content Include="Content\Iconos\AGENDA-26.svg" />
     <Content Include="Content\Iconos\AGREGAR PERSONA-26.svg" />
@@ -647,6 +647,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <Content Include="Scripts\Grupos\grupos.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
     <Content Include="Scripts\jquery-3.7.0.slim.js" />
@@ -660,6 +661,8 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\Materias\materias-grupo.js" />
+    <Content Include="Scripts\Materias\materias-sin-grupo.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
     <Content Include="Templates\Emails\ResetPassword.html" />
@@ -686,7 +689,7 @@
     <Content Include="Views\Account\ExternalLoginLink.cshtml" />
     <Content Include="Views\Account\Error.cshtml" />
     <Content Include="Views\Shared\_Sidebar.cshtml" />
-    <Content Include="Views\Docente\GrupoActionsModal.cshtml" />
+    <Content Include="Views\Grupos\GrupoActionsModal.cshtml" />
     <Content Include="Views\Docente\GrupoMaterias.cshtml" />
     <Content Include="Content\bootstrap.rtl.min.css.map" />
     <Content Include="Content\bootstrap.rtl.css.map" />
@@ -715,6 +718,11 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
     <Content Include="Views\Docente\ChatIA.cshtml" />
     <Content Include="Views\Shared\_Header.cshtml" />
+    <Content Include="Views\Shared\_LayoutGeneral.cshtml" />
+    <Content Include="Views\Grupos\Index.cshtml" />
+    <Content Include="Views\Materias\Index.cshtml" />
+    <Content Include="Views\Grupos\GrupoMaterias.cshtml" />
+    <Content Include="Views\Materias\MateriaDetalles.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
@@ -734,13 +742,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Alumno\css\" />
+    <Folder Include="Content\Grupos\" />
     <Folder Include="Content\Images\" />
     <Folder Include="Dashboard\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Eventos\" />
-    <Folder Include="Views\Grupos\" />
-    <Folder Include="Views\Materias\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Account\ConfirmEmail.cshtml" />
@@ -766,7 +773,7 @@
     <Content Include="Views\Docente\CrearActividadModal.cshtml" />
     <Content Include="Views\Docente\CrearAvisoMateriaModal.cshtml" />
     <Content Include="Views\Docente\EvaluarActividades.cshtml" />
-    <Content Include="Views\Docente\GruposModal.cshtml" />
+    <Content Include="Views\Grupos\GruposModal.cshtml" />
     <Content Include="Views\Docente\Index.cshtml" />
     <Content Include="Views\Docente\MateriasDetalles.cshtml" />
     <Content Include="Views\Docente\MateriasModal.cshtml" />

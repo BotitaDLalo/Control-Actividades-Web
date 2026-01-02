@@ -126,6 +126,11 @@ namespace ControlMaterias.Controllers
         #endregion
 
 
+        public ActionResult Index()
+        {
+            return View();
+        }
+
         [HttpGet]
         public ActionResult GrupoMaterias(int? grupoId)
         {
@@ -924,21 +929,23 @@ namespace ControlMaterias.Controllers
             }
         }
 
-        public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
+        public ActionResult MateriaDetalles(int? materiaId, int? grupoId)
         {
-            if (!materiaId.HasValue)
+            if (!materiaId.HasValue || !grupoId.HasValue)
             {
                 return RedirectToAction("Index");
             }
 
-            string userId = User.Identity.GetUserId();
-            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+            //string userId = User.Identity.GetUserId();
+            //var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
-            ViewBag.DocenteId = docenteId;
-            ViewBag.MateriaId = materiaId.Value;
-            ViewBag.GrupoId = grupoId ?? 0;
+            //ViewBag.DocenteId = docenteId;
+            //ViewBag.MateriaId = materiaId.Value;
+            //ViewBag.GrupoId = grupoId ?? 0;
 
-            return View("MateriasDetalles");
+            //return View("MateriasDetalles");
+
+            return View();
         }
 
 

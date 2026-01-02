@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,6 +15,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace ControlActividades.Controllers
 {
@@ -100,6 +101,10 @@ namespace ControlActividades.Controllers
             }
         }
 
+        public ActionResult Index()
+        {
+            return View();
+        }
 
 
         [HttpPost]
@@ -129,11 +134,63 @@ namespace ControlActividades.Controllers
         {
             var grupos = Db.tbGrupos
                 .Where(g => g.DocenteId == docenteId)
-                .Select(a=> new { a.GrupoId, a.Descripcion, a.NombreGrupo, a.CodigoColor, a.CodigoAcceso })
+                .Select(a => new { a.GrupoId, a.Descripcion, a.NombreGrupo, a.CodigoColor, a.CodigoAcceso })
                 .ToList();
 
             return Json(grupos, JsonRequestBehavior.AllowGet);
         }
+
+        [HttpGet]
+        public JsonResult ObtenerGruposPorUsuario()
+        {
+            List<GrupoViewModel> grupos = new List<GrupoViewModel>();
+            var usuarioId = Fg.ObtenerUsuarioId(User);
+
+            if (User.IsInRole(Roles.DOCENTE))
+            {
+                grupos = Db.tbGrupos.Where(g => g.DocenteId == usuarioId)
+                        .Select(g => new GrupoViewModel
+                        {
+                            GrupoId = g.GrupoId,
+                            NombreGrupo = g.NombreGrupo,
+                            Descripcion = g.Descripcion,
+                            CodigoColor = g.CodigoColor,
+                            CodigoAcceso = g.CodigoAcceso
+                        })
+                        .ToList();
+
+
+            }
+            else if (User.IsInRole(Roles.ALUMNO))
+            {
+                var lsAlumnoGruposId = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId).Select(a => a.GrupoId).ToList();
+
+                grupos = Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
+                        .Select(g => new GrupoViewModel
+                        {
+                            GrupoId = g.GrupoId,
+                            NombreGrupo = g.NombreGrupo,
+                            Descripcion = g.Descripcion,
+                            CodigoColor = g.CodigoColor,
+                            CodigoAcceso = g.CodigoAcceso
+                        })
+                        .ToList();
+            }
+
+            return Json(grupos, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public ActionResult GrupoMaterias(int? grupoId)
+        {
+            if (!grupoId.HasValue)
+            {
+                return RedirectToAction("Index","Grupos");
+            }
+
+            return View();
+        }
+
         [HttpPost]
         public JsonResult AsociarMaterias(AsociarMateriasRequest request)
         {

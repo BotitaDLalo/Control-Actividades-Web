@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/Dashboard/css")
+    @*@Styles.Render("~/Content/Docente/css")*@
+    @*<link href="~/Content/Docente/Layout.css" rel="stylesheet" />*@
+    @*<link href="~/Content/Docente/Materias.css" rel="stylesheet" />*@
+
+
+    @RenderSection("styles", required: false)
+
+
+
+    @*<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">*@
+
+    @*<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">*@
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    @*<link href="~/Content/sidebar.css" rel="stylesheet" />*@
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
+    <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
+    @*<link href="~/Content/Docente/calendarioDocente.css" />*@
+
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+
+    <!--SPINNER DE CARGA-->
+    <div id="loader" class="carga">
+        <div class="spinner"></div>
+    </div>
+    <div class="layout">
+        @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
+        @Html.Partial("~/Views/Shared/_Header.cshtml")
+
+        <div class="page">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/datatables")
+
+
+    <script type="module" src="~/Scripts/Firebase/firebase.js"></script>
+
+
+    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+
+
+
+    <script type="module">
+        import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                registrarTokenFcm();
+            }, 500);
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>
