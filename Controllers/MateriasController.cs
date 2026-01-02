@@ -945,6 +945,10 @@ namespace ControlMaterias.Controllers
 
             //return View("MateriasDetalles");
 
+            var grupo = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => a.NombreGrupo).FirstOrDefault();
+
+            ViewBag.NombreGrupo = grupo;
+
             return View();
         }
 
