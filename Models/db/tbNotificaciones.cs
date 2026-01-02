@@ -19,6 +19,13 @@ namespace ControlActividades.Models.db
         public  string Body {  get; set; }
         //public string Tipo { get; set; }
         public DateTime FechaRecibido { get; set; }
+        
+        public int? MateriaId { get; set; }
+        public tbMaterias Materias { get; set; }
+
+        public int? GrupoId { get; set; }
+        public tbGrupos Grupos { get; set; }
+
         public int TipoId { get; set; }
         public virtual ApplicationUser IdentityUser { get; set; }
 

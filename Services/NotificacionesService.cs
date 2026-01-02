@@ -91,7 +91,10 @@ namespace ControlActividades.Services
             await _db.SaveChangesAsync();
         }
 
-        public async Task GuardarNotificacionAsync(string userId, string messageId, string title, string body, TiposNotificaciones tipo)
+        public async Task GuardarNotificacionAsync(string userId, string messageId,
+                                                   string title, string body,
+                                                   TiposNotificaciones tipo,
+                                                   int? materiaId = null, int? grupoId = null)
         {
             try
             {
@@ -103,7 +106,9 @@ namespace ControlActividades.Services
                     Title = title,
                     Body = body,
                     FechaRecibido = DateTime.Now,
-                    TipoId = (int)tipo
+                    TipoId = (int)tipo,
+                    MateriaId = materiaId,
+                    GrupoId = grupoId
                 };
 
                 _db.tbNotificaciones.Add(noti);
@@ -176,7 +181,8 @@ namespace ControlActividades.Services
 
         //NOTIFICACIÓN GENERAL PARA TODAS LAS ACCIONES
         public async Task ProcesarNotificacion(List<string> destinatariosUserId,
-                                               List<UsuarioFcmToken> tokens, string titulo, string cuerpo, TiposNotificaciones tipo
+                                               List<UsuarioFcmToken> tokens, string titulo, string cuerpo, TiposNotificaciones tipo,
+                                               int? materiaId = null, int? grupoId = null
                                                )
         {
 
@@ -191,7 +197,7 @@ namespace ControlActividades.Services
             //Guardar una notificación por usuario
             foreach (var userId in destinatariosUserId)
             {
-                await GuardarNotificacionAsync(userId, messageId, titulo, cuerpo, tipo);
+                await GuardarNotificacionAsync(userId, messageId, titulo, cuerpo, tipo, materiaId);
             }
 
         }
@@ -210,7 +216,8 @@ namespace ControlActividades.Services
                 tokens,
                 actividad.NombreActividad,
                 actividad.Descripcion,
-                TiposNotificaciones.ActividadCreada
+                TiposNotificaciones.ActividadCreada,
+                materiaId
             );
         }
 
@@ -224,7 +231,8 @@ namespace ControlActividades.Services
                 tokens,
                 aviso.Titulo,
                 aviso.Descripcion,
-                TiposNotificaciones.Aviso
+                TiposNotificaciones.Aviso,
+                materiaId
             );
 
 

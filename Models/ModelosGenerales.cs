@@ -397,7 +397,8 @@ namespace ControlActividades.Models
 
         public string TipoNotificacion { get; set; }
         public int TipoId { get; set; }
-
+        public int? MateriaId { get; set; }
+        public int? GrupoId { get; set; }
         public DateTime FechaRecibido { get; set; }
     }
 

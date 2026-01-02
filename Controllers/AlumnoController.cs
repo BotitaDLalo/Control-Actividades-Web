@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-using ControlActividades.Models;
+﻿using ControlActividades.Models;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
 
 namespace ControlActividades.Controllers
 {
     [Authorize]
     public class AlumnoController : Controller
     {
+        #region inicializaciones
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
         private RoleManager<IdentityRole> _roleManager;
@@ -106,6 +106,8 @@ namespace ControlActividades.Controllers
             }
         }
 
+        #endregion
+
         public ActionResult Index()
         {
             string userId = User.Identity.GetUserId();
@@ -117,8 +119,7 @@ namespace ControlActividades.Controllers
             return View();
         }
 
-
-
+        #region grupos y materias
 
         [HttpGet]
         public async Task<ActionResult> ObtenerClases(int alumnoId)
@@ -215,6 +216,9 @@ namespace ControlActividades.Controllers
             return RedirectToAction("Index");
         }
 
+        #endregion
+
+        #region avisos
         public async Task<ActionResult> Avisos(int alumnoId)
         {
             ViewBag.AlumnoId = alumnoId;
@@ -224,7 +228,6 @@ namespace ControlActividades.Controllers
                 .ToListAsync();
             return PartialView("_Avisos", avisos);
         }
-
 
 
         [HttpGet]
@@ -267,6 +270,7 @@ namespace ControlActividades.Controllers
             }
         }
 
+        #endregion
 
 
         public ActionResult Actividades()
@@ -300,8 +304,6 @@ namespace ControlActividades.Controllers
         {
             return PartialView("_Calificaciones");
         }
-
-
 
 
 

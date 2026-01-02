@@ -167,7 +167,7 @@ namespace ControlActividades.Controllers
                 MessageId = notificacion.MessageId,
                 Title = notificacion.Title,
                 Body = notificacion.Body,
-                FechaRecibido = notificacion.FechaRecibido
+                FechaRecibido = notificacion.FechaRecibido,
             };
 
             Db.tbNotificaciones.Add(nuevaNotificacion);
@@ -199,7 +199,9 @@ namespace ControlActividades.Controllers
                     Body = n.Body,
                     TipoId = n.TipoId,
                     TipoNotificacion = n.cTipoNotificacion.Nombre,
-                    FechaRecibido = n.FechaRecibido
+                    FechaRecibido = n.FechaRecibido,
+                    MateriaId = n.MateriaId,
+                    GrupoId = n.GrupoId
                 })
                 .ToList();
             return Ok(notificaciones);
