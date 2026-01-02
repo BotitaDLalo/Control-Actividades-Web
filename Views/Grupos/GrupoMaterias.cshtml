@@ -1,0 +1,20 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
+    ViewBag.Title = "Materias del grupo";
+    ViewBag.PageHeader = "Materias del grupo";
+    int grupoId = Request.QueryString["grupoId"] != null ? int.Parse(Request.QueryString["grupoId"]) : 0;
+}
+
+<div class="container mt-4">
+    <div id="listaMateriasGrupo" class="content"></div>
+</div>
+
+@section Scripts{
+    @*<script src="~/Scripts/Docente/Grupos/mostrarMateriasGrupo.js"></script>*@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof cargarMateriasDeGrupo === 'function') cargarMateriasDeGrupo();
+        });
+    </script>
+    <script src="~/Scripts/Materias/materias-grupo.js"></script>
+}

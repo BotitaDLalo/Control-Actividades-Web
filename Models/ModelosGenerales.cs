@@ -510,4 +510,18 @@ namespace ControlActividades.Models
 
         public bool EstadoEntrega { get; set; }    
     }
+
+    public class GrupoViewModel
+    {
+        public int GrupoId { get; set; }
+
+        public string NombreGrupo { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string CodigoColor { get; set; }
+
+        public string CodigoAcceso { get; set; }
+    }
+
 }

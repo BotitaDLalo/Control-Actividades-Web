@@ -91,6 +91,11 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Alumno/css").Include(
                 "~/Content/Alumno/*.css"));
 
+
+
+            bundles.Add(new StyleBundle("~/Content/Materia-Detalles/css").Include(
+                "~/Content/Materias/*.css"));
+
             // Disable optimizations in development to load files directly
             BundleTable.EnableOptimizations = false;
         }
