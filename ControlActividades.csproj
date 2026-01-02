@@ -504,7 +504,7 @@
     <Content Include="Content\Alumno\Clases.css" />
     <Content Include="Content\Alumno\Layout.css" />
     <Content Include="Content\Alumno\materias.css" />
-    <Content Include="Content\Alumno\Notificaciones.css" />
+    <Content Include="Content\Archivo_Papelera\Notificaciones.css" />
     <Content Include="Content\Alumno\PaginasDi.css" />
     <Content Include="Content\Alumno\Vistamaterias.css" />
     <Content Include="Content\bootstrap-grid.css" />
@@ -553,7 +553,7 @@
     <Content Include="Content\Docente\MateriaDetallesEstilos.css" />
     <Content Include="Content\Docente\MateriaDetallesEstilosBotonesEtc.css" />
     <Content Include="Content\Docente\Materias.css" />
-    <Content Include="Content\Docente\Notificaciones.css" />
+    <Content Include="Content\Archivo_Papelera\NotificacionesDocentes.css" />
     <Content Include="Content\Docente\VistaMateriasD.css" />
     <Content Include="Content\Iconos\1-26.svg" />
     <Content Include="Content\Iconos\AGENDA-26.svg" />

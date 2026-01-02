@@ -15,6 +15,7 @@ function initHeaderNotifications() {
         if (panel.style.display === "flex") {
             panel.style.display = "none";
             panel.setAttribute('aria-hidden', 'true');
+            icono.classList.remove("selected");
             return;
         }
 
@@ -34,6 +35,7 @@ function initHeaderNotifications() {
         }
         panel.style.display = "flex";
         panel.setAttribute('aria-hidden', 'false');
+        icono.classList.add("selected");
         ocultarIndicadorNotificaciones();
     });
 
@@ -42,6 +44,7 @@ function initHeaderNotifications() {
         if (!icono.contains(event.target) && !panel.contains(event.target)) {
             panel.style.display = "none"; 
             panel.setAttribute('aria-hidden', 'true');
+            icono.classList.remove("selected");
         }
     });
 }
