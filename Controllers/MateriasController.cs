@@ -560,20 +560,20 @@ namespace ControlMaterias.Controllers
             try
             {
                 // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
-                bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
-                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
-                if (!esDocente)
+                //bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
+                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId).ToList();
+                if (User.IsInRole(Roles.ALUMNO))
                 {
                     // para alumnos mostrar actividades publicadas o programadas cuyo horario ya se cumplió
-                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
+                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now)).ToList();
                 }
-                var actividadesEntities = await query.ToListAsync();
+                var actividadesEntities = query;
 
-                if (actividadesEntities == null || actividadesEntities.Count == 0)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
-                }
+                //if (actividadesEntities == null || actividadesEntities.Count == 0)
+                //{
+                //    Response.StatusCode = 404; // Not Found
+                //    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
+                //}
 
                 var resultado = actividadesEntities.Select(a => new
                 {
