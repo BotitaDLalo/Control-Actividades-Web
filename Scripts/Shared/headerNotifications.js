@@ -107,6 +107,26 @@ function renderizarNotificaciones(notificaciones) {
     lista.innerHTML = html;
 }
 
+document.addEventListener("mouseover", function (e) {
+    const btn = e.target.closest(".btn-borrar-noti");
+    if (!btn) return;
+
+    const notiItem = btn.closest(".noti-item");
+    if (notiItem) {
+        notiItem.classList.add("no-hover");
+    }
+});
+
+document.addEventListener("mouseout", function (e) {
+    const btn = e.target.closest(".btn-borrar-noti");
+    if (!btn) return;
+
+    const notiItem = btn.closest(".noti-item");
+    if (notiItem) {
+        notiItem.classList.remove("no-hover");
+    }
+});
+
 
 // Asegurar que se ejecute cuando la página cargue
 document.addEventListener("DOMContentLoaded", initSignalRNotifications);

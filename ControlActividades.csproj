@@ -499,7 +499,7 @@
   <ItemGroup>
     <Content Include="Content\Administrador\administrador.css" />
     <Content Include="Content\Alumno\avisosSeccion.css" />
-    <Content Include="Content\Alumno\Calendario.css" />
+    <Content Include="Content\Archivo_Papelera\Calendario.css" />
     <Content Include="Content\Alumno\Cards.css" />
     <Content Include="Content\Alumno\Clases.css" />
     <Content Include="Content\Alumno\Layout.css" />

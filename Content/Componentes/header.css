@@ -119,6 +119,11 @@
         opacity: 0.8;
     }
 
+.noti-item.no-hover:hover {
+    background-color: transparent;
+    opacity: 1;
+}
+
  /*Izquierda. Icono*/
 .noti-left {
     flex-shrink: 0;
@@ -146,7 +151,7 @@
 }
 
 /*Derecha. Eliminar notificación*/
-.noti-opciones{
+.noti-opciones {
     flex-shrink: 0;
     position: relative;
 }
@@ -154,11 +159,19 @@
 .noti-menu {
     background: none;
     border: none;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
     font-size: 18px;
     cursor: pointer;
     color: red;
 }
 
+.noti-menu:hover {
+    background-color: darkgray;
+}
+
+/*Campana de notificaciones*/
 #notificaciones-icono{
     background: white;
     transition: background-color 0.2s ease;
