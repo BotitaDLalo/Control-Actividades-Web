@@ -1,16 +1,34 @@
 ﻿:root {
-    /*Definición de colores*/
+    /*DEFINICIÓN DE COLORES*/
     --color-1: #4A90E2;
     --color-2: #50E3C2;
     --color-texto: #333333;
+    /*Azules*/
     --azul-twitter: #1db7f7;
+    --azul-brillante: #007bff; /*Azul bootstrap*/
+    /*Otros*/
     --fondo1: #082050;
     --fondo2: #0F0C20;
-    --grayhover: #c6c6c6;
-    /*Variables utilizables por componentes*/
+    /*Grises*/
+    --gris-claro: #c6c6c6;
+    /*ByN*/
+    --white: #FFFFFF;
+    --black: #000000;
+    /*VARIABLES*/
     --main-color: var(--azul-twitter);
     --second-color: var(--azul-twitter);
     --card-header: var(--azul-twitter);
     --fondo-color: #ffffff;
-    --hover-gris: var(--grayhover);
+    --gris-color: #333;
+    /*Hover*/
+    --hover-gris: var(--gris-claro);
+    /*Estados*/
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    /*Bordes*/
+    --border-default: #dddddd;
+    /*Enlaces*/
+    --enlace-azul: var(--azul-brillante);
+    
 }

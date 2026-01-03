@@ -149,7 +149,7 @@
     }
 .ver-completo {
     font-size: 14px;
-    color: #007bff;
+    color: var(--enlace-azul);
     cursor: pointer;
     margin-top: 10px;
     text-decoration: underline;

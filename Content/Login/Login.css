@@ -281,7 +281,7 @@ button {
     }
 
     .input-google p {
-        font-family: 'Poppins', sans-serif;
+        font-family: var(--font-google);
         font-size: 15px;
         width: 90%;
     }

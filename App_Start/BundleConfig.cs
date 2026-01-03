@@ -23,17 +23,41 @@ namespace ControlActividades
                       "~/Scripts/bootstrap.bundle.min.js"));
 
             // Keep only global site CSS in the main bundle. Dashboard-specific CSS should not be bundled globally to avoid layout conflicts (e.g. ".layout" rule).
-            bundles.Add(new StyleBundle("~/Content/css").Include(
+            bundles.Add(new StyleBundle("~/Content/Variables")
+                .Include(
+                    "~/Content/Variables/colors.css",
+                    "~/Content/Variables/fuentes.css"
+                )
+            );
+
+            bundles.Add(new StyleBundle("~/Content/Componentes")
+                .Include(
+                    "~/Content/Componentes/Calendario.css",
+                    "~/Content/Componentes/cards.css",
+                    "~/Content/Componentes/carga.css",
+                    "~/Content/Componentes/header.css"
+                )
+            );
+
+            bundles.Add(new StyleBundle("~/Content/css")
+                .Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css",
-                      "~/Content/sidebar.css"));
+                      "~/Content/sidebar.css"
+                )
+            );
 
             bundles.Add(new StyleBundle("~/Content/Dashboard/css").Include(
                     "~/Content/Dashboard/cards.css",
                     "~/Content/Dashboard/content.css",
                     "~/Content/Dashboard/nav-bar.css",
                     "~/Content/Dashboard/sidebar.css"
-                ));
+            ));
+
+
+            bundles.Add(new ScriptBundle("~/bundles/carga")
+                .Include("~/Scripts/Componentes/PantallaCarga.js")
+            );
 
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")
@@ -90,7 +114,6 @@ namespace ControlActividades
 
             bundles.Add(new StyleBundle("~/Content/Alumno/css").Include(
                 "~/Content/Alumno/*.css"));
-
 
 
             bundles.Add(new StyleBundle("~/Content/Materia-Detalles/css").Include(

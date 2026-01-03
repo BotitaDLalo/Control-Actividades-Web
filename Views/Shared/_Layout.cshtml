@@ -5,17 +5,21 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - ControlActividades</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
     <!-- Use Inter font site-wide -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+    @Styles.Render("~/Content/Variables")
+    @Styles.Render("~/Content/Componentes")
+    @Styles.Render("~/Content/carga")
     @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr") 
+    @Scripts.Render("~/bundles/modernizr")
 
     <style>
-        html, body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        html, body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
 
         /* Hacer la animación de los submenús (bootstrap collapse) más lenta: 0.3s */
         .collapsing {
@@ -44,15 +48,13 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/carga")
 
     <!--SPINNER DE CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
     </div>
-    <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
-    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     @RenderSection("Scripts", required: false)
