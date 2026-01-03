@@ -1,0 +1,215 @@
+﻿@{
+    ViewData["Title"] = "CrearActividadModal";
+}
+
+
+<div class="modal fade" id="crearActividadModal" tabindex="-1" aria-labelledby="crearActividadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearActividadModalLabel">Crear Actividad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="actividadesForm">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" class="form-control" autocomplete="off" autocorrect="off" spellcheck="false">
+
+                    <label for="descripcion">Descripción:</label>
+                    <textarea id="descripcion" class="form-control"></textarea>
+
+                    <label for="fechaLimite">Fecha y Hora Límite de Entrega:</label>
+                    <input type="datetime-local" id="fechaHoraLimite" class="form-control">
+
+                    @*<label for="tipoActividad">Tipo de actividad:</label>
+                    <select id="tipoActividad" class="form-select">
+                        <option value="">Cargando...</option>
+                    </select>*@
+
+                    <label for="estatusPublicacion" class="mt-2">Estatus de publicación:</label>
+                    <select id="estatusPublicacion" class="form-select">
+                        <option value="true">Publicar ahora</option>
+                        <option value="null">Publicar después (programar)</option>
+                        <option value="false">Borrador</option>
+                    </select>
+
+                    <label for="fechaProgramada" class="mt-2">Fecha programada (solo si eliges "Publicar después"):</label>
+                    <input type="datetime-local" id="fechaProgramada" class="form-control">
+
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="checkbox" id="sinPuntaje">
+                            <label class="form-check-label" for="sinPuntaje">Sin puntaje (participación)</label>
+                        </div>
+                        <div style="flex:1">
+                            <label for="puntaje">Puntaje:</label>
+                            <input type="number" id="puntaje" class="form-control" min="0" max="100">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnPublicarActividad">Publicar</button>
+                <button type="button" class="btn btn-secondary" id="btnSugerencias">Sugerencias</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sugerenciasModal" tabindex="-1" aria-labelledby="sugerenciasModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sugerenciasModalLabel">Sugerencias</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="sugerenciasLista" class="">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnAplicarSugerencia">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Cargar tipos de actividades cuando se abra el modal
+    document.addEventListener('DOMContentLoaded', function () {
+        var crearModal = document.getElementById('crearActividadModal');
+            if (crearModal) {
+            function toInputDateTimeLocal(dt) {
+                if (!(dt instanceof Date)) return '';
+                const pad = (n) => n < 10 ? '0' + n : n;
+                const year = dt.getFullYear();
+                const month = pad(dt.getMonth() + 1);
+                const day = pad(dt.getDate());
+                const hours = pad(dt.getHours());
+                const minutes = pad(dt.getMinutes());
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
+            crearModal.addEventListener('show.bs.modal', function () {
+                cargarTiposActividad();
+
+                try {
+                    // If we are not editing an existing actividad, set default time to 23:59 (fin del día)
+                    if (!window.editingActividadId) {
+                        const input = document.getElementById('fechaHoraLimite');
+                        if (input) {
+                            const now = new Date();
+                            const defaultDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0, 0);
+                            input.value = toInputDateTimeLocal(defaultDate);
+                        }
+                    }
+                } catch (e) { console.warn('No se pudo establecer la fecha por defecto:', e); }
+            });
+
+            // Cuando se oculta el modal, restablecer al modo de creación
+            crearModal.addEventListener('hidden.bs.modal', function () {
+                try {
+                    // limpiar formulario
+                    var form = document.getElementById('actividadesForm');
+                    if (form) form.reset();
+
+                    // restaurar texto y comportamiento del botón publicar
+                    var btn = document.getElementById('btnPublicarActividad');
+                    if (btn) {
+                        btn.textContent = 'Publicar';
+                        // quitar listeners previos
+                        var newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        newBtn.addEventListener('click', registrarActividad);
+                    }
+
+                    // limpiar variable global de edición si existe
+                    if (window.editingActividadId) window.editingActividadId = null;
+
+                    // restablecer puntaje
+                    var puntaje = document.getElementById('puntaje');
+                    var sinP = document.getElementById('sinPuntaje');
+                    if (puntaje) { puntaje.disabled = false; puntaje.value = ''; }
+                    if (sinP) sinP.checked = false;
+                } catch (e) { console.warn(e); }
+            });
+
+            // asociar el comportamiento por default al botón (crear)
+            var defaultBtn = document.getElementById('btnPublicarActividad');
+            if (defaultBtn) defaultBtn.addEventListener('click', registrarActividad);
+
+            // toggle puntaje when checkbox changes
+            var sinP = document.getElementById('sinPuntaje');
+            var puntaje = document.getElementById('puntaje');
+            if (sinP && puntaje) {
+                sinP.addEventListener('change', function () {
+                    if (sinP.checked) {
+                        puntaje.value = '';
+                        puntaje.disabled = true;
+                    } else {
+                        puntaje.disabled = false;
+                    }
+                });
+            }
+        }
+    });
+
+    async function cargarTiposActividad() {
+        var select = document.getElementById('tipoActividad');
+        if (!select) return;
+        select.innerHTML = '<option value="">Cargando...</option>';
+        try {
+            const resp = await fetch('/Actividades/ObtenerTiposActividades');
+            if (!resp.ok) throw new Error('No se pudieron cargar los tipos');
+            const tipos = await resp.json();
+            if (!tipos || tipos.length === 0) {
+                select.innerHTML = '<option value="">(Sin tipos disponibles)</option>';
+                return;
+            }
+            select.innerHTML = '';
+            tipos.forEach(function (t) {
+                var opt = document.createElement('option');
+                opt.value = t.TipoActividadId;
+                opt.textContent = t.Nombre;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            select.innerHTML = '<option value="">Error al cargar</option>';
+            console.error(e);
+        }
+    }
+</script>
+<style>
+    /* Styles para mejorar visual de sugerencias */
+    .suggestion-card {
+        border: 1px solid #e9eefb;
+        border-radius: 8px;
+    }
+
+    .suggestion-title {
+        font-size: 1rem;
+        color: #0b5ed7;
+    }
+
+    .suggestion-text {
+        font-size: .95rem;
+        color: #333;
+        max-height: 160px;
+        overflow: auto;
+    }
+
+    .suggestion-card .form-check-input {
+        width: 18px;
+        height: 18px;
+    }
+    /* ensure radio focus visible */
+    .suggestion-card:focus-within {
+        box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+    }
+</style>
+
+

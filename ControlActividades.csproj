@@ -599,7 +599,10 @@
     <Content Include="Content\site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Scripts\Actividades\actividades.js" />
+    <Content Include="Scripts\Actividades\entregables.js" />
     <Content Include="Scripts\Administrador\Autorizar.js" />
+    <Content Include="Scripts\Alumnos\alumnos.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
     <Content Include="Scripts\Alumno\actividades.js" />
     <Content Include="Scripts\Alumno\AgendaFullCalendar.js" />
@@ -613,6 +616,7 @@
     <Content Include="Scripts\Alumno\UnirseClase.js" />
     <Content Include="Scripts\Alumno\VentanasDi.js" />
     <Content Include="Scripts\Alumno\Vistamaterias.js" />
+    <Content Include="Scripts\Avisos\avisos.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -656,6 +660,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <Content Include="Scripts\Grupos\configuracion.js" />
     <Content Include="Scripts\Grupos\grupos.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -670,6 +675,8 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\Materias\configuracion.js" />
+    <Content Include="Scripts\Materias\materia-detalles.js" />
     <Content Include="Scripts\Materias\materias-grupo.js" />
     <Content Include="Scripts\Materias\materias-sin-grupo.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
@@ -732,6 +739,9 @@
     <Content Include="Views\Materias\Index.cshtml" />
     <Content Include="Views\Grupos\GrupoMaterias.cshtml" />
     <Content Include="Views\Materias\MateriaDetalles.cshtml" />
+    <Content Include="Views\Materias\MateriasModal.cshtml" />
+    <Content Include="Views\Materias\CrearActividadModal.cshtml" />
+    <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />

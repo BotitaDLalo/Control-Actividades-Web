@@ -15,6 +15,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using MimeKit.Cryptography;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace ControlActividades.Controllers
@@ -103,6 +104,36 @@ namespace ControlActividades.Controllers
 
         public ActionResult Index()
         {
+            var tieneGrupos = true;
+            var tieneMaterias = true;
+            var usuarioId = Fg.ObtenerUsuarioId(User);
+
+            if (User.IsInRole(Roles.DOCENTE))
+            {
+                var docenteTieneGrupos = Db.tbGrupos.Where(a => a.DocenteId == usuarioId).Any();
+                tieneGrupos = docenteTieneGrupos;
+
+                var docenteTieneMaterias = Db.tbMaterias.Where(a => a.DocenteId == usuarioId).Any();
+                tieneMaterias = docenteTieneMaterias;
+            }
+            else if (User.IsInRole(Roles.ALUMNO))
+            {
+                var alumnoTieneGrupos = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId).Any();
+                tieneGrupos = alumnoTieneGrupos;
+
+                var alumnoTieneMaterias = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Any();
+                tieneMaterias = alumnoTieneMaterias;
+            }
+
+            if (!tieneGrupos && tieneMaterias)
+            {
+                return View();
+            }
+            else if (!tieneGrupos)
+            {
+                return View("~/Views/Materias/Index.cshtml");
+            }
+
             return View();
         }
 
@@ -165,6 +196,12 @@ namespace ControlActividades.Controllers
             {
                 var lsAlumnoGruposId = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId).Select(a => a.GrupoId).ToList();
 
+                var lsAlumnoMateriasId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Select(a => a.MateriaId).ToList();
+
+                var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => lsAlumnoMateriasId.Contains(a.MateriaId)).Select(a => a.GrupoId).Distinct().ToList();
+
+                lsAlumnoGruposId.AddRange(lsMateriasGrupoId);
+
                 grupos = Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
                         .Select(g => new GrupoViewModel
                         {
@@ -185,7 +222,7 @@ namespace ControlActividades.Controllers
         {
             if (!grupoId.HasValue)
             {
-                return RedirectToAction("Index","Grupos");
+                return RedirectToAction("Index", "Grupos");
             }
 
             return View();
@@ -236,6 +273,18 @@ namespace ControlActividades.Controllers
                 .Where(gm => gm.GrupoId == grupoId)
                 .Select(gm => gm.MateriaId)
                 .ToList();
+
+            if (User.IsInRole(Roles.ALUMNO))
+            {
+                var usuarioId = Fg.ObtenerUsuarioId(User);
+                var alumnoPerteneceGrupo = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId && a.GrupoId == grupoId).Any();
+
+                if (!alumnoPerteneceGrupo)
+                {
+                    materiasIds = materiasIds.Where(a=> Db.tbAlumnosMaterias.Any(am=> am.AlumnoId == usuarioId && am.MateriaId == a)).ToList();
+                }
+
+            }
 
             var materiasConActividades = Db.tbMaterias
                 .Where(m => materiasIds.Contains(m.MateriaId))
