@@ -1026,23 +1026,45 @@ namespace ControlMaterias.Controllers
                     return Json(new { mensaje = "La materia no existe" }, JsonRequestBehavior.AllowGet);
                 }
 
-                var actividades = Db.tbActividades.Where(a => a.MateriaId == id);
-                Db.tbActividades.RemoveRange(actividades);
+                //var actividades = Db.tbActividades.Where(a => a.MateriaId == id);
+                //Db.tbActividades.RemoveRange(actividades);
 
-                var avisos = Db.tbAvisos.Where(a => a.MateriaId == id);
-                Db.tbAvisos.RemoveRange(avisos);
+                //var avisos = Db.tbAvisos.Where(a => a.MateriaId == id);
+                //Db.tbAvisos.RemoveRange(avisos);
 
-                var relacionesAlumnos = Db.tbAlumnosMaterias.Where(am => am.MateriaId == id);
-                Db.tbAlumnosMaterias.RemoveRange(relacionesAlumnos);
+                //var relacionesAlumnos = Db.tbAlumnosMaterias.Where(am => am.MateriaId == id);
+                //Db.tbAlumnosMaterias.RemoveRange(relacionesAlumnos);
+
+                //var relacionMateriaConGrupo = Db.tbGruposMaterias.Where(mg => mg.MateriaId == id);
+                //Db.tbGruposMaterias.RemoveRange(relacionMateriaConGrupo);
+
+                //Db.tbMaterias.Remove(materia);
+
+                var existenAlumnos = Db.tbAlumnosMaterias.Where(a => a.MateriaId == id).Any();
+                if (existenAlumnos)
+                    return Json(new { mensaje = "Ya existen alumnos inscritos a la materia", success = false }, JsonRequestBehavior.AllowGet);
+
+
+                var existenActividades = Db.tbActividades.Where(a => a.MateriaId == id).Any();
+                if (existenActividades)
+                    return Json(new { mensaje = "Ya existen actividades creadas.", success = false }, JsonRequestBehavior.AllowGet);
+
+
+                var existenAvisos = Db.tbAvisos.Where(a => a.MateriaId == id).Any();
+                if (existenAvisos)
+                    return Json(new { mensaje = "Ya existen avisos creados.", success = false }, JsonRequestBehavior.AllowGet);
+
 
                 var relacionMateriaConGrupo = Db.tbGruposMaterias.Where(mg => mg.MateriaId == id);
                 Db.tbGruposMaterias.RemoveRange(relacionMateriaConGrupo);
 
                 Db.tbMaterias.Remove(materia);
 
+
+
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Materia y sus relaciones eliminadas correctamente." }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Materia y sus relaciones eliminadas correctamente.", success = true }, JsonRequestBehavior.AllowGet);
             }
             catch (System.Exception ex)
             {
@@ -1063,19 +1085,12 @@ namespace ControlMaterias.Controllers
                     return Json(new { mensaje = "Materia no encontrada." }, JsonRequestBehavior.AllowGet);
                 }
 
-                if (string.IsNullOrWhiteSpace(materiaDto.NombreMateria))
-                {
-                    Response.StatusCode = 400;
-                    return Json(new { mensaje = "El nombre de la materia no puede estar vacío." }, JsonRequestBehavior.AllowGet);
-                }
-                else
-                {
-                    materiaExistente.NombreMateria = materiaDto.NombreMateria;
-                }
+
+                materiaExistente.NombreMateria = string.IsNullOrWhiteSpace(materiaDto.NombreMateria)
+                    ? materiaExistente.NombreMateria : materiaDto.NombreMateria;
 
                 materiaExistente.Descripcion = string.IsNullOrWhiteSpace(materiaDto.Descripcion)
-                    ? null
-                : materiaDto.Descripcion;
+                    ? materiaExistente.Descripcion : materiaDto.Descripcion;
 
 
                 await Db.SaveChangesAsync();
@@ -1086,9 +1101,9 @@ namespace ControlMaterias.Controllers
 
                 return Json(new
                 {
-                    materiaExistente.MateriaId,
-                    materiaExistente.NombreMateria,
-                    materiaExistente.Descripcion
+                    MateriaId = materiaExistente.MateriaId,
+                    NombreMateria = materiaExistente.NombreMateria,
+                    Descripcion = materiaExistente.Descripcion
                 }, JsonRequestBehavior.AllowGet);
 
                 //return Json(materiaExistente, JsonRequestBehavior.AllowGet);

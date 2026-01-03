@@ -1,55 +1,86 @@
 ﻿//Funcion para editar nombre y descripcion de una materia.
 
-async function editarMateria(){
-    
+const btnGuardarNombre = document.getElementById("btnGuardarNombre");
+const btnGuardarDescripcion = document.getElementById("btnGuardarDescripcion");
+
+async function guardarConfig() {
+  const params = new URLSearchParams(window.location.search);
+
+  const materiaId = params.get("materiaId");
+  if (!materiaId) return;
+
+  const nombre = document.getElementById("configNombre").value.trim();
+  const descripcion = document.getElementById("configDescripcion").value.trim();
+
+  try {
+    const resp = await fetch(
+      `/Materias/ActualizarMateria?materiaId=${materiaId}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          NombreMateria: nombre,
+          Descripcion: descripcion,
+        }),
+      }
+    );
+
+    if (resp.ok) {
+      const resJson = await resp.json();
+
+      console.log(resJson.NombreMateria);
+      $("#materia-nombre").text(resJson.NombreMateria);
+
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "Guardado",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      return true;
+    } else {
+      Swal.fire("Error", "No se pudo guardar", "error");
+      return false;
+    }
+  } catch (e) {
+    console.error(e);
+    Swal.fire("Error", "No se pudo guardar", "error");
+    return false;
+  }
 }
 
-async function eliminarMateria(MateriaId) {
-  const confirmacion = await Swal.fire({
-    title: "¿Estás seguro?",
-    text: "No podrás recuperar esta materia después de eliminarla.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-  });
+async function eliminarMateria() {
+  const params = new URLSearchParams(window.location.search);
 
-  if (confirmacion.isConfirmed) {
-    try {
-      const response = await fetch(`/Materias/EliminarMateria/${MateriaId}`, {
-        method: "DELETE",
-      });
+  const materiaId = params.get("materiaId");
+  if (!materiaId) return;
 
-      const resultado = await response.json();
+  if (!confirm("¿Eliminar esta materia? Esta acción no se puede deshacer."))
+    return;
+  try {
+    const resp = await fetch(`/Materias/EliminarMateria?id=${materiaId}`, {
+      method: "DELETE",
+    });
 
-      if (response.ok) {
-        await Swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: resultado.mensaje || "Eliminado.",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        // Se ejecuta funcion inicializar para actualizar vista completa
-        if (typeof inicializar === "function") inicializar();
-      } else {
-        await Swal.fire({
-          position: "top-end",
-          icon: "error",
-          title:
-            resultado.mensaje || "No se pudo eliminar el grupo y sus materias.",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-      }
-    } catch (error) {
-      await Swal.fire({
-        position: "top-end",
-        icon: "error",
-        title: "Ocurrio un problema al eliminar la materia.",
-        showConfirmButton: false,
-        timer: 2000,
-      });
+    const respJson = await resp.json();
+
+    if (respJson.success) {
+      // Swal.fire({
+      //   icon: "success",
+      //   title: "Materia eliminada",
+      //   showConfirmButton: false,
+      //   timer: 1500,
+      // });
+      window.location.href = "/Grupos/Index";
+      // redirect to grupos overview
+    } else {
+      // const txt = await resp.text();
+      const txt = respJson.mensaje;
+      Swal.fire("Error", txt || "No se pudo eliminar la materia", "error");
     }
+  } catch (e) {
+    console.error(e);
+    Swal.fire("Error", "No se pudo eliminar", "error");
   }
 }
