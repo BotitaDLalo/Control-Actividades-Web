@@ -14,14 +14,18 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-end align-items-center mb-3">
-        <div class="ms-3">
-            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#gruposModal">
-                Crear
-                Grupo
-            </button>
+
+    @if (User.IsInRole(roles.DOCENTE))
+    {
+        <div class="d-flex justify-content-end align-items-center mb-3">
+            <div class="ms-3">
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#gruposModal">
+                    Crear
+                    Grupo
+                </button>
+            </div>
         </div>
-    </div>
+    }
 
     <div id="listaGrupos" class="content"></div>
 

@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
-using System.Web.Security;
 
 namespace ControlMaterias.Controllers
 {
@@ -324,7 +323,7 @@ namespace ControlMaterias.Controllers
                 Db.tbAlumnosMaterias.Add(nuevaRelacion);
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Alumno asignado a la materia exitosamente." }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Alumno asignado a la materia exitosamente.", success = true }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -366,11 +365,6 @@ namespace ControlMaterias.Controllers
                     .ThenBy(a => a.Nombre)
                     .ToListAsync();
 
-                if (alumnos == null || !alumnos.Any())
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontraron alumnos para la materia especificada." }, JsonRequestBehavior.AllowGet);
-                }
 
                 // Devolver lista junto con mensaje de OK
                 return Json(new { alumnos = alumnos }, JsonRequestBehavior.AllowGet);
@@ -636,7 +630,7 @@ namespace ControlMaterias.Controllers
         //Controlador para crear un aviso funciona desde dentro de la materia
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult> CrearAviso(tbAvisos avisos)
+        public async Task<ActionResult> CrearAviso(CrearAvisoRequest avisos)
         {
             if (avisos == null)
             {
@@ -646,9 +640,11 @@ namespace ControlMaterias.Controllers
 
             try
             {
+                var usuarioId = Fg.ObtenerUsuarioId(User);
+
                 var nuevoAviso = new tbAvisos
                 {
-                    DocenteId = avisos.DocenteId,
+                    DocenteId = usuarioId,
                     Titulo = avisos.Titulo,
                     Descripcion = avisos.Descripcion,
                     GrupoId = avisos.GrupoId == 0 ? null : avisos.GrupoId,
@@ -822,7 +818,7 @@ namespace ControlMaterias.Controllers
 
         //Editar aviso
         [HttpPut]
-        public async Task<ActionResult> EditarAviso(tbAvisos model)
+        public async Task<ActionResult> EditarAviso(CrearAvisoRequest model)
         {
             try
             {
@@ -929,9 +925,74 @@ namespace ControlMaterias.Controllers
             }
         }
 
+
+        [HttpGet]
+        public async Task<ActionResult> ObtenerMateriasSinGrupoPorUsuario()
+        {
+            try
+            {
+                List<tbMaterias> materiasSinGrupo = new List<tbMaterias>();
+                var usuarioId = Fg.ObtenerUsuarioId(User);
+
+
+                if (User.IsInRole(Roles.DOCENTE))
+                {
+                    materiasSinGrupo = await Db.tbMaterias
+                    .Where(m => m.DocenteId == usuarioId && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
+                    .ToListAsync();
+
+                }
+                else if (User.IsInRole(Roles.ALUMNO))
+                {
+                    var lsMateriasAlumno = await Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId ).Select(a => a.MateriaId).ToListAsync();
+
+                    lsMateriasAlumno = lsMateriasAlumno.Where(a => !Db.tbGruposMaterias.Any(gm => gm.MateriaId == a)).ToList();
+
+                    materiasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).ToList();
+                }
+
+                var resultado = new List<object>();
+
+                foreach (var materia in materiasSinGrupo)
+                {
+                    var actividadesRecientes = await Db.tbActividades
+                        .Where(a => a.MateriaId == materia.MateriaId)
+                        .OrderByDescending(a => a.FechaCreacion)
+                        .Take(2)
+                        .Select(a => new
+                        {
+                            a.ActividadId,
+                            a.NombreActividad,
+                            a.FechaCreacion
+                        })
+                        .ToListAsync();
+
+                    resultado.Add(new
+                    {
+                        materia.MateriaId,
+                        materia.NombreMateria,
+                        materia.Descripcion,
+                        materia.DocenteId,
+                        DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == materia.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
+                        materia.CodigoColor,
+                        materia.CodigoAcceso,
+                        // materia.DocenteId already included above
+                        ActividadesRecientes = actividadesRecientes
+                    });
+                }
+
+                return Json(resultado, JsonRequestBehavior.AllowGet);
+            }
+            catch (System.Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al obtener las materias", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         public ActionResult MateriaDetalles(int? materiaId, int? grupoId)
         {
-            if (!materiaId.HasValue || !grupoId.HasValue)
+            if (!materiaId.HasValue && !grupoId.HasValue)
             {
                 return RedirectToAction("Index");
             }
@@ -945,9 +1006,9 @@ namespace ControlMaterias.Controllers
 
             //return View("MateriasDetalles");
 
-            var grupo = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => a.NombreGrupo).FirstOrDefault();
+            var nombreMateria = Db.tbMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.NombreMateria).FirstOrDefault();
 
-            ViewBag.NombreGrupo = grupo;
+            ViewBag.NombreMateria = nombreMateria;
 
             return View();
         }

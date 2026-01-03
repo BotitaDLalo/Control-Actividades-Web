@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 using ControlActividades.Models.db;
+using Newtonsoft.Json;
 
 namespace ControlActividades.Models
 {
@@ -522,6 +523,15 @@ namespace ControlActividades.Models
         public string CodigoColor { get; set; }
 
         public string CodigoAcceso { get; set; }
+    }
+
+    public class CrearAvisoRequest
+    {
+        public int? AvisoId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+        public int? GrupoId { get; set; }
+        public int MateriaId {  get; set; }
     }
 
 }
