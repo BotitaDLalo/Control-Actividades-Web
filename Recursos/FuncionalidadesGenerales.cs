@@ -95,6 +95,15 @@ namespace ControlActividades.Recursos
             }
             return usuarioId;
         }
+        
+        public string ObtenerRolUsuario(IPrincipal User)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+
+            var rolClaim = identity?.FindFirst(ClaimTypes.Role);
+
+            return rolClaim?.Value;
+        }
         #endregion
     }
 }
