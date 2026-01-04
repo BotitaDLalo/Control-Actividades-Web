@@ -6,10 +6,7 @@
     @Styles.Render("~/Content/Dashboard/css")
     @Styles.Render("~/Content/Administrador/css")
 
-
     @Scripts.Render("~/bundles/modernizr")
-
-    @*<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">*@
 
     @*<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">*@
 
@@ -31,7 +28,7 @@
 <body>
     <div class="layout">
         @Html.Partial("~/Views/Shared/_Header.cshtml")
-
+        @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
         <div class="page">
             @RenderBody()
         </div>
@@ -83,7 +80,6 @@
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("Scripts", required: false)
     @RenderSection("Styles", required: false)
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
