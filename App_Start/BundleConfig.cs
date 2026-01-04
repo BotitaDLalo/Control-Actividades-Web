@@ -110,8 +110,9 @@ namespace ControlActividades
                  "~/Scripts/Componentes/componenteAvisos.js"
             ));
 
-            bundles.Add(new StyleBundle("~/Content/Alumno/css").Include(
-                "~/Content/Alumno/*.css"));
+            bundles.Add(new StyleBundle("~/Content/Alumno").Include(
+                "~/Content/Alumno/*.css")
+            );
 
 
             bundles.Add(new StyleBundle("~/Content/Materia-Detalles/css").Include(

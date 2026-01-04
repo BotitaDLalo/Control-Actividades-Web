@@ -634,7 +634,6 @@
     <Content Include="Scripts\Docente\Confirmacion.js" />
     <Content Include="Scripts\Docente\footer.js" />
     <Content Include="Scripts\Docente\Grupos\ActividadIA.js" />
-    <Content Include="Scripts\Docente\Grupos\Calendario.js" />
     <Content Include="Scripts\Docente\Grupos\cambiarCodigoMateria.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleActividad.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleMateria.js" />
