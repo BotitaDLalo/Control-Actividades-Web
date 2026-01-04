@@ -101,15 +101,13 @@ namespace ControlActividades
             bundles.Add(new ScriptBundle("~/bundles/alumno").Include(
                  "~/Scripts/Alumno/alumno.js",
                  "~/Scripts/Alumno/Avisos.js",
-                 "~/Scripts/Alumno/Calendario.js",
                  "~/Scripts/Alumno/Clases.js",
                  "~/Scripts/Alumno/layout.js",
                  "~/Scripts/Alumno/materias.js",
-                 "~/Scripts/Alumno/Notificaciones.js",
                  "~/Scripts/Alumno/UnirseClase.js",
                  "~/Scripts/Alumno/VentanasDi.js",
-                 "~/Scripts/Componentes/componenteAvisos.js",
-                 "~/Scripts/Alumno/Vistamaterias.js"
+                 "~/Scripts/Alumno/Vistamaterias.js",
+                 "~/Scripts/Componentes/componenteAvisos.js"
             ));
 
             bundles.Add(new StyleBundle("~/Content/Alumno/css").Include(
