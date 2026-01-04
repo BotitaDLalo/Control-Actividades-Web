@@ -4,12 +4,10 @@
 
 /*Estilos modales*/
 .modal-title {
-    background: linear-gradient(135deg, #007bff 50%, #0056b3 100%); /* Fondo azul degradado */
-    color: white; /* Letras blancas */
     text-align: center;
     padding: 18px;
     font-size: 25px;
-    font-weight: bold;
+    font-weight: 600;
     border-radius: 8px 8px 0 0;
     position: relative;
     overflow: hidden;

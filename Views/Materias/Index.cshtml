@@ -1,4 +1,5 @@
-﻿@{
+﻿@using roles = ControlActividades.Roles;
+@{
     Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
     ViewBag.Title = "Materias sin grupo";
     ViewBag.PageHeader = "Materias sin grupo";
@@ -10,18 +11,22 @@
 @*<link href="~/Content/cards.css" rel="stylesheet" />*@
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-end align-items-center mb-3">
-        <div class="ms-3 d-flex align-items-center" style="gap:8px;">
-            <input id="buscarMateria" class="form-control" placeholder="Buscar..." style="min-width:240px;" />
-            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#materiasModal" style="min-width:150px; padding:.35rem .9rem;">Crear Materia</button>
+
+    @if (User.IsInRole(roles.DOCENTE))
+    {
+        <div class="d-flex justify-content-end align-items-center mb-3">
+            <div class="ms-3 d-flex align-items-center" style="gap:8px;">
+                <input id="buscarMateria" class="form-control" placeholder="Buscar..." style="min-width:240px;" />
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#materiasModal" style="min-width:150px; padding:.35rem .9rem;">Crear Materia</button>
+            </div>
         </div>
-    </div>
+        @Html.Partial("MateriasModal")
+    }
 
     <div id="listaMateriasSinGrupo" class="content">
         <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
     </div>
 </div>
-@Html.Partial("MateriasModal")
 
 @section Scripts{
     <script>

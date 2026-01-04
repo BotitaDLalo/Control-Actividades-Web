@@ -158,30 +158,6 @@
         }
     });
 
-    async function cargarTiposActividad() {
-        var select = document.getElementById('tipoActividad');
-        if (!select) return;
-        select.innerHTML = '<option value="">Cargando...</option>';
-        try {
-            const resp = await fetch('/Actividades/ObtenerTiposActividades');
-            if (!resp.ok) throw new Error('No se pudieron cargar los tipos');
-            const tipos = await resp.json();
-            if (!tipos || tipos.length === 0) {
-                select.innerHTML = '<option value="">(Sin tipos disponibles)</option>';
-                return;
-            }
-            select.innerHTML = '';
-            tipos.forEach(function (t) {
-                var opt = document.createElement('option');
-                opt.value = t.TipoActividadId;
-                opt.textContent = t.Nombre;
-                select.appendChild(opt);
-            });
-        } catch (e) {
-            select.innerHTML = '<option value="">Error al cargar</option>';
-            console.error(e);
-        }
-    }
 </script>
 <style>
     /* Styles para mejorar visual de sugerencias */
