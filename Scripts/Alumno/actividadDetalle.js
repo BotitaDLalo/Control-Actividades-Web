@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', function () {
 async function cargarDetalleActividad() {
     try {
         const resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${actividadIdGlobal}`);
-        if (!resp.ok) throw new Error('No se encontró la actividad');
+        if (!resp.ok) throw new Error('No se encontrÃ³ la actividad');
         const data = await resp.json();
-        document.getElementById('tituloActividad').innerText = data.NombreActividad || 'Sin título';
+        document.getElementById('tituloActividad').innerText = data.NombreActividad || 'Sin tï¿½tulo';
         document.getElementById('descripcionActividad').innerText = data.Descripcion || '';
         document.getElementById('fechaLimite').innerText = new Date(data.FechaLimite).toLocaleString();
     } catch (e) {
@@ -44,7 +44,7 @@ async function verificarEnvio() {
             document.getElementById('estadoEntrega').innerHTML = estadoHtml;
             document.getElementById('entregaForm').style.display = 'none';
             if (data.Calificacion !== null) {
-                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: ' + data.Calificacion + '</p>';
+                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificaciï¿½n: ' + data.Calificacion + '</p>';
             }
         }
     } catch (e) { console.error(e); }
