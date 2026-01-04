@@ -608,11 +608,11 @@
     <Content Include="Scripts\Alumno\AgendaFullCalendar.js" />
     <Content Include="Scripts\Alumno\alumno.js" />
     <Content Include="Scripts\Alumno\Avisos.js" />
-    <Content Include="Scripts\Alumno\Calendario.js" />
+    <Content Include="Scripts\Papelera_Scripts\Calendario.js" />
     <Content Include="Scripts\Alumno\Clases.js" />
     <Content Include="Scripts\Alumno\layout.js" />
     <Content Include="Scripts\Alumno\materias.js" />
-    <Content Include="Scripts\Alumno\Notificaciones.js" />
+    <Content Include="Scripts\Papelera_Scripts\Notificaciones.js" />
     <Content Include="Scripts\Alumno\UnirseClase.js" />
     <Content Include="Scripts\Alumno\VentanasDi.js" />
     <Content Include="Scripts\Alumno\Vistamaterias.js" />
@@ -634,7 +634,6 @@
     <Content Include="Scripts\Docente\Confirmacion.js" />
     <Content Include="Scripts\Docente\footer.js" />
     <Content Include="Scripts\Docente\Grupos\ActividadIA.js" />
-    <Content Include="Scripts\Docente\Grupos\Calendario.js" />
     <Content Include="Scripts\Docente\Grupos\cambiarCodigoMateria.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleActividad.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleMateria.js" />

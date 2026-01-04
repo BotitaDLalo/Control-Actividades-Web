@@ -87,8 +87,10 @@ async function inicializar() {
 document.addEventListener("DOMContentLoaded", () => {
     inicializar(); // Carga inicial de datos
     // Se ejecuta solo cuando se abre el modal
-    document.getElementById("gruposModal").addEventListener("shown.bs.modal", cargarMaterias);
-
+    const gruposModal = document.getElementById("gruposModal");
+    if (gruposModal) {
+        gruposModal.addEventListener("shown.bs.modal", cargarMaterias);
+    }
 
     // Delegación de eventos: escucha los clics en el contenedor padre
     document.body.addEventListener("click", function (event) {
