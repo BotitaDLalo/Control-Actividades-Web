@@ -574,7 +574,8 @@ namespace ControlMaterias.Controllers
                 //    Response.StatusCode = 404; // Not Found
                 //    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
                 //}
-
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+                
                 var resultado = actividadesEntities.Select(a => new
                 {
                     a.ActividadId,
@@ -584,10 +585,17 @@ namespace ControlMaterias.Controllers
                     FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                     a.Puntaje,
                     Enviado = a.Enviado,
-                    FechaProgramada = a.FechaProgramada
+                    FechaProgramada = a.FechaProgramada,
+                    Rol = rolUsuario
                 }).ToList();
 
-                return Json(resultado, JsonRequestBehavior.AllowGet);
+
+
+                return Json(new
+                {
+                    Actividades = resultado,
+                    RolUsuario = rolUsuario
+                },JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -776,7 +784,14 @@ namespace ControlMaterias.Controllers
                     a.Descripcion,
                     FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss")
                 });
-                return Json(avisos, JsonRequestBehavior.AllowGet);
+
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+
+                return Json(new
+                {
+                    avisos,
+                    RolUsuario = rolUsuario
+                }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
