@@ -181,3 +181,12 @@
         background: var(--azul-twitter);
         color: white;
     }
+
+
+.elementos-perfil{
+    text-align:center;
+}
+
+.iconos1-nav{
+    width:50%;
+}
