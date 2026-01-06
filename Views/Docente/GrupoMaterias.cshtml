@@ -5,12 +5,70 @@
     int grupoId = Request.QueryString["grupoId"] != null ? int.Parse(Request.QueryString["grupoId"]) : 0;
 }
 
+<style>
+    /* Hide any card-layout previews that are rendered above the group UI on this view */
+    .card-layout { display: none !important; }
+    /* If there's a specific container used by older scripts, hide it too */
+    #listaMateriasGrupo { display: none !important; }
+</style>
+
 <div class="container mt-4">
-    <div id="listaMateriasGrupo" class="content"></div>
+    @* Top materias cards removed because the page now renders the full group UI below. *@
 </div>
+
+@* Supply docente id for client scripts (used by docenteGrupos.js) *@
+<div id="docente-datos" data-docenteid="@(ViewBag.DocenteId ?? 0)" style="display:none"></div>
+
+@{
+    // Include the group actions page partial so the group UI is rendered in-page (full view)
+    Html.RenderPartial("~/Views/Docente/GrupoActionsPage.cshtml");
+}
 
 @section Scripts{
     <script src="~/Scripts/Docente/Grupos/mostrarMateriasGrupo.js"></script>
+    <script src="~/Scripts/Docente/Grupos/docenteGrupos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                var gid = @grupoId;
+                if (gid && gid !== 0) {
+                    // prefer rendering the full-page group UI when available
+                    if (typeof showGrupoActionsOnPage === 'function') {
+                        (async function() {
+                            try {
+                                // fetch basic group info and materias
+                                var docenteId = window.docenteIdGlobal || (document.getElementById('docente-datos') && document.getElementById('docente-datos').dataset ? document.getElementById('docente-datos').dataset.docenteid : 0);
+                                var respGr = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteId}`);
+                                var gruposSimple = respGr.ok ? await respGr.json() : [];
+                                var grupoSimple = gruposSimple.find(g => Number(g.GrupoId) === Number(gid) || g.GrupoId === gid);
+                                var materias = [];
+                                try {
+                                    var respMat = await fetch(`/Grupos/ObtenerMateriasPorGrupo?grupoId=${gid}`);
+                                    if (respMat.ok) materias = await respMat.json();
+                                } catch (e) { console.warn('Error obteniendo materias:', e); }
+
+                                var grupoObj = {
+                                    GrupoId: grupoSimple ? grupoSimple.GrupoId : gid,
+                                    NombreGrupo: grupoSimple ? grupoSimple.NombreGrupo : 'Grupo',
+                                    Descripcion: grupoSimple ? grupoSimple.Descripcion : '',
+                                    Materias: Array.isArray(materias) ? materias.map(m => ({ MateriaId: m.MateriaId || m.materiaId, NombreMateria: m.NombreMateria || m.nombreMateria, Descripcion: m.Descripcion || m.descripcion })) : []
+                                };
+
+                                showGrupoActionsOnPage(grupoObj);
+                            } catch (err) {
+                                console.warn('No se pudo renderizar la vista de grupo en página:', err);
+                                // fallback to opening modal
+                                if (typeof abrirAccionesGrupo === 'function') abrirAccionesGrupo(gid);
+                            }
+                        })();
+                    }
+
+                    // store selection
+                    try { localStorage.setItem('grupoIdSeleccionado', String(gid)); } catch(e){}
+                }
+            } catch (e) { console.warn('No se pudo abrir modal de grupo al cargar la página', e); }
+        });
+    </script>
 }
 
 @*<script>

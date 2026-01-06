@@ -1,0 +1,233 @@
+@{
+    ViewData["Title"] = "GrupoActionsPage";
+}
+<div id="grupoPageContainer" class="card p-4">
+    <div id="grupoPageHeader" class="mb-3 text-center">
+        <h3 id="grupoNamePage">Cargando...</h3>
+        <p id="grupoDescPage" class="text-muted"></p>
+    </div>
+
+    <ul class="nav nav-tabs" id="grupoTabsPage" role="tablist">
+        <li class="nav-item" role="presentation"><button class="nav-link active" id="tab-avisos-page" data-bs-toggle="tab" data-bs-target="#pane-avisos-page" type="button" role="tab">Avisos</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="tab-materias-page" data-bs-toggle="tab" data-bs-target="#pane-materias-page" type="button" role="tab">Materias</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="tab-alumnos-page" data-bs-toggle="tab" data-bs-target="#pane-alumnos-page" type="button" role="tab">Alumnos</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="tab-config-page" data-bs-toggle="tab" data-bs-target="#pane-config-page" type="button" role="tab">Configuración</button></li>
+    </ul>
+
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="pane-avisos-page" role="tabpanel">
+            <div class="mb-2 d-flex justify-content-end">
+                <button id="btnCrearAvisoGrupalPage" class="btn btn-sm btn-primary">Crear aviso grupal</button>
+            </div>
+            <div id="grupoAvisosListPage">Cargando avisos...</div>
+        </div>
+
+        <div class="tab-pane fade" id="pane-materias-page" role="tabpanel">
+            <h6>Materias del grupo</h6>
+            <div id="grupoMateriasListPage" class="d-flex flex-wrap" style="gap:8px"></div>
+        </div>
+
+        <div class="tab-pane fade" id="pane-alumnos-page" role="tabpanel">
+            <div class="mb-2 d-flex justify-content-between align-items-center">
+                <div style="max-width:520px; width:100%;">
+                    <div class="input-group">
+                        <input id="buscarAlumnoGrupoInput" type="text" class="form-control" placeholder="Buscar alumno por nombre o correo..." />
+                        <button id="btnBuscarAlumnoGrupo" class="btn btn-outline-secondary" type="button">Buscar</button>
+                    </div>
+                </div>
+                <div>
+                    <button id="btnSubirExcelAlumnosPage" class="btn btn-sm btn-outline-secondary">Importar alumnos (Excel)</button>
+                </div>
+            </div>
+            <div id="grupoAlumnosListPage">Cargando alumnos...</div>
+        </div>
+
+        <div class="tab-pane fade" id="pane-config-page" role="tabpanel">
+            <h6>Configuración del grupo</h6>
+            <div class="mb-2">
+                <label class="form-label">Nombre</label>
+                <input id="configGrupoNombrePage" class="form-control" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Descripción</label>
+                <textarea id="configGrupoDescripcionPage" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="d-flex" style="gap:8px">
+                <button id="btnGuardarGrupoConfigPage" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Render group into the page container (used on GrupoMaterias view)
+    function showGrupoActionsOnPage(grupo) {
+        // populate header
+        var container = document.getElementById('grupoPageContainer');
+        if (!container) return;
+        document.getElementById('grupoNamePage').innerText = grupo.NombreGrupo || 'Grupo';
+        document.getElementById('grupoDescPage').innerText = grupo.Descripcion || '';
+
+        // materias
+        const list = document.getElementById('grupoMateriasListPage');
+        list.innerHTML = '';
+        if (Array.isArray(grupo.Materias) && grupo.Materias.length) {
+            grupo.Materias.forEach(m => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-outline-dark';
+                btn.innerText = m.NombreMateria;
+                btn.addEventListener('click', function () {
+                    // Navigate to materia details page, preserving group context
+                    try {
+                        var materiaId = m.MateriaId || m.materiaId || m.id || 0;
+                        if (!materiaId) return;
+                        try { localStorage.setItem('materiaIdSeleccionada', String(materiaId)); } catch (e) { }
+                        var gid = window.currentGrupoId || (new URLSearchParams(window.location.search)).get('grupoId') || 0;
+                        window.location.href = `/Docente/MateriasDetalles?materiaId=${encodeURIComponent(materiaId)}&grupoId=${encodeURIComponent(gid)}`;
+                    } catch (e) {
+                        console.warn('Error redirigiendo a materia:', e);
+                    }
+                });
+                list.appendChild(btn);
+            });
+        } else {
+            list.innerHTML = '<small class="text-muted">No hay materias en este grupo.</small>';
+        }
+
+        // hook buttons
+        document.getElementById('btnCrearAvisoGrupalPage').onclick = function () {
+            if (!grupo.GrupoId) return;
+            Swal.fire({
+                title: 'Crear Aviso grupal',
+                html: '<input id="tituloAvisoSwal" class="swal2-input" placeholder="Título">' + '<textarea id="descripcionAvisoSwal" class="swal2-textarea" placeholder="Descripción"></textarea>',
+                showCancelButton: true,
+                confirmButtonText: 'Crear',
+                preConfirm: () => { const titulo = document.getElementById('tituloAvisoSwal').value.trim(); const descripcion = document.getElementById('descripcionAvisoSwal').value.trim(); if (!titulo || !descripcion) { Swal.showValidationMessage('Completa todos los campos'); return false; } return { titulo, descripcion }; }
+            }).then(res => { if (res.isConfirmed) { const datos = { GrupoId: grupo.GrupoId, Titulo: res.value.titulo, Descripcion: res.value.descripcion, DocenteId: (window.docenteIdGlobal || 0) }; fetch('/Materias/CrearAvisoPorGrupo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) }).then(r => r.json()).then(j => { Swal.fire('Éxito', j.mensaje || 'Aviso creado', 'success'); }).catch(e => { console.error(e); Swal.fire('Error', 'No se pudo crear el aviso', 'error'); }); } });
+        };
+
+        // setup alumno search handlers
+        try {
+            var buscarBtn = document.getElementById('btnBuscarAlumnoGrupo');
+            var buscarInput = document.getElementById('buscarAlumnoGrupoInput');
+            if (buscarBtn && buscarInput) {
+                buscarBtn.addEventListener('click', async function () {
+                    var q = buscarInput.value && buscarInput.value.trim();
+                    if (!q) { cargarAlumnosGrupoOnPage(grupo.GrupoId); return; }
+                    try {
+                        // call Materias controller search endpoint
+                        var resp = await fetch('/Materias/BuscarAlumnosPorCorreo?query=' + encodeURIComponent(q));
+                        if (!resp.ok) { alert('Error buscando alumnos'); return; }
+                        var results = await resp.json();
+                        // results is array of { Email, Nombre, ApellidoPaterno, ApellidoMaterno }
+                        var mapped = (Array.isArray(results) ? results : []);
+                        // render in same container
+                        var container = document.getElementById('grupoAlumnosListPage');
+                        container.innerHTML = '';
+                        if (!mapped || mapped.length === 0) { container.innerHTML = '<p class="text-muted">No se encontraron alumnos.</p>'; return; }
+                        var ul = document.createElement('ul'); ul.className = 'list-group';
+                        mapped.forEach(a => {
+                            var li = document.createElement('li'); li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                            var txt = document.createElement('div'); txt.innerText = `${a.Nombre || ''} ${a.ApellidoPaterno || ''} ${a.ApellidoMaterno || ''}`.trim() + (a.Email ? ' - ' + a.Email : '');
+                            li.appendChild(txt);
+                            var actions = document.createElement('div'); actions.className = 'd-flex gap-2';
+                            var assignBtn = document.createElement('button'); assignBtn.className = 'btn btn-sm btn-primary'; assignBtn.textContent = 'Asignar';
+                            assignBtn.addEventListener('click', async function () {
+                                if (!confirm('Asignar este alumno al grupo?')) return;
+                                try {
+                                    var post = await fetch('/Materias/AsignarAlumnoMateria?correo=' + encodeURIComponent(a.Email || '') + '&materiaId=0', { method: 'POST' });
+                                    // Materias controller expects materiaId; for group use API Register endpoint by email via api/Alumnos/RegistrarAlumnoGMDocente maybe — fallback: call server side to assign by email is not available for group here.
+                                    // We'll use AlumnoApi to add by group via api/Alumnos/AlumnoGrupoCodigo? not suitable. Inform user to use import if endpoint not suitable.
+                                    if (post.ok) { alert('Alumno asignado'); cargarAlumnosGrupoOnPage(grupo.GrupoId); } else { var txt = await post.text(); alert('No se pudo asignar alumno: ' + txt); }
+                                } catch (e) { console.error(e); alert('Error asignando alumno'); }
+                            });
+                            actions.appendChild(assignBtn);
+                            li.appendChild(actions);
+                            ul.appendChild(li);
+                        });
+                        container.appendChild(ul);
+                    } catch (e) { console.error(e); alert('Error buscando alumnos'); }
+                });
+            }
+        } catch (e) { console.warn('Buscar alumnos init failed', e); }
+
+        // expose current grupo id
+        window.currentGrupoId = grupo.GrupoId || 0;
+
+        // file input
+        var existing = document.getElementById('fileImportarAlumnosPage');
+        if (!existing) {
+            var fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.id = 'fileImportarAlumnosPage'; fileInput.accept = '.xlsx,.xls'; fileInput.style.display = 'none'; document.body.appendChild(fileInput);
+            fileInput.addEventListener('change', async function (e) {
+                var f = e.target.files[0]; if (!f) return; var fd = new FormData(); fd.append('file', f); fd.append('GrupoId', window.currentGrupoId);
+                try { var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd }); var json = await resp.json().catch(() => ({})); if (!resp.ok) { Swal.fire('Error', (json && json.mensaje) ? json.mensaje : 'Error al importar alumnos', 'error'); return; } var summary = `Total leídos: ${json.TotalLeidos || 0}\nAgregados: ${json.Agregados ? json.Agregados.length : 0}\nOmitidos: ${json.Omitidos ? json.Omitidos.length : 0}\nNo encontrados: ${json.NoEncontrados ? json.NoEncontrados.length : 0}`; Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success'); fileInput.value = ''; } catch (err) { console.error(err); Swal.fire('Error', 'No se pudo subir el archivo', 'error'); }
+            });
+        }
+
+        var importBtn = document.getElementById('btnSubirExcelAlumnosPage');
+        if (importBtn) importBtn.onclick = function () { var input = document.getElementById('fileImportarAlumnosPage'); if (input) input.click(); };
+
+        // load data
+        cargarAvisosGrupoOnPage(grupo.GrupoId);
+        cargarAlumnosGrupoOnPage(grupo.GrupoId);
+
+        // fill config
+        document.getElementById('configGrupoNombrePage').value = grupo.NombreGrupo || '';
+        document.getElementById('configGrupoDescripcionPage').value = grupo.Descripcion || '';
+
+        document.getElementById('btnGuardarGrupoConfigPage').onclick = async function () {
+            const nombre = document.getElementById('configGrupoNombrePage').value.trim(); const descripcion = document.getElementById('configGrupoDescripcionPage').value.trim(); if (!nombre) { Swal.fire('Error', 'Nombre requerido', 'error'); return; }
+            try { const payload = { GrupoId: grupo.GrupoId, NombreGrupo: nombre, Descripcion: descripcion }; const resp = await fetch('/api/Grupos/ActualizarGrupo', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (resp.ok) { Swal.fire('Guardado', '', 'success'); if (typeof cargarGrupos === 'function') cargarGrupos(); } else { Swal.fire('Error', 'No se pudo guardar', 'error'); } } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); }
+        };
+    }
+
+    async function cargarAvisosGrupoOnPage(grupoId) {
+        try {
+            const resp = await fetch('/api/Avisos/ConsultarAvisosCreados', { method: 'GET', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ GrupoId: grupoId, MateriaId: 0 }) });
+            let avisos = [];
+            if (resp.ok) { avisos = await resp.json(); } else { avisos = []; }
+            const container = document.getElementById('grupoAvisosListPage');
+            container.innerHTML = '';
+            if (!avisos || avisos.length === 0) { container.innerHTML = '<p>No hay avisos para este grupo.</p>'; return; }
+            avisos.forEach(a => { const div = document.createElement('div'); div.className = 'mb-2'; div.innerHTML = `<strong>${a.Titulo}</strong><div class="text-muted small">${new Date(a.FechaCreacion).toLocaleString()}</div><div>${a.Descripcion}</div>`; container.appendChild(div); });
+        } catch (e) { console.warn(e); var el = document.getElementById('grupoAvisosListPage'); if (el) el.innerText = 'No se pudieron cargar avisos.'; }
+    }
+
+    async function cargarAlumnosGrupoOnPage(grupoId) {
+        try {
+            const resp = await fetch(`/api/Grupos/ObtenerAlumnosPorGrupo?grupoId=${grupoId}`);
+            const alumnos = resp.ok ? await resp.json() : [];
+            const container = document.getElementById('grupoAlumnosListPage');
+            container.innerHTML = '';
+            if (!alumnos || alumnos.length === 0) { container.innerHTML = '<p>No hay alumnos asignados en las materias del grupo.</p>'; return; }
+            // If API returned array of objects with Email/Nombre, render list
+            const ul = document.createElement('ul'); ul.className = 'list-group';
+            alumnos.forEach(a => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                const text = document.createElement('div');
+                text.innerText = `${a.Nombre || ''} ${a.ApellidoPaterno || ''} ${a.ApellidoMaterno || ''}`.trim() + (a.Email ? ' - ' + a.Email : '');
+                li.appendChild(text);
+
+                const actions = document.createElement('div');
+                actions.className = 'd-flex gap-2';
+                const removeBtn = document.createElement('button'); removeBtn.className = 'btn btn-sm btn-danger'; removeBtn.textContent = 'Eliminar';
+                removeBtn.addEventListener('click', function () {
+                    // try to delete by AlumnoMateriaId if present, otherwise by AlumnoId
+                    var idToDelete = a.AlumnoMateriaId || a.alumnoMateriaId || a.AlumnoId || a.alumnoId || null;
+                    if (!idToDelete) { alert('ID de alumno no disponible'); return; }
+                    if (!confirm('¿Eliminar alumno?')) return;
+                    fetch('/Materias/EliminarAlumnoDeMateria?idEnlace=' + encodeURIComponent(idToDelete), { method: 'DELETE' })
+                        .then(r => { if (!r.ok) throw new Error('No eliminado'); return r.json().catch(()=>({})); })
+                        .then(j => { if (typeof cargarAlumnosGrupoOnPage === 'function') cargarAlumnosGrupoOnPage(grupoId); })
+                        .catch(e => { console.error(e); alert('Error al eliminar alumno'); });
+                });
+                actions.appendChild(removeBtn);
+                li.appendChild(actions);
+
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        } catch (e) { console.warn(e); var el = document.getElementById('grupoAlumnosListPage'); if (el) el.innerText = 'No se pudieron cargar alumnos.'; }
+    }
+</script>

@@ -122,6 +122,8 @@ async function guardarGrupo() {
         if (typeof cargarGrupos === 'function') cargarGrupos();
         if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
         if (typeof cargarMaterias === 'function') cargarMaterias();
+        // Auto-open group actions modal for the newly created group
+        try { if (grupoId) { abrirAccionesGrupo(grupoId); } } catch (e) { console.warn('No se pudo abrir modal de grupo:', e); }
     } else {
         Swal.fire({
             position: "top-end",
@@ -229,13 +231,13 @@ async function cargarGrupos() {
             // assemble card content
             card.appendChild(row);
 
-            // When clicking the card (except on any interactive button/anchor), redirect to group materias
+            // When clicking the card (except on any interactive button/anchor), go to the group page (full view)
             card.addEventListener('click', function (e) {
                 if (e.target.closest('button') || e.target.closest('a')) return;
                 try {
                     window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
                 } catch (err) {
-                    console.warn('No se pudo redirigir:', err);
+                    console.warn('No se pudo redirigir al grupo:', err);
                 }
             });
 
@@ -256,6 +258,15 @@ async function cargarGrupos() {
 // new abrirAccionesGrupo with improved error reporting
 async function abrirAccionesGrupo(grupoId) {
     try {
+        // ensure docenteIdGlobal is populated (some pages may not have set it at script parse time)
+        if (!docenteIdGlobal || Number(docenteIdGlobal) === 0) {
+            var divAgain = document.getElementById('docente-datos');
+            if (divAgain && divAgain.dataset && divAgain.dataset.docenteid) {
+                docenteIdGlobal = divAgain.dataset.docenteid;
+            } else if (localStorage.getItem('docenteId')) {
+                docenteIdGlobal = localStorage.getItem('docenteId');
+            }
+        }
         window.docenteIdGlobal = docenteIdGlobal;
 
         // Try API endpoint first

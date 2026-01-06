@@ -612,6 +612,7 @@
     <Content Include="Views\Docente\GrupoActionsModal.cshtml" />
     <Content Include="Views\Docente\GrupoMaterias.cshtml" />
     <Content Include="Views\Docente\ChatIA.cshtml" />
+    <Content Include="Views\Docente\GrupoActionsPage.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
