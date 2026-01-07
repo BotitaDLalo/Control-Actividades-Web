@@ -47,3 +47,15 @@ body {
     grid-auto-rows: 70px 1fr;
     height: 100vh;
 }
+
+.impersonation-banner {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 12px;
+    border-bottom: 1px solid #ffeeba;
+    text-align: center;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+}
