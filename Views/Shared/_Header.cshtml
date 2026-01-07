@@ -1,8 +1,15 @@
 @using System.Web
 <nav class="nav-bar">
     @*<nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom">*@
+    @*<style>
+            /* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
+            .nav-bar {
+                position: relative;
 
     <div class="container-fluid d-flex align-items-center">
+        @*<div class="me-auto">
+                <span id="page-title-header" class="fw-bold text-dark">@((ViewBag.PageHeader ?? "Header"))</span>
+            </div>*@
 
         <div class="header-icons d-flex align-items-center">
             <div class="me-auto"></div>
@@ -35,7 +42,8 @@
                 </button>
 
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
-                    <div class="user-info px-3 py-2 d-flex align-items-center">
+                    @*<div class="user-info px-3 py-2 d-flex align-items-center">*@
+                    <div class="elementos-perfil">
                         <img class="iconos1-nav me-2" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
                         <div>
                             <div class="dropdown-item mb-0">@User.Identity.Name</div>
