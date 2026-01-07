@@ -1,9 +1,9 @@
 @using System.Web
 <div class="nav-bar">
     @*<nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom">*@
-        <link rel="stylesheet" href="~/Content/Componentes/header.css" />
-        <link rel="stylesheet" href="~/Content/Variables/colors.css" />
-        @*<style>
+    <link rel="stylesheet" href="~/Content/Componentes/header.css" />
+    <link rel="stylesheet" href="~/Content/Variables/colors.css" />
+    @*<style>
             /* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
             .nav-bar {
                 position: relative;
@@ -99,8 +99,8 @@
         </style>*@
     <div class="container-fluid d-flex align-items-center">
         @*<div class="me-auto">
-            <span id="page-title-header" class="fw-bold text-dark">@((ViewBag.PageHeader ?? "Header"))</span>
-        </div>*@
+                <span id="page-title-header" class="fw-bold text-dark">@((ViewBag.PageHeader ?? "Header"))</span>
+            </div>*@
 
         <div class="header-icons d-flex align-items-center" style="gap:8px;">
             <!-- Notifications button -->
@@ -130,14 +130,13 @@
                     </svg>
                 </button>
 
-                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
-                        @*<div class="user-info px-3 py-2 d-flex align-items-center">*@
-                        <div class="elementos-perfil">
-                            <img class="iconos1-nav me-2" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
-                            <div>
-                                <div class="dropdown-item mb-0">@User.Identity.Name</div>
-                                <div class="text-muted small">@(User.Identity.IsAuthenticated ? (User.Identity.Name ?? "") : "Invitado")</div>
-                            </div>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
+                    @*<div class="user-info px-3 py-2 d-flex align-items-center">*@
+                    <div class="elementos-perfil">
+                        <img class="iconos1-nav me-2" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
+                        <div>
+                            <div class="dropdown-item mb-0">@User.Identity.Name</div>
+                            <div class="text-muted small">@(User.Identity.IsAuthenticated ? (User.Identity.Name ?? "") : "Invitado")</div>
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
