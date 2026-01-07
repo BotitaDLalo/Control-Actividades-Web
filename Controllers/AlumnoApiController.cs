@@ -76,7 +76,7 @@ namespace ControlActividades.Controllers
                 if (actividadId == 0 || alumnoId == 0)
                     return Content(HttpStatusCode.BadRequest, new { mensaje = "Faltan datos: AlumnoId o ActividadId." });
 
-                // Guardar archivos
+                // Guardar archivos (si los hay)
                 var savedUrls = new List<string>();
                 var files = httpRequest.Files;
                 var uploadRoot = HttpContext.Current.Server.MapPath("~/Uploads/Entregas/");
@@ -96,49 +96,57 @@ namespace ControlActividades.Controllers
                         destPath = Path.Combine(destFolder, ts + "_" + safeName);
                     }
                     file.SaveAs(destPath);
-                    var relative = 
-                        "/Uploads/Entregas/" + actividadId + "/" + alumnoId + "/" + Path.GetFileName(destPath);
+                    var relative = "/Uploads/Entregas/" + actividadId + "/" + alumnoId + "/" + Path.GetFileName(destPath);
                     savedUrls.Add(relative);
                 }
 
-                // Crear registro en tbAlumnosActividades y tbEntregableAlumno
-                //var actividad = new tbAlumnosActividades()
-                //{
-                //    ActividadId = actividadId,
-                //    AlumnoId = alumnoId,
-                //    FechaEntrega = DateTime.Now,
-                //    EstatusEntrega = true,
-                //    EntregablesAlumno = new tbEntregableAlumno()
-                //    {
-                //        Respuesta = BuildRespuestaWithFiles(respuesta, savedUrls)
-                //    }
-                //};
+                // Preparar contenido: si hay archivos, guardar JSON con respuesta + archivos, si no sólo texto
+                string contenidoGuardar = respuesta ?? string.Empty;
+                if (savedUrls.Count > 0)
+                {
+                    contenidoGuardar = BuildRespuestaWithFiles(respuesta, savedUrls);
+                }
 
-                //Db.tbAlumnosActividades.Add(actividad);
+                // Fecha de entrega (usar campo enviado o ahora)
+                DateTime fechaEnt = DateTime.Now;
+                DateTime parsedFecha;
+                if (DateTime.TryParse(httpRequest.Form["FechaEntrega"], out parsedFecha)) fechaEnt = parsedFecha;
 
+                // Crear registro en tbEntregaActividadAlumno y tbEntregables
+                tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                {
+                    ActividadId = actividadId,
+                    AlumnoId = alumnoId,
+                    FechaEntrega = fechaEnt,
+                    EstadoEntregaId = 1
+                };
 
+                Db.tbEntregaActividadAlumno.Add(entregaAlumno);
+                await Db.SaveChangesAsync();
 
-                //await Db.SaveChangesAsync();
+                int entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
 
-                //var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
-                //var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == datosAlumnoActividad.AlumnoActividadId).FirstOrDefaultAsync();
+                tbEntregables entregables = new tbEntregables()
+                {
+                    EntregaActividadAlumnoId = entregaAlumnoId,
+                    TipoEntregaId = (savedUrls.Count > 0) ? 2 : 1,
+                    Contenido = contenidoGuardar,
+                };
+                Db.tbEntregables.Add(entregables);
+                await Db.SaveChangesAsync();
 
-
-
-
-                //return Ok(new
-                //{
-                //    EntregaId = datosEntregable?.EntregaId ?? 0,
-                //    AlumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0,
-                //    Respuesta = datosEntregable?.Respuesta ?? string.Empty,
-                //    Status = datosAlumnoActividad?.EstatusEntrega ?? false
-                //});
-
-                return Ok();
+                return Ok(new
+                {
+                    EntregaActividadAlumnoId = entregaAlumnoId,
+                    EntregableId = entregables.EntregableId,
+                    Contenido = entregables.Contenido
+                });
             }
             catch (Exception ex)
             {
-                return Content(HttpStatusCode.InternalServerError, new { mensaje = ex.Message });
+                // Devolver información más detallada para depuración local (evitar en producción)
+                var inner = ex.InnerException != null ? ex.InnerException.Message : null;
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = ex.Message, innerException = inner, detalle = ex.ToString() });
             }
         }
 

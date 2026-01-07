@@ -20,14 +20,14 @@ async function cargarDetalleActividad() {
 
 async function verificarEnvio() {
     try {
-        const resp = await fetch(`/api/Actividades/ObtenerEnviosActividadesAlumno?ActividadId=${actividadIdGlobal}&AlumnoId=${alumnoIdGlobal}`);
+        const resp = await fetch(`/api/Alumnos/ObtenerEnviosActividadesAlumno?ActividadId=${actividadIdGlobal}&AlumnoId=${alumnoIdGlobal}`);
         if (!resp.ok) return;
         const data = await resp.json();
-        if (data && data.AlumnoActividadId && data.Status) {
-            var estadoHtml = '<p>Ya entregado. Fecha: ' + new Date(data.FechaEntrega).toLocaleString() + '</p>';
-            // intentar parsear respuesta para extraer archivos
+        const envio = Array.isArray(data) && data.length > 0 ? data[0] : (data || null);
+        if (envio) {
+            var estadoHtml = '<p>Ya entregado. Fecha: ' + new Date(envio.FechaEntrega).toLocaleString() + '</p>';
             try {
-                var parsed = JSON.parse(data.Respuesta || 'null');
+                var parsed = JSON.parse(envio.Contenido || 'null');
                 if (parsed && parsed.Archivos && Array.isArray(parsed.Archivos) && parsed.Archivos.length > 0) {
                     estadoHtml += '<p>Archivos adjuntos:</p><ul>';
                     parsed.Archivos.forEach(function (a) { estadoHtml += '<li><a href="' + a + '" target="_blank">' + a.split('/').pop() + '</a></li>'; });
@@ -35,16 +35,16 @@ async function verificarEnvio() {
                 } else if (parsed && parsed.Respuesta) {
                     estadoHtml += '<div><strong>Respuesta:</strong><pre>' + parsed.Respuesta + '</pre></div>';
                 } else {
-                    if (data.Respuesta) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + data.Respuesta + '</pre></div>';
+                    if (envio.Contenido) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + envio.Contenido + '</pre></div>';
                 }
             } catch (e) {
-                if (data.Respuesta) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + data.Respuesta + '</pre></div>';
+                if (envio.Contenido) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + envio.Contenido + '</pre></div>';
             }
 
             document.getElementById('estadoEntrega').innerHTML = estadoHtml;
             document.getElementById('entregaForm').style.display = 'none';
-            if (data.Calificacion !== null) {
-                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: ' + data.Calificacion + '</p>';
+            if (envio.Calificacion !== null && envio.Calificacion !== undefined) {
+                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: ' + envio.Calificacion + '</p>';
             }
         }
     } catch (e) { console.error(e); }

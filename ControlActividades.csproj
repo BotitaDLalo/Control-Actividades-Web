@@ -333,6 +333,7 @@
     <Compile Include="Controllers\AlumnoController.cs" />
     <Compile Include="Controllers\AvisosApiController.cs" />
     <Compile Include="Controllers\CargaMasivaController.cs" />
+    <Compile Include="Controllers\DebugApiController.cs" />
     <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\DocenteApiController.cs" />
     <Compile Include="Controllers\DocenteController.cs" />

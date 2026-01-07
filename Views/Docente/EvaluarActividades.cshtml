@@ -109,8 +109,69 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/docente")
     @Scripts.Render("~/bundles/docentegrupos")
+
+    <script>
+        (function () {
+            try {
+                // Si no hay actividad/materia en localStorage, intentar obtenerlas desde query string o ViewBag
+                var actividad = localStorage.getItem('actividadSeleccionada');
+                var materia = localStorage.getItem('materiaIdSeleccionada');
+
+                var params = new URLSearchParams(window.location.search);
+                var actividadFromUrl = params.get('actividadId') || params.get('actividadSeleccionada');
+                var materiaFromUrl = params.get('materiaId') || params.get('materiaIdSeleccionada');
+
+                if (!actividad && actividadFromUrl) {
+                    localStorage.setItem('actividadSeleccionada', actividadFromUrl);
+                    actividad = actividadFromUrl;
+                }
+
+                if (!materia) {
+                    if (materiaFromUrl) {
+                        localStorage.setItem('materiaIdSeleccionada', materiaFromUrl);
+                        materia = materiaFromUrl;
+                    } else {
+                        // intentar usar ViewBag si está presente
+                        var vb = '@(ViewBag.MateriaId ?? "")';
+                        if (vb && vb !== '') {
+                            localStorage.setItem('materiaIdSeleccionada', vb);
+                            materia = vb;
+                        }
+                    }
+                }
+
+                // Si aún falta alguno, mostrar mensaje claro en la UI y evitar llamadas innecesarias
+                if (!actividad || !materia) {
+                    console.warn('EvaluarActividades: falta actividadSeleccionada o materiaIdSeleccionada en localStorage.');
+                    var nombreElem = document.getElementById('nombreActividad');
+                    var descElem = document.getElementById('descripcionActividad');
+                    var fechaCreacionElem = document.getElementById('fechaCreacion');
+                    var fechaLimiteElem = document.getElementById('fechaLimite');
+                    var tipoElem = document.getElementById('tipoActividad');
+                    var puntajeElem = document.getElementById('puntajeMaximo');
+                    var alumnosEntregadosElem = document.getElementById('alumnosEntregados');
+                    var actividadesCalificadasElem = document.getElementById('actividadesCalificadas');
+
+                    if (nombreElem) nombreElem.innerText = 'No hay actividad seleccionada';
+                    if (descElem) descElem.innerText = 'No hay actividad seleccionada';
+                    if (fechaCreacionElem) fechaCreacionElem.innerText = '-';
+                    if (fechaLimiteElem) fechaLimiteElem.innerText = '-';
+                    if (tipoElem) tipoElem.innerText = '-';
+                    if (puntajeElem) puntajeElem.innerText = '-';
+                    if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = '0';
+                    if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = '0';
+
+                    var listaEnt = document.getElementById('listaAlumnosEntregados');
+                    var listaNoEnt = document.getElementById('listaAlumnosSinEntregar');
+                    if (listaEnt) listaEnt.innerHTML = '<div class="text-muted p-3">No se ha seleccionado una actividad. Abra la actividad desde Materias para evaluarla.</div>';
+                    if (listaNoEnt) listaNoEnt.innerHTML = '<div class="text-muted p-3">No se ha seleccionado una actividad. Abra la actividad desde Materias para evaluarla.</div>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+    </script>
 }
 
 @section Styles{

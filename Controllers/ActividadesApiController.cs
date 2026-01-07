@@ -36,6 +36,51 @@ namespace ControlActividades.Controllers
         {
         }
 
+        // Compatibilidad: permitir que clientes pidan envíos por alumno usando la ruta /api/Actividades/ObtenerEnviosActividadesAlumno
+        [HttpGet]
+        [Route("ObtenerEnviosActividadesAlumno")]
+        public async Task<IHttpActionResult> ObtenerEnviosActividadesAlumno(int ActividadId, int AlumnoId)
+        {
+            try
+            {
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId);
+                if (datosAlumnoActividad == null)
+                    return BadRequest();
+
+                var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
+                var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
+
+                var lsEntregas = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId).ToList();
+                if (lsEntregas.Count > 0)
+                {
+                    var lsEnvios = new List<Models.EnvioRes>();
+                    foreach (var entrega in lsEntregas)
+                    {
+                        EnvioRes envio = new EnvioRes()
+                        {
+                            EntregaActividadAlumnoId = entregaActividadId,
+                            EntregableId = entrega.EntregableId,
+                            Contenido = entrega.Contenido,
+                            EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+                            FechaEntrega = fechaEntrega ?? new DateTime(),
+                            Calificacion = entrega.Calificacion.ToString() ?? "",
+                            EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
+                        };
+
+                        lsEnvios.Add(envio);
+                    }
+
+                    return Ok(lsEnvios);
+                }
+
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
         public ActividadesApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
         {
             UserManager = userManager;
@@ -536,29 +581,70 @@ namespace ControlActividades.Controllers
                 var entregaId = asignarCalificacion.EntregaId;
                 var fechaNuevaCalificacion = DateTime.Now;
                 var nuevaCalificacion = asignarCalificacion.Calificacion;
+                // Intentar actualizar el registro en la tabla tbEntregables (modelo actual)
+                int idBuscado = asignarCalificacion.EntregableId != 0 ? asignarCalificacion.EntregableId : entregaId;
 
-                //var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).FirstOrDefaultAsync();
+                var entregable = await Db.tbEntregables.FindAsync(idBuscado);
+                if (entregable != null)
+                {
+                    entregable.Calificacion = nuevaCalificacion;
+                    entregable.FechaCalificado = fechaNuevaCalificacion;
+                    // Si se envió comentario (legacy: CalificacionDto), asignarlo
+                    try
+                    {
+                        // intentar obtener comentario desde asignarCalificacion (si existe)
+                        var comentarioProp = asignarCalificacion.GetType().GetProperty("Comentario");
+                        if (comentarioProp != null)
+                        {
+                            var comentarioVal = comentarioProp.GetValue(asignarCalificacion) as string;
+                            if (!string.IsNullOrEmpty(comentarioVal)) entregable.Comentario = comentarioVal;
+                        }
+                    }
+                    catch { }
 
-                //if (calificacion == null)
-                //{
-                //    tbCalificaciones calificaciones = new tbCalificaciones()
-                //    {
-                //        Calificacion = nuevaCalificacion,
-                //        EntregaId = entregaId,
-                //        FechaCalificacionAsignada = fechaNuevaCalificacion
-                //    };
+                    await Db.SaveChangesAsync();
 
-                //    Db.tbCalificaciones.Add(calificaciones);
-                //    await Db.SaveChangesAsync();
-                //    return Ok();
-                //}
-                //else
-                //{
-                //    calificacion.Calificacion = nuevaCalificacion;
-                //    calificacion.FechaCalificacionAsignada = fechaNuevaCalificacion;
-                //    await Db.SaveChangesAsync();
-                //    return Ok();
-                //}
+                    // Enviar notificación al alumno
+                    try
+                    {
+                        // obtener alumno propietario de la entrega
+                        var entregaActividad = await Db.tbEntregaActividadAlumno.Where(ea => ea.tbEntregables.Any(t => t.EntregableId == entregable.EntregableId)).FirstOrDefaultAsync();
+                        if (entregaActividad != null)
+                        {
+                            var alumnoUserId = await Db.tbAlumnos.Where(a => a.AlumnoId == entregaActividad.AlumnoId).Select(a => a.UserId).FirstOrDefaultAsync();
+                            if (!string.IsNullOrEmpty(alumnoUserId))
+                            {
+                                var ns = new Services.NotificacionesService(Db, new Services.FCMService());
+                                string titulo = "Tu actividad fue calificada";
+                                string cuerpo = $"Tu entrega fue calificada con: {nuevaCalificacion}" + (entregable.Comentario != null ? ". Comentario: " + entregable.Comentario : "");
+                                var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == alumnoUserId).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
+                                await ns.ProcesarNotificacion(new List<string> { alumnoUserId }, tokens, titulo, cuerpo, "Calificacion");
+                            }
+                        }
+                    }
+                    catch (Exception) { }
+
+                    return Ok();
+                }
+
+                // Fallback: si no existe en tbEntregables, intentar en tbCalificaciones (legacy)
+                var calificacion = await Db.tbCalificaciones.FirstOrDefaultAsync(a => a.EntregaId == entregaId);
+                if (calificacion == null)
+                {
+                    tbCalificaciones cal = new tbCalificaciones()
+                    {
+                        Calificacion = nuevaCalificacion,
+                        EntregaId = entregaId,
+                        FechaCalificacionAsignada = fechaNuevaCalificacion
+                    };
+                    Db.tbCalificaciones.Add(cal);
+                }
+                else
+                {
+                    calificacion.Calificacion = nuevaCalificacion;
+                    calificacion.FechaCalificacionAsignada = fechaNuevaCalificacion;
+                }
+                await Db.SaveChangesAsync();
                 return Ok();
 
             }

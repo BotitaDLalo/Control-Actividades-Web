@@ -182,7 +182,44 @@ function removerDeLista(button) {
 //Funcion para obtener los grupos de la base de datos y mostrarlos (render como grid cards)
 async function cargarGrupos() {
     try {
-        const response = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
+        // ensure docenteIdGlobal is resolved at runtime
+        if (!docenteIdGlobal || Number(docenteIdGlobal) === 0) {
+            var divAgain = document.getElementById('docente-datos');
+            if (divAgain && divAgain.dataset && divAgain.dataset.docenteid) {
+                docenteIdGlobal = divAgain.dataset.docenteid;
+            } else if (localStorage.getItem('docenteId')) {
+                docenteIdGlobal = localStorage.getItem('docenteId');
+            }
+        }
+
+        var docenteIdParaConsulta = docenteIdGlobal || '';
+
+        // If not available, try server endpoint to get docenteId
+        if (!docenteIdParaConsulta) {
+            try {
+                const respId = await fetch('/Cuenta/ObtenerDocenteId');
+                if (respId.ok) {
+                    const dataId = await respId.json().catch(() => ({}));
+                    if (dataId && dataId.docenteId) {
+                        docenteIdParaConsulta = dataId.docenteId;
+                        docenteIdGlobal = docenteIdParaConsulta;
+                        try { localStorage.setItem('docenteId', docenteIdParaConsulta); } catch (e) { }
+                    }
+                }
+            } catch (e) {
+                console.warn('No se pudo obtener docenteId desde el servidor:', e);
+            }
+        }
+
+        if (!docenteIdParaConsulta) {
+            const listaGrupos = document.getElementById("listaGrupos");
+            if (listaGrupos) {
+                listaGrupos.innerHTML = '<p class="text-center text-danger">No se pudo identificar al docente. Refresca la página o inicia sesión nuevamente.</p>';
+            }
+            return;
+        }
+
+        const response = await fetch(`/Grupos/ObtenerGrupos?docenteId=${encodeURIComponent(docenteIdParaConsulta)}`);
         if (!response.ok) throw new Error('Error al obtener grupos');
         const grupos = await response.json();
         const listaGrupos = document.getElementById("listaGrupos");

@@ -20,6 +20,7 @@ namespace ControlActividades.Models.db
 
         public int? Calificacion {  get; set; }
         public DateTime? FechaCalificado { get; set; }
+        public string Comentario { get; set; }
 
         public tbEntregaActividadAlumno tbEntregaActividadAlumno { get; set; }
 
