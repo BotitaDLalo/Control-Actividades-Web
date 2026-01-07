@@ -91,6 +91,7 @@ async function publicarAviso() {
 // Funcion que carga los avisos a la vista.
 async function cargarAvisosDeMateria() {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
+    if (!listaAvisos) return;
     try {
         const response = await fetch(`/Materias/ObtenerAvisos?IdMateria=${materiaIdGlobal}`);
         if (!response.ok) throw new Error("No se encontraron avisos.");

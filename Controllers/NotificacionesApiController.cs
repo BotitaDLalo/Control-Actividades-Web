@@ -167,7 +167,7 @@ namespace ControlActividades.Controllers
                 MessageId = notificacion.MessageId,
                 Title = notificacion.Title,
                 Body = notificacion.Body,
-                FechaRecibido = notificacion.FechaRecibido
+                FechaRecibido = notificacion.FechaRecibido,
             };
 
             Db.tbNotificaciones.Add(nuevaNotificacion);
@@ -186,6 +186,7 @@ namespace ControlActividades.Controllers
             {
                 return BadRequest("Usuario no encontrado");
             }
+            
             var notificaciones = Db.tbNotificaciones
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.FechaRecibido)
@@ -197,7 +198,10 @@ namespace ControlActividades.Controllers
                     Title = n.Title,
                     Body = n.Body,
                     TipoId = n.TipoId,
-                    FechaRecibido = n.FechaRecibido
+                    TipoNotificacion = n.cTipoNotificacion.Nombre,
+                    FechaRecibido = n.FechaRecibido,
+                    MateriaId = n.MateriaId,
+                    GrupoId = n.GrupoId
                 })
                 .ToList();
             return Ok(notificaciones);

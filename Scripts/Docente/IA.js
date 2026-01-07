@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatContent = document.getElementById("chatContent");
     const chatModal = document.querySelector(".chat-modal");
 
+    if (!chatIcon || !chatModal) return;
 
     // Función para alternar el modal
     chatIcon.addEventListener("click", function (event) {

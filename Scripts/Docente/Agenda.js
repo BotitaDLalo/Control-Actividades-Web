@@ -1,18 +1,5 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
 
-    flatpickr("#calendario-input", {
-        inline: true,
-        enableTime: false,
-        dateFormat: "Y-m-d",  // Formato correcto YYYY-MM-DD
-        //locale: "es", // Idioma español
-        defaultDate: new Date(),
-        onChange: function (selectedDates, dateStr) {
-            if (selectedDates.length > 0) {
-                cargarEventosPorFecha(dateStr);
-            }
-        }
-    });
-
     function cargarEventosPorFecha(fechaSeleccionada) {
         document.getElementById("fechaSeleccionadaTexto").textContent = fechaSeleccionada;
         document.getElementById("listaEventos").innerHTML = "<p>Cargando...</p>";

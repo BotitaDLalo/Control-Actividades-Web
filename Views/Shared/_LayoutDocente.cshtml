@@ -21,7 +21,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
     <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
-    <link href="~/Content/Docente/calendarioDocente.css" />
+    <link href="~/Content/Docente/calendarioDocente.css" rel="stylesheet"/>
 
     @*<style>
             html {
@@ -45,27 +45,21 @@
         </div>
     </div>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    <script src="~/Scripts/sidebar.js"></script>
-
-    <script type="module" src="~/Scripts/Firebase/firebase.js"></script>
-
     <!--SPINNER DE CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
     </div>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
 
     <script src="~/Scripts/sidebar.js"></script>
     <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
-    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
-    <script src="~/signalr/hubs"></script>
 
     <script type="module">
         import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';

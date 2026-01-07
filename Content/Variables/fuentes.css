@@ -7,7 +7,8 @@
 :root {
     /*Definición de fuentes*/
     --font-inter: inter, system-ui, sans-serif;
-
     /*Fuentes utilizables*/
     --main-fuente: var(--font-inter);
+    --font-google: 'Poppins', sans-serif;
+
 }
