@@ -1,108 +1,11 @@
 @using System.Web
-<div class="nav-bar">
+<nav class="nav-bar">
     @*<nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom">*@
-        <link rel="stylesheet" href="~/Content/Componentes/header.css" />
-        <link rel="stylesheet" href="~/Content/Variables/colors.css" />
-        @*<style>
-            /* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
-            .nav-bar {
-                position: relative;
-            }
 
-            .navbar {
-                overflow: visible !important;
-            }
-
-                .nav-bar .header-icons {
-                    position: fixed;
-                    right: 16px;
-                    top: 12px;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    z-index: 3000;
-                }
-
-                    .nav-bar .header-icons .btn-link,
-                    .nav-bar .header-icons .btn {
-                        color: #5a5a5a;
-                        background: transparent;
-                        border: none;
-                    }
-
-                        .nav-bar .header-icons .btn-link:hover,
-                        .nav-bar .header-icons .btn:hover {
-                            color: #2f2f2f;
-                            background-color: rgba(0,0,0,0.04);
-                        }
-
-                    /* position notification panel and user dropdown relative to the header-icons container */
-                    .nav-bar .header-icons .notificaciones-container {
-                        position: absolute;
-                        top: calc(100% + 8px);
-                        right: 0;
-                        z-index: 3050;
-                    }
-
-                    .nav-bar .header-icons .dropdown-menu {
-                        position: absolute;
-                        top: calc(100% + 8px);
-                        right: 0;
-                        z-index: 3050;
-                    }
-
-            .iconos1-nav {
-                width: 64px;
-                height: 64px;
-                object-fit: contain;
-                border-radius: 50%;
-            }
-
-
-            /* Responsive: on small screens put icons back in header flow */
-            @@media (max-width: 991px) {
-                .nav-bar .header-icons {
-                    position: static;
-                    top: auto;
-                    right: auto;
-                    margin-left: auto;
-                }
-
-                    .nav-bar .header-icons .notificaciones-container,
-                    .nav-bar .header-icons .dropdown-menu {
-                        position: absolute;
-                        top: calc(100% + 8px);
-                        right: 0;
-                    }
-            }
-
-            .noti-item:hover {
-                background: #f8f9fa;
-                cursor: pointer;
-            }
-
-            .lista-notis {
-                max-height: 250px;
-                overflow-y: auto;
-            }
-
-            /* make svg icons follow currentColor */
-            .nav-bar .header-icons svg {
-                fill: currentColor;
-            }
-
-            .dropdown-menu {
-                z-index: 9999;
-                overflow-y: auto;
-            }
-
-        </style>*@
     <div class="container-fluid d-flex align-items-center">
-        @*<div class="me-auto">
-            <span id="page-title-header" class="fw-bold text-dark">@((ViewBag.PageHeader ?? "Header"))</span>
-        </div>*@
 
-        <div class="header-icons d-flex align-items-center" style="gap:8px;">
+        <div class="header-icons d-flex align-items-center">
+            <div class="me-auto"></div>
             <!-- Notifications button -->
             <button id="notificaciones-icono" class="btn btn-link position-relative p-2" type="button" title="Notificaciones">
                 <span id="notificaciones-indicador" class="notiIndicador"></span>
@@ -111,6 +14,7 @@
                 </svg>
             </button>
 
+            <!-- Panel de notificaciones (oculto inicialmente) -->
             <div id="notificaciones-panel" class="notificaciones-container" aria-hidden="true">
                 <div class="p-2">
                     <strong style="display:none;">Notificaciones</strong>
@@ -121,7 +25,7 @@
                 </div>
             </div>
 
-            <!-- User dropdown (uses Bootstrap dropdown) -->
+            <!-- Dropdown de opciones de usuario (usa Bootstrap dropdown) -->
             <div class="nav-item dropdown">
                 <button class="btn btn-link p-2 dropdown-toggle" style="width:80px;" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" type="button" title="Usuario">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
@@ -141,17 +45,16 @@
                     <div class="dropdown-divider"></div>
 
                     @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "px-3 py-2" }))
-                    {
+                     {
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-outline-danger w-100">
                             Cerrar sesión
                         </button>
-                    }
+                     }
                 </div>
             </div>
         </div>
     </div>
-    @*</nav>*@
-</div>
+</nav>
 
-<script src="~/Scripts/Shared/headerNotifications.js"></script>
+
