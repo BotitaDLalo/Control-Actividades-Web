@@ -3,8 +3,12 @@
 <head>
     <meta charset="utf-8" />
     @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/Variables")
+    @Styles.Render("~/Content/Componentes")
     @Styles.Render("~/Content/Dashboard/css")
     @Styles.Render("~/Content/Administrador/css")
+
+    @RenderSection("styles", required: false)
 
     @Scripts.Render("~/bundles/modernizr")
 
@@ -34,14 +38,18 @@
         </div>
     </div>
 
-    <!--SPINNER DE CARGA-->
+    <script type="module" src="~/Scripts/Firebase/firebase.js"></script>
+
+    <!--LAYOUT ADMIN-->
+    <!--CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap")
 
     <!--
         <div class="container">
@@ -75,11 +83,19 @@
              </div>
          </div>
     -->
+    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @RenderSection("Scripts", required: false)
-    @RenderSection("Styles", required: false)
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                registrarTokenFcm();
+            }, 500);
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
 </body>
 </html>
