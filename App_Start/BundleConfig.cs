@@ -23,6 +23,7 @@ namespace ControlActividades
                       "~/Scripts/bootstrap.bundle.min.js"));
 
             // Keep only global site CSS in the main bundle. Dashboard-specific CSS should not be bundled globally to avoid layout conflicts (e.g. ".layout" rule).
+            //ESTILOS GENERALES
             bundles.Add(new StyleBundle("~/Content/Variables")
                 .Include(
                     "~/Content/Variables/colors.css",
@@ -55,8 +56,13 @@ namespace ControlActividades
             ));
 
 
+            //SCRIPTS GENERALES
             bundles.Add(new ScriptBundle("~/bundles/carga")
                 .Include("~/Scripts/Componentes/PantallaCarga.js")
+            );
+
+            bundles.Add(new Bundle("~/bundles/header")
+                .Include("~/Scripts/Shared/headerNotifications.js")
             );
 
             //bundles.Add(new ScriptBundle("~/bundles/docente")
@@ -98,7 +104,8 @@ namespace ControlActividades
             //    "~/Scripts/Alumno/*.js"));
 
 
-            bundles.Add(new ScriptBundle("~/bundles/alumno").Include(
+            //ALUMNO
+            bundles.Add(new Bundle("~/bundles/alumno").Include(
                  "~/Scripts/Alumno/alumno.js",
                  "~/Scripts/Alumno/Avisos.js",
                  "~/Scripts/Alumno/Clases.js",

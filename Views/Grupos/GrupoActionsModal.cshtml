@@ -101,8 +101,8 @@
             if (!grupo.GrupoId) return;
             Swal.fire({
                 title: 'Crear Aviso grupal',
-                html: '<input id="tituloAvisoSwal" class="swal2-input" placeholder="Título">' +
-                      '<textarea id="descripcionAvisoSwal" class="swal2-textarea" placeholder="Descripción"></textarea>',
+                html: '<input id="tituloAvisoSwal" class="swal2-input" placeholder="Tï¿½tulo">' +
+                      '<textarea id="descripcionAvisoSwal" class="swal2-textarea" placeholder="Descripciï¿½n"></textarea>',
                 showCancelButton: true,
                 confirmButtonText: 'Crear',
                 preConfirm: () => {
@@ -118,7 +118,7 @@
                 if (res.isConfirmed) {
                     const datos = { GrupoId: grupo.GrupoId, Titulo: res.value.titulo, Descripcion: res.value.descripcion, DocenteId: (window.docenteIdGlobal || 0) };
                     fetch('/Materias/CrearAvisoPorGrupo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) })
-                        .then(r => r.json()).then(j => { Swal.fire('Éxito', j.mensaje || 'Aviso creado', 'success'); })
+                        .then(r => r.json()).then(j => { Swal.fire('ï¿½xito', j.mensaje || 'Aviso creado', 'success'); })
                         .catch(e => { console.error(e); Swal.fire('Error', 'No se pudo crear el aviso', 'error'); });
                 }
             });
@@ -156,8 +156,8 @@
                         return;
                     }
 
-                    var summary = `Total leídos: ${json.TotalLeidos || 0}\nAgregados: ${json.Agregados ? json.Agregados.length : 0}\nOmitidos: ${json.Omitidos ? json.Omitidos.length : 0}\nNo encontrados: ${json.NoEncontrados ? json.NoEncontrados.length : 0}`;
-                    Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
+                    var summary = `Total leï¿½dos: ${json.TotalLeidos || 0}\nAgregados: ${json.Agregados ? json.Agregados.length : 0}\nOmitidos: ${json.Omitidos ? json.Omitidos.length : 0}\nNo encontrados: ${json.NoEncontrados ? json.NoEncontrados.length : 0}`;
+                    Swal.fire('ImportaciÃ³n completa', summary.replace(/\n/g, '<br/>'), 'success');
 
                     // clear file input
                     fileInput.value = '';

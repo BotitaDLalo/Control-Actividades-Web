@@ -3,25 +3,22 @@
 <head>
     <meta charset="utf-8" />
     @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/Variables")
+    @Styles.Render("~/Content/Componentes")
     @Styles.Render("~/Content/Dashboard/css")
     @Styles.Render("~/Content/Docente/css")
 
-    @RenderSection("styles", required: false)
-
-    @Scripts.Render("~/bundles/modernizr")
-
-
-    @*<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">*@
-
+    @RenderSection("Styles", required: false)
+    
     @*<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">*@
-
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    @*<link href="~/Content/sidebar.css" rel="stylesheet" />*@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
-    <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
-    <link href="~/Content/Docente/calendarioDocente.css" rel="stylesheet"/>
+    
+    <link href="~/Content/Docente/calendarioDocente.css" rel="stylesheet" />
+    @Scripts.Render("~/bundles/modernizr")
 
     @*<style>
             html {
@@ -30,11 +27,11 @@
         </style>*@
 </head>
 <body>
-    @*<div class="container">
-            <main role="main" class="pb-3 app-main">
-                @RenderBody()
-            </main>
-        </div>*@
+    <!--LAYOUT DOCENTE-->
+    <!--CARGA-->
+    <div id="loader" class="carga">
+        <div class="spinner"></div>
+    </div>
 
     <div class="layout">
         @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
@@ -45,21 +42,19 @@
         </div>
     </div>
 
-    <!--SPINNER DE CARGA-->
-    <div id="loader" class="carga">
-        <div class="spinner"></div>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @Scripts.Render("~/bundles/carga")
+    @Scripts.Render("~/bundles/datatables")
+
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/hubs"></script>
+    @Scripts.Render("~/bundles/header")
 
     <script src="~/Scripts/sidebar.js"></script>
-    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
 
     <script type="module">
         import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
@@ -73,6 +68,6 @@
     @Scripts.Render("~/bundles/docentegrupos")
 
 
-    @RenderSection("scripts", required: false)
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

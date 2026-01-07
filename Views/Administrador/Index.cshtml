@@ -163,7 +163,10 @@
                     </button>
                 </td>
                 <td>
-                    @using (Html.BeginForm("IngresarComoDocente", "Administrador", FormMethod.Post))
+                    @using (Html.BeginForm("IngresarComoDocente", "Administrador",
+                                            FormMethod.Post,
+                                            new { target = "_blank" }
+                                           ))
                     {
                         @Html.Hidden("userId", docente.UserId)
 
