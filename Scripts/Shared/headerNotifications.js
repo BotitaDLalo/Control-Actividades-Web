@@ -11,11 +11,16 @@ function initHeaderNotifications() {
 
     icono.addEventListener("click", async function (event) {
         event.preventDefault();
+        event.stopPropagation();
 
-        if (panel.style.display === "flex") {
-            panel.style.display = "none";
-            panel.setAttribute('aria-hidden', 'true');
-            icono.classList.remove("selected");
+        const abierto = panel.classList.contains("mostrar");
+
+        // Cerrar dropdown de usuario si está abierto
+        cerrarDropdownUsuario();
+
+        /*Si el panel ya está abierto*/
+        if (abierto) {
+            cerrarNotificaciones();
             return;
         }
 
@@ -33,22 +38,20 @@ function initHeaderNotifications() {
         } catch (e) {
             console.error("Error al cargar notificaciones: ", e);
         }
-        panel.style.display = "flex";
-        panel.setAttribute('aria-hidden', 'false');
+        
+        panel.classList.add("mostrar");
+        panel.setAttribute('aria-hidden', "false");
         icono.classList.add("selected");
         ocultarIndicadorNotificaciones();
     });
 
     //cerrar cuando se haga clic fuera
-    document.addEventListener("click", function (event) {
-        if (!icono.contains(event.target) && !panel.contains(event.target)) {
-            panel.style.display = "none"; 
-            panel.setAttribute('aria-hidden', 'true');
-            icono.classList.remove("selected");
-        }
-    });
-}
+    document.getElementById("userDropdown")
+        .addEventListener("click", function () {
+            cerrarNotificaciones();
+        });
 
+}
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initHeaderNotifications);
@@ -56,7 +59,43 @@ if (document.readyState === 'loading') {
     // DOM already ready
     initHeaderNotifications();
 }
+document.addEventListener("click", function (event) {
+    const panel = document.getElementById("notificaciones-panel");
+    const icono = document.getElementById("notificaciones-icono");
+    const userDropdown = document.getElementById("userDropdown");
+    const dropdownMenu = document.querySelector(".dropdown-menu");
 
+    if (!panel.classList.contains("mostrar")) return;
+
+    // Click fuera de notificaciones
+    if (!icono.contains(event.target) && !panel.contains(event.target)) {
+        cerrarNotificaciones();
+    }
+
+    // Click fuera de dropdown usuario
+    if (
+        dropdownMenu?.classList.contains("show") &&
+        !userDropdown.contains(event.target) &&
+        !dropdownMenu.contains(event.target)
+    ) {
+        cerrarDropdownUsuario();
+    }
+});
+
+function cerrarNotificaciones() {
+    const panel = document.getElementById("notificaciones-panel");
+    const icono = document.getElementById("notificaciones-icono");
+
+    panel.classList.remove("mostrar");
+    panel.setAttribute("aria-hidden", "true");
+    icono.classList.remove("selected");
+}
+function cerrarDropdownUsuario() {
+    const dropdownBtn = document.getElementById("userDropdown");
+    const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
+
+    if (dropdown) dropdown.hide();
+}
 
 //renderiza las notificaciones en el mini panel
 function renderizarNotificaciones(notificaciones) {
@@ -230,7 +269,7 @@ function obtenerEncabezado(notificacion) {
 //Insertar notificación en el panel tiempo real
 function insertarNotificacionEnPanel(notificacion) {
     const panel = document.getElementById("notificaciones-panel");
-    if (!panel || panel.style.display === "none") return; //si el panel está cerrado insertamos la notificación
+    if (!panel || !panel.classList.contains("mostrar")) return; //si el panel está cerrado insertamos la notificación
 
     const listaNoti = panel.querySelector(".lista-notificaciones");
     if (!listaNoti) return; 

@@ -402,7 +402,7 @@ namespace ControlActividades.Controllers
             );
 
             //Redirigir al home del docente
-            return RedirectToAction("Index", "Docente");
+            return RedirectToAction("Index", "Grupos");
         }
         #endregion
         protected override void Dispose(bool disposing)

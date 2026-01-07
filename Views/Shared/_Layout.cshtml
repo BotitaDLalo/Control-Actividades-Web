@@ -37,8 +37,21 @@
 
     <div class="app-main" style="display:flex; min-height:100vh;">
         <main class="app-content" style="flex:1; padding:20px;">
+            @if (Session["IsImpersonating"] is bool isImpersonating && isImpersonating)
+            {
+                <div class="impersonation-banner">
+                    ⚠ Estás ingresando como <strong>Docente</strong> usando una cuenta de administrador
+                    <a href="@Url.Action("VolverAdministrador", "Administrador")"
+                       class="btn btn-sm btn-warning ms-3">
+                        Volver a administrador
+                    </a>
+                </div>
+            }
+
             @RenderBody()
             <hr />
+            <script src="~/Scripts/Shared/headerNotifications.js"></script>
+
             <footer>
                 <p>&copy; @DateTime.Now.Year - Control Actividades</p>
             </footer>
@@ -50,6 +63,7 @@
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/carga")
 
+    <!--LAYOUT-->
     <!--SPINNER DE CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
