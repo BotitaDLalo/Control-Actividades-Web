@@ -172,6 +172,79 @@
             }
         })();
     </script>
+
+    <script>
+        // Inicializador ligero para poblar listas de entregados y no entregados
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                var actividad = localStorage.getItem('actividadSeleccionada') || (new URLSearchParams(window.location.search)).get('actividadId');
+                var materia = localStorage.getItem('materiaIdSeleccionada') || (new URLSearchParams(window.location.search)).get('materiaId');
+
+                if (!actividad || !materia) {
+                    console.warn('Falta actividad o materia en localStorage/URL. No se cargarán alumnos.');
+                    return;
+                }
+
+                // Si existe la función más completa del bundle, usarla
+                if (typeof prepararAlumnosYActividades === 'function') {
+                    // asegurar que localStorage tenga los valores
+                    localStorage.setItem('actividadSeleccionada', actividad);
+                    localStorage.setItem('materiaIdSeleccionada', materia);
+                    prepararAlumnosYActividades();
+                    return;
+                }
+
+                // Fallback: solicitar lista de alumnos y entregas y construir no entregados
+                fetch('/Actividades/AlumnosParaCalificarActividades?materiaId=' + encodeURIComponent(materia))
+                    .then(function (r) { if (!r.ok) throw new Error('No se pudieron cargar los alumnos.'); return r.json(); })
+                    .then(function (alumnos) {
+                        localStorage.setItem('alumnos_materia_' + materia, JSON.stringify(alumnos));
+                        return fetch('/api/Actividades/ObtenerAlumnosEntregables?actividadId=' + encodeURIComponent(actividad));
+                    })
+                    .then(function (r) { if (!r.ok) throw new Error('No se pudieron obtener las entregas'); return r.json(); })
+                    .then(function (data) {
+                        var alumnos = JSON.parse(localStorage.getItem('alumnos_materia_' + materia) || '[]');
+                        var entregados = Array.isArray(data.AlumnosEntregables) ? data.AlumnosEntregables : (data.entregados || []);
+                        var entregadosAlumnoIds = entregados.map(function (e) { return e.AlumnoId; });
+                        var noEntregados = alumnos.filter(function (a) { return !entregadosAlumnoIds.includes(a.AlumnoId); });
+
+                        // Actualizar badges
+                        var alumnosEntregadosElem = document.getElementById('alumnosEntregados');
+                        var actividadesCalificadasElem = document.getElementById('actividadesCalificadas');
+                        if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = entregados.length + ' de ' + alumnos.length;
+                        if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = '0 de ' + alumnos.length;
+
+                        // Renderizar listas
+                        var listaEnt = document.getElementById('listaAlumnosEntregados');
+                        var listaNo = document.getElementById('listaAlumnosSinEntregar');
+                        if (listaEnt) {
+                            listaEnt.innerHTML = '';
+                            entregados.forEach(function (al) {
+                                var nombre = al.Nombres || al.Nombre || '';
+                                var apeP = al.ApellidoPaterno || '';
+                                var apeM = al.ApellidoMaterno || '';
+                                var html = '<div class="list-group-item d-flex justify-content-between align-items-center">' +
+                                    '<div><strong>' + (nombre + ' ' + apeP + ' ' + apeM).trim() + '</strong></div>' +
+                                    '<div><small class="text-success">Entregado</small></div>' +
+                                    '</div>';
+                                listaEnt.innerHTML += html;
+                            });
+                        }
+                        if (listaNo) {
+                            listaNo.innerHTML = '';
+                            noEntregados.forEach(function (a) {
+                                var html = '<div class="list-group-item d-flex justify-content-between align-items-center">' +
+                                    '<div><strong>' + (a.Nombre + ' ' + (a.ApellidoPaterno || '') + ' ' + (a.ApellidoMaterno || '')).trim() + '</strong></div>' +
+                                    '<div><span class="badge bg-danger">No entregado</span></div>' +
+                                    '</div>';
+                                listaNo.innerHTML += html;
+                            });
+                        }
+                    })
+                    .catch(function (err) { console.error(err); });
+            } catch (e) { console.error(e); }
+        });
+    </script>
 }
 
 @section Styles{
