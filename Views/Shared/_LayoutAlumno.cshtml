@@ -2,20 +2,22 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    @*<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">*@
-
     @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/Variables")
+    @Styles.Render("~/Content/Componentes")
     @Styles.Render("~/Content/Dashboard/css")
     @Styles.Render("~/Content/Alumno")
 
-    @RenderSection("styles", required: false)
+    @*<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">*@
 
-    @Scripts.Render("~/bundles/modernizr")
+    @RenderSection("Styles", required: false)
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
-    <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
+    
+    @Scripts.Render("~/bundles/modernizr")
 
 </head>
 <body>
@@ -28,11 +30,10 @@
         </div>
     </div>
 
-
     <script src="~/Scripts/sidebar.js"></script>
 
     <script type="module" src="~/Scripts/Firebase/firebase.js"></script>
-
+    <!--LAYOUT ALUMNO-->
     <!--SPINNER DE CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
@@ -44,6 +45,7 @@
     @Scripts.Render("~/bundles/bootstrap")
 
     <script src="~/Scripts/sidebar.js"></script>
+    <script src="~/Scripts/Shared/headerNotifications.js"></script>
     <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/hubs"></script>
@@ -56,7 +58,8 @@
             }, 500);
         });
     </script>
-    
-    @RenderSection("scripts", required: false)
+
+    @Scripts.Render("~/bundles/alumno")
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

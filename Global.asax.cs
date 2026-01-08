@@ -38,7 +38,6 @@ namespace ControlActividades
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-  
             try
             {
                 ControlActividades.Services.ScheduledPublishingService.Start();

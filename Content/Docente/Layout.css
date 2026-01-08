@@ -1,4 +1,4 @@
-﻿/* Layout base styles for Docente views */
+/* Layout base styles for Docente views */
 .layout {
     /* Removed page-wide gradient to avoid applying large blue banner to elements that use the generic `layout` class (e.g., nav). */
     font-size: 16px;
@@ -31,19 +31,8 @@ p, body {
     font-family: 'Roboto', sans-serif; /* Para texto */
 }
 
-.navbar-light .navbar-brand {
-    color: rgb(255 255 255);
-}
 
 
-.navbar-brand {
-    width: 208px; /* Fija el ancho del contenedor */
-    height: 56px; /* Fija el alto del contenedor */
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Centra el ícono */
-    overflow: hidden; /* Oculta cualquier desbordamiento */
-}
 
 /* Ajuste más coherente del logo para evitar que empuje elementos del header */
 .navbar-icon {

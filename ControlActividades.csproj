@@ -487,6 +487,7 @@
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\ModelosGenerales.cs" />
+    <Compile Include="Models\TiposNotificaciones.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recursos\CustomUserIdProvider.cs" />
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
