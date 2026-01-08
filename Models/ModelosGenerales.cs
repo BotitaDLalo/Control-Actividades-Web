@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 using ControlActividades.Models.db;
+using Newtonsoft.Json;
 
 namespace ControlActividades.Models
 {
@@ -88,6 +89,8 @@ namespace ControlActividades.Models
 
     public class DocentesValidacion
     {
+        public string UserId { get; set; }
+
         public int DocenteId { get; set; }
 
         [Required]
@@ -394,9 +397,10 @@ namespace ControlActividades.Models
 
         public string Body { get; set; }
 
-        //public string Tipo { get; set; }
+        public string TipoNotificacion { get; set; }
         public int TipoId { get; set; }
-
+        public int? MateriaId { get; set; }
+        public int? GrupoId { get; set; }
         public DateTime FechaRecibido { get; set; }
     }
 
@@ -508,4 +512,27 @@ namespace ControlActividades.Models
 
         public bool EstadoEntrega { get; set; }    
     }
+
+    public class GrupoViewModel
+    {
+        public int GrupoId { get; set; }
+
+        public string NombreGrupo { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string CodigoColor { get; set; }
+
+        public string CodigoAcceso { get; set; }
+    }
+
+    public class CrearAvisoRequest
+    {
+        public int? AvisoId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+        public int? GrupoId { get; set; }
+        public int MateriaId {  get; set; }
+    }
+
 }

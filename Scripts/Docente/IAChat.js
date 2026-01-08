@@ -37,7 +37,7 @@
         // Remove markdown headers like ### Title
         s = s.replace(/^\s*#{1,6}\s*/gm, '');
         // Convert simple markdown lists to plain lines
-        s = s.replace(/^-\s+/gm, '• ');
+        s = s.replace(/^-\s+/gm, 'ï¿½ ');
         s = s.replace(/^\d+\.\s+/gm, function(m){ return m; });
         // Collapse multiple blank lines
         s = s.replace(/\n{3,}/g, '\n\n');
@@ -107,6 +107,9 @@
     document.addEventListener('DOMContentLoaded', function(){
         var sendBtn = document.getElementById('sendBtn');
         var input = document.getElementById('promptInput');
+
+        if (!sendBtn || !input) return;
+
         sendBtn.addEventListener('click', function(){
             var v = input.value.trim();
             if(!v) return;

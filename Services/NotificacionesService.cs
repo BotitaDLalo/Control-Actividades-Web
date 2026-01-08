@@ -91,10 +91,14 @@ namespace ControlActividades.Services
             await _db.SaveChangesAsync();
         }
 
-        public async Task GuardarNotificacionAsync(string userId, string messageId, string title, string body, string tipo)
+        public async Task GuardarNotificacionAsync(string userId, string messageId,
+                                                   string title, string body,
+                                                   TiposNotificaciones tipo,
+                                                   int? materiaId = null, int? grupoId = null)
         {
             try
             {
+
                 var noti = new tbNotificaciones
                 {
                     UserId = userId,
@@ -102,7 +106,9 @@ namespace ControlActividades.Services
                     Title = title,
                     Body = body,
                     FechaRecibido = DateTime.Now,
-                    TipoId = 1
+                    TipoId = (int)tipo,
+                    MateriaId = materiaId,
+                    GrupoId = grupoId
                 };
 
                 _db.tbNotificaciones.Add(noti);
@@ -112,7 +118,7 @@ namespace ControlActividades.Services
                 await ColaDeNotificaciones(userId);
 
                 //Enviar notificación en tiempo real
-                EnviaNotificacionTiempoReal(userId, noti);
+                EnviaNotificacionTiempoReal(userId, noti, tipo);
             }
             catch (Exception ex)
             {
@@ -121,7 +127,7 @@ namespace ControlActividades.Services
             
         }
 
-        public void EnviaNotificacionTiempoReal(string userId, tbNotificaciones notificacion) { 
+        public void EnviaNotificacionTiempoReal(string userId, tbNotificaciones notificacion, TiposNotificaciones tipo) { 
         
             var hub = GlobalHost.ConnectionManager.GetHubContext<NotificacionesHub>();
 
@@ -130,7 +136,7 @@ namespace ControlActividades.Services
                 NotificacionId = notificacion.NotificacionId,
                 Title = notificacion.Title,
                 Body = notificacion.Body,
-                Tipo = notificacion.TipoId,
+                Tipo = tipo,
                 FechaRecibido = notificacion.FechaRecibido.ToString("O")
             });
         }
@@ -175,7 +181,8 @@ namespace ControlActividades.Services
 
         //NOTIFICACIÓN GENERAL PARA TODAS LAS ACCIONES
         public async Task ProcesarNotificacion(List<string> destinatariosUserId,
-                                               List<UsuarioFcmToken> tokens, string titulo, string cuerpo, string tipo
+                                               List<UsuarioFcmToken> tokens, string titulo, string cuerpo, TiposNotificaciones tipo,
+                                               int? materiaId = null, int? grupoId = null
                                                )
         {
 
@@ -190,7 +197,7 @@ namespace ControlActividades.Services
             //Guardar una notificación por usuario
             foreach (var userId in destinatariosUserId)
             {
-                await GuardarNotificacionAsync(userId, messageId, titulo, cuerpo, tipo);
+                await GuardarNotificacionAsync(userId, messageId, titulo, cuerpo, tipo, materiaId);
             }
 
         }
@@ -209,7 +216,8 @@ namespace ControlActividades.Services
                 tokens,
                 actividad.NombreActividad,
                 actividad.Descripcion,
-                TiposNotificaciones.ActividadCreada
+                TiposNotificaciones.ActividadCreada,
+                materiaId
             );
         }
 
@@ -223,7 +231,8 @@ namespace ControlActividades.Services
                 tokens,
                 aviso.Titulo,
                 aviso.Descripcion,
-                TiposNotificaciones.Aviso
+                TiposNotificaciones.Aviso,
+                materiaId
             );
 
 

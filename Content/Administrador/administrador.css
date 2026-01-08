@@ -22,3 +22,8 @@
 .btn-secondary:focus {
     box-shadow: 0 0 0 0.25rem rgba(220, 220, 220, 1);
 }
+
+.btn-ver{
+    border-radius: 50%;
+    
+}

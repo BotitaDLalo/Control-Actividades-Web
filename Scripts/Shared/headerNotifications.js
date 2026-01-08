@@ -15,6 +15,7 @@ function initHeaderNotifications() {
         if (panel.style.display === "flex") {
             panel.style.display = "none";
             panel.setAttribute('aria-hidden', 'true');
+            icono.classList.remove("selected");
             return;
         }
 
@@ -34,6 +35,7 @@ function initHeaderNotifications() {
         }
         panel.style.display = "flex";
         panel.setAttribute('aria-hidden', 'false');
+        icono.classList.add("selected");
         ocultarIndicadorNotificaciones();
     });
 
@@ -42,6 +44,7 @@ function initHeaderNotifications() {
         if (!icono.contains(event.target) && !panel.contains(event.target)) {
             panel.style.display = "none"; 
             panel.setAttribute('aria-hidden', 'true');
+            icono.classList.remove("selected");
         }
     });
 }
@@ -75,10 +78,13 @@ function renderizarNotificaciones(notificaciones) {
     let html = "";
 
     notificaciones.forEach(n => {
-        const icono = obtenerIcono(n.Tipo);
-        const encabezado = obtenerEncabezado(n);
+        const icono = obtenerIcono(n.TipoId);
+        const encabezado = obtenerEncabezado(n.TipoId);
         html += `
-            <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}">
+            <div class="noti-item p-2 border-bottom" data-id="${n.NotificacionId}"
+                                                     data-tipo="${n.TipoId}"
+                                                     data-materia="${n.MateriaId ?? ''}"
+                                                     data-grupo="${n.GrupoId ?? ''}">
                 <div class="noti-left">
                     <div class="noti-icono">
                         <img src="${icono}" class="icono-svg" alt="noti-icono">
@@ -100,6 +106,26 @@ function renderizarNotificaciones(notificaciones) {
 
     lista.innerHTML = html;
 }
+
+document.addEventListener("mouseover", function (e) {
+    const btn = e.target.closest(".btn-borrar-noti");
+    if (!btn) return;
+
+    const notiItem = btn.closest(".noti-item");
+    if (notiItem) {
+        notiItem.classList.add("no-hover");
+    }
+});
+
+document.addEventListener("mouseout", function (e) {
+    const btn = e.target.closest(".btn-borrar-noti");
+    if (!btn) return;
+
+    const notiItem = btn.closest(".noti-item");
+    if (notiItem) {
+        notiItem.classList.remove("no-hover");
+    }
+});
 
 
 // Asegurar que se ejecute cuando la página cargue
@@ -144,29 +170,56 @@ function ocultarIndicadorNotificaciones() {
     if (indicador) indicador.style.display = "none";
 }
 
-function obtenerIcono(tipo) {
-    switch (tipo) {
-        case 'Aviso':
-            return "/Content/Iconos/notiAviso-Azul.svg";
-        case 'ActividadCreada':
+function obtenerIcono(tipoId) {
+    switch (tipoId) {
+        case 1:
+            return "/Content/Iconos/notiActividadCalificada.svg";
+
+        case 2:
             return "/Content/Iconos/notiActividadCreada-Azul.svg";
-        case 'Evento':
+
+        case 3:
+            return "/Content/Iconos/notiActividadEntregada.svg";
+
+        case 4:
+            return "/Content/Iconos/notiAviso-Azul.svg";
+
+        case 5:
             return "/Content/Iconos/notiEvento.svg";
+
+        case 6:
+            return "/Content/Iconos/notiGrupoAsinado.svg";
+
+        case 7:
+            return "/Content/Iconos/notiMateriaAsignada.svg";
+
         default:
             return "/Content/Iconos/NOTIFICACION-26.svg";
     }
 }
 
 function obtenerEncabezado(notificacion) {
-    switch (notificacion.Tipo) {
-        case 'Aviso':
-            return `Nuevo aviso en ${notificacion.Materia || 'tu materia'}`;
+    switch (notificacion) {
+        case 1:
+            return `Actividad calificada en ${notificacion.Materia || 'tu materia'}`;
 
-        case 'ActividadCreada':
+        case 2:
             return `Nueva actividad en ${notificacion.Materia || 'tu materia'}`;
 
-        case 'Evento':
-            return 'Evento asignado';
+        case 3:
+            return 'Alumno entregó tarea';
+
+        case 4:
+            return `Nuevo aviso en ${notificacion.Materia || 'tu materia'}`;
+
+        case 5:
+            return `Evento asignado en ${notificacion.Materia || 'tu materia'}`;
+
+        case 6:
+            return 'Te asignaron a un grupo';
+
+        case 7:
+            return 'Te asignaron a la materia ';
 
         default:
             return 'Nueva notificación';
@@ -187,7 +240,10 @@ function insertarNotificacionEnPanel(notificacion) {
 
     //Insertamos
     const html = `
-        <div class="noti-item p-2 border-bottom" data-id="${notificacion.NotificacionId}">
+        <div class="noti-item p-2 border-bottom" data-id="${notificacion.NotificacionId}"
+                                                 data-tipo="${notificacion.TipoId}"
+                                                 data-materia="${notificacion.MateriaId ?? ''}"
+                                                 data-grupo="${notificacion.GrupoId ?? ''}">
             <div class="noti-left">
                 <div class="noti-icono">
                     <img src="${icono}" class="icono-svg" alt="icono-noti">
@@ -216,6 +272,71 @@ function insertarNotificacionEnPanel(notificacion) {
         if (eliminar) eliminar.remove();
     }
 
+}
+
+//Redirigir al hacer clic en la notificación
+document.addEventListener("click", function (e) {
+    const item = e.target.closest(".noti-item");
+
+    if (!item) return;
+
+    //Si se presiona el botón de borrar, no redirigir
+    if (e.target.classList.contains("btn-borrar-noti")) return;
+
+    try {
+        //Obtener detalles de la notificación para redirigir
+        const tipoId = parseInt(item.dataset.tipo);
+        const materiaId = item.dataset.materia;
+        const grupoId = item.dataset.grupo;
+        redirigir(tipoId, materiaId, grupoId);
+    }
+    catch (err) {
+        console.error("Error redirigiendo desde notificación", err);
+    }
+});
+
+function redirigir(tipoId, materiaId, grupoId) {
+    switch (tipoId) {
+
+        //Actividad Calificada
+        case 1:
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            break;
+
+        //Actividad creada
+        case 2:
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            break;
+       
+        //Actividad Entregada (NOTIFICACIÓN PARA DOCENTE)
+        case 3:
+            window.location.href = "/Actividades/MisCalificaciones";
+            break;
+
+        //Aviso
+        case 4:
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            break;
+
+        //Evento
+        case 5:
+            window.location.href = "/EventosAgenda/CalendarioAlumnos";
+            break;
+
+        //Grupo asignado
+        case 6:
+            window.location.href = "/Actividades/MisCalificaciones";
+            break;
+
+        //Materia Asignada
+        case 7:
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            break;
+
+        default:
+            console.warn("Tipo de notificación desconocido para redirección");
+            
+    }
 }
 
 //Eliminar notificación
