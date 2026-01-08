@@ -1,11 +1,16 @@
 ﻿var div = document.getElementById("docente-datos");
 var docenteIdGlobal = div ? div.dataset.docenteid : null;
+// cache last loaded actividades so filter can be applied client-side without refetching
+var actividadesCache = [];
 
 // Esperar a que el DOM esté completamente cargado antes de ejecutar el código
 document.addEventListener("DOMContentLoaded", function () {
-
     cargarActividadesDeMateria();
-
+    // Attach filter change to apply client-side filter
+    try {
+        var filtro = document.getElementById('filtroActividades');
+        if (filtro) filtro.addEventListener('change', function () { filtrarActividades(); });
+    } catch (e) { }
 });
 
 // Función que registra una nueva actividad
@@ -19,6 +24,8 @@ async function registrarActividad() {
     if (puntajeInput && !puntajeInput.disabled && puntajeInput.value !== '') {
         puntaje = parseInt(puntajeInput.value, 10);
     }
+
+// (filter handled via filtrarActividades and by re-rendering cached actividades)
 
     // Referencia al botón para mostrar estado
     var btn = document.querySelector('#crearActividadModal .btn-primary');
@@ -168,6 +175,12 @@ async function cargarActividadesDeMateria() {
             return;
         }
 
+        if (Array.isArray(payload)) {
+            // keep a copy in cache
+            actividadesCache = payload.slice();
+            console.log('Actividades cargadas en cache:', actividadesCache.length);
+        }
+
         if (!Array.isArray(payload)) {
             if (payload.mensaje || payload.message) {
                 listaActividades.innerHTML = `<p class="mensaje-error">${payload.mensaje || payload.message}</p>`;
@@ -188,7 +201,10 @@ async function cargarActividadesDeMateria() {
             return;
         }
 
-        renderizarActividades(payload);
+        // cache before rendering
+        if (Array.isArray(payload)) actividadesCache = payload.slice();
+        // render a copy so we don't mutate cache (renderizarActividades may reverse the array)
+        renderizarActividades(actividadesCache.slice());
     } catch (error) {
         console.error('Error en cargarActividadesDeMateria:', error);
         listaActividades.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
@@ -201,23 +217,29 @@ function renderizarActividades(actividades) {
     if (!listaActividades) return;
     listaActividades.innerHTML = ""; // Limpiar el contenedor
 
+    try {
+        console.log('renderizarActividades: items=', Array.isArray(actividades) ? actividades.length : 0, 'filtro=', (document.getElementById('filtroActividades')||{}).value);
+    } catch (e) { }
+
     if (!actividades || actividades.length === 0) {
         listaActividades.innerHTML = "<p>No hay actividades registradas para esta materia.</p>";
         return;
     }
-    actividades.reverse();
+    // work on a copy and reverse the copy to avoid mutating caller cache
+    const items = actividades.slice().reverse();
 
     // get filter
     const filtroEl = document.getElementById('filtroActividades');
     const filtro = filtroEl ? filtroEl.value : 'all';
-
-    actividades.forEach(actividad => {
-        // skip by filter
-        const estadoKey = actividad.Enviado === true ? 'publicada' : (actividad.Enviado === false ? 'borrador' : (actividad.FechaProgramada ? 'programada' : 'borrador'));
+    // debug
+    // console.log('Aplicando filtro actividades:', filtro);
+    items.forEach(actividad => {
+        // skip by filter - normalize keys to match select option values
+        const estadoKey = obtenerEstadoKey(actividad);
         if (filtro !== 'all') {
             if (filtro === 'borrador' && estadoKey !== 'borrador') return;
-            if (filtro === 'publicadas' && estadoKey !== 'publicada') return;
-            if (filtro === 'programadas' && estadoKey !== 'programada') return;
+            if (filtro === 'publicadas' && estadoKey !== 'publicadas') return;
+            if (filtro === 'programadas' && estadoKey !== 'programadas') return;
         }
         const actividadItem = document.createElement('div');
         actividadItem.classList.add('actividad-item');
@@ -350,6 +372,38 @@ function formatearFecha(fechaStr) {
 function convertirUrlsEnEnlaces(texto) {
     var urlRegex = /(https?:\/\/[^\n\s]+)/g;
     return (texto || '').replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+}
+
+// Normalize actividad to a simple state key used by filter
+function obtenerEstadoKey(actividad) {
+    if (!actividad) return 'borrador';
+    // try multiple possible property names
+    var enviado = actividad.Enviado;
+    if (typeof enviado === 'undefined') enviado = actividad.enviado || actividad.Enviado;
+    var fechaProg = actividad.FechaProgramada || actividad.fechaProgramada || actividad.FechaProgramada;
+    if (enviado === true) return 'publicadas';
+    if (enviado === false) return 'borrador';
+    if (fechaProg) return 'programadas';
+    return 'borrador';
+}
+
+// Aplica el filtro usando la caché de actividades
+function filtrarActividades() {
+    try {
+        var filtroEl = document.getElementById('filtroActividades');
+        var filtro = filtroEl ? filtroEl.value : 'all';
+        if (!Array.isArray(actividadesCache)) return;
+        var resultado = actividadesCache.filter(function (actividad) {
+            var estado = obtenerEstadoKey(actividad);
+            if (filtro === 'all') return true;
+            if (filtro === 'borrador') return estado === 'borrador';
+            if (filtro === 'publicadas') return estado === 'publicadas';
+            if (filtro === 'programadas') return estado === 'programadas';
+            return true;
+        });
+        // render a copy
+        renderizarActividades(resultado.slice());
+    } catch (e) { console.error('filtrarActividades error', e); }
 }
 
 // ------------------ EDITAR ACTIVIDAD ------------------

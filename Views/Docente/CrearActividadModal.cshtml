@@ -158,7 +158,7 @@
         }
     });
 
-    async function cargarTiposActividad() {
+    window.cargarTiposActividad = async function () {
         var select = document.getElementById('tipoActividad');
         if (!select) return;
         select.innerHTML = '<option value="">Cargando...</option>';

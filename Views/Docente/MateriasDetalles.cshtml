@@ -20,6 +20,31 @@
         </div>
     </div>
 
+    <!-- Small CSS patch to restore the original tabbed menu appearance -->
+    <style>
+        .materia-nav { display:flex; gap:8px; align-items:center; margin:12px 0; }
+        .materia-nav .tab-button {
+            background: transparent;
+            border: 1px solid #cfcfcf;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #222;
+        }
+        .materia-nav .tab-button.active {
+            background: #fff;
+            border-color: #0d6efd;
+            color: #0d6efd;
+            font-weight: 600;
+            box-shadow: 0 1px 0 rgba(13,110,253,0.08);
+        }
+        /* make the 'Crear' button consistent */
+        .btn-crear { background:#fff; border:1px solid #cfcfcf; padding:6px 10px; border-radius:4px; cursor:pointer; }
+        .btn-crear:hover { background:#f7f7f7; }
+        .dropdown-content { display:inline-block; }
+    </style>
+
     <nav class="materia-nav">
         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
@@ -136,12 +161,13 @@
 
 @section Scripts {
     <script>
-        let materiaIdGlobal = '@materiaId';
-        let grupoIdGlobal = '@grupoId';
+        // Expose materia/grupo ids as global properties so other scripts can read them
+        window.materiaIdGlobal = '@materiaId';
+        window.grupoIdGlobal = '@grupoId';
         // Persist current materia/grupo selection so alumnos list can be restored
         try {
-            if (materiaIdGlobal) localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal));
-            if (grupoIdGlobal && grupoIdGlobal !== '0') localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal));
+            if (window.materiaIdGlobal) localStorage.setItem('materiaIdSeleccionada', String(window.materiaIdGlobal));
+            if (window.grupoIdGlobal && window.grupoIdGlobal !== '0') localStorage.setItem('grupoIdSeleccionado', String(window.grupoIdGlobal));
         } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
     </script>
     @Scripts.Render("~/bundles/jqueryval")

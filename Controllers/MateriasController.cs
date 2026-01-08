@@ -1011,21 +1011,23 @@ namespace ControlMaterias.Controllers
             {
                 return RedirectToAction("Index");
             }
+            // Establecer ViewBag con los ids necesarios para la vista (materia, grupo y docente)
+            try
+            {
+                string userId = User.Identity.GetUserId();
+                var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+                ViewBag.DocenteId = docenteId;
+            }
+            catch { ViewBag.DocenteId = 0; }
 
-            //string userId = User.Identity.GetUserId();
-            //var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
-
-            //ViewBag.DocenteId = docenteId;
-            //ViewBag.MateriaId = materiaId.Value;
-            //ViewBag.GrupoId = grupoId ?? 0;
-
-            //return View("MateriasDetalles");
+            ViewBag.MateriaId = materiaId ?? 0;
+            ViewBag.GrupoId = grupoId ?? 0;
 
             var nombreMateria = Db.tbMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.NombreMateria).FirstOrDefault();
-
             ViewBag.NombreMateria = nombreMateria;
 
-            return View();
+            // The view lives under Views/Docente/MateriasDetalles.cshtml — return by explicit path
+            return View("~/Views/Docente/MateriasDetalles.cshtml");
         }
 
 
