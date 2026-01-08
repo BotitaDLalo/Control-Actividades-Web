@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿/*document.addEventListener("DOMContentLoaded", function () {
     var icono = document.getElementById("calendario-icono");
     var panel = document.getElementById("calendario-panel");
     var input = document.getElementById("calendario-input");
@@ -27,3 +27,4 @@
         }
     });
 });
+*/

@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using Microsoft.AspNet.Identity;
@@ -29,6 +29,7 @@ namespace ControlActividades.Controllers
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
 
+        #region Métodos
         public AccountController()
         {
         }
@@ -101,6 +102,7 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
+        #endregion
 
         #region Web 
         //
@@ -882,10 +884,14 @@ namespace ControlActividades.Controllers
 
             switch (role)
             {
+                //case Role.Docente:
+                //    return RedirectToAction("Index", "Docente");
+                //case Role.Alumno:
+                //    return RedirectToAction("Index", "Alumno");
                 case Role.Docente:
-                    return RedirectToAction("Index", "Docente");
                 case Role.Alumno:
-                    return RedirectToAction("Index", "Alumno");
+                    return RedirectToAction("Index","Grupos");
+                
                 case Role.Administrador:
                     return RedirectToAction("Index", "Administrador");
                 default:

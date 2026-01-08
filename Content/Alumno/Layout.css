@@ -3,6 +3,7 @@
     /* Removed page-wide gradient to avoid applying a large blue banner to the nav/header.
        Use a specific hero class (.alumno-hero) when you need a banner on specific pages. */
     font-size: 16px;
+    overflow: visible;
 }
 
 /* Specific hero/banner class for pages that require the gradient */
@@ -160,4 +161,136 @@ p, body {
 /* Botón de cerrar sesión */
 .dropdown-item button {
     margin-top: 10px;
+}
+
+/* Ensure dropdown menu utility works for custom header */
+.dropdown-menu.show {
+    display: block;
+}
+
+/* Adjust notificaciones positioning to not overlap avatar */
+.notificaciones-container {
+    position: absolute;
+    top: 56px;
+    right: 120px;
+    width: 300px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+    padding: 10px;
+    display: none;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 1050;
+}
+
+    .notificaciones-container.mostrar {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+/* Small avatar inside header */
+.iconos1-nav {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Header icons */
+.header-icons .btn-link {
+    color: #333;
+    text-decoration: none;
+}
+
+    .header-icons .btn-link svg {
+        display: block;
+    }
+
+    .header-icons .btn-link:focus,
+    .header-icons .btn-link:hover {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+
+/* Notifications panel adjustments */
+.notificaciones-container {
+    position: absolute;
+    top: 56px;
+    right: 120px;
+    width: 300px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+    padding: 10px;
+    display: none;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 1050;
+}
+
+    .notificaciones-container.mostrar {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+/* Ensure header/nav has enough height and is on top */
+.navbar {
+    min-height: 64px; /* slightly taller to fit icons */
+    z-index: 2000; /* sit above other elements */
+}
+
+/* Header icons container */
+.header-icons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    /* Make header buttons properly sized and clickable */
+    .header-icons .btn,
+    .header-icons button {
+        height: 40px;
+        width: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+        color: inherit;
+    }
+
+        .header-icons .btn svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+        }
+
+        .header-icons .btn:focus,
+        .header-icons .btn:hover {
+            background-color: rgba(13,110,253,0.06);
+            color: #0d6efd;
+        }
+
+/* Ensure dropdowns and notification panel appear above everything and are not clipped */
+.dropdown-menu,
+.notificaciones-container {
+    z-index: 2050;
+}
+
+/* Slightly adjust notification panel to align with icons and not overflow */
+.notificaciones-container {
+    right: 100px; /* adjust as needed; keeps it left of the avatar dropdown */
+    top: calc(100% + 8px);
+}
+
+/* Make sure user dropdown end aligns under the avatar button */
+.dropdown-menu.dropdown-menu-end {
+    right: 8px;
 }
