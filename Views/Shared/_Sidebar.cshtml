@@ -3,20 +3,6 @@
                  User.IsInRole("Alumno") ? "Alumno" :
                  User.IsInRole("Administrador") ? "Administrador" :
                  string.Empty;
-
-    if (User.IsInRole("Docente"))
-    {
-        rol = "Docente";
-    }
-    else if (User.IsInRole("Alumno"))
-    {
-        rol = "Alumno";
-    }
-    else if (User.IsInRole("Administrador"))
-    {
-        rol = "Administrador";
-    }
-
 }
 
 
@@ -58,7 +44,6 @@
         </a>
     }
 
-    <div style="height: 5px"></div>
 
     @if (User != null && (User.IsInRole("Docente") || User.IsInRole("Alumno")))
     {
@@ -110,7 +95,6 @@
         </div>
     }
 
-    <div style="height: 5px"></div>
 
     @if (User != null && (User.IsInRole("Docente") || User.IsInRole("Alumno")))
     {
@@ -144,3 +128,5 @@
         </a>
     }
 </div>
+
+

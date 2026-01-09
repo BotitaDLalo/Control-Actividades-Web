@@ -34,12 +34,17 @@
     </div>
 
     <div class="layout">
-        @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
-        @Html.Partial("~/Views/Shared/_Header.cshtml")
+        <aside class="layout-sidebar">
+            @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
+        </aside>
 
-        <div class="page">
+        <header class="layout-header">
+            @Html.Partial("~/Views/Shared/_Header.cshtml")
+        </header>
+
+        <main class="layout-content">
             @RenderBody()
-        </div>
+        </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

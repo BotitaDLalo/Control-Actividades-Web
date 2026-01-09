@@ -35,8 +35,7 @@ namespace ControlActividades
                 .Include(
                     "~/Content/Componentes/Calendario.css",
                     "~/Content/Componentes/cards.css",
-                    "~/Content/Componentes/carga.css",
-                    "~/Content/Componentes/header.css"
+                    "~/Content/Componentes/carga.css"
                 )
             );
 
@@ -51,7 +50,7 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Dashboard/css").Include(
                     "~/Content/Dashboard/cards.css",
                     "~/Content/Dashboard/content.css",
-                    "~/Content/Dashboard/nav-bar.css",
+                    "~/Content/Dashboard/header.css",
                     "~/Content/Dashboard/sidebar.css"
             ));
 

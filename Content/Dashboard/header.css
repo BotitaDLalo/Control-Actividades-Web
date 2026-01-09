@@ -1,19 +1,24 @@
 /* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
 .nav-bar {
-    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 60px;
+    padding-right: 16px;
+    border: solid 1px green;
 }
 
     .nav-bar .header-icons {
-        position: absolute;
-        right: 16px;
-        top: 50%;
+        position: relative;
+        border: 1px solid red;
         display: flex;
         align-items: center;
         gap: 10px;
         z-index: 3000;
+        margin-left: auto;
     }
         
-        /*Color normal*/
+        /*Botones*/
         .nav-bar .header-icons .btn-link,
         .nav-bar .header-icons .btn {
             color: #5a5a5a;
@@ -24,12 +29,14 @@
             .nav-bar .header-icons .btn-link:hover,
             .nav-bar .header-icons .btn:hover {
                 color: #1d9bf0;
-                background-color: rgba(29,155,240,0.1);
+                background-color: rgba(29,155,240,0.2);
             }
 
 /* make svg icons follow currentColor */
 .nav-bar .header-icons svg {
     fill: currentColor;
+    border: 1px solid blue;
+
 }
     /* position notification panel and user dropdown relative to the header-icons container */
     .nav-bar .header-icons .notificaciones-container {
@@ -40,9 +47,8 @@
     }
 
     .nav-bar .header-icons .dropdown-menu {
-        position: absolute;
-        top: calc(100% + 8px);
         right: 0;
+        left: auto;
         z-index: 3050;
     }
 
@@ -108,7 +114,7 @@
     position: relative;
 
     max-width: 250px;
-    color: black;
+    color: var(--negro);
     border-radius: 5px;
 }
     .noti-item:hover {
