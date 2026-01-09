@@ -51,15 +51,7 @@
                     </button>
                 </div>
             </div>
-            <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
-                <label style="margin:0;">Filtro: </label>
-                <select id="filtroActividades" class="form-select" style="width:auto; display:inline-block;">
-                    <option value="all">Todas</option>
-                    <option value="borrador">Borradores</option>
-                    <option value="publicadas">Publicadas</option>
-                    <option value="programadas">Programadas</option>
-                </select>
-            </div>
+            <!-- Filter control will be injected dynamically by scriptsActividades.js -->
             <div class="divider"></div>
             <div id="listaActividadesDeMateria"></div>
         </div>
@@ -136,8 +128,12 @@
 
 @section Scripts {
     <script>
-        let materiaIdGlobal = '@materiaId';
-        let grupoIdGlobal = '@grupoId';
+        // expose as globals so other scripts can read them
+        window.materiaIdGlobal = '@materiaId';
+        window.grupoIdGlobal = '@grupoId';
+        // also expose local variables expected by existing scripts
+        var materiaIdGlobal = window.materiaIdGlobal;
+        var grupoIdGlobal = window.grupoIdGlobal;
         // Persist current materia/grupo selection so alumnos list can be restored
         try {
             if (materiaIdGlobal) localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal));

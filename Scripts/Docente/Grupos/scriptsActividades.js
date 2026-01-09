@@ -1,10 +1,43 @@
 ﻿var div = document.getElementById("docente-datos");
 var docenteIdGlobal = div ? div.dataset.docenteid : null;
+// cache últimas actividades cargadas para filtrado instantáneo
+var actividadesCacheGlobal = null;
 
 // Esperar a que el DOM esté completamente cargado antes de ejecutar el código
 document.addEventListener("DOMContentLoaded", function () {
 
+    // inject filter control into UI and attach listener
+    try {
+        var seccionAct = document.getElementById('seccion-actividades');
+        if (seccionAct) {
+            var container = document.createElement('div');
+            container.style.marginTop = '10px';
+            container.style.display = 'flex';
+            container.style.gap = '8px';
+            container.style.alignItems = 'center';
+
+            var label = document.createElement('label'); label.style.margin = '0'; label.textContent = 'Filtro: ';
+            var select = document.createElement('select'); select.id = 'filtroActividades'; select.className = 'form-select'; select.style.width = 'auto'; select.style.display = 'inline-block';
+            [['all','Todas'], ['borrador','Borradores'], ['publicada','Publicadas'], ['programada','Programadas'] ].forEach(function(opt){
+                var o = document.createElement('option'); o.value = opt[0]; o.textContent = opt[1]; select.appendChild(o);
+            });
+            container.appendChild(label); container.appendChild(select);
+            seccionAct.insertBefore(container, seccionAct.querySelector('.divider'));
+
+            select.addEventListener('change', function(){
+                console.debug('Filtro cambiado a', select.value);
+                if (actividadesCacheGlobal && Array.isArray(actividadesCacheGlobal) && actividadesCacheGlobal.length>0) {
+                    // render using cached data (client-side instant)
+                    renderizarActividades(actividadesCacheGlobal);
+                } else {
+                    cargarActividadesDeMateria();
+                }
+            });
+        }
+    } catch(e){ console.warn('No se pudo inyectar filtroActividades', e); }
+
     cargarActividadesDeMateria();
+    
 
 });
 
@@ -174,11 +207,13 @@ async function cargarActividadesDeMateria() {
                 return;
             }
             if (payload.resultado && Array.isArray(payload.resultado)) {
+                actividadesCacheGlobal = payload.resultado;
                 renderizarActividades(payload.resultado);
                 return;
             }
             const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
             if (arr) {
+                actividadesCacheGlobal = arr;
                 renderizarActividades(arr);
                 return;
             }
@@ -188,7 +223,9 @@ async function cargarActividadesDeMateria() {
             return;
         }
 
-        renderizarActividades(payload);
+        // cache payload for instant client-side filtering
+        actividadesCacheGlobal = Array.isArray(payload) ? payload : [];
+        renderizarActividades(actividadesCacheGlobal);
     } catch (error) {
         console.error('Error en cargarActividadesDeMateria:', error);
         listaActividades.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
@@ -205,27 +242,51 @@ function renderizarActividades(actividades) {
         listaActividades.innerHTML = "<p>No hay actividades registradas para esta materia.</p>";
         return;
     }
-    actividades.reverse();
+    // work on a copy to avoid mutating the cached array (reverse is in-place)
+    const actividadesToRender = actividades.slice().reverse();
 
     // get filter
     const filtroEl = document.getElementById('filtroActividades');
     const filtro = filtroEl ? filtroEl.value : 'all';
+    // normalize filter: allow plural values from markup (e.g. 'publicadas')
+    const filtroNorm = (filtro === 'all') ? 'all' : (String(filtro).endsWith('s') ? String(filtro).slice(0, -1) : String(filtro));
 
-    actividades.forEach(actividad => {
-        // skip by filter
-        const estadoKey = actividad.Enviado === true ? 'publicada' : (actividad.Enviado === false ? 'borrador' : (actividad.FechaProgramada ? 'programada' : 'borrador'));
-        if (filtro !== 'all') {
-            if (filtro === 'borrador' && estadoKey !== 'borrador') return;
-            if (filtro === 'publicadas' && estadoKey !== 'publicada') return;
-            if (filtro === 'programadas' && estadoKey !== 'programada') return;
-        }
+    // apply filter client-side to get the list to actually render
+    const filteredActividades = actividadesToRender.filter(actividad => {
+        // Normalize 'Enviado' value (may come as boolean, string or number)
+        let enviadoVal = actividad.Enviado;
+        if (typeof enviadoVal === 'undefined' && actividad.enviado !== undefined) enviadoVal = actividad.enviado;
+        const enviadoBool = (enviadoVal === true) || (String(enviadoVal).toLowerCase() === 'true') || (String(enviadoVal) === '1') || (enviadoVal === 1);
+        const fechaProgVal = actividad.FechaProgramada || actividad.fechaProgramada || actividad.FechaProgramada;
+        const estadoKey = enviadoBool ? 'publicada' : (fechaProgVal ? 'programada' : 'borrador');
+        if (filtroNorm === 'all') return true;
+        if (filtroNorm === 'borrador') return estadoKey === 'borrador';
+        if (filtroNorm === 'publicada') return estadoKey === 'publicada';
+        if (filtroNorm === 'programada') return estadoKey === 'programada';
+        return true;
+    });
+
+    console.debug('renderizarActividades: total=', actividadesToRender.length, 'filtradas=', filteredActividades.length, 'filtro=', filtroNorm);
+
+    // render the filtered list
+    renderActividadesDirect(filteredActividades);
+}
+
+// Render a given list of activities directly (no further filtering)
+function renderActividadesDirect(listado) {
+    const listaActividades = document.getElementById("listaActividadesDeMateria");
+    if (!listaActividades) return;
+    // assume container already cleared
+    listado.forEach(actividad => {
+        let enviadoVal = actividad.Enviado;
+        if (typeof enviadoVal === 'undefined' && actividad.enviado !== undefined) enviadoVal = actividad.enviado;
+        const enviadoBool = (enviadoVal === true) || (String(enviadoVal).toLowerCase() === 'true') || (String(enviadoVal) === '1') || (enviadoVal === 1);
+        const fechaProgVal = actividad.FechaProgramada || actividad.fechaProgramada || actividad.FechaProgramada;
+        const descripcionActividadConEnlace = convertirUrlsEnEnlaces(actividad.Descripcion);
+        const estado = enviadoBool ? 'Publicado' : (fechaProgVal ? 'Programada' : 'Borrador');
+
         const actividadItem = document.createElement('div');
         actividadItem.classList.add('actividad-item');
-        const descripcionActividadConEnlace = convertirUrlsEnEnlaces(actividad.Descripcion);
-
-        // estado
-        const estado = actividad.Enviado === true ? 'Publicado' : (actividad.Enviado === false ? 'Borrador' : (actividad.FechaProgramada ? 'Programada' : 'Borrador'));
-
         actividadItem.innerHTML = `
             <div class="actividad-header">
                 <div class="icono">📋</div>
@@ -249,28 +310,26 @@ function renderizarActividades(actividades) {
             </div>
         `;
 
-        // Mostrar/ocultar descripción al hacer clic en "Ver completo"
         const verCompleto = actividadItem.querySelector(".ver-completo");
         const descripcion = actividadItem.querySelector(".actividad-descripcion");
+        if (verCompleto && descripcion) {
+            verCompleto.addEventListener("click", () => {
+                if (descripcion.classList.contains("oculto")) {
+                    descripcion.classList.remove("oculto");
+                    descripcion.classList.add("visible");
+                } else {
+                    descripcion.classList.remove("visible");
+                    descripcion.classList.add("oculto");
+                }
+            });
+        }
 
-        verCompleto.addEventListener("click", () => {
-            if (descripcion.classList.contains("oculto")) {
-                descripcion.classList.remove("oculto");
-                descripcion.classList.add("visible");
-            } else {
-                descripcion.classList.remove("visible");
-                descripcion.classList.add("oculto");
-            }
-        });
-
-        // Agregar eventos a los botones
         const btnEliminar = actividadItem.querySelector(".eliminar-btn");
         const btnEditar = actividadItem.querySelector(".editar-btn");
         const btnIrActividad = actividadItem.querySelector(".btn-ir-actividades");
-
-        btnEliminar.addEventListener("click", () => eliminarActividad(actividad.ActividadId));
-        btnEditar.addEventListener("click", () => editarActividad(actividad.ActividadId));
-        btnIrActividad.addEventListener("click", () => IrAActividad(actividad.ActividadId));
+        if (btnEliminar) btnEliminar.addEventListener("click", () => eliminarActividad(actividad.ActividadId));
+        if (btnEditar) btnEditar.addEventListener("click", () => editarActividad(actividad.ActividadId));
+        if (btnIrActividad) btnIrActividad.addEventListener("click", () => IrAActividad(actividad.ActividadId));
 
         listaActividades.appendChild(actividadItem);
     });
