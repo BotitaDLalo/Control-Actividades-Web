@@ -618,7 +618,7 @@ namespace ControlActividades.Controllers
                                 string titulo = "Tu actividad fue calificada";
                                 string cuerpo = $"Tu entrega fue calificada con: {nuevaCalificacion}" + (entregable.Comentario != null ? ". Comentario: " + entregable.Comentario : "");
                                 var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == alumnoUserId).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
-                                await ns.ProcesarNotificacion(new List<string> { alumnoUserId }, tokens, titulo, cuerpo, "Calificacion");
+                                //await ns.ProcesarNotificacion(new List<string> { alumnoUserId }, tokens, titulo, cuerpo, "Calificacion");
                             }
                         }
                     }
