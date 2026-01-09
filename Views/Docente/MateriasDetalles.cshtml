@@ -77,18 +77,13 @@
 
         <div id="seccion-alumnos" class="seccion" style="display: none;">
             <div class="container mt-3">
-                <label for="buscarAlumno" class="form-label">Buscar alumno por correo:</label>
-                <div class="input-group">
-                    <input type="text" id="buscarAlumno" class="form-control" placeholder="Ingrese el correo del alumno..." autocomplete="off">
-                    <button id="btnAsignarAlumno" class="btn btn-primary">Asignar Alumno</button>
-                    
+                <div class="d-flex" style="gap:8px; align-items:center;">
                     @if (User != null && User.IsInRole("Docente"))
                     {
-                        <button type="button" id="btnImportarAlumnos" class="btn btn-success ms-2" title="Importar desde Excel"><i class="fas fa-file-excel" style="margin-right:8px"></i>Importar Alumnos</button>
+                        <button type="button" id="btnImportarAlumnos" class="btn btn-success" title="Importar desde Excel"><i class="fas fa-file-excel" style="margin-right:8px"></i>Importar Alumnos</button>
                         <input type="file" id="fileImportarAlumnos" accept=".xlsx,.xls" style="display:none" />
                     }
                 </div>
-                <ul id="sugerenciasAlumnos" class="list-group mt-2"></ul>
             </div>
             <div id="listaAlumnosAsignados" class="mt-3"></div>
         </div>
