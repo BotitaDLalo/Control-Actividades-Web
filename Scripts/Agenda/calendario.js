@@ -20,8 +20,15 @@
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: "dayGridMonth",
             locale: "es",
-            height: "auto",
+            dateClick: function (info) {
+                console.log("Fecha clickeada:", info.dateStr);
 
+                // Mostrar la fecha en el título del modal
+                document.getElementById("fechaSeleccionadaTexto").textContent = info.dateStr;
+                abrirModalEventosDia(info.dateStr);
+
+            },
+            height: "auto",
             eventDisplay: "block",
 
             views: {
@@ -70,22 +77,88 @@
         });
 
         calendar.render();
+
+        /*Obtener el modal y la lista de eventos del DOM*/
+        const modalEventoEl = document.getElementById("modalEvento");
+        const modalEvento = bootstrap.Modal.getOrCreateInstance(modalEventoEl);
+
+        const listaEventos = document.getElementById("listaEventos");
+        const textoFecha = document.getElementById("fechaSeleccionadaTexto");
+
+        modalEventoEl.addEventListener("hidden.bs.modal", () => {
+            listaEventos.innerHTML = "";
+        });
+
+        function abrirModalEventosDia(fecha) {
+            textoFecha.textContent = fecha;
+            listaEventos.innerHTML = `<p class="text-muted">Cargando eventos...</p>`;
+
+            modalEvento.show();
+            cargarEventosDocentePorFecha(fecha);
+        }
+
+        async function cargarEventosDocentePorFecha(fecha) {
+            try {
+                const resp = await fetch(`/EventosAgenda/ObtenerEventosPorFecha?fecha=${fecha}`);
+                const data = await resp.json();
+
+                listaEventos.innerHTML = "";
+
+                // Revisar si es un arreglo vacío o contiene mensaje de "no hay eventos"
+                if (!Array.isArray(data) || data.length === 0 || data.mensaje) {
+                    listaEventos.innerHTML = "<p>No hay eventos para esta fecha.</p>";
+                    return;
+                }
+
+                data.forEach(ev => {
+                    const div = document.createElement("div");
+                    div.classList.add("evento-item");
+                    div.innerHTML = `
+                <h3 class="evento-titulo" data-id="${ev.eventoId}">${ev.titulo}</h3>
+                <!--<p>${ev.descripcion}</p>-->
+            `;
+                    listaEventos.appendChild(div);
+                });
+
+                // Agregar evento click para abrir detalle
+                listaEventos.querySelectorAll(".evento-titulo").forEach(titulo => {
+                    titulo.addEventListener("click", function () {
+                        const id = this.dataset.id;
+                        if (id) {
+                            abrirModalDetalle(id);
+                        }
+                    });
+                });
+            } catch (e) {
+                console.error("Error cargando eventos:", e);
+                listaEventos.innerHTML = `<p class="text-danger">Error al cargar eventos.</p>`;
+            }
+        }
+
+        function formatearFecha(fechaStr) {
+            const f = new Date(fechaStr.replace("/Date(", "").replace(")/", ""));
+            return f.toLocaleString("es-MX", {
+                dateStyle: "short",
+                timeStyle: "short"
+            });
+        }
+
+        function ajustarFechaFin(fecha) {
+            const date = new Date(fecha);
+            date.setDate(date.getDate());
+            return date.toISOString().split("T")[0];
+        }
+
+        function convertirFechaNetAInput(fechaNet) {
+            const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
+            const fechaUTC = new Date(timestamp);
+
+            // Convertir a hora local sin que el navegador lo cambie
+            const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
+
+            return fechaLocal.toISOString().slice(0, 16);
+        }
     });
 
 })();
 
-function ajustarFechaFin(fecha) {
-    const date = new Date(fecha);
-    date.setDate(date.getDate() );
-    return date.toISOString().split("T")[0];
-}
-
-function convertirFechaNetAInput(fechaNet) {
-    const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
-    const fechaUTC = new Date(timestamp);
-
-    // Convertir a hora local sin que el navegador lo cambie
-    const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
-
-    return fechaLocal.toISOString().slice(0, 16);
-}

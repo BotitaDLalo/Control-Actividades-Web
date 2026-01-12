@@ -2,16 +2,6 @@
     padding: 20px;
 }
 
-#calendario-input {
-    width: 100%;
-    border: none;
-    outline: none;
-    color:#ffffff;
-    background: transparent;
-    cursor: pointer;
-    font-size: 20px;
-}
-
 
 /* Estilos para el formulario dentro del modal */
 .form-custom {
@@ -32,8 +22,6 @@ textarea {
     height: 100px;
 }
 
-
-
 /* Animación flotante */
 @keyframes float {
     0% {
@@ -44,7 +32,6 @@ textarea {
         transform: translateY(15px) translateX(15px);
     }
 }
-
 
 .evento-item {
     background: #f8f9fa;
