@@ -35,6 +35,7 @@ namespace ControlActividades
                 .Include(
                     "~/Content/Componentes/Calendario.css",
                     "~/Content/Componentes/cards.css",
+                    "~/Content/Componentes/modal.css",
                     "~/Content/Componentes/carga.css"
                 )
             );

@@ -1,0 +1,47 @@
+﻿:root {
+    /*SISTEMA*/
+    --principal-500: var(--azul-500);
+    --principal-600: var(--azul-600);
+    --principal-700: var(--azul-700);
+    --secundario-500: var(--cyan-500);
+    --neutral-500: var(--gris-500);
+    /* ===================== */
+    /* ===================== */
+    /* TEXTO */
+    --txt-principal: var(--negro);
+    --txt-secundario: var(--gris-500);
+    --txt-inverso: var(--blanco); /*Cuando el fondo es oscuro*/
+    /* ===================== */
+    /* ===================== */
+    /* FONDOS */
+    --bg-defecto: var(--blanco);
+    --bg-secundario: var(--gris-50);
+    --bg-apagado: var(--gris-100);
+    --bg-hover: var(--gris-300);
+    --bg-hover-secundario: var(--cyan-500);
+    /* ===================== */
+    /* ===================== */
+    /*Bordes*/
+    --borde-defecto: var(--gris-200);
+    /* ===================== */
+    /* ===================== */
+    /*ENLACES*/
+    --enlace-color: var(--principal-500);
+    --enlace-hover: var(--principal-700);
+    /*Estados*/
+    --success: var(--verde-500);
+    --danger: var(--rojo-500);
+    --warning: var(--amarillo-500);
+    /* ===================== */
+    /* BOTONES */
+    /* ===================== */
+    --btn-bg-principal: var(--principal-500);
+    --btn-bg-principal-hover: var(--principal-600);
+    --btn-bg-principal-pressed: var(--principal-700);
+    --btn-bg-principal-disabled: var(--neutral);
+    --btn-txt-principal: var(--txt-inverso);
+}
+
+.modo-oscuro{
+    /**/
+}

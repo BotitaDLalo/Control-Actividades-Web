@@ -524,6 +524,7 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\cards.css" />
+    <Content Include="Content\Componentes\modal.css" />
     <Content Include="Content\Dashboard\header.css" />
     <Content Include="Content\dataTables.dataTables.css" />
     <Content Include="Content\dataTables.dataTables.min.css" />
@@ -534,11 +535,12 @@
     <Content Include="Content\Iconos\notiAviso.svg" />
     <Content Include="Content\Iconos\notiActividadCreada.svg" />
     <Content Include="Content\Iconos\notiActividadCreada-Azul.svg" />
+    <Content Include="Content\Moleculas\inputs.css" />
+    <Content Include="Content\Moleculas\botones.css" />
     <Content Include="Content\Variables\fuentes.css" />
     <Content Include="Content\Componentes\carga.css" />
     <Content Include="Content\Dashboard\cards.css" />
     <Content Include="Content\Dashboard\content.css" />
-    <Content Include="Content\Dashboard\nav-bar.css" />
     <Content Include="Content\Dashboard\sidebar.css" />
     <Content Include="Content\Materias\actividadesSeccion.css" />
     <Content Include="Content\Materias\alumnosSeccion.css" />
@@ -600,6 +602,7 @@
     <Content Include="Scripts\Actividades\actividades.js" />
     <Content Include="Scripts\Actividades\entregables.js" />
     <Content Include="Scripts\Administrador\Autorizar.js" />
+    <Content Include="Scripts\Agenda\calendario.js" />
     <Content Include="Scripts\Alumnos\alumnos.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
     <Content Include="Scripts\Alumno\actividades.js" />

@@ -1,0 +1,15 @@
+﻿
+.btn-primary-custom {
+    background: var(--btn-bg-principal);
+    color: var(--texto-principal);
+    border: none;
+}
+
+.btn-primary-custom:hover {
+    background: var(--btn-bg-principal:hover);
+}
+
+    .btn-primary-custom:active {
+        background: var(--btn-bg-principal:active);
+    }
+

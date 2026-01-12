@@ -1,48 +1,74 @@
 ﻿:root {
     /*DEFINICIÓN DE COLORES*/
     --color-1: #4A90E2;
+    /*
+        azul oscuro #283043, rgb(40, 48, 67)
+
+        azul twitter #1db7f7, rgb(29, 183, 247)
+    */
     /*Azules*/
-    --azul-100: #1db7f7; /*Twitter*/
-    --azul-200: #007bff; /*Azul bootstrap*/
-    --azul-300: #0D6EFD; /*Azul bootstrap más opaco*/
-    --azul-700: #082050; /*Azul marino*/
-    --azul-800: #0F0C20; /*Azul oscuro*/
+    /*Azul bootstrap*/
+    --azul-50: #D7E7FF;
+    --azul-100: #AECFFE;
+    --azul-200: #86B6FE;
+    --azul-300: #5E9EFE;
+    --azul-400: #3586FD;
+    --azul-500: #0D6EFD;
+    --azul-600: #0256D3;
+    --azul-700: #01419E;
+    --azul-800: #012B6A;
+    --azul-900: #001635;
+    /*Azul twitter*/
+    --cyan-50: #BEEAFD;
+    --cyan-100: #9EE0FC;
+    --cyan-200: #7ED6FA;
+    --cyan-300: #5ECCF9;
+    --cyan-400: #3DC1F8;
+    --cyan-500: #1DB7F7;
+    --cyan-600: #0899D5;
+    --cyan-700: #0673A0;
+    --cyan-800: #044C6B;
+    --cyan-900: #022635;
     /**************************************************/
     /*Grises*/
-    --gris-100: #dddddd;
-    --gris-200: #c6c6c6;
-    --gris-700: #333333; /*Gris oscuro*/
-    
+    --gris-50: #E8EBEF;
+    --gris-100: #E3E6EC;
+    --gris-200: #DFE2E9;
+    --gris-300: #DADEE5;
+    --gris-400: #D6DAE2;
+    --gris-500: #D1D6DF;
+    --gris-600: #9EA9BC;
+    --gris-700: #6B7B98;
+    --gris-800: #475266;
+    --gris-900: #232933;
     /*ByN*/
     --blanco: #ffffff;
     --negro: #000000;
-    
     /*Verde*/
-    --verde-100: #00f236;
-    /*Rojo*/
-    --rojo-100: #ff001b;
+    --verde-500: #00f236;
     /*Amarillo*/
-    --amarillo-100: #ffc107;
-
+    --amarillo-500: #ffc107;
+    /*Rojo*/
+    --rojo-500: #ff001b;
+    /**************************************************/
+    /**************************************************/
+    /**************************************************/
     /*VARIABLES*/
     /*SISTEMA*/
     --color-principal: var(--azul-100);
     --color-secundario: var(--azul-200);
-    
     /*Fondos*/
     --color-fondo: var(--blanco);
     /*Textos*/
     --texto-principal: var(--blanco);
-    --texto-inverso: var(--negro);
+    --texto-inverso: var(--negro);  /*Sobre fondo blanco*/
     /*Hover*/
     --hover-gris: var(--gris-100);
     /*Bordes*/
     --border-default: var(--gris-200);
-    
     /*Enlaces*/
     --enlace-color: var(--azul-200);
     --enlace-hover: var(--azul-300);
-
     /*Estados*/
     --success: var(--verde-100);
     --danger: var(--rojo-100);
