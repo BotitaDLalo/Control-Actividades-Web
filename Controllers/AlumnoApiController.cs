@@ -403,20 +403,9 @@ namespace ControlActividades.Controllers
                 var alumnoId = entregable.AlumnoId;
                 var respuesta = entregable.Respuesta;
                 var fechaEntrega = entregable.FechaEntrega;
+                var tipoEntregaId = entregable.TipoEntregaId;
 
                 var fechaLimite = Db.tbActividades.Where(a => a.ActividadId == actividadId).Select(a => a.FechaLimite).FirstOrDefault();
-
-                //tbAlumnosActividades actividad = new tbAlumnosActividades()
-                //{
-                //    ActividadId = actividadId,
-                //    AlumnoId = alumnoId,
-                //    FechaEntrega = DateTime.Parse(fechaEntrega),
-                //    EstatusEntrega = true
-                //};
-
-
-
-                //Db.tbAlumnosActividades.Add(actividad);
 
                 tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
                 {
@@ -434,7 +423,7 @@ namespace ControlActividades.Controllers
                 tbEntregables entregables = new tbEntregables()
                 {
                     EntregaActividadAlumnoId = entregaAlumnoId,
-                    TipoEntregaId = 1,
+                    TipoEntregaId = tipoEntregaId,
                     Contenido = respuesta,
                 };
                 Db.tbEntregables.Add(entregables);
@@ -455,16 +444,29 @@ namespace ControlActividades.Controllers
 
                     //var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).Select(a => a.Calificacion).FirstOrDefaultAsync();
 
-                    //return Ok(new
-                    //{
-                    //    EntregaId = datosEntregable.EntregaId,
-                    //    AlumnoActividadId = alumnoActividad.,
-                    //    Respuesta = datosEntregable?.Respuesta ?? "",
-                    //    Status = datosAlumnoActividad.EstatusEntrega,
-                    //    Calificacion = calificacion
-                    //});
+                    var lsEnvios = new List<EnvioActividadAlumnoResponse>();
+                    
+                    foreach (var datoEntregable in lsDatosEntregables)
+                    {
+                        var estadoEntregaId = datosAlumnoActividad.EstadoEntregaId;
 
-                    return Ok();
+                        var envio = new EnvioActividadAlumnoResponse()
+                        {
+                            AlumnoId = alumnoId,
+                            EntregaActividadAlumnoId = datoEntregable.EntregaActividadAlumnoId,
+                            EntregableId = datoEntregable.EntregableId,
+                            ActividadId = datosAlumnoActividad.ActividadId,
+                            FechaEntrega = datosAlumnoActividad.FechaEntrega,
+                            Contenido = datoEntregable.Contenido,
+                            Calificacion = datoEntregable.Calificacion ?? 0,
+                            EstadoEntregaId = estadoEntregaId
+                        };
+
+                        lsEnvios.Add(envio);
+                    }
+
+
+                    return Ok(lsEnvios);
                 }
 
                 return BadRequest();
@@ -481,57 +483,54 @@ namespace ControlActividades.Controllers
         {
             try
             {
-
-                //var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId).Select(a => new { a.AlumnoActividadId, a.FechaEntrega, a.EstatusEntrega }).FirstOrDefaultAsync();
-
                 var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a=>a.ActividadId == ActividadId && a.AlumnoId==AlumnoId);
 
-                var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
-
-                var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
-
-                //var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == entregaActividadId).FirstOrDefaultAsync();
-
-                //if (datosAlumnoActividad != null && datosEntregable != null)
-                //{
-                //    int entregaId = datosEntregable.EntregaId;
-
-                //    var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).Select(a => a.Calificacion).FirstOrDefaultAsync();
-
-                //    return Ok(new
-                //    {
-                //        EntregaId = datosEntregable.EntregaId,
-                //        AlumnoActividadId = entregaActividadId,
-                //        Respuesta = datosEntregable?.Respuesta ?? "",
-                //        Status = datosAlumnoActividad.EstatusEntrega,
-                //        FechaEntrega = fechaEntrega,
-                //        Calificacion = calificacion
-                //    });
-                //}
-
-                List<EnvioRes> lsEnvios = new List<EnvioRes>();
-
-                var lsEntregas = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId).ToList();
-                if (lsEntregas.Count > 0)
+                if (datosAlumnoActividad != null)
                 {
-                    foreach (var entrega in lsEntregas)
+                    var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
+
+                    var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
+
+
+                    //List<EnvioRes> lsEnvios = new List<EnvioRes>();
+                    List<EnvioActividadAlumnoResponse> lsEnvios = new List<EnvioActividadAlumnoResponse>();
+
+                    var lsEntregas = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId).ToList();
+                    if (lsEntregas.Count > 0)
                     {
-                        EnvioRes envio = new EnvioRes()
+                        foreach (var entrega in lsEntregas)
                         {
-                            EntregaActividadAlumnoId = entregaActividadId,
-                            EntregableId = entrega.EntregableId,
-                            Contenido = entrega.Contenido,  
-                            EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
-                            FechaEntrega = fechaEntrega ?? new DateTime(),
-                            Calificacion = entrega.Calificacion.ToString() ?? "",
-                            EstadoEntrega = datosAlumnoActividad.EstadoEntregaId  == 1 ? true: false
-                        };
+                            //EnvioRes envio = new EnvioRes()
+                            //{
+                            //    EntregaActividadAlumnoId = entregaActividadId,
+                            //    EntregableId = entrega.EntregableId,
+                            //    Contenido = entrega.Contenido,
+                            //    EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+                            //    FechaEntrega = fechaEntrega ?? new DateTime(),
+                            //    Calificacion = entrega.Calificacion.ToString() ?? "",
+                            //    EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
+                            //};
 
 
-                        lsEnvios.Add(envio);
+                            //lsEnvios.Add(envio);
+
+                            EnvioActividadAlumnoResponse envio = new EnvioActividadAlumnoResponse()
+                            {
+                                AlumnoId = datosAlumnoActividad.AlumnoId,
+                                EntregaActividadAlumnoId = datosAlumnoActividad.EntregaActividadAlumnoId,
+                                EntregableId = entrega.EntregableId,
+                                ActividadId = datosAlumnoActividad.ActividadId,
+                                FechaEntrega = datosAlumnoActividad.FechaEntrega,
+                                Contenido = entrega.Contenido,
+                                Calificacion = entrega.Calificacion ?? 0,
+                                EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId
+                            };
+
+                            lsEnvios.Add(envio);    
+                        }
+
+                        return Ok(lsEnvios);
                     }
-
-                    return Ok(lsEnvios);
                 }
 
                 return BadRequest();

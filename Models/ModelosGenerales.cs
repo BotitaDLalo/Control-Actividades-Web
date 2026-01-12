@@ -10,8 +10,6 @@ namespace ControlActividades.Models
 {
     public class AsignarCalificacionPeticion
     {
-        public int EntregaId { get; set; }
-
         public int EntregableId { get; set; }
 
         public int Calificacion { get; set; }
@@ -149,7 +147,7 @@ namespace ControlActividades.Models
         [Required]
         public string FechaEntrega { get; set; }
 
-        public List<string> Enlaces { get; set; }
+        public int TipoEntregaId { get; set; }
     }
 
     public class ErrorViewModel
@@ -534,4 +532,27 @@ namespace ControlActividades.Models
         public int MateriaId {  get; set; }
     }
 
+    public class EnvioActividadAlumnoResponse
+    {
+        public int AlumnoId { get; set; }
+        public int EntregaActividadAlumnoId { get; set; }
+        public int EntregableId { get; set; }
+
+        public int ActividadId { get; set; }
+
+        public DateTime FechaEntrega { get; set; }
+        
+        public string Contenido { get; set; }
+
+        public int Calificacion { get; set; }
+
+        public int EstadoEntregaId { get; set; }    
+    }
+
+    public class EliminarAlumnoClase
+    {
+        public int AlumnoId { get; set; }   
+        public int? GrupoId { get; set;  }
+        public int? MateriaId { get; set;  }
+    }
 }

@@ -267,6 +267,9 @@ namespace ControlActividades.Controllers
                 nuevaActividad.FechaCreacion = DateTime.Now;
 
 
+                nuevaActividad.Enviado = true;
+
+
                 //nuevaActividad.TipoActividadId = 1;
 
                 // Guardar la actividad en la base de datos
@@ -533,9 +536,8 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var entregaId = asignarCalificacion.EntregaId;
-                var fechaNuevaCalificacion = DateTime.Now;
-                var nuevaCalificacion = asignarCalificacion.Calificacion;
+                var entregableId = asignarCalificacion.EntregableId;
+                var calificacion = asignarCalificacion.Calificacion;
 
                 //var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).FirstOrDefaultAsync();
 
@@ -559,6 +561,17 @@ namespace ControlActividades.Controllers
                 //    await Db.SaveChangesAsync();
                 //    return Ok();
                 //}
+
+                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == entregableId);
+
+                if (entregable == null) return BadRequest();
+
+                entregable.Calificacion = calificacion;
+                entregable.FechaCalificado = DateTime.Now;
+
+                Db.Entry(entregable).State = EntityState.Modified;
+                await Db.SaveChangesAsync();
+
                 return Ok();
 
             }
