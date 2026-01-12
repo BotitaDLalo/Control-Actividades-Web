@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     /*SISTEMA*/
     --principal-500: var(--azul-500);
     --principal-600: var(--azul-600);
@@ -15,7 +15,8 @@
     /* ===================== */
     /* FONDOS */
     --bg-defecto: var(--blanco);
-    --bg-secundario: var(--gris-50);
+    --bg-principal: var(--principal-500);
+    --bg-secundario: var(--secundario-500);
     --bg-apagado: var(--gris-100);
     --bg-hover: var(--gris-300);
     --bg-hover-secundario: var(--cyan-500);
@@ -42,6 +43,3 @@
     --btn-txt-principal: var(--txt-inverso);
 }
 
-.modo-oscuro{
-    /**/
-}

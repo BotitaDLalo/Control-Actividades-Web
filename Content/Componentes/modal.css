@@ -12,13 +12,13 @@
 
 .modal-title-custom {
     font-weight: 600;
-    color: var(--txt-inverso);
+    color: var(--txt-principal);
 }
 
 /* Body */
 .modal-body-custom {
     padding: 1.25rem;
-    color: var(--txt-secundario);
+    color: var(--txt-principal);
 }
 
 /* Footer */

@@ -3,7 +3,7 @@
 }
 
 .btn-expandir {
-    background: blue;
+    background: none;
     border: none;
     font-size: 16px;
     cursor: pointer;
@@ -40,14 +40,17 @@
         display: block;
     }
 
-.nav-link {
-    background-color: white;
-    border: none;
+.nav-link-custom {
+    background-color: var(--blanco);
+    color: var(--negro);
     padding: 8px 12px;
-    cursor: pointer; /* cursor de mano */
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s; /* suave transición */
 }
-    .nav-link.active {
-        background: var(--azul-twitter) !important;
-        color: white !important;
+    .nav-link-custom.active {
+        background-color: var(--bg-principal);
+        color: var(--blanco);
+        border: 1px solid var(--negro);
+        border-bottom: none;
         font-weight: bold;
     }
