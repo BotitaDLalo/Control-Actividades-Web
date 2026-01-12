@@ -44,16 +44,17 @@
                     }
 
                     const eventos = data.map(e => {
-                        const fechaInicio = convertirFechaNetAInput(e.fechaInicio);
-                        const fechaFinal = ajustarFechaFin(
+                        const inicio = convertirFechaNetAInput(e.fechaInicio);
+                        const final = ajustarFechaFin(
                             convertirFechaNetAInput(e.fechaFinal)
                         );
 
                         return {
                             id: e.eventoId,
                             title: e.titulo,
-                            start: fechaInicio,
-                            end: fechaFinal,
+                            start: inicio,
+                            end: final,
+                            allDay: true,
                             color: e.color === "azul" ? "#007bff" : "#6c757d",
                             borderColor: "transparent"
                         };
@@ -72,3 +73,19 @@
     });
 
 })();
+
+function ajustarFechaFin(fecha) {
+    const date = new Date(fecha);
+    date.setDate(date.getDate() );
+    return date.toISOString().split("T")[0];
+}
+
+function convertirFechaNetAInput(fechaNet) {
+    const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
+    const fechaUTC = new Date(timestamp);
+
+    // Convertir a hora local sin que el navegador lo cambie
+    const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
+
+    return fechaLocal.toISOString().slice(0, 16);
+}
