@@ -58,7 +58,7 @@ body {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
     background: white;
-    z-index: 100;
+    z-index: auto;
 }
 
 .layout-content {

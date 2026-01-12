@@ -116,7 +116,7 @@
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro para el modal */
-    z-index: 1055;
+    z-index: 1555;
     overflow-x: hidden;
     overflow-y: auto;
     outline: 0;
