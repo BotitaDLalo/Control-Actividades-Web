@@ -537,6 +537,7 @@
     <Content Include="Content\Iconos\notiActividadCreada-Azul.svg" />
     <Content Include="Content\Moleculas\inputs.css" />
     <Content Include="Content\Moleculas\botones.css" />
+    <Content Include="Content\Variables\modo-claro.css" />
     <Content Include="Content\Variables\fuentes.css" />
     <Content Include="Content\Componentes\carga.css" />
     <Content Include="Content\Dashboard\cards.css" />
@@ -602,6 +603,7 @@
     <Content Include="Scripts\Actividades\actividades.js" />
     <Content Include="Scripts\Actividades\entregables.js" />
     <Content Include="Scripts\Administrador\Autorizar.js" />
+    <Content Include="Scripts\Agenda\calendario-crear.js" />
     <Content Include="Scripts\Agenda\calendario.js" />
     <Content Include="Scripts\Alumnos\alumnos.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />

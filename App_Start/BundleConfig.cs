@@ -27,10 +27,17 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Variables")
                 .Include(
                     "~/Content/Variables/colors.css",
-                    "~/Content/Variables/fuentes.css"
+                    "~/Content/Variables/fuentes.css",
+                    "~/Content/Variables/modo-claro.css"
                 )
             );
 
+            bundles.Add(new StyleBundle("~/Content/Moleculas")
+                .Include(
+                    "~/Content/Moleculas/botones.css",
+                    "~/Content/Moleculas/inputs.css"
+                )
+            );
             bundles.Add(new StyleBundle("~/Content/Componentes")
                 .Include(
                     "~/Content/Componentes/Calendario.css",
