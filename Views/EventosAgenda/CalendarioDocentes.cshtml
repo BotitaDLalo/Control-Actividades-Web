@@ -4,176 +4,221 @@
     int docenteId = ViewBag.DocenteId ?? 0;
 }
 
-<div class="calendario-wrapper" style="padding:20px;">
+<div class="calendario-wrapper">
     <div id="calendar" style="max-width: 1200px; margin: 0 auto;"></div>
 
     <!-- MODAL DE EVENTOS -->
-    <div id="modalEvento" class="modal-evento" style="display:none;">
-        <div class="modal-content">
-            <span class="close-modal12">&times;</span>
-            <h2>Eventos del <span id="fechaSeleccionadaTexto"></span></h2>
+    <div class="modal fade modal-custom" id="modalEvento" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content modal-content-custom">
 
-            <div id="listaEventos"></div>
-
-            <button id="btnAgregarEvento">Agregar Evento</button>
-
-        </div>
-    </div>
-</div>
-
-
-<div id="modalCrearEvento" class="modal-evento" style="display:none;">
-    <div class="modal-crear-content">
-        <span class="close-crear">&times;</span>
-        <h2>Crear nuevo evento</h2>
-
-        <form id="formEvento">
-            <label for="titulo">Título:</label>
-            <input type="text" id="titulo" name="Titulo" required>
-
-            <label for="descripcion">Descripción:</label>
-            <textarea id="descripcion" name="Descripcion" required></textarea>
-
-            <div class="fechas-juntas">
-                <div class="campo-fecha">
-                    <label for="FechaInicio">Fecha Inicio:</label>
-                    <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
-                </div
->
-                <div class="campo-fecha">
-                    <label for="FechaFinal">Fecha Final:</label>
-                    <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title modal-title-custom">
+                        Eventos del <span id="fechaSeleccionadaTexto"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-            </div>
 
-            <label for="color">Color:</label>
-            <select id="color" name="Color" required>
-                <option value="azul">Azul</option>
-                <option value="gris">Gris</option>
-            </select>
+                <div class="modal-body modal-body-custom">
+                    <div id="listaEventos"></div>
 
-            <h3>Destinatarios</h3>
-            <div class="tab-style-4 card-style mb-30">
-                <nav class="nav nav-tabs">
-                    <button type="button" class="nav-link active" data-tab="tabGrupos">
-                        Grupos
-                    </button>
-
-                    <button type="button" class="nav-link" data-tab="tabMateriasSueltas">
-                        Materias sin grupo
-                    </button>
-                </nav>
-
-                <div class="tab-content">
-                    <!--Contenedor de grupos-->
-                    <div id="tabGrupos" class="tab-pane fade active show">
-                        <div id="contenedorGrupos"></div>
-                    </div>
-
-                    <!--Contenedor de materias sueltas-->
-                    <div id="tabMateriasSueltas" class="tab-pane fade">
-                        <div id="contenedorMateriasSueltas"></div>
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-primary-custom"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalCrearEvento">
+                            Agregar Evento
+                        </button>
                     </div>
                 </div>
             </div>
-            <button type="submit">Guardar</button>
-
-
-        </form>
-
+        </div>
     </div>
-</div>
 
+    <!--Crear evento-->
+    <div class="modal fade modal-custom" id="modalCrearEvento" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
 
-<!--Detalle-->
-<div id="modalDetalleEvento" class="modal-evento" style="display:none;">
-    <div class="modal-detalle-content">
-        <span class="close-detalle">&times;</span>
-        <h3 id="detalle-titulo">Título del evento</h3>
+            <div class="modal-content modal-content-custom">
 
-        <div class="detalle-meta">
-            <p><strong>Inicio:</strong> <span id="detalle-fecha-inicio"></span></p>
-            <p><strong>Fin:</strong> <span id="detalle-fecha-final"></span></p>
-            <p><strong>Color:</strong> <span id="detalle-color"></span></p>
-        </div>
-
-        <div class="detalle-descripcion">
-            <h4 id="descripcion-titulo">Descripción</h4>
-            <p id="detalle-descripcion"></p>
-        </div>
-
-        <div id="detalle-destinatarios" style="display:none;">
-            <div id="detalle-destinatarios-scroll">
-                <h4>Destinatarios</h4>
-
-                <div id="detalle-grupos" style="display:none;">
-                    <strong>Grupos:</strong>
-                    <ul id="lista-grupos"></ul>
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title modal-title-custom">
+                        Crear nuevo evento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div id="detalle-materias" style="display:none;">
-                    <strong>Materias sin grupo:</strong>
-                    <ul id="lista-materias"></ul>
+                <div class="modal-body modal-body-custom">
+
+                    <form id="formEvento" class="form-custom">
+                        <label for="titulo">Título:</label>
+                        <input type="text" id="titulo" name="Titulo" required>
+
+                        <label for="descripcion">Descripción:</label>
+                        <textarea id="descripcion" name="Descripcion" required></textarea>
+
+                        <div class="fechas-juntas">
+                            <div class="campo-fecha">
+                                <label for="FechaInicio">Fecha Inicio:</label>
+                                <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
+                            </div>
+                            <div class="campo-fecha">
+                                <label for="FechaFinal">Fecha Final:</label>
+                                <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+                            </div>
+                        </div>
+
+                        <label for="color">Color:</label>
+                        <select id="color" name="Color" required>
+                            <option value="azul">Azul</option>
+                            <option value="gris">Gris</option>
+                        </select>
+
+                        <h3>Destinatarios</h3>
+                        <div class="tab-style-4 card-style mb-30">
+                            <nav class="nav nav-tabs">
+                                <button type="button" class="nav-link active" data-tab="tabGrupos">
+                                    Grupos
+                                </button>
+
+                                <button type="button" class="nav-link" data-tab="tabMateriasSueltas">
+                                    Materias sin grupo
+                                </button>
+                            </nav>
+
+                            <div class="tab-content">
+                                <!--Contenedor de grupos-->
+                                <div id="tabGrupos" class="tab-pane fade active show">
+                                    <div id="contenedorGrupos"></div>
+                                </div>
+
+                                <!--Contenedor de materias sueltas-->
+                                <div id="tabMateriasSueltas" class="tab-pane fade">
+                                    <div id="contenedorMateriasSueltas"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="modal-footer modal-footer-custom">
+                        <button type="submit" class="btn btn-primary-custom">Guardar</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!--Detalle-->
+    <div class="modal fade modal-custom" id="modalDetalleEvento" tabindex="-1">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+
+            <div class="modal-content modal-content-custom">
+
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title modal-title-custom" id="detalle-titulo">Título del evento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body modal-body-custom">
+
+                    <div class="detalle-meta">
+                        <p><strong>Inicio:</strong> <span id="detalle-fecha-inicio"></span></p>
+                        <p><strong>Fin:</strong> <span id="detalle-fecha-final"></span></p>
+                        <p><strong>Color:</strong> <span id="detalle-color"></span></p>
+                    </div>
+
+                    <div class="detalle-descripcion">
+                        <h6 id="descripcion-titulo">Descripción</h6>
+                        <p id="detalle-descripcion"></p>
+                    </div>
+
+                    <div id="detalle-destinatarios">
+                        <div id="detalle-destinatarios-scroll">
+                            <h4>Destinatarios</h4>
+
+                            <div id="detalle-grupos" style="display:none;">
+                                <strong>Grupos:</strong>
+                                <ul id="lista-grupos"></ul>
+                            </div>
+
+                            <div id="detalle-materias" style="display:none;">
+                                <strong>Materias sin grupo:</strong>
+                                <ul id="lista-materias"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer modal-footer-custom">
+                    <button id="btnEditarEvento" class="btn btn-primary-custom">Editar</button>
+                    <button id="btnEliminarEvento" class="btn btn-danger">Eliminar</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="detalle-acciones" style="margin-top:15px;">
-            <button id="btnEditarEvento" class="btn btn-primary">Editar</button>
-            <button id="btnEliminarEvento" class="btn btn-danger">Eliminar</button>
-            <button id="btnCerrarDetalle" class="btn btn-secondary">Cerrar</button>
+    <!--Editar-->
+    <div class="modal fade modal-custom" id="modalEditarEvento" tabindex="-1">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+
+            <div class="modal-content modal-content-custom">
+
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title modal-title-custom">Editar evento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body modal-body-custom">
+                    <form id="formEditarEvento" class="form-custom">
+                        <input type="hidden" id="editar-evento-id" />
+
+                        <label for="editar-titulo">Título:</label>
+                        <input type="text" id="editar-titulo" required>
+
+                        <label for="editar-fecha-inicio">Fecha inicio:</label>
+                        <input type="datetime-local" id="editar-fecha-inicio" required>
+
+                        <label for="editar-fecha-final">Fecha final:</label>
+                        <input type="datetime-local" id="editar-fecha-final">
+
+                        <label for="editar-color">Color:</label>
+                        <select id="editar-color" name="Color" required>
+                            <option value="azul">Azul</option>
+                            <option value="gris">Gris</option>
+                        </select>
+
+
+                        <label for="editar-descripcion">Descripción:</label>
+                        <textarea id="editar-descripcion"></textarea>
+
+                        <p class="titulo-seccion">Destinatarios:</p>
+
+                        <div class="grupos-materias-container" id="editar-contenedorGruposMaterias">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom">Guardar cambios</button>
+                    </form>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>
-
-<!--Editar-->
-<div id="modalEditarEvento" class="modal-evento" style="display:none;">
-    <div class="modal-crear-content">
-        <span class="close-editar" id="closeEditar">&times;</span>
-        <h2>Editar evento</h2>
-
-        <form id="formEditarEvento">
-            <input type="hidden" id="editar-evento-id" />
-
-            <label for="editar-titulo">Título:</label>
-            <input type="text" id="editar-titulo" required>
-
-            <label for="editar-fecha-inicio">Fecha inicio:</label>
-            <input type="datetime-local" id="editar-fecha-inicio" required>
-
-            <label for="editar-fecha-final">Fecha final:</label>
-            <input type="datetime-local" id="editar-fecha-final">
-
-            <label for="editar-color">Color:</label>
-            <select id="editar-color" name="Color" required>
-                <option value="azul">Azul</option>
-                <option value="gris">Gris</option>
-            </select>
-
-
-            <label for="editar-descripcion">Descripción:</label>
-            <textarea id="editar-descripcion"></textarea>
-
-            <p class="titulo-seccion">Destinatarios:</p>
-
-            <div class="grupos-materias-container" id="editar-contenedorGruposMaterias">
-            </div>
-
-            <button type="submit">Guardar cambios</button>
-        </form>
-    </div>
-</div>
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
     <script>
         var docenteIdGlobal = @docenteId;
     </script>
-    <script src="~/Scripts/Docente/AgendaFullCalendar.js"></script>
+    <script src="~/Scripts/Agenda/calendario.js"></script>
+    <!--/*<script src="~/Scripts/Docente/AgendaFullCalendar.js"></script>-->
+
 }
 
 @section Styles {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
     <link href="~/Content/Componentes/Calendario.css" rel="stylesheet" />
+    <link href="~/Content/Docente/calendarioDocente.css" rel="stylesheet" />
+    <link href="~/Content/Componentes/modal.css" rel="stylesheet" />
 }

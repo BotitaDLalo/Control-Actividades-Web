@@ -1,16 +1,17 @@
 ﻿// Prevent duplicate initialization when script is loaded multiple times
 if (window.__agendaFullCalendarInitialized) {
     console.warn('AgendaFullCalendar already initialized, skipping duplicate load');
+    return;
 } else {
     window.__agendaFullCalendarInitialized = true;
 
     document.addEventListener("DOMContentLoaded", function () {
 
         console.log("FullCalendar inicializando...");
-    //modal
-    //modal-detalles
-    //modal-crear
-        //modal-editar
+        //modalEvento
+        //modalCrearEvento
+        //modalDetalleEvento
+            //modalEditarEvento
 
         //JERARQUÍA
         //CALENDARIO CON TODOS LOS EVENTO
@@ -18,68 +19,70 @@ if (window.__agendaFullCalendarInitialized) {
         //MODAL CREAR EVENTO    ||  MODAL DETALLES EVENTO ESPECÍFICO
                                     //MODAL EDITAR EVENTO
 
-    const calendarEl = document.getElementById("calendar");
+        const calendarEl = document.getElementById("calendar");
 
-    //Modal de creación
-    const modalCrear = document.getElementById("modalCrearEvento");
-    const btnCerrarCrear = document.querySelector(".close-crear");
+        //Modal de creación
+        const modalEvento = new bootstrap.Modal('#modalEvento');
+        const modalCrear = new bootstrap.Modal('#modalCrearEvento');
+        const modalDetalle = new bootstrap.Modal('#modalDetalleEvento');
+        const modalEditar = new bootstrap.Modal('#modalEditarEvento');
 
-    // Inicializar FullCalendar
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        locale: "es",
-        height: "auto",
+        // Inicializar FullCalendar
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: "dayGridMonth",
+            locale: "es",
+            height: "auto",
 
-        eventDisplay: "block",
+            eventDisplay: "block",
         
-        views: {
-            dayGridMonth: {
-                dayMaxEvents: 3,
-                dayMaxEventRows: true
-            }
-        },
+            views: {
+                dayGridMonth: {
+                    dayMaxEvents: 3,
+                    dayMaxEventRows: true
+                }
+            },
 
-        // Cuando se selecciona un día 
-        dateClick: function (info) {
-            abrirModal(info.dateStr);
-        },
+            // Cuando se selecciona un día 
+            dateClick: function (info) {
+                abrirModal(info.dateStr);
+            },
 
-        // EVENTOS DEL DOCENTE
-        events: function (fetchInfo, successCallback, failureCallback) {
-            fetch('/EventosAgenda/ObtenerEventosDocente')
-                .then(res => res.json())
-                .then(data => {
+            // EVENTOS DEL DOCENTE
+            events: function (fetchInfo, successCallback, failureCallback) {
+                fetch('/EventosAgenda/ObtenerEventosDocente')
+                    .then(res => res.json())
+                    .then(data => {
 
-                    console.log("Eventos obtenidos:", data);
-                    if (!Array.isArray(data)) {
-                        successCallback([]);
-                        return;
-                    }
+                        console.log("Eventos obtenidos:", data);
+                        if (!Array.isArray(data)) {
+                            successCallback([]);
+                            return;
+                        }
 
-                    const eventos = data.map(e => {
+                        const eventos = data.map(e => {
 
-                        const final = convertirFechaNetAInput(e.fechaFinal);
+                            const final = convertirFechaNetAInput(e.fechaFinal);
 
-                        return {
-                            id: e.eventoId,
-                            title: e.titulo,
-                            start:
-                                convertirFechaNetAInput(e.fechaInicio),
-                            end:
-                                ajustarFechaFin(final),
-                            color: e.color === "azul" ? "#007bff" : "#6c757d",
-                            borderColor: "transparent"
+                            return {
+                                id: e.eventoId,
+                                title: e.titulo,
+                                start:
+                                    convertirFechaNetAInput(e.fechaInicio),
+                                end:
+                                    ajustarFechaFin(final),
+                                color: e.color === "azul" ? "#007bff" : "#6c757d",
+                                borderColor: "transparent"
                             
-                        };
-                    });
+                            };
+                        });
 
-                    successCallback(eventos);
-                })
-                .catch(err => {
-                    console.error("Error al cargar eventos:", err);
-                    failureCallback(err);
-                });
-        }
+                        successCallback(eventos);
+                    })
+                    .catch(err => {
+                        console.error("Error al cargar eventos:", err);
+                        failureCallback(err);
+                    });
+            }
 
 
     });
@@ -91,17 +94,6 @@ if (window.__agendaFullCalendarInitialized) {
         date.setDate(date.getDate() + 1);
         return date.toISOString().split("T")[0];
     }
-
-    // MODAL
-    
-    const modal = document.getElementById("modalEvento");
-    const btnAgregar = document.getElementById("btnAgregarEvento");
-    const formContainer = document.getElementById("formEventoContainer");
-    const listaEventos = document.getElementById("listaEventos");
-    const textoFecha = document.getElementById("fechaSeleccionadaTexto");
-    const btnCerrar = document.querySelector(".close-modal12");
-
-    //MODAL QUE MUESTRA LOS EVENTOS DEL DÍA SELECCIONADO
     function convertirFecha(fecha) {
         // Asegurar formato ISO (YYYY-MM-DD)
         const fechaISO = fecha.replace(/\//g, "-");
@@ -110,52 +102,35 @@ if (window.__agendaFullCalendarInitialized) {
         return fechaObj.toLocaleDateString("es-ES");
     }
 
+    // MODAL
+    const btnAgregar = document.getElementById("btnAgregarEvento");
+    const formContainer = document.getElementById("formEventoContainer");
+    const listaEventos = document.getElementById("listaEventos");
+    const textoFecha = document.getElementById("fechaSeleccionadaTexto");
+
+
+    //MODAL QUE MUESTRA LOS EVENTOS DEL DÍA SELECCIONADO
+
     function abrirModal(fecha) {
         textoFecha.textContent = convertirFecha(fecha);
-        modal.style.display = "flex";
 
         //Fecha en el formulario al momento de crear evento
         document.getElementById("FechaInicio").value = fecha + "T00:00";
         document.getElementById("fechaFinal").value = fecha + "T23:59";
 
         cargarEventosDia(fecha);
+        modalEvento.show();
     }
     
-    if (btnCerrar) {
-        btnCerrar.addEventListener("click", () => {
-            if (modal) modal.style.display = "none";
-            if (listaEventos) listaEventos.innerHTML = "";
-            const modalEventoEl = document.getElementById('modalEvento');
-            if (modalEventoEl) modalEventoEl.style.display = "none";
-        });
-    }
-
     // Modal de creación. Agregar nuevo evento
-    if (btnAgregar) {
-        btnAgregar.addEventListener("click", () => {
-            if (modalCrear) modalCrear.style.display = "flex";
-            cargarGruposMaterias();
-        });
-    }
-
-    if (btnCerrarCrear) {
-        btnCerrarCrear.addEventListener("click", () => {
-            if (modalCrear) modalCrear.style.display = "none";
-            limpiarFormularioEvento();
-        });
-    }
-
-    window.addEventListener("click", function (e) {
-        if (e.target === modalCrear) {
-            modalCrear.style.display = "none";
-            limpiarFormularioEvento();
-        }
-
-        if (e.target === modal) {
-            modal.style.display = "none";
-            listaEventos.innerHTML = "";
-        }
+    
+    btnAgregar.addEventListener("click", () => {
+        cargarGruposMaterias();
+        modalCrear.show();
     });
+    
+
+ 
 
     //Obtener materias y grupos
     async function cargarGruposMaterias() {
@@ -349,7 +324,7 @@ if (window.__agendaFullCalendarInitialized) {
                 });
                 limpiarFormularioEvento();
 
-                document.getElementById("modalCrearEvento").style.display = "none"; //oculta el modal
+                modalCrear.hide();
                 calendar.refetchEvents(); // Recargar eventos
                 
 
@@ -439,15 +414,9 @@ function convertirFechaNetAInput(fechaNet) {
 }
 
 // ---------- MODAL DE DETALLES DEL EVENTO ----------
-const modalDetalle = document.getElementById("modalDetalleEvento");
-const btnCerrarDetalle = document.querySelector(".close-detalle");
-const btnCerrarDetalle2 = document.getElementById("btnCerrarDetalle");
+const modalDetalleEl = document.getElementById("modalDetalleEvento");
 const btnEditarEvento = document.getElementById("btnEditarEvento");
 const btnEliminarEvento = document.getElementById("btnEliminarEvento");
-
-// Cerrar modal detalles
-if (btnCerrarDetalle) btnCerrarDetalle.addEventListener("click", () => { modalDetalle.style.display = "none"; });
-if (btnCerrarDetalle2) btnCerrarDetalle2.addEventListener("click", () => { modalDetalle.style.display = "none"; });
 
 async function abrirModalDetalle(eventoId) {
     try {
@@ -555,9 +524,9 @@ async function abrirModalDetalle(eventoId) {
 
 
         // Abrir modal detalle
-        modalDetalle.style.display = "flex";
 
-        modalDetalle.dataset.eventoId = evento.eventoId;
+        modalDetalleEl.dataset.eventoId = evento.eventoId;
+        modalDetalle.show();
 
     } catch (err) {
         console.error("Error abrirModalDetalle:", err);
@@ -568,22 +537,7 @@ async function abrirModalDetalle(eventoId) {
 
 
 // EDITAR
-
-// ---------- CERRAR MODAL EDITAR ----------
 const modalEditar = document.getElementById("modalEditarEvento");
-const btnCerrarEditar = document.querySelector(".close-editar");
-
-btnCerrarEditar.addEventListener("click", () => {
-    modalEditar.style.display = "none";
-});
-
-
-// Cerrar click fuera del contenido
-window.addEventListener("click", function (e) {
-    if (e.target === modalDetalle) {
-        modalDetalle.style.display = "none";
-    }
-});
 
 
 if (btnEditarEvento) btnEditarEvento.addEventListener("click", function () {
@@ -619,7 +573,7 @@ async function abrirModalEditarEvento(eventoId) {
         await cargarGruposMateriasEditar(data);
 
         // Abrir modal
-        document.getElementById("modalEditarEvento").style.display = "flex";
+        modalEditar.show();
 
     } catch (error) {
         console.error("Error al cargar evento:", error);
@@ -804,10 +758,6 @@ document.getElementById("formEditarEvento").addEventListener("submit", async fun
             icon: "success"
         });
 
-        // Cerrar modal
-        document.getElementById("modalEditarEvento").style.display = "none";
-        modalDetalle.style.display = "none";
-
         // Refrescar calendario 
         //calendar.refetchEvents(); // Recargar eventos
 
@@ -821,7 +771,6 @@ document.getElementById("formEditarEvento").addEventListener("submit", async fun
 if (btnEliminarEvento) {
     btnEliminarEvento.addEventListener("click", async function () {
         const id = modalDetalle.dataset.eventoId;
-        //modalDetalle.style.display = "none";
         
         if (!id) {
             Swal.fire({
@@ -868,8 +817,8 @@ if (btnEliminarEvento) {
                     //calendar.refetchEvents();
 
                     // Cerrar modal
-                    modalDetalle.style.display = "none";
-                    //modalEvento.style.display = "none";
+                    //modalDetalle.style.display = "none";
+                    
 
                 } catch (err) {
                     console.error("Error eliminando evento:", err);
