@@ -28,6 +28,7 @@ namespace ControlActividades.Models.db
         public int MateriaId { get; set; }
 
         // Permite que el docente acepte entregas fuera de la fecha límite cuando esté activado
+        [NotMapped]
         public bool PermitirEntregasTarde { get; set; }
 
         // Indica si la actividad fue enviada/publicada a los alumnos.

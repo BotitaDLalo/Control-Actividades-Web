@@ -197,35 +197,41 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                bool esDocente = HttpContext.Current != null && HttpContext.Current.User != null && (HttpContext.Current.User.IsInRole("Docente") || HttpContext.Current.User.IsInRole("Administrador"));
+                // Use RequestContext principal (works in WebApi) to determine roles
+                var principal = RequestContext?.Principal;
+                bool esDocente = principal != null && (principal.IsInRole("Docente") || principal.IsInRole("Administrador"));
+
                 var q = Db.tbActividades.Where(a => a.MateriaId == materiaId);
                 if (!esDocente)
                 {
-                    // Para alumnos: mostrar publicadas y borradores. Ocultar sólo las programadas cuya fecha aún no llegó.
-                    q = q.Where(a => a.Enviado != null || (a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
+                    // Para alumnos: mostrar únicamente actividades públicas o programadas cuya fecha ya llegó
+                    q = q.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
+
                 var actividades = await q.ToListAsync();
 
                 var listaActividades = actividades.Select(a => new
                 {
                     ActividadId = a.ActividadId,
                     NombreActividad = a.NombreActividad,
-                    DescripcionActividad = a.Descripcion,
-                    FechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    //TipoActividadId = a.TipoActividadId,
+                    Descripcion = a.Descripcion,
+                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                     Puntaje = a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,
                     MateriaId = a.MateriaId
                 }).ToList();
 
+                // Determine rolUsuario using the helper
+                var rolUsuario = Fg.ObtenerRolUsuario(principal);
 
-                return Ok(listaActividades);
+                return Ok(new { Actividades = listaActividades, RolUsuario = rolUsuario });
             }
             catch (Exception ex)
             {
-                return BadRequest($"Ocurrió un error al obtener las actividades para la materia {materiaId}: {ex.Message}");
+                // Return server error with details to help debugging from client
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = $"Error al obtener actividades: {ex.Message}", detalle = ex.ToString() });
             }
         }
 

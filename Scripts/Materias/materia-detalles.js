@@ -130,12 +130,37 @@ async function cargarEntregablesDeMateria(materiaId) {
     cont.innerHTML = '<p class="text-muted">Cargando actividades...</p>';
     try {
         const resp = await fetch(`/api/Actividades/ObtenerActividadesPorMateria?materiaId=${encodeURIComponent(materiaId)}`);
-        if (!resp.ok) throw new Error('No se pudieron cargar actividades');
-        const actividades = await resp.json();
-        if (!actividades || actividades.length === 0) {
-            cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>';
-            if (sel) sel.innerHTML = '<option value="0">-- Sin actividades --</option>';
-            return;
+        if (!resp.ok) {
+            // Try MVC fallback
+            const body = await resp.text().catch(() => null);
+            console.warn('API /api/Actividades/ObtenerActividadesPorMateria failed', resp.status, body);
+            // Attempt MVC endpoint
+            const mvcResp = await fetch(`/Materias/ObtenerActividadesPorMateria?materiaId=${encodeURIComponent(materiaId)}`);
+            if (!mvcResp.ok) throw new Error('No se pudieron cargar actividades (API y MVC fallaron)');
+            const mvcPayload = await mvcResp.json();
+            // MVC returns object with Actividades property
+            const actividadesFromMvc = mvcPayload && (mvcPayload.Actividades || mvcPayload.actividades || mvcPayload.resultado) ? (mvcPayload.Actividades || mvcPayload.actividades || mvcPayload.resultado) : mvcPayload;
+            if (!actividadesFromMvc || actividadesFromMvc.length === 0) {
+                cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>';
+                if (sel) sel.innerHTML = '<option value="0">-- Sin actividades --</option>';
+                return;
+            }
+            actividadesCache = actividadesFromMvc;
+            var actividades = actividadesFromMvc;
+        } else {
+            var payload = await resp.json();
+            // API puede devolver directamente un arreglo o un objeto con propiedad Actividades
+            var actividades = null;
+            if (Array.isArray(payload)) actividades = payload;
+            else if (payload && (payload.Actividades || payload.actividades || payload.resultado)) actividades = payload.Actividades || payload.actividades || payload.resultado;
+            else actividades = payload;
+
+            if (!actividades || actividades.length === 0) {
+                cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>';
+                if (sel) sel.innerHTML = '<option value="0">-- Sin actividades --</option>';
+                return;
+            }
+            actividadesCache = actividades;
         }
         // cache and populate select
         actividadesCache = actividades;
