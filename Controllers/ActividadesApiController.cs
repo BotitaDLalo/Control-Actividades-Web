@@ -45,35 +45,31 @@ namespace ControlActividades.Controllers
             {
                 var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId);
                 if (datosAlumnoActividad == null)
-                    return BadRequest();
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "No se encontró registro de entrega para el alumno y la actividad." });
 
                 var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
                 var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
 
-                var lsEntregas = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId).ToList();
-                if (lsEntregas.Count > 0)
-                {
-                    var lsEnvios = new List<Models.EnvioRes>();
-                    foreach (var entrega in lsEntregas)
+                var lsEntregas = await Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId)
+                    .Select(e => new
                     {
-                        EnvioRes envio = new EnvioRes()
-                        {
-                            EntregaActividadAlumnoId = entregaActividadId,
-                            EntregableId = entrega.EntregableId,
-                            Contenido = entrega.Contenido,
-                            EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
-                            FechaEntrega = fechaEntrega ?? new DateTime(),
-                            Calificacion = entrega.Calificacion.ToString() ?? "",
-                            EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
-                        };
+                        e.EntregableId,
+                        e.TipoEntregaId,
+                        e.Contenido,
+                        e.FechaCalificado,
+                        Calificacion = e.Calificacion ?? 0,
+                        Comentario = e.Comentario
+                    }).ToListAsync();
 
-                        lsEnvios.Add(envio);
-                    }
+                var result = new
+                {
+                    EntregaActividadAlumnoId = entregaActividadId,
+                    FechaEntrega = fechaEntrega,
+                    EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+                    Entregables = lsEntregas
+                };
 
-                    return Ok(lsEnvios);
-                }
-
-                return BadRequest();
+                return Ok(result);
             }
             catch (Exception)
             {
@@ -205,8 +201,8 @@ namespace ControlActividades.Controllers
                 var q = Db.tbActividades.Where(a => a.MateriaId == materiaId);
                 if (!esDocente)
                 {
-                    // Para alumnos: publicar solo si Enviado == true o si es programada y la fecha programada ya pasó
-                    q = q.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
+                    // Para alumnos: mostrar publicadas y borradores. Ocultar sólo las programadas cuya fecha aún no llegó.
+                    q = q.Where(a => a.Enviado != null || (a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
                 var actividades = await q.ToListAsync();
 

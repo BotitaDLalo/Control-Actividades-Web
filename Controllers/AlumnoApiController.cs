@@ -56,6 +56,36 @@ namespace ControlActividades.Controllers
             Fg = fg;
         }
 
+        // Verifica que el alumno pueda acceder/entregar la actividad:
+        // - la actividad existe y está publicada (o programada y la fecha ya pasó)
+        // - el alumno está inscrito en la materia OR pertenece a algún grupo que contiene la materia
+        private async Task<bool> AlumnoPuedeAccederActividadAsync(int alumnoId, int actividadId)
+        {
+            var actividad = await Db.tbActividades.FindAsync(actividadId);
+            if (actividad == null) return false;
+
+            // Permitir entrega si la actividad está publicada, es borrador, o es programada y la fecha ya pasó.
+            // (Se bloquean sólo las actividades programadas cuya fecha aún no llegó)
+            bool bloqueadaPorProgramacion = actividad.Enviado == null && actividad.FechaProgramada.HasValue && actividad.FechaProgramada.Value > DateTime.Now;
+            if (bloqueadaPorProgramacion) return false;
+
+            int materiaId = actividad.MateriaId;
+
+            // Si está inscrito en la materia
+            var perteneceMateria = await Db.tbAlumnosMaterias.AnyAsync(am => am.AlumnoId == alumnoId && am.MateriaId == materiaId);
+            if (perteneceMateria) return true;
+
+            // Si pertenece a algún grupo que contiene la materia
+            var gruposIds = await Db.tbGruposMaterias.Where(gm => gm.MateriaId == materiaId).Select(gm => gm.GrupoId).ToListAsync();
+            if (gruposIds != null && gruposIds.Count > 0)
+            {
+                var perteneceGrupo = await Db.tbAlumnosGrupos.AnyAsync(ag => ag.AlumnoId == alumnoId && gruposIds.Contains(ag.GrupoId));
+                if (perteneceGrupo) return true;
+            }
+
+            return false;
+        }
+
         [HttpPost]
         [Route("SubirEntrega")]
         public async Task<IHttpActionResult> SubirEntrega()
@@ -112,19 +142,35 @@ namespace ControlActividades.Controllers
                 DateTime parsedFecha;
                 if (DateTime.TryParse(httpRequest.Form["FechaEntrega"], out parsedFecha)) fechaEnt = parsedFecha;
 
-                // Crear registro en tbEntregaActividadAlumno y tbEntregables
-                tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                // Verificar permisos: el alumno debe pertenecer a la materia o a un grupo que la contiene
+                if (!await AlumnoPuedeAccederActividadAsync(alumnoId, actividadId))
+                    return Content(HttpStatusCode.Forbidden, new { mensaje = "No tienes permiso para entregar esta actividad." });
+
+                // Reutilizar entrega existente si ya existe (permitir múltiples entregables por entrega)
+                var entregaAlumnoExistente = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+                int entregaAlumnoId;
+                if (entregaAlumnoExistente == null)
                 {
-                    ActividadId = actividadId,
-                    AlumnoId = alumnoId,
-                    FechaEntrega = fechaEnt,
-                    EstadoEntregaId = 1
-                };
+                    tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                    {
+                        ActividadId = actividadId,
+                        AlumnoId = alumnoId,
+                        FechaEntrega = fechaEnt,
+                        EstadoEntregaId = 1
+                    };
 
-                Db.tbEntregaActividadAlumno.Add(entregaAlumno);
-                await Db.SaveChangesAsync();
-
-                int entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
+                    Db.tbEntregaActividadAlumno.Add(entregaAlumno);
+                    await Db.SaveChangesAsync();
+                    entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
+                }
+                else
+                {
+                    // actualizar fecha de entrega y conservar estado
+                    entregaAlumnoExistente.FechaEntrega = fechaEnt;
+                    entregaAlumnoExistente.EstadoEntregaId = 1;
+                    await Db.SaveChangesAsync();
+                    entregaAlumnoId = entregaAlumnoExistente.EntregaActividadAlumnoId;
+                }
 
                 tbEntregables entregables = new tbEntregables()
                 {
@@ -426,18 +472,37 @@ namespace ControlActividades.Controllers
 
                 //Db.tbAlumnosActividades.Add(actividad);
 
-                tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                // Verificar permisos y existencia de actividad
+                if (!await AlumnoPuedeAccederActividadAsync(alumnoId, actividadId))
+                    return Content(HttpStatusCode.Forbidden, new { mensaje = "No tienes permiso para entregar esta actividad." });
+
+                DateTime fechaEntParsed;
+                if (!DateTime.TryParse(fechaEntrega, out fechaEntParsed)) fechaEntParsed = DateTime.Now;
+
+                // Reutilizar entrega existente si ya existe
+                var entregaExist = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+                int entregaAlumnoId;
+                if (entregaExist == null)
                 {
-                    ActividadId = actividadId,
-                    AlumnoId = alumnoId,
-                    FechaEntrega = DateTime.Parse(fechaEntrega),
-                    EstadoEntregaId = 1
-                };
+                    tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                    {
+                        ActividadId = actividadId,
+                        AlumnoId = alumnoId,
+                        FechaEntrega = fechaEntParsed,
+                        EstadoEntregaId = 1
+                    };
 
-                Db.tbEntregaActividadAlumno.Add(entregaAlumno);
-                await Db.SaveChangesAsync();
-
-                int entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
+                    Db.tbEntregaActividadAlumno.Add(entregaAlumno);
+                    await Db.SaveChangesAsync();
+                    entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
+                }
+                else
+                {
+                    entregaExist.FechaEntrega = fechaEntParsed;
+                    entregaExist.EstadoEntregaId = 1;
+                    await Db.SaveChangesAsync();
+                    entregaAlumnoId = entregaExist.EntregaActividadAlumnoId;
+                }
 
                 tbEntregables entregables = new tbEntregables()
                 {
