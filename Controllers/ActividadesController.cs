@@ -185,6 +185,39 @@ namespace ControlActividades.Controllers
             }
         }
 
+        // Redirige a la vista correspondiente según el rol (Docente -> EvaluarActividades, Alumno -> ActividadDetalle)
+        [HttpGet]
+        public ActionResult DetallesActividad(int actividadId)
+        {
+            try
+            {
+                var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
+                if (actividad == null)
+                {
+                    return HttpNotFound("Actividad no encontrada");
+                }
+
+                // Si es docente o administrador, llevar a la vista de evaluación (docente)
+                if (User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador")))
+                {
+                    return RedirectToAction("EvaluarActividades", "Docente", new { actividadId = actividadId, materiaId = actividad.MateriaId });
+                }
+
+                // Si es alumno, llevar a su detalle de actividad
+                if (User != null && User.IsInRole("Alumno"))
+                {
+                    return RedirectToAction("ActividadDetalle", "Alumno", new { actividadId = actividadId });
+                }
+
+                // Por defecto, redirigir al index de la aplicación
+                return RedirectToAction("Index", "Home");
+            }
+            catch
+            {
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
 
         // Método para obtener la lista de alumnos que están dentro de la materia > se guardan en array para despues comparar.-HAcer busqueda mas eficiente
         [HttpGet]
