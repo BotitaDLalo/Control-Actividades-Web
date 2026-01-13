@@ -378,6 +378,26 @@ namespace ControlActividades.Controllers
             return Ok(dbActivity);
         }
 
+        [HttpPost]
+        [Route("TogglePermitirEntregasTarde")]
+        public async Task<IHttpActionResult> TogglePermitirEntregasTarde(int actividadId, bool permitir)
+        {
+            try
+            {
+                var activity = await Db.tbActividades.FindAsync(actividadId);
+                if (activity == null) return Content(HttpStatusCode.NotFound, new { mensaje = "Actividad no encontrada" });
+
+                activity.PermitirEntregasTarde = permitir;
+                await Db.SaveChangesAsync();
+
+                return Ok(new { actividadId = actividadId, permitir = permitir });
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = ex.Message });
+            }
+        }
+
 
         //[HttpDelete("EliminarActividad/{id}")]
         [HttpDelete]

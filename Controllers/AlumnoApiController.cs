@@ -146,6 +146,13 @@ namespace ControlActividades.Controllers
                 if (!await AlumnoPuedeAccederActividadAsync(alumnoId, actividadId))
                     return Content(HttpStatusCode.Forbidden, new { mensaje = "No tienes permiso para entregar esta actividad." });
 
+                // Bloquear entregas fuera de la fecha límite si la actividad no permite entregas tarde
+                var actividad = await Db.tbActividades.FindAsync(actividadId);
+                if (actividad != null && DateTime.Now > actividad.FechaLimite && !actividad.PermitirEntregasTarde)
+                {
+                    return Content(HttpStatusCode.Forbidden, new { mensaje = "La fecha límite ya pasó y no se permiten entregas tardías para esta actividad." });
+                }
+
                 // Reutilizar entrega existente si ya existe (permitir múltiples entregables por entrega)
                 var entregaAlumnoExistente = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
                 int entregaAlumnoId;
@@ -180,6 +187,23 @@ namespace ControlActividades.Controllers
                 };
                 Db.tbEntregables.Add(entregables);
                 await Db.SaveChangesAsync();
+
+                // Notificar al docente que un alumno entregó (FCM + persistir notificación)
+                try
+                {
+                    var docenteUserId = await Db.tbMaterias.Where(m => m.MateriaId == actividad.MateriaId).Select(m => m.DocenteId).FirstOrDefaultAsync();
+                    // obtener userId del docente
+                    var docenteUid = await Db.tbDocentes.Where(d => d.DocenteId == docenteUserId).Select(d => d.UserId).FirstOrDefaultAsync();
+                    if (!string.IsNullOrEmpty(docenteUid))
+                    {
+                        var ns = new NotificacionesService(Db, new FCMService());
+                        string titulo = "Nueva entrega recibida";
+                        string cuerpo = $"El alumno ha entregado la actividad {actividad.NombreActividad}.";
+                        var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == docenteUid).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
+                        await ns.ProcesarNotificacion(new List<string> { docenteUid }, tokens, titulo, cuerpo, TiposNotificaciones.ActividadEntregada, actividad.MateriaId);
+                    }
+                }
+                catch { }
 
                 return Ok(new
                 {

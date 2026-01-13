@@ -164,7 +164,8 @@ namespace ControlActividades.Controllers
                         a.FechaCreacion,
                         a.FechaLimite,
                         a.Puntaje,
-                        a.Enviado,
+                    a.Enviado,
+                    a.PermitirEntregasTarde,
                         a.FechaProgramada
                     })
                     .FirstOrDefaultAsync();

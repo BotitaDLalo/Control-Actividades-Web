@@ -36,6 +36,14 @@
                     </div>
                 </div>
                 <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>Permitir entregas tarde:</strong> <span id="permitirTardeBadge" class="badge bg-secondary">Cargando...</span>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button id="togglePermitirTardeBtn" class="btn btn-sm btn-outline-primary">Cambiar</button>
+                    </div>
+                </div>
+                <div class="row mt-3">
                     <div class="col-md-12">
                         <strong>Alumnos que han entregado:</strong> <span class="badge bg-success" id="alumnosEntregados">Cargando...</span>
                         <br>
@@ -171,6 +179,56 @@
                 console.error(e);
             }
         })();
+
+        // Inicializar control toggle para permitir entregas tarde
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                var btn = document.getElementById('togglePermitirTardeBtn');
+                var badge = document.getElementById('permitirTardeBadge');
+                var actividad = localStorage.getItem('actividadSeleccionada');
+                if (!actividad) return;
+
+                // ya cargado por DetalleActividad.js que llama ObtenerActividadPorId
+                // escuchamos cambios globales en localStorage por si otro script actualiza
+                function actualizarBadge(val) {
+                    if (!badge) return;
+                    if (val === true || String(val).toLowerCase() === 'true') {
+                        badge.className = 'badge bg-success';
+                        badge.innerText = 'Sí';
+                    } else {
+                        badge.className = 'badge bg-secondary';
+                        badge.innerText = 'No';
+                    }
+                }
+
+                // Inicializar con valor actual si existe en la página
+                try {
+                    var current = window.actividadData && window.actividadData.PermitirEntregasTarde;
+                    if (typeof current !== 'undefined') actualizarBadge(current);
+                } catch (e) { }
+
+                if (btn) {
+                    btn.addEventListener('click', async function () {
+                        try {
+                            // obtener estado actual desde badge
+                            var permitir = (badge && badge.innerText === 'Sí');
+                            var nueva = !permitir;
+                            var actividadId = localStorage.getItem('actividadSeleccionada');
+                            if (!actividadId) return alert('Actividad no identificada');
+                            var resp = await fetch(`/api/Actividades/TogglePermitirEntregasTarde?actividadId=${actividadId}&permitir=${nueva}`, { method: 'POST' });
+                            if (!resp.ok) {
+                                var txt = await resp.text().catch(() => null);
+                                alert('No se pudo actualizar: ' + (txt || resp.statusText));
+                                return;
+                            }
+                            actualizarBadge(nueva);
+                            // store in global actividadData for other scripts
+                            try { window.actividadData = window.actividadData || {}; window.actividadData.PermitirEntregasTarde = nueva; } catch (e) { }
+                        } catch (e) { console.error(e); alert('Error al actualizar permiso'); }
+                    });
+                }
+            } catch (e) { console.warn(e); }
+        });
     </script>
 
     <script>
