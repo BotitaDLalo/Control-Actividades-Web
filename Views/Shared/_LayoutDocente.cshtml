@@ -70,6 +70,9 @@
         });
     </script>
 
+    @* Render docente/Grupos scripts bundle using Scripts.Render so that in development
+       (BundleTable.EnableOptimizations = false) the individual script files are output
+       and DOMContentLoaded handlers register correctly. *@
     @Scripts.Render("~/bundles/docentegrupos")
 
 

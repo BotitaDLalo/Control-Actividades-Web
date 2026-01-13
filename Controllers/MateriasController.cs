@@ -244,26 +244,24 @@ namespace ControlMaterias.Controllers
                     return Json(new { mensaje = "El criterio de búsqueda no puede estar vacío." }, JsonRequestBehavior.AllowGet);
                 }
 
-                var usuarios = await Db.Users
-                    .Where(u => u.Email.Contains(query))
-                    .Select(u => new { u.Id, u.Email })
-                    .ToListAsync();
+                // Trim query and limit results to avoid large payloads
+                var q = query.Trim();
 
-                var usuarioIds = usuarios.Select(u => u.Id).ToList();
-
-                var alumnosConCorreo = await Db.tbAlumnos
-                    .Where(a => a.Nombre.Contains(query) ||
-                                a.ApellidoPaterno.Contains(query) ||
-                                a.ApellidoMaterno.Contains(query) ||
-                                usuarioIds.Contains(a.UserId))
-                    .Select(a => new
-                    {
-                        a.IdentityUser.Email,
-                        a.Nombre,
-                        a.ApellidoPaterno,
-                        a.ApellidoMaterno
-                    })
-                    .ToListAsync();
+                // Use explicit join to Users to ensure Email is available and avoid EF navigation translation issues
+                var alumnosConCorreo = await (from a in Db.tbAlumnos
+                                              join u in Db.Users on a.UserId equals u.Id
+                                              where a.Nombre.Contains(q)
+                                                    || a.ApellidoPaterno.Contains(q)
+                                                    || a.ApellidoMaterno.Contains(q)
+                                                    || u.Email.Contains(q)
+                                              orderby a.ApellidoPaterno, a.ApellidoMaterno, a.Nombre
+                                              select new
+                                              {
+                                                  Email = u.Email,
+                                                  a.Nombre,
+                                                  a.ApellidoPaterno,
+                                                  a.ApellidoMaterno
+                                              }).Take(25).ToListAsync();
 
                 return Json(alumnosConCorreo, JsonRequestBehavior.AllowGet);
             }
@@ -290,13 +288,13 @@ namespace ControlMaterias.Controllers
                     return Json(new { mensaje = "El correo no puede estar vacío." }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Buscar el alumno por correo
-                var alumno = await Db.tbAlumnos
-                    .Where(a => a.IdentityUser.Email == correo)
-                    .Select(a => new { a.AlumnoId })
-                    .FirstOrDefaultAsync();
+                // Buscar el alumno por correo usando join a Users para evitar problemas de navegación
+                var alumnoId = await (from a in Db.tbAlumnos
+                                      join u in Db.Users on a.UserId equals u.Id
+                                      where u.Email == correo
+                                      select (int?)a.AlumnoId).FirstOrDefaultAsync();
 
-                if (alumno == null)
+                if (alumnoId == null || alumnoId == 0)
                 {
                     Response.StatusCode = 404; // Not Found
                     return Json(new { mensaje = "Alumno no encontrado con el correo proporcionado." }, JsonRequestBehavior.AllowGet);
@@ -304,7 +302,7 @@ namespace ControlMaterias.Controllers
 
                 // Verificar si ya existe la relación en la tabla alumnosMaterias
                 var relacionExistente = await Db.tbAlumnosMaterias
-                    .Where(am => am.AlumnoId == alumno.AlumnoId && am.MateriaId == materiaId)
+                    .Where(am => am.AlumnoId == alumnoId && am.MateriaId == materiaId)
                     .FirstOrDefaultAsync();
 
                 if (relacionExistente != null)
@@ -316,7 +314,7 @@ namespace ControlMaterias.Controllers
                 // Agregar nueva relación
                 var nuevaRelacion = new tbAlumnosMaterias
                 {
-                    AlumnoId = alumno.AlumnoId,
+                    AlumnoId = alumnoId.Value,
                     MateriaId = materiaId
                 };
 
