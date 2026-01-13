@@ -117,4 +117,65 @@
         }
     };
 
+    // ELIMINAR EVENTO
+    const btnEliminarEvento = document.getElementById("btnEliminarEvento");
+
+    if (btnEliminarEvento) {
+        btnEliminarEvento.addEventListener("click", async function () {
+
+            const id = modalDetalleEl.dataset.eventoId;
+
+            if (!id) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Evento no encontrado"
+                });
+                return;
+            }
+
+            const confirmacion = await Swal.fire({
+                title: "Eliminar evento",
+                text: "Este evento no se podrá recuperar",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            });
+
+            if (!confirmacion.isConfirmed) return;
+
+            try {
+                const resp = await fetch(`/EventosAgenda/EliminarEvento/${id}`, {
+                    method: "DELETE"
+                });
+
+                if (!resp.ok) {
+                    throw new Error("Error al eliminar");
+                }
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Evento eliminado",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                // Cerrar modal detalle
+                modalDetalle.hide();
+
+                // Notificar al sistema
+                document.dispatchEvent(new CustomEvent("eventoEliminado"));
+
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "No se pudo eliminar el evento"
+                });
+            }
+        });
+    }
+
 })();

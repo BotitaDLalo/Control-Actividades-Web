@@ -165,6 +165,9 @@
             calendar.refetchEvents();
         });
 
+        document.addEventListener('eventoEliminado', () => {
+            calendar.refetchEvents();
+        });
     });
 
 })();
