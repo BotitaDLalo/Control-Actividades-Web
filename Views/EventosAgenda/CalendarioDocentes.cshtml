@@ -10,7 +10,7 @@
     <!--Modales-->
     <!-- MODAL DE EVENTOS -->
     <div class="modal fade" id="modalEvento" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-content-custom">
 
                 <div class="modal-header modal-header-custom">
@@ -22,14 +22,14 @@
 
                 <div class="modal-body modal-body-custom">
                     <div id="listaEventos"></div>
+                </div>
 
-                    <div class="text-end mt-3">
-                        <button type="button" class="btn btn-primary-custom"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalCrearEvento">
-                            Agregar Evento
-                        </button>
-                    </div>
+                <div class="modal-footer text-end mt-3">
+                    <button type="button" class="btn btn-primary-custom"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalCrearEvento">
+                        Agregar Evento
+                    </button>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
 
     <!--Crear evento-->
     <div class="modal fade modal-custom" id="modalCrearEvento" tabindex="-1">
-        <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
 
             <div class="modal-content modal-content-custom">
 
@@ -100,7 +100,7 @@
                         </div>
                     </form>
                     <div class="modal-footer modal-footer-custom">
-                        <button type="submit" class="btn btn-primary-custom">Guardar</button>
+                        <button type="submit" form="formEvento" class="btn btn-primary-custom">Guardar</button>
                     </div>
                 </div>
 

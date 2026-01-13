@@ -23,7 +23,6 @@
 
 /* Footer */
 .modal-footer-custom {
-    border-top: 1px solid var(--borde-defecto);
     padding: 1rem 1.25rem;
     gap: .5rem;
 }
