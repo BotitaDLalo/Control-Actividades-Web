@@ -73,11 +73,17 @@ namespace ControlActividades
                 .Include("~/Scripts/Shared/headerNotifications.js")
             );
 
+            //Calendario
+            bundles.Add(new Bundle("~/bundles/calendario")
+                .Include("~/Scripts/Agenda/calendario.js",
+                         "~/Scripts/Agenda/calendario-crear.js",
+                         "~/Scripts/Agenda/calendario-detalles.js")
+            );
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")
             //        .IncludeDirectory("~/Scripts/Docente/Grupos", "*.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/docente")
+            bundles.Add(new Bundle("~/bundles/docente")
                 .Include("~/Scripts/Docente/*.js")
                 );
 

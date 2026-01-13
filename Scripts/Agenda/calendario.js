@@ -114,9 +114,11 @@
                     const div = document.createElement("div");
                     div.classList.add("evento-item");
                     div.innerHTML = `
-                <h3 class="evento-titulo" data-id="${ev.eventoId}">${ev.titulo}</h3>
-                <!--<p>${ev.descripcion}</p>-->
-            `;
+                        <h3 class="evento-titulo" data-id="${ev.eventoId}">
+                            ${ev.titulo}
+                        </h3>
+                        <!--<p>${ev.descripcion}</p>-->
+                    `;
                     listaEventos.appendChild(div);
                 });
 
@@ -158,6 +160,11 @@
 
             return fechaLocal.toISOString().slice(0, 16);
         }
+
+        document.addEventListener('eventoCreado', () => {
+            calendar.refetchEvents();
+        });
+
     });
 
 })();
