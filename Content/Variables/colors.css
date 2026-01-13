@@ -1,11 +1,5 @@
 ﻿:root {
     /*DEFINICIÓN DE COLORES*/
-    --color-1: #4A90E2;
-    /*
-        azul oscuro #283043, rgb(40, 48, 67)
-
-        azul twitter #1db7f7, rgb(29, 183, 247)
-    */
     /*Azules*/
     /*Azul bootstrap*/
     --azul-50: #D7E7FF;
@@ -51,30 +45,4 @@
     /*Rojo*/
     --rojo-500: #ff001b;
     /**************************************************/
-    /**************************************************/
-    /**************************************************/
-    /*VARIABLES*/
-    /*SISTEMA*/
-    --color-principal: var(--azul-100);
-    --color-secundario: var(--azul-200);
-    /*Fondos*/
-    --color-fondo: var(--blanco);
-    /*Textos*/
-    --texto-principal: var(--blanco);
-    --texto-inverso: var(--negro);  /*Sobre fondo blanco*/
-    /*Hover*/
-    --hover-gris: var(--gris-100);
-    /*Bordes*/
-    --border-default: var(--gris-200);
-    /*Enlaces*/
-    --enlace-color: var(--azul-200);
-    --enlace-hover: var(--azul-300);
-    /*Estados*/
-    --success: var(--verde-100);
-    --danger: var(--rojo-100);
-    --warning: var(--amarillo-100);
-}
-
-.modo-oscuro{
-    /**/
 }
