@@ -6,6 +6,7 @@
     height: 60px;
     padding-right: 16px;
     border: solid 1px green;
+    background-color: var(--bg-principal);
 }
 
     .nav-bar .header-icons {
@@ -21,7 +22,7 @@
         /*Botones*/
         .nav-bar .header-icons .btn-link,
         .nav-bar .header-icons .btn {
-            color: #5a5a5a;
+            color: var(--txt-principal);
             background: transparent;
             border: none;
         }
@@ -29,7 +30,7 @@
             .nav-bar .header-icons .btn-link:hover,
             .nav-bar .header-icons .btn:hover {
                 color: #1d9bf0;
-                background-color: rgba(29,155,240,0.2);
+                background-color: var(--hover-secundario);
             }
 
 /* make svg icons follow currentColor */
@@ -174,17 +175,6 @@
 .noti-menu:hover {
     background-color: darkgray;
 }
-
-/*Campana de notificaciones*/
-#notificaciones-icono{
-    background: white;
-    transition: background-color 0.2s ease;
-}
-
-    #notificaciones-icono.selected {
-        background: var(--azul-twitter);
-        color: white;
-    }
 
 
 .elementos-perfil{

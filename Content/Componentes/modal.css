@@ -1,5 +1,5 @@
 ﻿.modal-content-custom {
-    background: var(--blanco);
+    background-color: var(--bg-principal);
     border-radius: 12px;
     border: 1px solid var(--borde-defecto);
 }

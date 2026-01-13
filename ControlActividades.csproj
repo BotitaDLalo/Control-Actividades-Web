@@ -682,6 +682,7 @@
     <Content Include="Scripts\Materias\materias-grupo.js" />
     <Content Include="Scripts\Materias\materias-sin-grupo.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Shared\modoColor.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
     <Content Include="Templates\Emails\ResetPassword.html" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />

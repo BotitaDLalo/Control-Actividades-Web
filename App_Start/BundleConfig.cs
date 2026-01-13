@@ -65,7 +65,8 @@ namespace ControlActividades
 
             //SCRIPTS GENERALES
             bundles.Add(new ScriptBundle("~/bundles/carga")
-                .Include("~/Scripts/Componentes/PantallaCarga.js")
+                .Include("~/Scripts/Componentes/PantallaCarga.js",
+                        "~/Scripts/Shared/modoColor.js")
             );
 
             bundles.Add(new Bundle("~/bundles/header")
