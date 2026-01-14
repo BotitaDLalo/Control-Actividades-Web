@@ -19,6 +19,7 @@ namespace ControlActividades.Models.db
         public string Contenido { get; set; }
 
         public int? Calificacion {  get; set; }
+        [NotMapped]
         public DateTime? FechaCalificado { get; set; }
         public string Comentario { get; set; }
 

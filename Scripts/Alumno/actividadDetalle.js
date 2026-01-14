@@ -7,12 +7,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function cargarDetalleActividad() {
     try {
-        const resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${actividadIdGlobal}`);
+        // Intentar primero endpoint API (más consistente), si falla, intentar el endpoint MVC
+        let resp = await fetch(`/api/Actividades/ObtenerActividad?id=${actividadIdGlobal}`);
+        if (!resp.ok) {
+            resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${actividadIdGlobal}`);
+        }
         if (!resp.ok) throw new Error('No se encontró la actividad');
-        const data = await resp.json();
-        document.getElementById('tituloActividad').innerText = data.NombreActividad || 'Sin t�tulo';
+
+        // Leer como texto y parsear con tolerancia (algunos endpoints pueden devolver HTML en error)
+        const text = await resp.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+        if (!data) {
+            try { data = resp.ok ? JSON.parse(text) : null; } catch (e) { data = null; }
+        }
+        if (!data) throw new Error('Respuesta inválida del servidor al obtener actividad');
+        document.getElementById('tituloActividad').innerText = data.NombreActividad || 'Sin título';
         document.getElementById('descripcionActividad').innerText = data.Descripcion || '';
-        document.getElementById('fechaLimite').innerText = new Date(data.FechaLimite).toLocaleString();
+        // FechaLimite puede venir como string ISO o como objeto; manejar ambos casos
+        let fechaVal = data.FechaLimite || data.fechaLimite || data.FechaLimiteString || null;
+        let fechaText = '';
+        if (fechaVal) {
+            const d = new Date(fechaVal);
+            fechaText = isNaN(d.getTime()) ? String(fechaVal) : d.toLocaleString();
+        }
+        document.getElementById('fechaLimite').innerText = fechaText;
     } catch (e) {
         console.error(e);
     }
