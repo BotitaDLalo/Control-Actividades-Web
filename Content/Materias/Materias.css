@@ -221,14 +221,12 @@
 
 
 
-
-
 /* Encabezado de la materia */
 .materia-header {
     padding: 20px;
-    color: white;
+    color: var(--txt-inverso);
     text-align: center;
-    background-color: #1db7f7;
+    background-color: var(--bg-secundario);
 }
 
 .materia-info {

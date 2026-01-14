@@ -1,1 +1,13 @@
-﻿
+﻿input {
+    background-color: var(--input-bg-principal);
+}
+    input:hover {
+        background-color: var(--input-bg-hover);
+    }
+
+textarea {
+    background-color: var(--input-bg-principal);
+}
+    textarea:hover {
+        background-color: var(--input-bg-hover);
+    }

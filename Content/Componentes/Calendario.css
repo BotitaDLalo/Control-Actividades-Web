@@ -34,9 +34,10 @@ textarea {
 }
 
 .evento-item {
-    background: #f8f9fa;
-    padding: 10px;
-    margin: 5px 0;
+    background: var(--item-bg-principal);
+    color: var(--enlace-color);
+    padding: 8px;
+    margin: 3px 0;
     border-radius: 5px;
     cursor: pointer;
 }
@@ -44,7 +45,7 @@ textarea {
 .evento-titulo {
     margin: 0;
     font-size: 18px;
-    color: #007bff;
+    color: var(--enlace-color);
 }
 
     .evento-titulo:hover {

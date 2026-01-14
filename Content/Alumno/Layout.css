@@ -4,6 +4,7 @@
        Use a specific hero class (.alumno-hero) when you need a banner on specific pages. */
     font-size: 16px;
     overflow: visible;
+    background: var(--bg-principal);
 }
 
 /* Specific hero/banner class for pages that require the gradient */

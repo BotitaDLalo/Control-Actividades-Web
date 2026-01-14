@@ -1,34 +1,39 @@
 :root {
     /*SISTEMA*/
+    --principal-400: var(--azul-400);
     --principal-500: var(--azul-500);
     --principal-600: var(--azul-600);
     --principal-700: var(--azul-700);
     --principal-800: var(--azul-800);
     --principal-900: var(--azul-900);
     --secundario-500: var(--cyan-500);
+    --secundario-700: var(--cyan-700);
+    --secundario-800: var(--cyan-800);
     --neutral: var(--gris-500);
     /* ===================== */
     /* ===================== */
     /* TEXTO */
     --txt-principal: var(--negro); /*Cuando el fondo es claro*/
+    --txt-principal-light: var(--gray-800);
+    --txt-secundario: var(--secundario-500);
     --txt-neutro: var(--gris-500);
+    --txt-inverso-light: var(--gris-200);
     --txt-inverso: var(--blanco); /*Cuando el fondo es oscuro*/
     /* ===================== */
     /* ===================== */
     /* FONDOS */
     --bg-principal: var(--blanco);
-    --bg-apagado: var(--gris-100);
+    --bg-principal-light: var(--gris-50);
+    --bg-secundario: var(--secundario-500);
     /* ===================== */
-    /* ===================== */
-    /* FONDOS */
-    --hover-neutral: var(--gris-300);
+    /* HOVER */
+    --hover-neutral: var(--gris-500);
     --hover-principal: var(--principal-600);
     --hover-secundario: var(--cyan-600);
-    /* ===================== */
+    --hover-light: var(--gris-100);
     /* ===================== */
     /*Bordes*/
     --borde-defecto: var(--gris-200);
-    /* ===================== */
     /* ===================== */
     /*ENLACES*/
     --enlace-color: var(--principal-500);
@@ -44,45 +49,62 @@
     --btn-principal-hover: var(--hover-principal);
     --btn-principal-pressed: var(--principal-700);
     --btn-principal-disabled: var(--neutral);
+    /* ===================== */
+    /* INPUT */
+    /* ===================== */
+    --input-bg-principal: var(--blanco);
+    --input-bg-hover: var(--gris-50);
+    /* ===================== */
+    --item-bg-principal: var(--bg-principal-light);
 }
 
 
-:root[data-theme="dark"] {
-    /* ===================== */
-    /* ===================== */
-    /* TEXTO */
-    --txt-principal: var(--gris-100); /*Cuando el fondo es negro*/
-    --txt-neutro: var(--gris-500);
-    --txt-inverso: var(--negro); /*Cuando el fondo es blanco*/
-    /* ===================== */
-    /* ===================== */
-    /* FONDOS */
-    --bg-principal: var(--gris-900);
-    --bg-apagado: var(--gris-700);
-    /* ===================== */
-    /* ===================== */
-    /* HOVER */
-    --hover-neutral: var(--gris-600);
-    --hover-principal: var(--principal-400);
-    --hover-secundario: var(--cyan-400);
-    /* ===================== */
-    /* ===================== */
-    /*Bordes*/
-    --borde-defecto: var(--gris-700);
-    /* ===================== */
-    /* ===================== */
-    /*ENLACES*/
-    --enlace-color: var(--secundario-500);
-    --enlace-hover: var(--secundario-700);
-    /*Estados*/
-    --success: var(--verde-500);
-    --danger: var(--rojo-500);
-    --warning: var(--amarillo-500);
-    /* ===================== */
-    /* BOTONES */
-    /* ===================== */
-    --btn-principal: var(--principal-400);
-    --btn-principal-hover: var(--hover-principal);
-    --btn-principal-pressed: var(--principal-500);
-    --btn-principal-disabled: var(--neutral);
-}
+    :root[data-theme="dark"] {
+        --neutral: var(--gris-500);
+        /* ===================== */
+        /* ===================== */
+        /* TEXTO */
+        --txt-principal: var(--gris-100); /*Cuando el fondo es negro*/
+        --txt-principal-light: var(--gris-200);
+        --txt-secundario: var(--secundario-500);
+        --txt-neutro: var(--gris-500);
+        --txt-inverso-light: var(--gris-50);
+        --txt-inverso: var(--negro); /*Cuando el fondo es blanco*/
+        /* ===================== */
+        /* FONDOS */
+        --bg-principal: var(--gris-900);
+        --bg-principal-light: var(--gris-800);
+        --bg-secundario: var(--secundario-700);
+        /* ===================== */
+        /* INPUTS */
+        --input-bg-principal: var(--gris-600);
+        --input-bg-hover: var(--gris-500);
+        /* ===================== */
+        /* HOVER */
+        --hover-neutral: var(--gris-500);
+        --hover-principal: var(--principal-400);
+        --hover-secundario: var(--cyan-400);
+        /* ===================== */
+        /* ===================== */
+        /*Bordes*/
+        --borde-defecto: var(--gris-700);
+        /* ===================== */
+        /* ===================== */
+        /*ENLACES*/
+        --enlace-color: var(--principal-500);
+        --enlace-hover: var(--secundario-700);
+        /*Estados*/
+        --success: var(--verde-500);
+        --danger: var(--rojo-500);
+        --warning: var(--amarillo-500);
+        /* ===================== */
+        /* BOTONES */
+        /* ===================== */
+        --btn-principal: var(--principal-400);
+        --btn-principal-hover: var(--hover-principal);
+        --btn-principal-pressed: var(--principal-500);
+        --btn-principal-disabled: var(--neutral);
+        /* ===================== */
+        /* ITEMS */
+        --item-bg-principal: var(--gris-500);
+    }

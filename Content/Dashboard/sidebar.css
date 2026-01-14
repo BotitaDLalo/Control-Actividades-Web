@@ -19,7 +19,7 @@
     .sidebar a {
         display: block;
         padding: 10px 15px;
-        color: #fff;
+        color: var(--txt-principal);
         text-decoration: none;
         border-radius: 8px;
         transition: all 0.3s ease;

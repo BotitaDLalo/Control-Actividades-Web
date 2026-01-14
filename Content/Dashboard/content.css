@@ -8,7 +8,7 @@ Gris casi blanco: #fafafa.
     display: grid;
     grid-template-rows: auto 1fr;
     min-height: 100%;
-    background-color: #f5f5f5;
+    background-color: var(--bg-principal);
     padding: 12px;
 }
 
@@ -33,6 +33,5 @@ Gris casi blanco: #fafafa.
     grid-auto-rows: min-content;
     gap: 25px;
     /* grid-template-rows: repeat(auto-fill, minmax(150px, 1fr)); */
-
     padding: 20px;
 }
