@@ -38,7 +38,7 @@ namespace ControlActividades.Models
         public DbSet<tbGruposMaterias> tbGruposMaterias { get; set; }
         public DbSet<tbMaterias> tbMaterias { get; set; }
         public DbSet<tbActividades> tbActividades { get; set; }
-        //public DbSet<tbCalificaciones> tbCalificaciones { get; set; }
+        public DbSet<tbCalificaciones> tbCalificaciones { get; set; }
         //public DbSet<cTiposActividades> cTiposActividades { get; set; }
         public DbSet<tbAvisos> tbAvisos { get; set; }
         public DbSet<tbEventosAgenda> tbEventosAgenda { get; set; }

@@ -1,10 +1,64 @@
 ﻿var div = document.getElementById("docente-datos");
 var docenteIdGlobal = div ? div.dataset.docenteid : null;
+// cache últimas actividades cargadas para filtrado instantáneo
+var actividadesCacheGlobal = null;
 
 // Esperar a que el DOM esté completamente cargado antes de ejecutar el código
 document.addEventListener("DOMContentLoaded", function () {
 
+    // inject filter control into UI and attach listener
+    try {
+        var seccionAct = document.getElementById('seccion-actividades');
+        if (seccionAct) {
+            var container = document.createElement('div');
+            container.style.marginTop = '10px';
+            container.style.display = 'flex';
+            container.style.gap = '8px';
+            container.style.alignItems = 'center';
+
+            var label = document.createElement('label'); label.style.margin = '0'; label.textContent = 'Filtro: ';
+            var select = document.createElement('select'); select.id = 'filtroActividades'; select.className = 'form-select'; select.style.width = 'auto'; select.style.display = 'inline-block';
+            [['all','Todas'], ['borrador','Borradores'], ['publicada','Publicadas'], ['programada','Programadas'] ].forEach(function(opt){
+                var o = document.createElement('option'); o.value = opt[0]; o.textContent = opt[1]; select.appendChild(o);
+            });
+            container.appendChild(label); container.appendChild(select);
+            // try to insert before divider if present, otherwise append
+            var ref = seccionAct.querySelector('.divider');
+            if (ref) seccionAct.insertBefore(container, ref); else seccionAct.appendChild(container);
+
+            // restore previous selection if any
+            try {
+                var saved = localStorage.getItem('filtroActividades');
+                if (saved) select.value = saved;
+            } catch (e) { }
+
+            function aplicarFiltroDesdeSelect() {
+                console.debug('Filtro cambiado a', select.value);
+                try { localStorage.setItem('filtroActividades', select.value); } catch(e){}
+
+                // If we have cached activities, render them immediately for snappy UX
+                if (actividadesCacheGlobal && Array.isArray(actividadesCacheGlobal) && actividadesCacheGlobal.length>0) {
+                    renderizarActividades(actividadesCacheGlobal);
+                }
+
+                // Always refresh from server to ensure data is up-to-date and filtering uses latest values
+                // pass explicit materia id to avoid relying on globals
+                var midToUse = window.materiaIdGlobal || materiaIdGlobal || null;
+                setTimeout(function(){ cargarActividadesDeMateria(midToUse, true); }, 0);
+                // don't toggle tabs here; just refresh data. A global delegated listener ensures changes trigger reload.
+            }
+
+            select.addEventListener('change', aplicarFiltroDesdeSelect);
+            // also listen to 'input' and 'click' for scenarios where change may not fire
+            select.addEventListener('input', aplicarFiltroDesdeSelect);
+            select.addEventListener('click', function(){ setTimeout(aplicarFiltroDesdeSelect, 0); });
+            // trigger once to apply restored selection
+            try { setTimeout(aplicarFiltroDesdeSelect, 10); } catch(e){}
+        }
+    } catch(e){ console.warn('No se pudo inyectar filtroActividades', e); }
+
     cargarActividadesDeMateria();
+    
 
 });
 
@@ -142,15 +196,29 @@ async function registrarActividad() {
 
 
 // Funcion que carga las actividades a la vista.
-async function cargarActividadesDeMateria() {
+async function cargarActividadesDeMateria(midParam, forceReload) {
     const listaActividades = document.getElementById("listaActividadesDeMateria");
     if (!listaActividades) return;
     listaActividades.innerHTML = "<p>Cargando actividades...</p>";
 
     try {
-        const mid = typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : (window.materiaIdGlobal || null);
+        // Determine materia id: allow caller to pass it as first param, otherwise use global
+        var mid = null;
+        if (typeof midParam !== 'undefined' && midParam !== null && midParam !== false) {
+            mid = midParam;
+        } else {
+            mid = (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) ? materiaIdGlobal : (window.materiaIdGlobal || null);
+        }
+        // normalize to number/string
+        if (typeof mid === 'object' && mid.hasOwnProperty('value')) mid = mid.value;
+        // debug
+        console.debug('cargarActividadesDeMateria: mid=', mid, 'forceReload=', !!forceReload);
         if (!mid) throw new Error('Materia no definida');
-        const response = await fetch(`/Materias/ObtenerActividadesPorMateria?materiaId=${mid}`);
+        // include filtro (if set) so server can return filtered results
+        var filtroEl = document.getElementById('filtroActividades');
+        var filtroVal = filtroEl ? filtroEl.value : null;
+        const basePath = (window.appBasePath || '');
+        const response = await fetch(basePath + `Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''));
         const text = await response.text();
         let payload = null;
         try { payload = text ? JSON.parse(text) : null; } catch (e) { payload = null; }
@@ -168,18 +236,25 @@ async function cargarActividadesDeMateria() {
             return;
         }
 
+        console.debug('cargarActividadesDeMateria: payload keys=', payload && typeof payload === 'object' ? Object.keys(payload) : typeof payload);
         if (!Array.isArray(payload)) {
             if (payload.mensaje || payload.message) {
                 listaActividades.innerHTML = `<p class="mensaje-error">${payload.mensaje || payload.message}</p>`;
                 return;
             }
             if (payload.resultado && Array.isArray(payload.resultado)) {
+                actividadesCacheGlobal = payload.resultado;
+                console.debug('cargarActividadesDeMateria: usando payload.resultado length=', actividadesCacheGlobal.length);
                 renderizarActividades(payload.resultado);
+                requestAnimationFrame(function(){ try{ renderizarActividades(actividadesCacheGlobal); }catch(e){} });
                 return;
             }
             const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
             if (arr) {
+                actividadesCacheGlobal = arr;
+                console.debug('cargarActividadesDeMateria: found array in payload keys, length=', actividadesCacheGlobal.length);
                 renderizarActividades(arr);
+                requestAnimationFrame(function(){ try{ renderizarActividades(actividadesCacheGlobal); }catch(e){} });
                 return;
             }
 
@@ -188,7 +263,11 @@ async function cargarActividadesDeMateria() {
             return;
         }
 
-        renderizarActividades(payload);
+        // cache payload for instant client-side filtering
+        actividadesCacheGlobal = Array.isArray(payload) ? payload : [];
+        console.debug('cargarActividadesDeMateria: received array payload length=', actividadesCacheGlobal.length);
+        renderizarActividades(actividadesCacheGlobal);
+        requestAnimationFrame(function(){ try{ renderizarActividades(actividadesCacheGlobal); }catch(e){} });
     } catch (error) {
         console.error('Error en cargarActividadesDeMateria:', error);
         listaActividades.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
@@ -205,27 +284,64 @@ function renderizarActividades(actividades) {
         listaActividades.innerHTML = "<p>No hay actividades registradas para esta materia.</p>";
         return;
     }
-    actividades.reverse();
+    // work on a copy to avoid mutating the cached array (reverse is in-place)
+    const actividadesToRender = actividades.slice().reverse();
 
     // get filter
     const filtroEl = document.getElementById('filtroActividades');
     const filtro = filtroEl ? filtroEl.value : 'all';
+    // normalize filter: allow plural values from markup (e.g. 'publicadas')
+    const filtroNorm = (filtro === 'all') ? 'all' : (String(filtro).endsWith('s') ? String(filtro).slice(0, -1) : String(filtro));
 
-    actividades.forEach(actividad => {
-        // skip by filter
-        const estadoKey = actividad.Enviado === true ? 'publicada' : (actividad.Enviado === false ? 'borrador' : (actividad.FechaProgramada ? 'programada' : 'borrador'));
-        if (filtro !== 'all') {
-            if (filtro === 'borrador' && estadoKey !== 'borrador') return;
-            if (filtro === 'publicadas' && estadoKey !== 'publicada') return;
-            if (filtro === 'programadas' && estadoKey !== 'programada') return;
+    // apply filter client-side to get the list to actually render
+    const filteredActividades = actividadesToRender.filter(actividad => {
+        // Normalize 'Enviado' value (may come as boolean, string or number)
+        let enviadoVal = actividad.Enviado;
+        if (typeof enviadoVal === 'undefined' && actividad.enviado !== undefined) enviadoVal = actividad.enviado;
+        const enviadoBool = (enviadoVal === true) || (String(enviadoVal).toLowerCase() === 'true') || (String(enviadoVal) === '1') || (enviadoVal === 1);
+        const fechaProgVal = actividad.FechaProgramada || actividad.fechaProgramada || actividad.FechaProgramada;
+        const estadoKey = enviadoBool ? 'publicada' : (fechaProgVal ? 'programada' : 'borrador');
+        if (filtroNorm === 'all') return true;
+        if (filtroNorm === 'borrador') return estadoKey === 'borrador';
+        if (filtroNorm === 'publicada') return estadoKey === 'publicada';
+        if (filtroNorm === 'programada') return estadoKey === 'programada';
+        return true;
+    });
+
+    console.debug('renderizarActividades: total=', actividadesToRender.length, 'filtradas=', filteredActividades.length, 'filtro=', filtroNorm);
+
+    // render the filtered list
+    renderActividadesDirect(filteredActividades);
+    // ensure UI repaint in case container was hidden or needs reflow (fixes issue where list only updates after switching tabs)
+    try {
+        var lista = document.getElementById('listaActividadesDeMateria');
+        if (lista) {
+            // force reflow
+            lista.style.display = 'none';
+            // reading offsetHeight forces layout
+            void lista.offsetHeight;
+            lista.style.display = '';
+            // reset scroll
+            lista.scrollTop = 0;
         }
+    } catch (e) { }
+}
+
+// Render a given list of activities directly (no further filtering)
+function renderActividadesDirect(listado) {
+    const listaActividades = document.getElementById("listaActividadesDeMateria");
+    if (!listaActividades) return;
+    // assume container already cleared
+    listado.forEach(actividad => {
+        let enviadoVal = actividad.Enviado;
+        if (typeof enviadoVal === 'undefined' && actividad.enviado !== undefined) enviadoVal = actividad.enviado;
+        const enviadoBool = (enviadoVal === true) || (String(enviadoVal).toLowerCase() === 'true') || (String(enviadoVal) === '1') || (enviadoVal === 1);
+        const fechaProgVal = actividad.FechaProgramada || actividad.fechaProgramada || actividad.FechaProgramada;
+        const descripcionActividadConEnlace = convertirUrlsEnEnlaces(actividad.Descripcion);
+        const estado = enviadoBool ? 'Publicado' : (fechaProgVal ? 'Programada' : 'Borrador');
+
         const actividadItem = document.createElement('div');
         actividadItem.classList.add('actividad-item');
-        const descripcionActividadConEnlace = convertirUrlsEnEnlaces(actividad.Descripcion);
-
-        // estado
-        const estado = actividad.Enviado === true ? 'Publicado' : (actividad.Enviado === false ? 'Borrador' : (actividad.FechaProgramada ? 'Programada' : 'Borrador'));
-
         actividadItem.innerHTML = `
             <div class="actividad-header">
                 <div class="icono">📋</div>
@@ -249,28 +365,26 @@ function renderizarActividades(actividades) {
             </div>
         `;
 
-        // Mostrar/ocultar descripción al hacer clic en "Ver completo"
         const verCompleto = actividadItem.querySelector(".ver-completo");
         const descripcion = actividadItem.querySelector(".actividad-descripcion");
+        if (verCompleto && descripcion) {
+            verCompleto.addEventListener("click", () => {
+                if (descripcion.classList.contains("oculto")) {
+                    descripcion.classList.remove("oculto");
+                    descripcion.classList.add("visible");
+                } else {
+                    descripcion.classList.remove("visible");
+                    descripcion.classList.add("oculto");
+                }
+            });
+        }
 
-        verCompleto.addEventListener("click", () => {
-            if (descripcion.classList.contains("oculto")) {
-                descripcion.classList.remove("oculto");
-                descripcion.classList.add("visible");
-            } else {
-                descripcion.classList.remove("visible");
-                descripcion.classList.add("oculto");
-            }
-        });
-
-        // Agregar eventos a los botones
         const btnEliminar = actividadItem.querySelector(".eliminar-btn");
         const btnEditar = actividadItem.querySelector(".editar-btn");
         const btnIrActividad = actividadItem.querySelector(".btn-ir-actividades");
-
-        btnEliminar.addEventListener("click", () => eliminarActividad(actividad.ActividadId));
-        btnEditar.addEventListener("click", () => editarActividad(actividad.ActividadId));
-        btnIrActividad.addEventListener("click", () => IrAActividad(actividad.ActividadId));
+        if (btnEliminar) btnEliminar.addEventListener("click", () => eliminarActividad(actividad.ActividadId));
+        if (btnEditar) btnEditar.addEventListener("click", () => editarActividad(actividad.ActividadId));
+        if (btnIrActividad) btnIrActividad.addEventListener("click", () => IrAActividad(actividad.ActividadId));
 
         listaActividades.appendChild(actividadItem);
     });
@@ -507,3 +621,15 @@ async function actualizarActividad(id) {
         Swal.fire('Error', e.message || 'No se pudo actualizar la actividad', 'error');
     }
 }
+
+// Global delegated listener: ensures changes to the filter select always reload activities
+document.addEventListener('change', function (e) {
+    try {
+        var t = e.target || e.srcElement;
+        if (t && t.id === 'filtroActividades') {
+            try { localStorage.setItem('filtroActividades', t.value); } catch (err) { }
+            var mid = window.materiaIdGlobal || (typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : null);
+            cargarActividadesDeMateria(mid, true);
+        }
+    } catch (err) { /* ignore */ }
+});

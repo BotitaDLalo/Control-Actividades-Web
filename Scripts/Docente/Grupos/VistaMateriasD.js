@@ -1,5 +1,5 @@
 ﻿var div = document.getElementById("docente-datos");
-var docenteIdGlobal = div.dataset.docenteid;
+var docenteIdGlobal = div && div.dataset ? div.dataset.docenteid : null;
 
 function cambiarVista(vista) {
     // Remover clase "active" de todas las pestañas y vistas

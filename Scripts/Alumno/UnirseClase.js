@@ -170,8 +170,17 @@ async function enviarEntrega(actividadId) {
 
         var resp = await fetch('/api/Alumnos/SubirEntrega', { method: 'POST', body: form });
         if (!resp.ok) {
-            var txt = await resp.text().catch(() => '');
-            throw new Error(txt || 'Error al subir entrega');
+            var contentType = resp.headers.get('content-type') || '';
+            if (contentType.indexOf('application/json') !== -1) {
+                var body = await resp.json().catch(() => null);
+                var msg = (body && (body.mensaje || body.message)) ? (body.mensaje || body.message) : JSON.stringify(body);
+                Swal.fire('Error', msg || 'Error al subir entrega', 'error');
+                return;
+            } else {
+                var txt = await resp.text().catch(() => '');
+                Swal.fire('Error', txt || 'Error al subir entrega', 'error');
+                return;
+            }
         }
         var json = await resp.json().catch(() => null);
         Swal.fire('Enviado', (json && json.mensaje) ? json.mensaje : 'Entrega registrada', 'success');

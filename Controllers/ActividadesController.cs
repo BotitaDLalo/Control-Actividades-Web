@@ -157,13 +157,15 @@ namespace ControlActividades.Controllers
                     .Where(a => a.ActividadId == actividadId)
                     .Select(a => new
                     {
-                        a.ActividadId,
+                    a.ActividadId,
                         a.NombreActividad,
                         a.Descripcion,
+                    a.MateriaId,
                         a.FechaCreacion,
                         a.FechaLimite,
                         a.Puntaje,
-                        a.Enviado,
+                    a.Enviado,
+                    a.PermitirEntregasTarde,
                         a.FechaProgramada
                     })
                     .FirstOrDefaultAsync();

@@ -98,16 +98,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if (link) {
             event.preventDefault(); // Evita la recarga de la página si es un <a>
             let actividadId = link.getAttribute("data-id"); // Obtener el ID correcto
-            verActividad(actividadId);
+            // intentar leer el id de materia si viene en el elemento (data-materia o data-materiaid)
+            let materiaId = link.getAttribute("data-materia") || link.getAttribute("data-materiaid") || link.getAttribute("data-materia-id");
+            verActividad(actividadId, materiaId);
         }
     });
 });
 
 
 function verActividad(actividadIdSeleccionada, materiaId) {
-    localStorage.setItem("materiaIdSeleccionada", materiaId);
-    //guardar el id de la materia para acceder a la materia en la que se entro y usarla en otro script
+    // Guardar actividad siempre
     localStorage.setItem("actividadSeleccionada", actividadIdSeleccionada);
+
+    // Guardar materia solo si viene definida (evitar guardar "undefined")
+    if (typeof materiaId !== 'undefined' && materiaId !== null && String(materiaId).trim() !== '') {
+        localStorage.setItem("materiaIdSeleccionada", materiaId);
+    }
+
     // Redirige a la página de detalles de la materia
-    window.open(`/Docente/EvaluarActividades`, '_blank'); //Aqui lleva en la url el id de la actividadSeleccionada
+    window.open(`/Docente/EvaluarActividades`, '_blank');
 }

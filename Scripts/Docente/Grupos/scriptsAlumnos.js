@@ -2,6 +2,99 @@
 var div = document.getElementById('docente-datos');
 var docenteIdGlobal = div && div.dataset ? div.dataset.docenteid : null;
 
+// If you want to remove the alumno search UI from the MateriaDetalles view
+// remove any search-related elements that may be rendered by server or other scripts.
+
+    // keyboard navigation is attached inside setupAlumnoSearch when elements exist
+
+
+// Initialize search/assign UI
+function setupAlumnoSearch() {
+    var buscar = document.getElementById('buscarAlumno');
+    var btnAsignar = document.getElementById('btnAsignarAlumno');
+    var sugerencias = document.getElementById('sugerenciasAlumnos');
+    if (!buscar || !sugerencias) return;
+
+    var debounceTimer = null;
+    buscar.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        var q = this.value.trim();
+        if (!q) { renderSugerencias([]); return; }
+        debounceTimer = setTimeout(async function () {
+            try {
+                var basePath = (window.appBasePath || '');
+                var resp = await fetch(basePath + 'Materias/BuscarAlumnosPorCorreo?query=' + encodeURIComponent(q), { credentials: 'same-origin' });
+                if (!resp.ok) { renderSugerencias([]); return; }
+                var data = await resp.json().catch(function(){return [];});
+                renderSugerencias(data || []);
+            } catch (e) { console.error('Error buscar alumnos', e); renderSugerencias([]); }
+        }, 250);
+    });
+
+    // hide suggestions when clicking outside
+    document.addEventListener('click', function (ev) {
+        if (!sugerencias) return;
+        if (!ev.target.closest || (!ev.target.closest('#sugerenciasAlumnos') && ev.target !== buscar)) {
+            sugerencias.innerHTML = '';
+            sugerencias.style.display = 'none';
+        }
+    });
+
+    if (btnAsignar) {
+        btnAsignar.addEventListener('click', async function () {
+            var correo = buscar.value.trim();
+            if (!correo) { alert('Ingresa el correo del alumno'); return; }
+            var materiaId = window.materiaIdGlobal || (typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : null);
+            if (!materiaId) { alert('No se pudo identificar la materia'); return; }
+            try {
+                var body = new URLSearchParams();
+                body.append('correo', correo);
+                body.append('materiaId', materiaId);
+                var basePath = (window.appBasePath || '');
+                var resp = await fetch(basePath + 'Materias/AsignarAlumnoMateria', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString(), credentials: 'same-origin' });
+                if (!resp.ok) {
+                    var txt = await resp.text().catch(()=>'');
+                    alert('Error al asignar alumno: ' + (txt || resp.status));
+                    return;
+                }
+                var j = await resp.json().catch(()=>null);
+                alert((j && j.mensaje) ? j.mensaje : 'Alumno asignado correctamente');
+                if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaId);
+                buscar.value = '';
+                renderSugerencias([]);
+            } catch (e) { console.error(e); alert('Error al asignar alumno'); }
+        });
+    }
+}
+
+function renderSugerencias(items) {
+    var ul = document.getElementById('sugerenciasAlumnos');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (!items || items.length === 0) {
+        ul.style.display = 'none';
+        return;
+    }
+    items.forEach(function (it) {
+        var li = document.createElement('li');
+        li.className = 'list-group-item list-group-item-action';
+        var display = ((it.Nombre || '') + ' ' + (it.ApellidoPaterno || '') + ' ' + (it.ApellidoMaterno || '')).trim();
+        if (!display) display = it.Email || it.email || it.UserName || '';
+        li.textContent = display + (it.Email ? (' — ' + it.Email) : '');
+        li.addEventListener('click', function () {
+            var input = document.getElementById('buscarAlumno');
+            if (input) input.value = it.Email || it.email || '';
+            ul.innerHTML = '';
+            ul.style.display = 'none';
+        });
+        ul.appendChild(li);
+    });
+    ul.style.display = 'block';
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupAlumnoSearch);
+else setupAlumnoSearch();
+
 function renderAlumnosTable(alumnos) {
     var cont = document.getElementById('listaAlumnosAsignados');
     if (!cont) return;
@@ -66,7 +159,8 @@ async function cargarAlumnosAsignados(materiaOrAlumnos) {
         if (Array.isArray(materiaOrAlumnos)) { renderAlumnosTable(materiaOrAlumnos); return; }
         var materiaId = (typeof materiaOrAlumnos !== 'undefined' && materiaOrAlumnos) ? materiaOrAlumnos : (typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : (window.materiaIdGlobal || null));
         if (!materiaId) { cont.innerHTML = '<p class="text-muted">No hay materia seleccionada.</p>'; return; }
-        var resp = await fetch('/Materias/ObtenerAlumnosPorMateria?materiaId=' + encodeURIComponent(materiaId));
+        var basePath = (window.appBasePath || '');
+        var resp = await fetch(basePath + 'Materias/ObtenerAlumnosPorMateria?materiaId=' + encodeURIComponent(materiaId));
         if (!resp.ok) { cont.innerHTML = '<p class="text-danger">Error al cargar alumnos.</p>'; return; }
         var data = await resp.json();
         var alumnos = [];
@@ -82,7 +176,8 @@ async function eliminardelgrupo(enlaceId) {
     if (!enlaceId) return;
     if (!confirm('¿Eliminar alumno?')) return;
     try {
-        var r = await fetch('/Materias/EliminarAlumnoDeMateria?idEnlace=' + encodeURIComponent(enlaceId), { method: 'DELETE' });
+        var basePath = (window.appBasePath || '');
+        var r = await fetch(basePath + 'Materias/EliminarAlumnoDeMateria?idEnlace=' + encodeURIComponent(enlaceId), { method: 'DELETE' });
         if (!r.ok) throw new Error('No eliminado');
         alert('Alumno eliminado');
         if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
@@ -113,7 +208,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 var fd = new FormData(); fd.append('file', file);
                 if (grupoId) fd.append('GrupoId', grupoId);
                 if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) fd.append('MateriaId', materiaIdGlobal);
-                var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd });
+                console.log('ImportarAlumnosExcel: enviando', file.name, 'MateriaId=', materiaIdGlobal, 'GrupoId=', grupoId);
+                var basePath = (window.appBasePath || '');
+                var resp = await fetch(basePath + 'api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd, credentials: 'same-origin' });
                 var json = await resp.json().catch(function(){return {};});
                 if (!resp.ok) { alert(json.mensaje || 'Error importar'); return; }
 
@@ -154,3 +251,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); createAndOpenFileInput(); });
 });
+

@@ -2,7 +2,7 @@
 //let docenteIdGlobal = localStorage.getItem("docenteId");
 
 document.addEventListener("DOMContentLoaded", function () {
-    if (materiaIdGlobal && docenteIdGlobal) {
+    if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal && typeof docenteIdGlobal !== 'undefined' && docenteIdGlobal) {
         fetch(`/Materias/ObtenerDetallesMateria?materiaId=${materiaIdGlobal}&docenteId=${docenteIdGlobal}`)
             .then(response => {
                 if (!response.ok) {

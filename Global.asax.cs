@@ -67,6 +67,22 @@ namespace ControlActividades
                 {
                     resp.ContentType = "text/html; charset=utf-8";
                 }
+
+                // During development disable client-side caching so changes to scripts/styles/views
+                // are reflected immediately when debugging (prevents stale cached assets in browser)
+                try
+                {
+                    // Only apply when a debugger is attached (development) to avoid forcing no-cache in production
+                    if (System.Diagnostics.Debugger.IsAttached && HttpContext.Current != null)
+                    {
+                        var cache = HttpContext.Current.Response.Cache;
+                        cache.SetCacheability(System.Web.HttpCacheability.NoCache);
+                        cache.SetNoStore();
+                        cache.SetExpires(DateTime.UtcNow.AddDays(-1));
+                        cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
+                    }
+                }
+                catch { }
             }
             catch
             {

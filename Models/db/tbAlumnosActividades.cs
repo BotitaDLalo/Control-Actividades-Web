@@ -26,7 +26,7 @@ namespace ControlActividades.Models.db
 
         public virtual tbActividades Actividades {  get; set; } 
         public virtual tbAlumnos Alumnos { get; set; }
-        public virtual tbEntregableAlumno EntregablesAlumno { get; set; }
+        public virtual ICollection<tbEntregableAlumno> EntregablesAlumno { get; set; }
 
     }
 }

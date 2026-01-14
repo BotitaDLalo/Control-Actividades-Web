@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System;
+using System.Web;
 using System.Web.Optimization;
 
 namespace ControlActividades
@@ -142,5 +143,8 @@ namespace ControlActividades
             // Disable optimizations in development to load files directly
             BundleTable.EnableOptimizations = false;
         }
+
+        // Public version token for cache-busting in views (changes on app restart)
+        public static readonly string Version = DateTime.UtcNow.Ticks.ToString();
     }
 }
