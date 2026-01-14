@@ -167,6 +167,12 @@
 
         document.addEventListener('eventoEliminado', () => {
             calendar.refetchEvents();
+            // Limpiar lista del modal de día
+            const listaEventos = document.getElementById("listaEventos");
+            if (listaEventos) {
+                listaEventos.innerHTML = "<p class='text-muted'>Actualizando...</p>";
+            }
+
         });
     });
 
