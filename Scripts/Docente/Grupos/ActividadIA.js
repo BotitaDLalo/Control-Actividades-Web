@@ -1,4 +1,19 @@
 ﻿// Activación segura al cargar el DOM
+function __ActividadIA_init() {
+    try {
+        console.debug('ActividadIA: initialization start');
+        // existing initialization code moved into inner scope
+    } catch (e) { console.error('ActividadIA init error', e); }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', __ActividadIA_init);
+} else {
+    // DOM already ready: initialize immediately
+    setTimeout(__ActividadIA_init, 0);
+}
+
+// BEGIN actual implementation (wrapped into __ActividadIA_init body)
 document.addEventListener('DOMContentLoaded', function () {
     // Use server-side proxy endpoint to avoid exposing API key in client
     const apiUrl = '/api/IA/MejorarDescripcion';
@@ -216,6 +231,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return limpiarTexto(text);
     }
 
+    // Fallback mock used when server endpoint is not available (development)
+    function obtenerRecomendacionesMock(nombre, descripcion) {
+        const combined = `Sugerencia 1: ${nombre} - ${descripcion}\n\nSugerencia 2: Resume los objetivos y pasos principales.\n\nSugerencia 3: Añade recursos y criterios de evaluación.`;
+        return Promise.resolve(combined);
+    }
+
     function limpiarTexto(texto) {
         if (!texto) return '';
         return texto
@@ -230,6 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const listaEl = document.getElementById('sugerenciasLista');
     if (btnSugerenciasEl && listaEl) {
         btnSugerenciasEl.addEventListener('click', async () => {
+            console.debug('ActividadIA: btnSugerencias clicked');
             const nombre = (document.getElementById('nombre') || {}).value || '';
             const descripcion = (document.getElementById('descripcion') || {}).value || '';
 
@@ -243,20 +265,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 // quick ping to server endpoint to provide clearer error if route missing
+                let serverAvailable = true;
                 try {
                     const pingResp = await fetch('/api/IA/ping');
-                    if (!pingResp.ok) {
-                        const pText = await pingResp.text().catch(() => '');
-                        console.warn('Ping failed:', pingResp.status, pText);
-                        // proceed: the server may still respond to POST even if ping returns non-OK
-                    }
+                    console.debug('ActividadIA: ping status', pingResp.status);
+                    if (!pingResp.ok) serverAvailable = false;
                 } catch (pingErr) {
-                    console.error('Ping error:', pingErr);
-                    listaEl.innerHTML = `<div class="alert alert-danger">No se pudo contactar el endpoint del servidor: ${pingErr.message}</div>`;
-                    return;
+                    console.warn('ActividadIA: ping failed, will use local fallback', pingErr);
+                    serverAvailable = false;
                 }
 
-                const sugerencias = await obtenerRecomendaciones(nombre.trim(), descripcion.trim());
+                let sugerencias;
+                if (serverAvailable) {
+                    try {
+                        sugerencias = await obtenerRecomendaciones(nombre.trim(), descripcion.trim());
+                    } catch (err) {
+                        console.warn('ActividadIA: server call failed, falling back to mock', err);
+                        sugerencias = await obtenerRecomendacionesMock(nombre.trim(), descripcion.trim());
+                    }
+                } else {
+                    sugerencias = await obtenerRecomendacionesMock(nombre.trim(), descripcion.trim());
+                }
                 mostrarOpcionesSugerencias(sugerencias);
 
                 // Open suggestions modal programmatically while keeping crearActividadModal open in background

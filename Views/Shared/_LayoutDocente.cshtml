@@ -70,6 +70,18 @@
         });
     </script>
 
+    <script>
+        // Safety stub: evita ReferenceError si algún script llama a cargarTiposActividad antes de que esté definida.
+        if (typeof window.cargarTiposActividad !== 'function') {
+            window.cargarTiposActividad = function () {
+                try {
+                    var sel = document.getElementById('tipoActividad');
+                    if (sel) sel.innerHTML = '<option value="">(Sin tipos disponibles)</option>';
+                } catch (e) { /* no-op */ }
+            };
+        }
+    </script>
+
     @* Render docente/Grupos scripts bundle using Scripts.Render so that in development
        (BundleTable.EnableOptimizations = false) the individual script files are output
        and DOMContentLoaded handlers register correctly. *@

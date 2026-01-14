@@ -95,7 +95,18 @@
             }
 
             crearModal.addEventListener('show.bs.modal', function () {
-                cargarTiposActividad();
+                // Llamada segura a cargarTiposActividad: puede no estar definida según el orden de carga
+                try {
+                    if (typeof window.cargarTiposActividad === 'function') {
+                        window.cargarTiposActividad();
+                    } else {
+                        // Intentar nuevamente después de un pequeño retraso por si el script se carga después
+                        setTimeout(function () {
+                            if (typeof window.cargarTiposActividad === 'function') window.cargarTiposActividad();
+                            else console.warn('cargarTiposActividad no disponible al abrir modal');
+                        }, 50);
+                    }
+                } catch (e) { console.warn('Error al invocar cargarTiposActividad:', e); }
 
                 try {
                     // If we are not editing an existing actividad, set default time to 23:59 (fin del día)
