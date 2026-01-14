@@ -321,6 +321,13 @@ namespace ControlMaterias.Controllers
                 Db.tbAlumnosMaterias.Add(nuevaRelacion);
                 await Db.SaveChangesAsync();
 
+                //ENVÍO DE NOTIFICACIÓN
+                await Ns.NotificacionRegistrarAlumnoClase(
+                        new List<int> { alumnoId.Value},
+                        docenteId: 0,
+                        materiaId: materiaId
+                    );
+
                 return Json(new { mensaje = "Alumno asignado a la materia exitosamente.", success = true }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
