@@ -927,8 +927,53 @@ namespace ControlActividades.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("EliminarAlumnoGrupo")]
+        public async Task<IHttpActionResult> EliminarAlumnoGrupo([FromBody] EliminarAlumnoClase eliminarAlumnoClase)
+        {
+            try
+            {
+                var alumnoId = eliminarAlumnoClase.AlumnoId;
+                var grupoId = eliminarAlumnoClase.GrupoId;
 
 
+                var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
+
+                var lsActividadesMateria = Db.tbActividades.Where(a => lsMateriasGrupoId.Contains(a.MateriaId)).Select(a => a.ActividadId).Distinct().ToList();
+
+                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 1).Any();
+
+                if(alumnoTieneEntregas)
+                    return BadRequest();
+
+
+                var lsAlumnoBorradores = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 2).ToList();
+
+                if (lsAlumnoBorradores.Count > 0)
+                {
+                    var lsAlumnoBorradoresId = lsAlumnoBorradores.Select(a => a.EntregaActividadAlumnoId).ToList();
+                    var lsEntregables = Db.tbEntregables.Where(a => lsAlumnoBorradoresId.Contains(a.EntregaActividadAlumnoId)).ToList();
+
+                    Db.tbEntregables.RemoveRange(lsEntregables);
+
+                    Db.tbEntregaActividadAlumno.RemoveRange(lsAlumnoBorradores);
+
+                    await Db.SaveChangesAsync();
+                }
+
+
+                var alumnoGrupo = await Db.tbAlumnosGrupos.FirstOrDefaultAsync(a => a.AlumnoId == alumnoId && a.GrupoId == grupoId);
+
+                Db.tbAlumnosGrupos.Remove(alumnoGrupo);
+                await Db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {
