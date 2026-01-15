@@ -37,6 +37,28 @@ async function cargarDetalleActividad() {
     }
 }
 
+// Escuchar evento de calificación para refrescar vista del alumno si corresponde
+window.addEventListener('entregableCalificado', function (ev) {
+    try {
+        var detalle = ev && ev.detail;
+        if (!detalle) return;
+        // Si el alumno está viendo esta entrega, refrescar la sección de calificación
+        // Intentamos identificar si el alumno actual corresponde a la entrega (no siempre disponible en cliente)
+        // Forzar recarga parcial: volver a llamar a verificarEnvio
+        verificarEnvio();
+    } catch (e) { console.error(e); }
+});
+
+// También escuchar cambios en localStorage (cuando docente guarda y guarda marca en localStorage)
+window.addEventListener('storage', function (e) {
+    try {
+        if (e.key === 'entregableCalificado') {
+            // recargar vista de envío
+            verificarEnvio();
+        }
+    } catch (err) { console.error(err); }
+});
+
 async function verificarEnvio() {
     try {
         const resp = await fetch(`/api/Alumnos/ObtenerEnviosActividadesAlumno?ActividadId=${actividadIdGlobal}&AlumnoId=${alumnoIdGlobal}`);
@@ -62,8 +84,11 @@ async function verificarEnvio() {
 
             document.getElementById('estadoEntrega').innerHTML = estadoHtml;
             document.getElementById('entregaForm').style.display = 'none';
+            // Mostrar calificación o estado pendiente
             if (envio.Calificacion !== null && envio.Calificacion !== undefined) {
-                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificaci�n: ' + envio.Calificacion + '</p>';
+                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: ' + envio.Calificacion + '</p>';
+            } else {
+                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: <em>Pendiente de calificar</em></p>';
             }
         }
     } catch (e) { console.error(e); }

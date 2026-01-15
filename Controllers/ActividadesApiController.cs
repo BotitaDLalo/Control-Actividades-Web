@@ -576,7 +576,7 @@ namespace ControlActividades.Controllers
                         alumnoEntregable.Respuesta = entregable.Contenido;
 
 
-                        alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                        alumnoEntregable.Calificacion = entregable.Calificacion;
 
 
                         lsEntregables.Add(alumnoEntregable);

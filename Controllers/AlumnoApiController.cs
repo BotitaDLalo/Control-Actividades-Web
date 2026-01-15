@@ -924,7 +924,7 @@ namespace ControlActividades.Controllers
                             Contenido = entrega.Contenido,
                             EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
                             FechaEntrega = fechaEntrega ?? new DateTime(),
-                            Calificacion = (entrega.Calificacion ?? 0).ToString(),
+                            Calificacion = entrega.Calificacion,
                             EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
                         };
                         lsEnvios.Add(envio);
@@ -953,7 +953,7 @@ namespace ControlActividades.Controllers
                         Contenido = entrega.Respuesta,
                         EstadoEntregaId = datosLegacy.EstatusEntrega ? 1 : 0,
                         FechaEntrega = fechaEntregaLegacy,
-                        Calificacion = (cal ?? 0).ToString(),
+                        Calificacion = cal,
                         EstadoEntrega = datosLegacy.EstatusEntrega
                     };
                     lsEnvios.Add(envio);

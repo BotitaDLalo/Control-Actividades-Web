@@ -268,7 +268,7 @@ namespace ControlActividades.Models
         public string ApellidoMaterno { get; set; }
         public DateTime FechaEntrega { get; set; }
         public string Respuesta { get; set; }
-        public int Calificacion { get; set; }
+        public int? Calificacion { get; set; }
     }
 
 
@@ -508,7 +508,7 @@ namespace ControlActividades.Models
 
         public DateTime FechaEntrega { get; set; }
 
-        public string Calificacion { get; set; }
+        public int? Calificacion { get; set; }
 
         public bool EstadoEntrega { get; set; }    
     }
