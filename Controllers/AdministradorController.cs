@@ -152,6 +152,24 @@ namespace ControlActividades.Controllers
             return View(lsDocentesAdministrar);
         }
 
+        public ActionResult VerDocentes()
+        {
+            List<DocentesValidacion> lsDocentesAdministrar = new List<DocentesValidacion>();
+            var lsDocentes = Db.tbDocentes.ToList();
+            foreach (var d in lsDocentes)
+            {
+                DocentesValidacion docente = new DocentesValidacion()
+                {
+                    DocenteId = d.DocenteId,
+                    ApellidoPaterno = d.ApellidoPaterno,
+                    ApellidoMaterno = d.ApellidoMaterno,
+                    Nombre = d.Nombre,
+                    UserId = d.UserId
+                };
+                lsDocentesAdministrar.Add(docente);
+            }
+            return View(lsDocentesAdministrar);
+        }
         #region Metodos de la tabla
         private static string EstadoAutorizado(bool? status)
         {
@@ -349,14 +367,15 @@ namespace ControlActividades.Controllers
         #endregion
 
         #region Ingreso como docente
+        
         [HttpPost]
-        //[Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult> IngresarComoDocente(string userId)
         {
-            // SOLO para prueba
+            //Validar que el userId no esté vacío
             if (string.IsNullOrEmpty(userId))
             {
-                //Poner mensaje de error "El docente no existe, etc"
+                //MENSAJE DE ERROR
                 return RedirectToAction("Index");
             }
             /*
@@ -372,13 +391,6 @@ namespace ControlActividades.Controllers
                 return RedirectToAction("Index");
             }
 
-            //Guardar la sesión del admin
-            Session["AdminOriginalId"] = adminId;
-            Session["IsImpersonating"] = true;
-            Session["ImpersonateUserId"] = userId;
-
-            // CERRAR SESIÓN DEL ADMINISTRADOR E INICIAR COMO DOCENTE                      
-            
             // Obtener docente
             var docente = await UserManager.FindByIdAsync(userId);
             if(docente == null)
@@ -386,23 +398,36 @@ namespace ControlActividades.Controllers
                 return RedirectToAction("Index");
             }
 
+            //Verificar rol
             if(!await UserManager.IsInRoleAsync(userId, "Docente"))
             {
                 return RedirectToAction("Index");
             }
 
-            //Cerrar sesión del admin
-            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-
-            // Iniciar sesión como docente sin contraseña
-            await SignInManager.SignInAsync(
+            //Crear identidad del dcoente
+            var identity = await UserManager.CreateIdentityAsync(
                 docente,
-                isPersistent: false,
-                rememberBrowser: false
+                DefaultAuthenticationTypes.ApplicationCookie
+            );
+
+            //Claims de impersonación
+            identity.AddClaim(new System.Security.Claims.Claim("IsImpersonating", "true"));
+            identity.AddClaim(new System.Security.Claims.Claim("AdminOriginalId", adminId));
+            identity.AddClaim(new System.Security.Claims.Claim("AdminOrigianName", User.Identity.Name));
+
+            // Reemplazar cookie
+            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            AuthenticationManager.SignIn(
+                new AuthenticationProperties
+                {
+                    IsPersistent = false
+                },
+                identity
             );
 
             //Redirigir al home del docente
             return RedirectToAction("Index", "Grupos");
+
         }
         #endregion
         protected override void Dispose(bool disposing)
