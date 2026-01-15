@@ -411,6 +411,7 @@
     <Compile Include="Controllers\AlumnoApiController.cs" />
     <Compile Include="Controllers\AlumnoController.cs" />
     <Compile Include="Controllers\AvisosApiController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CargaMasivaController.cs" />
     <Compile Include="Controllers\DebugApiController.cs" />
     <Compile Include="Controllers\DevController.cs" />
@@ -426,6 +427,7 @@
     <Compile Include="Controllers\MateriasApiController.cs" />
     <Compile Include="Controllers\MateriasController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
+    <Compile Include="Filters\NoCacheAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -772,6 +774,7 @@
     <Folder Include="Dashboard\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
+    <Folder Include="Views\Base\" />
     <Folder Include="Views\Eventos\" />
   </ItemGroup>
   <ItemGroup>
