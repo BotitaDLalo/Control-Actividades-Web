@@ -650,10 +650,6 @@ namespace ControlActividades.Controllers
                 Db.tbEntregables.Add(entregables);
                 await Db.SaveChangesAsync();
 
-                // 6. ✅ Obtener datos guardados para la respuesta
-                var datosAlumnoActividad = await Db.tbAlumnosActividades
-                    .Where(a => a.ActividadId == entregable.ActividadId && a.AlumnoId == entregable.AlumnoId)
-                    .FirstOrDefaultAsync();
 
 
                 var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
@@ -766,23 +762,7 @@ namespace ControlActividades.Controllers
                     }
                 }
 
-                // 7. ✅ Buscar calificación
-                int entregaId = datosEntregable.EntregaId;
-                var calificacion = await Db.tbCalificaciones
-                    .Where(a => a.EntregaId == entregaId)
-                    .Select(a => a.Calificacion)
-                    .FirstOrDefaultAsync();
-
-                // 8. ✅ Retornar respuesta completa
-                return Ok(new
-                {
-                    EntregaId = datosEntregable.EntregaId,
-                    AlumnoActividadId = alumnoActividadId,
-                    Respuesta = datosEntregable?.Respuesta ?? "",
-                    Status = datosAlumnoActividad.EstatusEntrega,
-                    FechaEntrega = fechaEntrega,
-                    Calificacion = calificacion != 0 ? calificacion : -1
-                });
+                return BadRequest();
             }
             catch (Exception ex)
             {
