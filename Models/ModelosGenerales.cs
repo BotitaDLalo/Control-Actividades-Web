@@ -502,14 +502,8 @@ namespace ControlActividades.Models
         public int MateriaId { get; set; }
         public int AlumnoId { get; set; }
     }
-    public class AlumnoEliminarRequest
-    {
-        public int MateriaId { get; set; }
-        public int AlumnoId { get; set; }
-    }
 
-    // En ModelosGenerales.cs
-
+    
     public class EnvioRes
     {
         //        EntregaId = datosEntregable.EntregaId,
@@ -590,16 +584,5 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
     }*/
 
-    public class AlumnoEliminarGrupoRequest
-    {
-        public int GrupoId { get; set; }
-        public int AlumnoId { get; set; }
-    }
-    /*public class AvisoDto
-    {
-        public int AvisoId { get; set; }
-        public string Titulo { get; set; }
-        public string Descripcion { get; set; }
-    }*/
 
 }
