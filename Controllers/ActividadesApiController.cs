@@ -607,37 +607,6 @@ namespace ControlActividades.Controllers
                 var entregableId = asignarCalificacion.EntregableId;
                 var calificacion = asignarCalificacion.Calificacion;
 
-                var entregable = await Db.tbEntregables.FindAsync(idBuscado);
-                if (entregable != null)
-                {
-                    entregable.Calificacion = nuevaCalificacion;
-                    entregable.FechaCalificado = fechaNuevaCalificacion;
-                    // Si se envió comentario (legacy: CalificacionDto), asignarlo
-                    try
-                    {
-                        // intentar obtener comentario desde asignarCalificacion (si existe)
-                        var comentarioProp = asignarCalificacion.GetType().GetProperty("Comentario");
-                        if (comentarioProp != null)
-                        {
-                            var comentarioVal = comentarioProp.GetValue(asignarCalificacion) as string;
-                            if (!string.IsNullOrEmpty(comentarioVal)) entregable.Comentario = comentarioVal;
-                        }
-                    }
-                    catch { }
-
-                    await Db.SaveChangesAsync();
-
-                //    Db.tbCalificaciones.Add(calificaciones);
-                //    await Db.SaveChangesAsync();
-                //    return Ok();
-                //}
-                //else
-                //{
-                //    calificacion.Calificacion = nuevaCalificacion;
-                //    calificacion.FechaCalificacionAsignada = fechaNuevaCalificacion;
-                //    await Db.SaveChangesAsync();
-                //    return Ok();
-                //}
 
                 var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == entregableId);
 
