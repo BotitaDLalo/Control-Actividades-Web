@@ -1,0 +1,28 @@
+@model dynamic
+@{
+    Layout = null;
+}
+<div class="partial-materias-sin-grupo">
+    <h3>Materias sin grupo</h3>
+    <div id="materias-sin-grupo-list">Cargando...</div>
+</div>
+<script>
+    (function(){
+        async function loadMaterias(){
+            try{
+                var alumnoId = '@ViewBag.AlumnoId';
+                var resp = await fetch('/Alumno/ObtenerClases?alumnoId=' + encodeURIComponent(alumnoId));
+                if(!resp.ok){ document.getElementById('materias-sin-grupo-list').innerText = 'Error al cargar'; return; }
+                var txt = await resp.text();
+                var clases = JSON.parse(txt || '[]');
+                var html = '<ul>';
+                clases.forEach(function(c){
+                    if(!c.esGrupo){ html += '<li>' + (c.Nombre||'') + '</li>'; }
+                });
+                html += '</ul>';
+                document.getElementById('materias-sin-grupo-list').innerHTML = html;
+            }catch(e){ console.error(e); document.getElementById('materias-sin-grupo-list').innerText = 'Error'; }
+        }
+        loadMaterias();
+    })();
+</script>

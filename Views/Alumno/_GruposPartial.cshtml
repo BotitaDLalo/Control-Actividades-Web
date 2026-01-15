@@ -1,0 +1,28 @@
+@model dynamic
+@{
+    Layout = null;
+}
+<div class="partial-grupos">
+    <h3>Grupos</h3>
+    <div id="grupos-list">Cargando...</div>
+</div>
+<script>
+    (function(){
+        async function loadGrupos(){
+            try{
+                var alumnoId = '@ViewBag.AlumnoId';
+                var resp = await fetch('/Alumno/ObtenerClases?alumnoId=' + encodeURIComponent(alumnoId));
+                if(!resp.ok){ document.getElementById('grupos-list').innerText = 'Error al cargar'; return; }
+                var txt = await resp.text();
+                var clases = JSON.parse(txt || '[]');
+                var html = '<ul>';
+                clases.forEach(function(c){
+                    if(c.esGrupo){ html += '<li>' + (c.Nombre||'') + '</li>'; }
+                });
+                html += '</ul>';
+                document.getElementById('grupos-list').innerHTML = html;
+            }catch(e){ console.error(e); document.getElementById('grupos-list').innerText = 'Error'; }
+        }
+        loadGrupos();
+    })();
+</script>

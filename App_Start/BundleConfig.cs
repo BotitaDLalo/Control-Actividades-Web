@@ -20,11 +20,50 @@ namespace ControlActividades
                         "~/Scripts/modernizr-*"));
 
             bundles.Add(new Bundle("~/bundles/bootstrap").Include(
-                      "~/Scripts/bootstrap.js"));
+                      "~/Scripts/bootstrap.bundle.min.js"));
 
-            bundles.Add(new StyleBundle("~/Content/css").Include(
+            // Keep only global site CSS in the main bundle. Dashboard-specific CSS should not be bundled globally to avoid layout conflicts (e.g. ".layout" rule).
+            //ESTILOS GENERALES
+            bundles.Add(new StyleBundle("~/Content/Variables")
+                .Include(
+                    "~/Content/Variables/colors.css",
+                    "~/Content/Variables/fuentes.css"
+                )
+            );
+
+            bundles.Add(new StyleBundle("~/Content/Componentes")
+                .Include(
+                    "~/Content/Componentes/Calendario.css",
+                    "~/Content/Componentes/cards.css",
+                    "~/Content/Componentes/carga.css",
+                    "~/Content/Componentes/header.css"
+                )
+            );
+
+            bundles.Add(new StyleBundle("~/Content/css")
+                .Include(
                       "~/Content/bootstrap.css",
-                      "~/Content/site.css"));
+                      "~/Content/site.css",
+                      "~/Content/sidebar.css"
+                )
+            );
+
+            bundles.Add(new StyleBundle("~/Content/Dashboard/css").Include(
+                    "~/Content/Dashboard/cards.css",
+                    "~/Content/Dashboard/content.css",
+                    "~/Content/Dashboard/nav-bar.css",
+                    "~/Content/Dashboard/sidebar.css"
+            ));
+
+
+            //SCRIPTS GENERALES
+            bundles.Add(new ScriptBundle("~/bundles/carga")
+                .Include("~/Scripts/Componentes/PantallaCarga.js")
+            );
+
+            bundles.Add(new Bundle("~/bundles/header")
+                .Include("~/Scripts/Shared/headerNotifications.js")
+            );
 
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")
@@ -34,7 +73,8 @@ namespace ControlActividades
                 .Include("~/Scripts/Docente/*.js")
                 );
 
-            bundles.Add(new ScriptBundle("~/bundles/docentegrupos").Include(
+            // Use a plain Bundle here to avoid the default Microsoft Ajax minifier parsing ES6+ syntax which can throw NullReferenceException
+            var docenteGruposBundle = new Bundle("~/bundles/docentegrupos").Include(
                 "~/Scripts/Docente/Grupos/ActividadIA.js",
                 "~/Scripts/Docente/Grupos/Calendario.js",
                 "~/Scripts/Docente/Grupos/DetalleActividad.js",
@@ -50,7 +90,9 @@ namespace ControlActividades
                 "~/Scripts/Docente/Grupos/scriptsAlumnos.js",
                 "~/Scripts/Docente/Grupos/scriptsAvisos.js",
                 "~/Scripts/Docente/Grupos/VistaMateriasD.js"
-            ));
+            );
+
+            bundles.Add(docenteGruposBundle);
 
 
             bundles.Add(new StyleBundle("~/Content/Docente/css").Include(
@@ -58,27 +100,33 @@ namespace ControlActividades
 
 
 
-
             //bundles.Add(new ScriptBundle("~/bundles/alumno").Include(
             //    "~/Scripts/Alumno/*.js"));
 
 
-            bundles.Add(new ScriptBundle("~/bundles/alumno").Include(
+            //ALUMNO
+            bundles.Add(new Bundle("~/bundles/alumno").Include(
                  "~/Scripts/Alumno/alumno.js",
                  "~/Scripts/Alumno/Avisos.js",
-                 "~/Scripts/Alumno/Calendario.js",
                  "~/Scripts/Alumno/Clases.js",
                  "~/Scripts/Alumno/layout.js",
                  "~/Scripts/Alumno/materias.js",
-                 "~/Scripts/Alumno/Notificaciones.js",
                  "~/Scripts/Alumno/UnirseClase.js",
                  "~/Scripts/Alumno/VentanasDi.js",
-                 "~/Scripts/Alumno/Vistamaterias.js"
+                 "~/Scripts/Alumno/Vistamaterias.js",
+                 "~/Scripts/Componentes/componenteAvisos.js"
             ));
 
-            bundles.Add(new StyleBundle("~/Content/Alumno/css").Include(
-                "~/Content/Alumno/*.css"));
+            bundles.Add(new StyleBundle("~/Content/Alumno").Include(
+                "~/Content/Alumno/*.css")
+            );
 
+
+            bundles.Add(new StyleBundle("~/Content/Materia-Detalles/css").Include(
+                "~/Content/Materias/*.css"));
+
+            // Disable optimizations in development to load files directly
+            BundleTable.EnableOptimizations = false;
         }
     }
 }

@@ -1,0 +1,17 @@
+@{
+    Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
+    ViewBag.Title = "Materias";
+    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId : 0;
+}
+
+<div class="container mt-4">
+    <h2>Mis Materias</h2>
+    <div id="materiasContainer"></div>
+</div>
+
+@section Scripts{
+    <script>
+        const alumnoIdGlobal = '@alumnoId';
+    </script>
+    @Scripts.Render("~/bundles/alumno")
+}

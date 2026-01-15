@@ -1,4 +1,5 @@
-﻿function toggleMenu(event) {
+﻿/*
+function toggleMenu(event) {
     event.preventDefault(); // Evitar el comportamiento predeterminado del enlace
     const menu = document.getElementById("user-menu");
     menu.classList.toggle("show");
@@ -13,3 +14,4 @@ document.addEventListener("click", function (e) {
         menu.classList.remove("show");
     }
 });
+*/

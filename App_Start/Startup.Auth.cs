@@ -1,5 +1,4 @@
-﻿using System;
-using ControlActividades.Models;
+﻿using ControlActividades.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -7,15 +6,19 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Google;
 using Owin;
+using System;
+using System.Configuration;
+using System.IO;
+using System.Web.Hosting;
 
 namespace ControlActividades
 {
     public partial class Startup
     {
-        // Para obtener más información sobre cómo configurar la autenticación, visite https://go.microsoft.com/fwlink/?LinkId=301864
+        
         public void ConfigureAuth(IAppBuilder app)
         {
-            // Configure el contexto de base de datos, el administrador de usuarios y el administrador de inicios de sesión para usar una única instancia por solicitud
+            
             app.CreatePerOwinContext(ApplicationDbContext.Create);
             app.CreatePerOwinContext<ApplicationUserManager>(ApplicationUserManager.Create);
             app.CreatePerOwinContext<ApplicationSignInManager>(ApplicationSignInManager.Create);
@@ -51,24 +54,89 @@ namespace ControlActividades
             // Es similar a la opción Recordarme al iniciar sesión.
             app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
 
-            // Quitar los comentarios de las siguientes líneas para habilitar el inicio de sesión con proveedores de inicio de sesión de terceros
-            //app.UseMicrosoftAccountAuthentication(
-            //    clientId: "",
-            //    clientSecret: "");
+            var googleClientId = Environment.GetEnvironmentVariable("GoogleClientId")
+                                 ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")
+                                 ?? ConfigurationManager.AppSettings["GoogleClientId"];
 
-            //app.UseTwitterAuthentication(
-            //   consumerKey: "",
-            //   consumerSecret: "");
+            var googleClientSecret = Environment.GetEnvironmentVariable("GoogleClientSecret")
+                                 ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET")
+                                 ?? ConfigurationManager.AppSettings["GoogleClientSecret"];
 
-            //app.UseFacebookAuthentication(
-            //   appId: "",
-            //   appSecret: "");
+            // Registrar el middleware SOLO si ambos valores están presentes y no vacíos
+            if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+            {
+                app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
+                {
+                    ClientId = googleClientId,
+                    ClientSecret = googleClientSecret
+                });
+            }
+            else
+            {
+            }
 
-            //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
-            //{
-            //    ClientId = "",
-            //    ClientSecret = ""
-            //});
+            // Background validation of Generative API key and basic connectivity to the HuggingFace Inference endpoint.
+            try
+            {
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    try
+                    {
+                        var apiKey = Environment.GetEnvironmentVariable("GENERATIVE_API_KEY")
+                                     ?? ConfigurationManager.AppSettings["GenerativeApiKey"];
+
+                        if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "REPLACE_WITH_SERVER_KEY")
+                        {
+                            try
+                            {
+                                var filePath = HostingEnvironment.MapPath("~/App_Data/GENERATIVE_API_KEY.txt");
+                                if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                                {
+                                    var fileKey = File.ReadAllText(filePath).Trim();
+                                    if (!string.IsNullOrWhiteSpace(fileKey)) apiKey = fileKey;
+                                }
+                            }
+                            catch { }
+                        }
+                        var model = ConfigurationManager.AppSettings["HuggingFaceModel"] ?? "gpt2";
+                        if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "REPLACE_WITH_SERVER_KEY")
+                        {
+                            System.Diagnostics.Trace.TraceWarning("Generative API key no configurada. Las funciones IA no estarán disponibles.");
+                            return;
+                        }
+
+                        using (var http = new System.Net.Http.HttpClient())
+                        {
+                            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                            http.Timeout = TimeSpan.FromSeconds(6);
+                            // Hacer una petición HEAD/GET ligera para comprobar si el endpoint responde
+                            var url = $"https://router.huggingface.co/models/{model}";
+                            try
+                            {
+                                var r = await http.GetAsync(url);
+                                if (!r.IsSuccessStatusCode)
+                                {
+                                    var body = await r.Content.ReadAsStringAsync();
+                                    System.Diagnostics.Trace.TraceWarning($"HuggingFace connectivity check: {(int)r.StatusCode} {r.StatusCode} - {body}");
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Trace.TraceInformation("HuggingFace connectivity check OK");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Trace.TraceWarning($"HuggingFace connectivity check failed: {ex.Message}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.TraceWarning($"Error durante verificación background de la key generativa: {ex.Message}");
+                    }
+                });
+            }
+            catch { }
         }
     }
 }

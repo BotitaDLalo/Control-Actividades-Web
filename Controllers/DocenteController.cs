@@ -100,8 +100,11 @@ namespace ControlActividades.Controllers
             var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
             ViewBag.DocenteId = docenteId;
+            // Propagar la sección solicitada (si viene en query string) para que la vista la pueda usar
+            ViewBag.Seccion = Request.QueryString["seccion"] ?? string.Empty;
 
-            return View();
+
+            return View("GruposStandalone");
         }
 
         public ActionResult Perfil()
@@ -115,35 +118,48 @@ namespace ControlActividades.Controllers
             if (ModelState.IsValid)
             {
                 aviso.FechaCreacion = DateTime.Now;
-                //Db.tbAvisos.Add(aviso); // Descomentar si deseas guardar el aviso
+                //Db.tbAvisos.Add(aviso); 
                 Db.SaveChanges();
 
-                //var message = new Message()
-                //{
-                //    Notification = new Notification
-                //    {
-                //        Title = aviso.Titulo,
-                //        Body = aviso.Descripcion
-                //    },
-                //    Topic = "avisos"
-                //};
-
-                //string response = FirebaseMessaging.DefaultInstance.SendAsync(message).GetAwaiter().GetResult();
-                //Console.WriteLine("Notificación enviada: " + response);
-
-                return RedirectToAction("MateriasDetalles");
+                return RedirectToAction("Index");
             }
 
             return View(aviso);
         }
 
-        public ActionResult MateriasDetalles(int materiaId)
+
+        public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
         {
+            if (!materiaId.HasValue)
+            {
+
+                return RedirectToAction("Index");
+            }
+
             string userId = User.Identity.GetUserId();
             var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
             ViewBag.DocenteId = docenteId;
-            ViewBag.MateriaId = materiaId;
+            ViewBag.MateriaId = materiaId.Value;
+            ViewBag.GrupoId = grupoId ?? 0;
+
+            return View();
+        }
+
+        // GET: /Docente/GrupoMaterias -> vista que muestra materias de un grupo
+        [HttpGet]
+        public ActionResult GrupoMaterias(int? grupoId)
+        {
+            if (!grupoId.HasValue)
+            {
+                return RedirectToAction("Grupos");
+            }
+
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            ViewBag.GrupoId = grupoId.Value;
 
             return View();
         }
@@ -154,6 +170,36 @@ namespace ControlActividades.Controllers
             var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
             ViewBag.DocenteId = docenteId;
+            return View();
+        }
+
+        // GET: /Docente/Grupos -> mostrar vista independiente GruposStandalone
+        [HttpGet]
+        public ActionResult Grupos()
+        {
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            // Devolver la vista independiente que no choque con otros archivos Grupos.cshtml
+            return View("GruposStandalone");
+        }
+
+        // GET: /Docente/MateriasSinGrupo -> mostrar vista independiente MateriasSinGrupoStandalone
+        [HttpGet]
+        public ActionResult MateriasSinGrupo()
+        {
+            string userId = User.Identity.GetUserId();
+            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+            ViewBag.DocenteId = docenteId;
+            return View("MateriasSinGrupoStandalone");
+        }
+
+        [HttpGet]
+        public ActionResult ChatIA()
+        {
+            // Vista simple para chatear con la API de IA
             return View();
         }
 
@@ -240,6 +286,8 @@ namespace ControlActividades.Controllers
                     m.MateriaId,
                     m.NombreMateria,
                     m.Descripcion,
+                    m.DocenteId,
+                    DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == m.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
                     m.CodigoColor,
                     ActividadesRecientes = Db.tbActividades
                         .Where(a => a.MateriaId == m.MateriaId)

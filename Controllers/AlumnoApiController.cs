@@ -1,5 +1,20 @@
-﻿using System;
+using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Newtonsoft.Json;
+using System.IO;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.IdentityModel.Tokens;
+using NPOI.HSSF.UserModel;
+using NPOI.POIFS.FileSystem;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -10,15 +25,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using ControlActividades.Services;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.IdentityModel.Tokens;
 using static ControlActividades.Controllers.AlumnoController;
+using Microsoft.Owin.Security.Google;
+using Owin;
 
 namespace ControlActividades.Controllers
 {
@@ -45,6 +54,106 @@ namespace ControlActividades.Controllers
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+        }
+
+        [HttpPost]
+        [Route("SubirEntrega")]
+        public async Task<IHttpActionResult> SubirEntrega()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Current.Request;
+                if (httpRequest == null)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se recibió la solicitud." });
+
+                int actividadId = 0;
+                int alumnoId = 0;
+                string respuesta = httpRequest.Form["Respuesta"] ?? string.Empty;
+
+                int.TryParse(httpRequest.Form["ActividadId"], out actividadId);
+                int.TryParse(httpRequest.Form["AlumnoId"], out alumnoId);
+
+                if (actividadId == 0 || alumnoId == 0)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Faltan datos: AlumnoId o ActividadId." });
+
+                // Guardar archivos
+                var savedUrls = new List<string>();
+                var files = httpRequest.Files;
+                var uploadRoot = HttpContext.Current.Server.MapPath("~/Uploads/Entregas/");
+                var destFolder = Path.Combine(uploadRoot, actividadId.ToString(), alumnoId.ToString());
+                if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
+
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var file = files[i];
+                    if (file == null || file.ContentLength == 0) continue;
+                    var safeName = Path.GetFileName(file.FileName);
+                    var destPath = Path.Combine(destFolder, safeName);
+                    // evitar sobreescribir: agregar timestamp
+                    if (File.Exists(destPath))
+                    {
+                        var ts = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        destPath = Path.Combine(destFolder, ts + "_" + safeName);
+                    }
+                    file.SaveAs(destPath);
+                    var relative = 
+                        "/Uploads/Entregas/" + actividadId + "/" + alumnoId + "/" + Path.GetFileName(destPath);
+                    savedUrls.Add(relative);
+                }
+
+                // Crear registro en tbAlumnosActividades y tbEntregableAlumno
+                //var actividad = new tbAlumnosActividades()
+                //{
+                //    ActividadId = actividadId,
+                //    AlumnoId = alumnoId,
+                //    FechaEntrega = DateTime.Now,
+                //    EstatusEntrega = true,
+                //    EntregablesAlumno = new tbEntregableAlumno()
+                //    {
+                //        Respuesta = BuildRespuestaWithFiles(respuesta, savedUrls)
+                //    }
+                //};
+
+                //Db.tbAlumnosActividades.Add(actividad);
+
+
+
+                //await Db.SaveChangesAsync();
+
+                //var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
+                //var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == datosAlumnoActividad.AlumnoActividadId).FirstOrDefaultAsync();
+
+
+
+
+                //return Ok(new
+                //{
+                //    EntregaId = datosEntregable?.EntregaId ?? 0,
+                //    AlumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0,
+                //    Respuesta = datosEntregable?.Respuesta ?? string.Empty,
+                //    Status = datosAlumnoActividad?.EstatusEntrega ?? false
+                //});
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = ex.Message });
+            }
+        }
+
+        private string BuildRespuestaWithFiles(string respuesta, List<string> files)
+        {
+            // Guardar texto y enlaces a archivos en un JSON sencillo
+            try
+            {
+                var obj = new { Respuesta = respuesta ?? string.Empty, Archivos = files ?? new List<string>() };
+                return JsonConvert.SerializeObject(obj);
+            }
+            catch
+            {
+                return respuesta ?? string.Empty;
+            }
         }
 
         public ApplicationSignInManager SignInManager
@@ -503,14 +612,11 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                // 1. ✅ VALIDACIÓN de parámetros
-                if (entregable == null)
-                {
-                    return Content(HttpStatusCode.BadRequest, new
-                    {
-                        mensaje = "El objeto de entrega es requerido."
-                    });
-                }
+                var actividadId = entregable.ActividadId;
+                var alumnoId = entregable.AlumnoId;
+                var respuesta = entregable.Respuesta;
+                var fechaEntrega = entregable.FechaEntrega;
+                var tipoEntregaId = entregable.TipoEntregaId;
 
                 if (entregable.ActividadId <= 0 || entregable.AlumnoId <= 0)
                 {
@@ -522,132 +628,66 @@ namespace ControlActividades.Controllers
                     });
                 }
 
-                // 2. ✅ Validar que la actividad existe
-                var actividad = await Db.tbActividades
-                    .FirstOrDefaultAsync(a => a.ActividadId == entregable.ActividadId);
-
-                if (actividad == null)
+                tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
                 {
-                    return Content(HttpStatusCode.NotFound, new
-                    {
-                        mensaje = $"La actividad con ID {entregable.ActividadId} no existe."
-                    });
-                }
-
-                // 3. ✅ Validar formato de fecha
-                DateTime fechaEntregaParsed;
-                if (!DateTime.TryParse(entregable.FechaEntrega, out fechaEntregaParsed))
-                {
-                    return Content(HttpStatusCode.BadRequest, new
-                    {
-                        mensaje = "El formato de FechaEntrega no es válido. Use formato ISO: yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss",
-                        FechaRecibida = entregable.FechaEntrega
-                    });
-                }
-
-                // 4. ✅ Verificar si ya existe una entrega del alumno para esta actividad
-                var entregaExistente = await Db.tbAlumnosActividades
-                    .FirstOrDefaultAsync(a => a.ActividadId == entregable.ActividadId && a.AlumnoId == entregable.AlumnoId);
-
-                if (entregaExistente != null)
-                {
-                    // Actualizar la entrega existente
-                    entregaExistente.FechaEntrega = fechaEntregaParsed;
-                    entregaExistente.EstatusEntrega = true;
-
-                    // Buscar el entregable asociado
-                    var entregableExistente = await Db.tbEntregablesAlumno
-                        .FirstOrDefaultAsync(e => e.AlumnoActividadId == entregaExistente.AlumnoActividadId);
-
-                    if (entregableExistente != null)
-                    {
-                        entregableExistente.Respuesta = entregable.Respuesta ?? "";
-                    }
-                    else
-                    {
-                        // Crear nuevo entregable si no existe
-                        var nuevoEntregable = new tbEntregableAlumno()
-                        {
-                            AlumnoActividadId = entregaExistente.AlumnoActividadId,
-                            Respuesta = entregable.Respuesta ?? ""
-                        };
-                        Db.tbEntregablesAlumno.Add(nuevoEntregable);
-                    }
-
-                    await Db.SaveChangesAsync();
-
-                    // Retornar datos actualizados
-                    var entregableActualizado = await Db.tbEntregablesAlumno
-                        .FirstOrDefaultAsync(e => e.AlumnoActividadId == entregaExistente.AlumnoActividadId);
-
-                    var calificacionActualizada = await Db.tbCalificaciones
-                        .Where(c => c.EntregaId == entregableActualizado.EntregaId)
-                        .Select(c => c.Calificacion)
-                        .FirstOrDefaultAsync();
-
-                    return Ok(new
-                    {
-                        mensaje = "Entrega actualizada correctamente.",
-                        EntregaId = entregableActualizado.EntregaId,
-                        AlumnoActividadId = entregaExistente.AlumnoActividadId,
-                        Respuesta = entregableActualizado?.Respuesta ?? "",
-                        Status = entregaExistente.EstatusEntrega,
-                        Calificacion = calificacionActualizada != 0 ? calificacionActualizada : -1
-                    });
-                }
-
-                // 5. ✅ CREAR nueva entrega
-                tbAlumnosActividades nuevaActividad = new tbAlumnosActividades()
-                {
-                    ActividadId = entregable.ActividadId,
-                    AlumnoId = entregable.AlumnoId,
-                    FechaEntrega = fechaEntregaParsed,
-                    EstatusEntrega = true,
-                    EntregablesAlumno = new tbEntregableAlumno()
-                    {
-                        Respuesta = entregable.Respuesta ?? ""
-                    }
+                    ActividadId = actividadId,
+                    AlumnoId = alumnoId,
+                    FechaEntrega = DateTime.Parse(fechaEntrega),
+                    EstadoEntregaId = 1
                 };
 
-                Db.tbAlumnosActividades.Add(nuevaActividad);
+                Db.tbEntregaActividadAlumno.Add(entregaAlumno);
                 await Db.SaveChangesAsync();
 
-                // 6. ✅ Obtener datos guardados para la respuesta
-                var datosAlumnoActividad = await Db.tbAlumnosActividades
-                    .Where(a => a.ActividadId == entregable.ActividadId && a.AlumnoId == entregable.AlumnoId)
-                    .FirstOrDefaultAsync();
+                int entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
 
-                if (datosAlumnoActividad == null)
+                tbEntregables entregables = new tbEntregables()
                 {
-                    return Content(HttpStatusCode.InternalServerError, new
-                    {
-                        mensaje = "Error: No se pudo recuperar los datos de la entrega después de guardar."
-                    });
-                }
+                    EntregaActividadAlumnoId = entregaAlumnoId,
+                    TipoEntregaId = tipoEntregaId,
+                    Contenido = respuesta,
+                };
+                Db.tbEntregables.Add(entregables);
+                await Db.SaveChangesAsync();
 
-                int alumnoActividadId = datosAlumnoActividad.AlumnoActividadId;
 
-                var datosEntregable = await Db.tbEntregablesAlumno
-                    .FirstOrDefaultAsync(a => a.AlumnoActividadId == alumnoActividadId);
 
-                if (datosAlumnoActividad != null && datosEntregable != null)
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+
+
+                //var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividadId).FirstOrDefaultAsync();
+
+                var lsDatosEntregables = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == datosAlumnoActividad.EntregaActividadAlumnoId).ToList(); 
+
+                if (datosAlumnoActividad != null && lsDatosEntregables.Count > 0)
                 {
-                    int entregaId = datosEntregable.EntregaId;
+                    //int entregaId = datosEntregable.EntregaId;
 
-                    var calificacion = await Db.tbCalificaciones
-                        .Where(a => a.EntregaId == entregaId)
-                        .Select(a => a.Calificacion)
-                        .FirstOrDefaultAsync();
+                    //var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).Select(a => a.Calificacion).FirstOrDefaultAsync();
 
-                    return Ok(new
+                    var lsEnvios = new List<EnvioActividadAlumnoResponse>();
+                    
+                    foreach (var datoEntregable in lsDatosEntregables)
                     {
-                        mensaje = "Actividad registrada exitosamente.",
-                        EntregaId = datosEntregable.EntregaId,
-                        AlumnoActividadId = alumnoActividadId,
-                        Respuesta = datosEntregable?.Respuesta ?? "",
-                        Status = datosAlumnoActividad.EstatusEntrega,
-                        Calificacion = calificacion != 0 ? calificacion : -1
-                    });
+                        var estadoEntregaId = datosAlumnoActividad.EstadoEntregaId;
+
+                        var envio = new EnvioActividadAlumnoResponse()
+                        {
+                            AlumnoId = alumnoId,
+                            EntregaActividadAlumnoId = datoEntregable.EntregaActividadAlumnoId,
+                            EntregableId = datoEntregable.EntregableId,
+                            ActividadId = datosAlumnoActividad.ActividadId,
+                            FechaEntrega = datosAlumnoActividad.FechaEntrega,
+                            Contenido = datoEntregable.Contenido,
+                            Calificacion = datoEntregable.Calificacion ?? 0,
+                            EstadoEntregaId = estadoEntregaId
+                        };
+
+                        lsEnvios.Add(envio);
+                    }
+
+
+                    return Ok(lsEnvios);
                 }
 
                 return Content(HttpStatusCode.InternalServerError, new
@@ -672,94 +712,57 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                // 1. ✅ VALIDACIÓN de parámetros
-                if (ActividadId <= 0 || AlumnoId <= 0)
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a=>a.ActividadId == ActividadId && a.AlumnoId==AlumnoId);
+
+                if (datosAlumnoActividad != null)
                 {
-                    return Content(HttpStatusCode.BadRequest, new
+                    var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
+
+                    var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
+
+
+                    //List<EnvioRes> lsEnvios = new List<EnvioRes>();
+                    List<EnvioActividadAlumnoResponse> lsEnvios = new List<EnvioActividadAlumnoResponse>();
+
+                    var lsEntregas = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId).ToList();
+                    if (lsEntregas.Count > 0)
                     {
-                        mensaje = "Los parámetros ActividadId y AlumnoId deben ser mayores a 0.",
-                        ActividadId = ActividadId,
-                        AlumnoId = AlumnoId
-                    });
+                        foreach (var entrega in lsEntregas)
+                        {
+                            //EnvioRes envio = new EnvioRes()
+                            //{
+                            //    EntregaActividadAlumnoId = entregaActividadId,
+                            //    EntregableId = entrega.EntregableId,
+                            //    Contenido = entrega.Contenido,
+                            //    EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+                            //    FechaEntrega = fechaEntrega ?? new DateTime(),
+                            //    Calificacion = entrega.Calificacion.ToString() ?? "",
+                            //    EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
+                            //};
+
+
+                            //lsEnvios.Add(envio);
+
+                            EnvioActividadAlumnoResponse envio = new EnvioActividadAlumnoResponse()
+                            {
+                                AlumnoId = datosAlumnoActividad.AlumnoId,
+                                EntregaActividadAlumnoId = datosAlumnoActividad.EntregaActividadAlumnoId,
+                                EntregableId = entrega.EntregableId,
+                                ActividadId = datosAlumnoActividad.ActividadId,
+                                FechaEntrega = datosAlumnoActividad.FechaEntrega,
+                                Contenido = entrega.Contenido,
+                                Calificacion = entrega.Calificacion ?? 0,
+                                EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId
+                            };
+
+                            lsEnvios.Add(envio);    
+                        }
+
+                        return Ok(lsEnvios);
+                    }
                 }
 
-                // 2. ✅ Verificar que la actividad existe
-                var actividadExiste = await Db.tbActividades
-                    .AnyAsync(a => a.ActividadId == ActividadId);
-
-                if (!actividadExiste)
-                {
-                    return Content(HttpStatusCode.NotFound, new
-                    {
-                        mensaje = $"La actividad con ID {ActividadId} no existe."
-                    });
-                }
-
-                // 3. ✅ Buscar datos del alumno y su actividad
-                var datosAlumnoActividad = await Db.tbAlumnosActividades
-                    .Where(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId)
-                    .Select(a => new
-                    {
-                        a.AlumnoActividadId,
-                        a.FechaEntrega,
-                        a.EstatusEntrega
-                    })
-                    .FirstOrDefaultAsync();
-
-                // 4. ✅ Si no hay envío, retornar respuesta vacía (no error)
-                if (datosAlumnoActividad == null)
-                {
-                    return Ok(new
-                    {
-                        mensaje = "El alumno no ha entregado esta actividad.",
-                        EntregaId = 0,
-                        AlumnoActividadId = 0,
-                        Respuesta = "",
-                        Status = false,
-                        FechaEntrega = (DateTime?)null,
-                        Calificacion = -1
-                    });
-                }
-
-                int alumnoActividadId = datosAlumnoActividad.AlumnoActividadId;
-                var fechaEntrega = datosAlumnoActividad.FechaEntrega;
-
-                // 5. ✅ Buscar entregable
-                var datosEntregable = await Db.tbEntregablesAlumno
-                    .FirstOrDefaultAsync(a => a.AlumnoActividadId == alumnoActividadId);
-
-                // 6. ✅ Si hay actividad pero no entregable, retornar respuesta parcial
-                if (datosEntregable == null)
-                {
-                    return Ok(new
-                    {
-                        mensaje = "La actividad se registró pero sin contenido de entrega.",
-                        EntregaId = 0,
-                        AlumnoActividadId = alumnoActividadId,
-                        Respuesta = "",
-                        Status = datosAlumnoActividad.EstatusEntrega,
-                        FechaEntrega = fechaEntrega,
-                        Calificacion = -1
-                    });
-                }
-
-                // 7. ✅ Buscar calificación
-                int entregaId = datosEntregable.EntregaId;
-                var calificacion = await Db.tbCalificaciones
-                    .Where(a => a.EntregaId == entregaId)
-                    .Select(a => a.Calificacion)
-                    .FirstOrDefaultAsync();
-
-                // 8. ✅ Retornar respuesta completa
-                return Ok(new
-                {
-                    EntregaId = datosEntregable.EntregaId,
-                    AlumnoActividadId = alumnoActividadId,
-                    Respuesta = datosEntregable?.Respuesta ?? "",
-                    Status = datosAlumnoActividad.EstatusEntrega,
-                    FechaEntrega = fechaEntrega,
-                    Calificacion = calificacion != 0 ? calificacion : -1
-                });
+                return BadRequest();
             }
             catch (Exception ex)
             {
@@ -774,7 +777,7 @@ namespace ControlActividades.Controllers
             }
         }
 
-        [HttpPost] // Opcionalmente, podrías usar [HttpDelete] si la plataforma lo permite, pero [HttpPost] es común para acciones en Web API.
+        [HttpPost] 
         [Route("EliminarAlumnoMateria")]
         public async Task<IHttpActionResult> EliminarAlumnoDeMateria([FromBody] AlumnoEliminarRequest request)
         {
@@ -788,7 +791,12 @@ namespace ControlActividades.Controllers
                     return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Materia y Alumno son obligatorios." });
                 }
 
-                // 1. Buscar la relación en la tabla tbAlumnosMaterias
+                var actividadesMateria = Db.tbActividades.Where(a => a.MateriaId == materiaId).Select(a => a.ActividadId).ToList();
+
+                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => a.AlumnoId == alumnoId && actividadesMateria.Contains(a.ActividadId)).Any();
+                if (alumnoTieneEntregas)
+                    return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + "El alumno ha realizado entregas en las actividades asignadas." });
+
                 var relacionAEliminar = await Db.tbAlumnosMaterias
                     .FirstOrDefaultAsync(am => am.MateriaId == materiaId && am.AlumnoId == alumnoId);
 
@@ -798,13 +806,10 @@ namespace ControlActividades.Controllers
                     return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en la materia especificada." });
                 }
 
-                // 2. Eliminar la relación
                 Db.tbAlumnosMaterias.Remove(relacionAEliminar);
 
-                // 3. Guardar cambios en la base de datos
                 await Db.SaveChangesAsync();
 
-                // 4. Retornar éxito
                 return Ok(new { mensaje = "Alumno eliminado de la materia correctamente." });
             }
             catch (Exception e)
@@ -827,6 +832,17 @@ namespace ControlActividades.Controllers
                 {
                     return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Grupo y Alumno son obligatorios." });
                 }
+
+
+                var lsMateriasGrupo = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
+
+                var actividadesMaterias = Db.tbActividades.Where(a => lsMateriasGrupo.Contains(a.MateriaId)).Select(a=>a.ActividadId).ToList();
+
+                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => a.AlumnoId == alumnoId && actividadesMaterias.Contains(a.ActividadId)).Any();
+                if (alumnoTieneEntregas)
+                    return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + "El alumno ha realizado entregas en las actividades asignadas." });
+
+
 
                 // 1. Buscar la relación en la tabla tbAlumnosGrupos
                 var relacionAEliminar = await Db.tbAlumnosGrupos
@@ -863,35 +879,48 @@ namespace ControlActividades.Controllers
                 var actividadId = datosCancelacion.ActividadId;
 
 
-                var alumnoActividadEliminar = Db.tbAlumnosActividades.Include(a => a.EntregablesAlumno)
-            .FirstOrDefault(a => a.AlumnoActividadId == alumnoActividadId && a.AlumnoId == alumnoId);
+                //var alumnoActividadEliminar = Db.tbAlumnosActividades.Include(a => a.EntregablesAlumno).FirstOrDefault(a => a.AlumnoActividadId == alumnoActividadId && a.AlumnoId == alumnoId);
+                var alumnoActividadEliminar = Db.tbEntregaActividadAlumno.FirstOrDefault(a => a.AlumnoId == alumnoId && a.ActividadId == actividadId && a.EstadoEntregaId == 1);
 
                 if (alumnoActividadEliminar != null)
                 {
-                    if (alumnoActividadEliminar.EntregablesAlumno != null)
-                    {
-                        Db.tbEntregablesAlumno.Remove(alumnoActividadEliminar.EntregablesAlumno);
-                    }
+                    //if (alumnoActividadEliminar.EntregablesAlumno != null)
+                    //{
+                    //    Db.tbEntregablesAlumno.Remove(alumnoActividadEliminar.EntregablesAlumno);
+                    //}
 
-                    Db.tbAlumnosActividades.Remove(alumnoActividadEliminar);
-                    await Db.SaveChangesAsync();
+                    //Db.tbAlumnosActividades.Remove(alumnoActividadEliminar);
+                    //await Db.SaveChangesAsync();
 
-                    var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
+                    //var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
 
 
                     //var alumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0;
 
-                    var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividadId).FirstOrDefaultAsync();
+                    //var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividadId).FirstOrDefaultAsync();
 
-                    if (datosAlumnoActividad != null && datosEntregable != null)
+                    //if (datosAlumnoActividad != null && datosEntregable != null)
+                    //{
+                    //    return Ok(new
+                    //    {
+                    //        AlumnoActividadId = alumnoActividadId,
+                    //        Respuesta = datosEntregable?.Respuesta ?? "",
+                    //        Status = datosAlumnoActividad.EstatusEntrega
+                    //    });
+                    //}
+
+                    var entregables = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == alumnoActividadEliminar.EntregaActividadAlumnoId).ToList();
+                    foreach (var entrega in entregables)
                     {
-                        return Ok(new
-                        {
-                            AlumnoActividadId = alumnoActividadId,
-                            Respuesta = datosEntregable?.Respuesta ?? "",
-                            Status = datosAlumnoActividad.EstatusEntrega
-                        });
+                        Db.tbEntregables.Remove(entrega);
                     }
+                    await Db.SaveChangesAsync();
+
+
+                    Db.tbEntregaActividadAlumno.Remove(alumnoActividadEliminar);
+                    await Db.SaveChangesAsync();
+
+                    return Ok();
                 }
 
                 return BadRequest();
@@ -1198,7 +1227,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                List<EmailVerificadoAlumno> lsAlumnos = new List<EmailVerificadoAlumno>();
+                var lsAlumnos = new List<EmailVerificadoAlumno>();
                 foreach (var id in lsAlumnosId)
                 {
                     var alumnoDatos = Db.tbAlumnos.Where(a => a.AlumnoId == id).FirstOrDefault();
@@ -1206,7 +1235,7 @@ namespace ControlActividades.Controllers
                     {
                         var userName = await UserManager.FindByIdAsync(alumnoDatos.UserId);
 
-                        EmailVerificadoAlumno alumno = new EmailVerificadoAlumno()
+                        var alumno = new EmailVerificadoAlumno()
                         {
                             // 🎯 LÍNEA AÑADIDA: Asignar el ID del alumno al DTO de respuesta
                             AlumnoId = alumnoDatos.AlumnoId,
@@ -1230,8 +1259,53 @@ namespace ControlActividades.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("EliminarAlumnoGrupo")]
+        public async Task<IHttpActionResult> EliminarAlumnoGrupo([FromBody] EliminarAlumnoClase eliminarAlumnoClase)
+        {
+            try
+            {
+                var alumnoId = eliminarAlumnoClase.AlumnoId;
+                var grupoId = eliminarAlumnoClase.GrupoId;
 
 
+                var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
+
+                var lsActividadesMateria = Db.tbActividades.Where(a => lsMateriasGrupoId.Contains(a.MateriaId)).Select(a => a.ActividadId).Distinct().ToList();
+
+                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 1).Any();
+
+                if(alumnoTieneEntregas)
+                    return BadRequest();
+
+
+                var lsAlumnoBorradores = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 2).ToList();
+
+                if (lsAlumnoBorradores.Count > 0)
+                {
+                    var lsAlumnoBorradoresId = lsAlumnoBorradores.Select(a => a.EntregaActividadAlumnoId).ToList();
+                    var lsEntregables = Db.tbEntregables.Where(a => lsAlumnoBorradoresId.Contains(a.EntregaActividadAlumnoId)).ToList();
+
+                    Db.tbEntregables.RemoveRange(lsEntregables);
+
+                    Db.tbEntregaActividadAlumno.RemoveRange(lsAlumnoBorradores);
+
+                    await Db.SaveChangesAsync();
+                }
+
+
+                var alumnoGrupo = await Db.tbAlumnosGrupos.FirstOrDefaultAsync(a => a.AlumnoId == alumnoId && a.GrupoId == grupoId);
+
+                Db.tbAlumnosGrupos.Remove(alumnoGrupo);
+                await Db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -1263,6 +1337,179 @@ namespace ControlActividades.Controllers
             }
 
             base.Dispose(disposing);
+        }
+
+        [HttpPost]
+        [Route("ImportarAlumnosExcel")]
+        public async Task<IHttpActionResult> ImportarAlumnosExcel()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Current.Request;
+                if (httpRequest == null || httpRequest.Files.Count == 0)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se recibió archivo." });
+
+                var file = httpRequest.Files[0];
+                if (file == null || file.ContentLength == 0)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Archivo vacío." });
+
+                // Leer parámetros opcionales
+                int grupoId = 0;
+                int materiaId = 0;
+                int.TryParse(httpRequest.Form["GrupoId"], out grupoId);
+                int.TryParse(httpRequest.Form["MateriaId"], out materiaId);
+
+                if (grupoId == 0 && materiaId == 0)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Debe enviar GrupoId o MateriaId." });
+
+                IWorkbook workbook;
+                using (var stream = file.InputStream)
+                {
+                    if (file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                        workbook = new XSSFWorkbook(stream);
+                    else
+                        workbook = new HSSFWorkbook(stream);
+                }
+
+                var sheet = workbook.GetSheetAt(0);
+                if (sheet == null)
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Hoja no encontrada en el archivo." });
+
+                // Detectar si la primera fila es encabezado (contiene "email")
+                int startRow = sheet.FirstRowNum;
+                var headerRow = sheet.GetRow(startRow);
+                bool hasHeader = false;
+                if (headerRow != null)
+                {
+                    // revisar todas las celdas del encabezado por si "email" está en otra columna
+                    var headerCells = headerRow.LastCellNum > 0 ? headerRow.LastCellNum : 1;
+                    for (int hc = 0; hc < headerCells; hc++)
+                    {
+                        var hCell = headerRow.GetCell(hc);
+                        var hText = hCell != null ? new DataFormatter().FormatCellValue(hCell)?.ToString()?.ToLower() : null;
+                        if (!string.IsNullOrEmpty(hText) && hText.Contains("email"))
+                        {
+                            hasHeader = true;
+                            break;
+                        }
+                    }
+                }
+
+                var emails = new List<string>();
+                var formatter = new DataFormatter();
+                for (int r = hasHeader ? startRow + 1 : startRow; r <= sheet.LastRowNum; r++)
+                {
+                    var row = sheet.GetRow(r);
+                    if (row == null) continue;
+
+                    string found = null;
+                    // recorrer celdas de la fila y buscar una que parezca un email
+                    var lastCell = row.LastCellNum > 0 ? row.LastCellNum : 1;
+                    for (int c = 0; c < lastCell; c++)
+                    {
+                        var cell = row.GetCell(c);
+                        if (cell == null) continue;
+                        var cellText = formatter.FormatCellValue(cell)?.Trim();
+                        if (string.IsNullOrWhiteSpace(cellText)) continue;
+                        // Si la celda contiene un correo, tomarla
+                        if (cellText.Contains("@"))
+                        {
+                            found = cellText;
+                            break;
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(found)) continue;
+
+                    
+                    var emailNormalized = found.Trim().ToLowerInvariant();
+                    
+                    if (!emailNormalized.Contains("@")) continue;
+
+                    emails.Add(emailNormalized);
+                }
+
+                if (!emails.Any())
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "No se encontraron emails en el archivo. Asegúrese que la primera fila tenga una columna con correos o que las celdas contengan emails." });
+
+                var added = new List<string>();
+                var skipped = new List<string>();
+                var notFound = new List<string>();
+                var lsAlumnosId = new List<int>();
+
+                foreach (var email in emails.Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    var user = await UserManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        notFound.Add(email);
+                        continue;
+                    }
+
+                    var alumnoId = await Db.tbAlumnos.Where(a => a.UserId == user.Id).Select(a => a.AlumnoId).FirstOrDefaultAsync();
+                    if (alumnoId == 0)
+                    {
+                        notFound.Add(email);
+                        continue;
+                    }
+
+                    lsAlumnosId.Add(alumnoId);
+
+                    if (grupoId > 0)
+                    {
+                        bool existe = Db.tbAlumnosGrupos.Any(a => a.GrupoId == grupoId && a.AlumnoId == alumnoId);
+                        if (!existe)
+                        {
+                            Db.tbAlumnosGrupos.Add(new tbAlumnosGrupos { AlumnoId = alumnoId, GrupoId = grupoId });
+                            added.Add(email);
+                        }
+                        else
+                        {
+                            skipped.Add(email);
+                        }
+                    }
+                    else if (materiaId > 0)
+                    {
+                        bool existe = Db.tbAlumnosMaterias.Any(a => a.MateriaId == materiaId && a.AlumnoId == alumnoId);
+                        if (!existe)
+                        {
+                            Db.tbAlumnosMaterias.Add(new tbAlumnosMaterias { AlumnoId = alumnoId, MateriaId = materiaId });
+                            added.Add(email);
+                        }
+                        else
+                        {
+                            skipped.Add(email);
+                        }
+                    }
+                }
+
+                await Db.SaveChangesAsync();
+
+                var alumnos = await (from a in Db.tbAlumnos
+                     where lsAlumnosId.Contains(a.AlumnoId)
+                     join u in Db.Users on a.UserId equals u.Id into uj
+                     from u in uj.DefaultIfEmpty()
+                     select new EmailVerificadoAlumno {
+                        Email = u.Email ?? "",
+                        UserName = u.UserName ?? "",
+                        Nombre = a.Nombre,
+                        ApellidoPaterno = a.ApellidoPaterno,
+                        ApellidoMaterno = a.ApellidoMaterno
+                     }).ToListAsync();
+
+                return Ok(new
+                {
+                    TotalLeidos = emails.Count,
+                    Agregados = added,
+                    Omitidos = skipped,
+                    NoEncontrados = notFound,
+                    Alumnos = alumnos
+                });
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, new { mensaje = ex.Message });
+            }
         }
     }
 }

@@ -1,15 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 using ControlActividades.Models.db;
+using Newtonsoft.Json;
 
 namespace ControlActividades.Models
 {
     public class AsignarCalificacionPeticion
     {
-        public int EntregaId { get; set; }
+        public int EntregableId { get; set; }
 
         public int Calificacion { get; set; }
     }
@@ -85,6 +86,8 @@ namespace ControlActividades.Models
 
     public class DocentesValidacion
     {
+        public string UserId { get; set; }
+
         public int DocenteId { get; set; }
 
         [Required]
@@ -145,7 +148,7 @@ namespace ControlActividades.Models
         [Required]
         public string FechaEntrega { get; set; }
 
-        public List<string> Enlaces { get; set; }
+        public int TipoEntregaId { get; set; }
     }
 
     public class ErrorViewModel
@@ -394,6 +397,7 @@ namespace ControlActividades.Models
 
     public class Notificacion
     {
+        public int NotificacionId { get; set; }
         public string UserId { get; set; }
 
         public string MessageId { get; set; }
@@ -402,6 +406,10 @@ namespace ControlActividades.Models
 
         public string Body { get; set; }
 
+        public string TipoNotificacion { get; set; }
+        public int TipoId { get; set; }
+        public int? MateriaId { get; set; }
+        public int? GrupoId { get; set; }
         public DateTime FechaRecibido { get; set; }
     }
 
@@ -449,6 +457,30 @@ namespace ControlActividades.Models
         public string ApellidoMaterno { get; set; }
     }
 
+    public class EventoEditarDTO
+    {
+        public int EventoId { get; set; }
+
+        [Required]
+        public string Titulo { get; set; }
+
+        [Required]
+        public string Descripcion { get; set; }
+
+        [Required]
+        public DateTime FechaInicio { get; set; }
+
+        [Required]
+        public DateTime FechaFinal { get; set; }
+
+        [Required]
+        public string Color { get; set; }
+
+        public List<int> GruposSeleccionados { get; set; }
+        public List<int> MateriasSeleccionadas { get; set; }
+
+    }
+
     public class AsociarMateriasRequest
     {
         public int GrupoId { get; set; }
@@ -461,14 +493,85 @@ namespace ControlActividades.Models
         public string Body { get; set; }
         public string ImageUrl { get; set; }
     }
+    public class TokenDispositivo
+    {
+        public string Token { get; set; }
+    }
     public class AlumnoEliminarRequest
     {
         public int MateriaId { get; set; }
         public int AlumnoId { get; set; }
     }
 
-    // En ModelosGenerales.cs
+    
+    public class EnvioRes
+    {
+        //        EntregaId = datosEntregable.EntregaId,
+        //        AlumnoActividadId = entregaActividadId,
+        //        Respuesta = datosEntregable?.Respuesta ?? "",
+        //        Status = datosAlumnoActividad.EstatusEntrega,
+        //        FechaEntrega = fechaEntrega,
+        //        Calificacion = calificacion
+        public int  EntregaActividadAlumnoId { get; set; } 
+        
+        public int EntregableId {  get; set; }
 
+        public string Contenido { get; set; }
+
+        public int EstadoEntregaId { get; set; }
+
+        public DateTime FechaEntrega { get; set; }
+
+        public string Calificacion { get; set; }
+
+        public bool EstadoEntrega { get; set; }    
+    }
+
+    public class GrupoViewModel
+    {
+        public int GrupoId { get; set; }
+
+        public string NombreGrupo { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string CodigoColor { get; set; }
+
+        public string CodigoAcceso { get; set; }
+    }
+
+    public class CrearAvisoRequest
+    {
+        public int? AvisoId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+        public int? GrupoId { get; set; }
+        public int MateriaId {  get; set; }
+    }
+
+    public class EnvioActividadAlumnoResponse
+    {
+        public int AlumnoId { get; set; }
+        public int EntregaActividadAlumnoId { get; set; }
+        public int EntregableId { get; set; }
+
+        public int ActividadId { get; set; }
+
+        public DateTime FechaEntrega { get; set; }
+        
+        public string Contenido { get; set; }
+
+        public int Calificacion { get; set; }
+
+        public int EstadoEntregaId { get; set; }    
+    }
+
+    public class EliminarAlumnoClase
+    {
+        public int AlumnoId { get; set; }   
+        public int? GrupoId { get; set;  }
+        public int? MateriaId { get; set;  }
+    }
     public class AlumnoEliminarGrupoRequest
     {
         public int GrupoId { get; set; }
@@ -480,5 +583,6 @@ namespace ControlActividades.Models
         public string Titulo { get; set; }
         public string Descripcion { get; set; }
     }*/
+
 
 }

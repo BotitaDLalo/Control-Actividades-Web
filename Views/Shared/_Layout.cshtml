@@ -5,28 +5,73 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - ControlActividades</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Use Inter font site-wide -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/Variables")
+    @Styles.Render("~/Content/Componentes")
     @Scripts.Render("~/bundles/modernizr")
 
+    <style>
+        html, body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Hacer la animación de los submenús (bootstrap collapse) más lenta: 0.3s */
+        .collapsing {
+            -webkit-transition: height 0.3s ease;
+            transition: height 0.3s ease;
+        }
+
+        /* Asegura que las transiciones relacionadas con collapse también usen 0.3s */
+        .collapse {
+            -webkit-transition: height 0.3s ease;
+            transition: height 0.3s ease;
+        }
+    </style>
 </head>
 <body>
 
-    <div>
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - Control Actividades</p>
-        </footer>
+    <div class="app-main" style="display:flex; min-height:100vh;">
+        <main class="app-content" style="flex:1; padding:20px;">
+            @if (Session["IsImpersonating"] is bool isImpersonating && isImpersonating)
+            {
+                <div class="impersonation-banner">
+                    ⚠ Estás ingresando como <strong>Docente</strong> usando una cuenta de administrador
+                    <a href="@Url.Action("VolverAdministrador", "Administrador")"
+                       class="btn btn-sm btn-warning ms-3">
+                        Volver a administrador
+                    </a>
+                </div>
+            }
+
+            @RenderBody()
+            <hr />
+            <script src="~/Scripts/Shared/headerNotifications.js"></script>
+
+            <footer>
+                <p>&copy; @DateTime.Now.Year - Control Actividades</p>
+            </footer>
+        </main>
     </div>
 
     @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
-    @RenderSection("scripts", required: false)
-    @RenderSection("styles", required: false)
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @Scripts.Render("~/bundles/carga")
+
+    <!--LAYOUT-->
+    <!--SPINNER DE CARGA-->
+    <div id="loader" class="carga">
+        <div class="spinner"></div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @RenderSection("Scripts", required: false)
+    @RenderSection("Styles", required: false)
 </body>
 </html>

@@ -1,13 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Mvc;
-using System.Web.Security;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
@@ -15,6 +5,18 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Helpers;
+using System.Web.Hosting;
+using System.Web.Mvc;
+using System.Web.Security;
+using System.Web.UI.HtmlControls;
 
 namespace ControlActividades.Controllers
 {
@@ -27,6 +29,7 @@ namespace ControlActividades.Controllers
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
 
+        #region Métodos
         public AccountController()
         {
         }
@@ -99,6 +102,7 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
+        #endregion
 
         #region Web 
         //
@@ -124,14 +128,20 @@ namespace ControlActividades.Controllers
 
             Role role;
 
+            //buscar registro si existe, bool
+           // var engoogle = Db.UsersLogins.Where(u => u.Email == model.Email && u.LoginProvider == "Google").Any();
+
+
+
             var usuario = await UserManager.FindByEmailAsync(model.Email);
             if (usuario == null)
             {
                 return View(model);
             }
 
+            //usuario registrado pero sin rol
             var getRole = await UserManager.GetRolesAsync(usuario.Id);
-            if (string.IsNullOrEmpty(getRole.FirstOrDefault()) && !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+            if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
             {
                 return View(model);
             }
@@ -449,11 +459,34 @@ namespace ControlActividades.Controllers
                 }
 
                 // Para obtener más información sobre cómo habilitar la confirmación de cuentas y el restablecimiento de contraseña, visite https://go.microsoft.com/fwlink/?LinkID=320771
-                // Enviar un correo electrónico con este vínculo
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Restablecer contraseña", "Para restablecer la contraseña, haga clic <a href=\"" + callbackUrl + "\">aquí</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                var token = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                
+                var resetlink = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { userId = user.Id,
+                        code = token },
+                    protocol: Request.Url.Scheme
+                );
+
+                //PLANTILLA HTML
+                var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/ResetPassword.html");
+                var html = System.IO.File.ReadAllText(templatePath);
+
+                //Se reemplaza link en el archivo html por el link real
+                html = html.Replace("{{link}}", resetlink);
+
+                //Enviar correo
+                var emailService = new Services.EmailService();
+                await emailService.SendEmailAsync(
+                    user.Email, 
+                    "Restablecer contraseña",
+                    html    
+                );
+
+                // *usando identity* await UserManager.SendEmailAsync(user.Id, "Restablecer contraseña", "Para restablecer la contraseña, haga clic <a href=\"" + resetlink + "\">aquí</a>");
+
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // Si llegamos a este punto, es que se ha producido un error y volvemos a mostrar el formulario
@@ -471,9 +504,26 @@ namespace ControlActividades.Controllers
         //
         // GET: /Account/ResetPassword
         [AllowAnonymous]
-        public ActionResult ResetPassword(string code)
+        public async Task<ActionResult> ResetPassword(string userId, string code)
         {
-            return code == null ? View("Error") : View();
+            if (userId == null || code == null)
+            {
+                return View("Error");
+            }
+
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = user.Email,
+                Code = code
+            };
+
+            return View(model);
         }
 
         //
@@ -514,7 +564,7 @@ namespace ControlActividades.Controllers
         // POST: /Account/ExternalLogin
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
             // Solicitar redireccionamiento al proveedor de inicio de sesión externo
@@ -569,21 +619,89 @@ namespace ControlActividades.Controllers
 
             // Si el usuario ya tiene un inicio de sesión, iniciar sesión del usuario con este proveedor de inicio de sesión externo
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
+
             switch (result)
             {
                 case SignInStatus.Success:
-                //return RedirectToLocal(returnUrl);
+                    
+                    var usuario = await UserManager.FindByEmailAsync(loginInfo.Email);
+                    if (usuario == null)
+                    {
+                        return RedirectToAction("Login");
+                    }
+
+                    var getRole = await UserManager.GetRolesAsync(usuario.Id);
+                    if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                    {
+                        return View("ExternalLoginFailure");
+                    }
+
+                    var role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+                    return RedirectToLocal(returnUrl, role);
+                    
+
+
                 case SignInStatus.LockedOut:
                     return View("Lockout");
+
                 case SignInStatus.RequiresVerification:
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
+                
                 case SignInStatus.Failure:
                 default:
+
+                    var email = loginInfo.Email;
+
+                    var existingUser = await UserManager.FindByEmailAsync(email);
+                    // ya hay cuenta pero sin vincular a google
+                    if(existingUser != null)
+                    {
+                        ViewBag.ReturnUrl = returnUrl;
+                        ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
+                        return View("ExternalLoginLink", new ExternalLoginLinkViewModel { Email = email, LoginProvider = loginInfo.Login.LoginProvider });
+                    }
+
                     // Si el usuario no tiene ninguna cuenta, solicitar que cree una
                     ViewBag.ReturnUrl = returnUrl;
                     ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
                     return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
             }
+        }
+
+        //
+        // POST: /Account/ExternalLoginLink
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ExternalLoginLink(ExternalLoginLinkViewModel model, string link, string returnUrl)
+        {
+            if (link == "no")
+            {
+                return RedirectToAction("Login");
+            }
+
+            var info = await AuthenticationManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return View("ExternalLoginFailure");
+            }
+
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var addLoginResult = await UserManager.AddLoginAsync(user.Id, info.Login);
+            if (addLoginResult.Succeeded)
+            {
+                await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+                var existingRole = (await UserManager.GetRolesAsync(user.Id)).FirstOrDefault();
+                return RedirectToLocal(returnUrl, (Role)Enum.Parse(typeof(Role), existingRole));
+            }
+
+            AddErrors(addLoginResult);
+            return View("ExternalLoginFailure");
         }
 
         //
@@ -593,11 +711,11 @@ namespace ControlActividades.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
         {
-            if (User.Identity.IsAuthenticated)
+            /*if (User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Manage");
-            }
-
+            }   
+            */
             if (ModelState.IsValid)
             {
                 // Obtener datos del usuario del proveedor de inicio de sesión externo
@@ -606,18 +724,75 @@ namespace ControlActividades.Controllers
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await UserManager.CreateAsync(user);
+
+                // Crear nuevo usuario en ApplicationUser
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email
+                };
+
+                
+                var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    result = await UserManager.AddLoginAsync(user.Id, info.Login);
-                    if (result.Succeeded)
+                    //Crear rol
+                    var rolstring = model.Role.ToString();
+                    if (!await RoleManager.RoleExistsAsync(rolstring))
+                    {
+                        await RoleManager.CreateAsync(new IdentityRole(rolstring));
+                    }
+                    await UserManager.AddToRoleAsync(user.Id, rolstring);
+
+                    // Crear usuario según rol
+                    switch (model.Role)
+                    {
+                        case Role.Docente:
+                            DateTime fechaExpiracionCodigo = DateTime.UtcNow.AddMinutes(59);
+                            string codigo = Fg.GenerarCodigoAleatorio();
+
+                            Db.tbDocentes.Add(new tbDocentes
+                            {
+                                ApellidoPaterno = model.Paterno,
+                                ApellidoMaterno = model.Materno,
+                                Nombre = model.Nombre,
+                                UserId = user.Id,
+                                CodigoAutorizacion = codigo,
+                                FechaExpiracionCodigo = fechaExpiracionCodigo,
+                            });
+
+                            user.LockoutEndDateUtc = DateTime.MaxValue;
+                            await UserManager.UpdateAsync(user);
+                            await Db.SaveChangesAsync();
+                            break;
+
+                        case Role.Alumno:
+                            Db.tbAlumnos.Add(new tbAlumnos
+                            {
+                                ApellidoPaterno = model.Paterno,
+                                ApellidoMaterno = model.Materno,
+                                Nombre = model.Nombre,
+                                UserId = user.Id
+                            });
+                            await Db.SaveChangesAsync();
+                            break;
+                    }
+
+                    // Asociar login externo
+                    var addLoginResult = await UserManager.AddLoginAsync(user.Id, info.Login);
+                    if (addLoginResult.Succeeded)
                     {
                         await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                        //return RedirectToLocal(returnUrl);
+                        return RedirectToLocal(returnUrl, (Role)Enum.Parse(typeof(Role), rolstring));
                     }
+
+                    AddErrors(addLoginResult);
+                    ViewBag.ReturnUrl = returnUrl;
+                    return View(model);
                 }
                 AddErrors(result);
+                ViewBag.ReturnUrl = returnUrl;
+                return View(model);
             }
 
             ViewBag.ReturnUrl = returnUrl;
@@ -696,17 +871,27 @@ namespace ControlActividades.Controllers
 
         private ActionResult RedirectToLocal(string returnUrl, Role role)
         {
-            if (Url.IsLocalUrl(returnUrl))
+           /* if (Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+           */
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) && returnUrl != "/")
             {
                 return Redirect(returnUrl);
             }
 
             switch (role)
             {
+                //case Role.Docente:
+                //    return RedirectToAction("Index", "Docente");
+                //case Role.Alumno:
+                //    return RedirectToAction("Index", "Alumno");
                 case Role.Docente:
-                    return RedirectToAction("Index", "Docente");
                 case Role.Alumno:
-                    return RedirectToAction("Index", "Alumno");
+                    return RedirectToAction("Index","Grupos");
+                
                 case Role.Administrador:
                     return RedirectToAction("Index", "Administrador");
                 default:

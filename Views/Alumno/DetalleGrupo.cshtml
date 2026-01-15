@@ -5,16 +5,13 @@
     int alumnoId = ViewBag.AlumnoId;
 }
 
-
 @*@model ControlActividades.Models.db.tbGrupos;*@
-
-
 
 <div class="materia-container">
     <div class="materia-header" id="materiaHeader">
         <h2>@Model.NombreGrupo</h2>
         <div class="materia-info">
-            <span>Código de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
+            <span>CÃ³digo de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
             <i class="fas fa-cog"></i>
         </div>
     </div>
@@ -55,14 +52,9 @@
     </div>
 
 </div>
+
 @section Scripts{
     <script>
         const alumnoIdGlobal = '@alumnoId';
     </script>
-    @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/alumno")
-}
-
-@section Styles{
-    @Styles.Render("~/Content/Alumno/css")
 }

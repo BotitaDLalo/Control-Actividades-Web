@@ -17,8 +17,37 @@ namespace ControlActividades.Models
     public class ExternalLoginConfirmationViewModel
     {
         [Required]
+        [EmailAddress]
         [Display(Name = "Correo electrónico")]
         public string Email { get; set; }
+
+        [Display(Name = "Nombres")]
+        public string Nombre { get; set; }
+
+        [Display(Name = "Apellido Paterno")]
+        public string Paterno { get; set; }
+
+        [Display(Name = "Apellido Materno")]
+        public string Materno { get; set; }
+
+        [Display(Name = "Contraseña")]
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
+        [Display(Name = "Rol")]
+        [Required]
+        public Role Role { get; set; }
+
+    }
+
+    public class ExternalLoginLinkViewModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        public string LoginProvider { get; set; }
     }
 
     public class ExternalLoginListViewModel

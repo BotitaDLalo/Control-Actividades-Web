@@ -1,0 +1,190 @@
+/* Header icons: place in the top-right corner of the header (relative to full-width nav-bar) */
+.nav-bar {
+    position: relative;
+}
+
+    .nav-bar .header-icons {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 3000;
+    }
+        
+        /*Color normal*/
+        .nav-bar .header-icons .btn-link,
+        .nav-bar .header-icons .btn {
+            color: #5a5a5a;
+            background: transparent;
+            border: none;
+        }
+            /*Hover*/
+            .nav-bar .header-icons .btn-link:hover,
+            .nav-bar .header-icons .btn:hover {
+                color: #1d9bf0;
+                background-color: rgba(29,155,240,0.1);
+            }
+
+/* make svg icons follow currentColor */
+.nav-bar .header-icons svg {
+    fill: currentColor;
+}
+    /* position notification panel and user dropdown relative to the header-icons container */
+    .nav-bar .header-icons .notificaciones-container {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 3050;
+    }
+
+    .nav-bar .header-icons .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 3050;
+    }
+
+/* Responsive: on small screens put icons back in header flow */
+@media (max-width: 991px) {
+    .nav-bar .header-icons {
+        position: static;
+        top: auto;
+        right: auto;
+        margin-left: auto;
+    }
+
+        .nav-bar .header-icons .notificaciones-container,
+        .nav-bar .header-icons .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+        }
+}
+
+/*NOTIFICACIONES*/
+/*Punto rojo indicador de nueva notificación*/
+.notiIndicador {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 50%;
+    display: none; /* Oculto por defecto */
+    z-index: 10;
+}
+
+/* Estilos para el panel de notificaciones */
+.lista-notificaciones {
+    max-height: 350px;
+    width: 300px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+
+.nav-bar .notificaciones-container {
+    border-radius: 8px;
+    display: none;
+}
+
+    .nav-bar .notificaciones-container.mostrar {
+        display: flex;
+    }
+
+.noti-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    padding-right: 10px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+
+    max-width: 250px;
+    color: black;
+    border-radius: 5px;
+}
+    .noti-item:hover {
+        cursor: pointer;
+        background-color: var(--hover-gris);
+        opacity: 0.9;
+    }
+
+.noti-item.no-hover:hover {
+    background-color: transparent;
+    opacity: 1;
+}
+
+ /*Izquierda. Icono representativo*/
+.noti-left {
+    flex-shrink: 0;
+}
+
+.noti-icono {
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: deepskyblue;
+}
+ 
+.icono-svg{
+    width: 25px;
+    height: 25px;   
+    color: mediumspringgreen;
+}
+
+/*Centro. Info de notificación*/
+.noti-contenido{
+    flex-grow: 1;
+}
+
+/*Derecha. Eliminar notificación*/
+.noti-opciones {
+    flex-shrink: 0;
+    position: relative;
+}
+
+.noti-menu {
+    background: none;
+    border: none;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 18px;
+    cursor: pointer;
+    color: red;
+}
+
+.noti-menu:hover {
+    background-color: darkgray;
+}
+
+/*Campana de notificaciones*/
+#notificaciones-icono{
+    background: white;
+    transition: background-color 0.2s ease;
+}
+
+    #notificaciones-icono.selected {
+        background: var(--azul-twitter);
+        color: white;
+    }
+
+
+.elementos-perfil{
+    text-align:center;
+}
+
+.iconos1-nav{
+    width:50%;
+}

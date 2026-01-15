@@ -1,16 +1,21 @@
 ﻿var div = document.getElementById("docente-datos");
-var docenteIdGlobal = div.dataset.docenteid;
+var docenteIdGlobal = div && div.dataset ? div.dataset.docenteid : null;
 
-document.getElementById("misCursos-dropdownBtn").addEventListener("click", function () {
-    let menu = document.getElementById("misCursos-dropdownMenu");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
-});
+var misCursosBtn = document.getElementById("misCursos-dropdownBtn");
+var misCursosMenu = document.getElementById("misCursos-dropdownMenu");
+if (misCursosBtn) {
+    misCursosBtn.addEventListener("click", function () {
+        if (!misCursosMenu) return;
+        misCursosMenu.style.display = misCursosMenu.style.display === "block" ? "none" : "block";
+    });
+}
 
 // Ocultar el menú si se hace clic fuera de él
 document.addEventListener("click", function (event) {
-    let dropdown = document.querySelector(".misCursos-dropdown");
+    var dropdown = document.querySelector(".misCursos-dropdown");
+    if (!dropdown) return;
     if (!dropdown.contains(event.target)) {
-        document.getElementById("misCursos-dropdownMenu").style.display = "none";
+        if (misCursosMenu) misCursosMenu.style.display = "none";
     }
 });
 

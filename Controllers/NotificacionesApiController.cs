@@ -1,11 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Http;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
@@ -13,6 +5,15 @@ using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
+using Org.BouncyCastle.Asn1.Ocsp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http;
 
 namespace ControlActividades.Controllers
 {
@@ -27,8 +28,8 @@ namespace ControlActividades.Controllers
         private NotificacionesService _notifServ;
         public NotificacionesApiController()
         {
+            _notifServ = new NotificacionesService(new ApplicationDbContext());
         }
-
         public NotificacionesApiController(ApplicationUserManager userManager,
             ApplicationSignInManager signInManager,
             RoleManager<IdentityRole> roleManager,
@@ -44,7 +45,7 @@ namespace ControlActividades.Controllers
             Fg = fg;
             Ns = notificacionesService;
         }
-
+        #region Propiedades
         public ApplicationSignInManager SignInManager
         {
             get
@@ -109,17 +110,54 @@ namespace ControlActividades.Controllers
         {
             get
             {
-                return _notifServ ?? (_notifServ = new NotificacionesService());
+                return _notifServ ?? (_notifServ = new NotificacionesService(_db));
             }
             private set
             {
                 _notifServ = value;
             }
         }
+        #endregion
 
+        [HttpPost]
+        [Route("RegistrarToken")]
+        [Authorize]
+        public async Task<IHttpActionResult> RegistrarTokenDispositivo([FromBody] TokenDispositivo tokenDispositivo)
+        {
+            var userId = User.Identity.GetUserId();
+            if (userId == null)
+            {
+                return BadRequest("Usuario no encontrado");
+            }
+            if(tokenDispositivo == null || string.IsNullOrEmpty(tokenDispositivo.Token))
+            {
+                return BadRequest("Token inválido");
+            }
+            
+            //Token Duplicado
+            var tokenExistente = Db.tbUsuariosFcmTokens
+                .FirstOrDefault(t => t.UserId == userId && t.Token == tokenDispositivo.Token);
+            
+            if (tokenExistente != null)
+            {
+                return Ok("Token ya registrado");
+            }
+
+            //Registrar nuevo token
+            tbUsuariosFcmTokens nuevoToken = new tbUsuariosFcmTokens
+            {
+                UserId = userId,
+                Token = tokenDispositivo.Token
+            };
+            Db.tbUsuariosFcmTokens.Add(nuevoToken);
+            await Db.SaveChangesAsync();
+
+            return Ok("Token registrado correctamente");
+        }
 
 
         [HttpPost]
+        [Authorize]
         [Route("RegistrarNotificacion")]
         public async Task<IHttpActionResult> RegistrarNotificacionRecibida([FromBody] Notificacion notificacion)
         {
@@ -129,7 +167,7 @@ namespace ControlActividades.Controllers
                 MessageId = notificacion.MessageId,
                 Title = notificacion.Title,
                 Body = notificacion.Body,
-                FechaRecibido = notificacion.FechaRecibido
+                FechaRecibido = notificacion.FechaRecibido,
             };
 
             Db.tbNotificaciones.Add(nuevaNotificacion);
@@ -138,10 +176,53 @@ namespace ControlActividades.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Authorize]
+        [Route("ObtenerNotificaciones")]
+        public IHttpActionResult ObtenerNotificacionesUsuario()
+        {
+            var userId = User.Identity.GetUserId();
+            if (userId == null)
+            {
+                return BadRequest("Usuario no encontrado");
+            }
+            
+            var notificaciones = Db.tbNotificaciones
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.FechaRecibido)
+                .Select(n => new Notificacion
+                {
+                    NotificacionId = n.NotificacionId,
+                    UserId = n.UserId,
+                    MessageId = n.MessageId,
+                    Title = n.Title,
+                    Body = n.Body,
+                    TipoId = n.TipoId,
+                    TipoNotificacion = n.cTipoNotificacion.Nombre,
+                    FechaRecibido = n.FechaRecibido,
+                    MateriaId = n.MateriaId,
+                    GrupoId = n.GrupoId
+                })
+                .ToList();
+            return Ok(notificaciones);
+        }
 
 
+        //[Authorize]
+        [HttpDelete]
+        [Route("EliminarNotificacion/{id}")]
+        public async Task<IHttpActionResult> EliminarNotificacion(int id)
+        {
+            var noti = await Db.tbNotificaciones.FindAsync(id);
+            if (noti == null) {
+                return NotFound();
+            }
 
+            Db.tbNotificaciones.Remove(noti);
+            await Db.SaveChangesAsync();
 
+            return Ok();
+        }
 
         protected override void Dispose(bool disposing)
         {

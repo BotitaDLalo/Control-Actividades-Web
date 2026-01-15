@@ -1,0 +1,32 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "Materias del grupo";
+    ViewBag.PageHeader = "Materias del grupo";
+    int grupoId = Request.QueryString["grupoId"] != null ? int.Parse(Request.QueryString["grupoId"]) : 0;
+}
+
+<div class="container mt-4">
+    <div id="listaMateriasGrupo" class="content"></div>
+</div>
+
+@section Scripts{
+    <script src="~/Scripts/Docente/Grupos/mostrarMateriasGrupo.js"></script>
+}
+
+@*<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            var gid = @grupoId;
+            if (gid && gid !== 0) {
+                localStorage.setItem('grupoIdSeleccionado', String(gid));
+            }
+            // limpiar materia seleccionada al entrar al contexto de grupo
+            localStorage.removeItem('materiaIdSeleccionada');
+
+            // Intentar cargar alumnos si el script est� presente
+            if (typeof cargarAlumnosAsignados === 'function') {
+                cargarAlumnosAsignados();
+            }
+        } catch (e) { console.warn('No se pudo establecer grupoIdSeleccionado en storage', e); }
+    });
+</script>*@

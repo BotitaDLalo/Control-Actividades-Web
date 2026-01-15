@@ -1,0 +1,48 @@
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "Grupos";
+    ViewBag.PageHeader = "Gestionar Grupos";
+    int docenteId = ViewBag.DocenteId != null ? (int)ViewBag.DocenteId : 0;
+}
+
+<div id="docente-datos" data-docenteid="@docenteId" style="display:none"></div>
+
+<link href="~/Content/cards.css" rel="stylesheet" />
+
+@using (Html.BeginForm()) { @Html.AntiForgeryToken() }
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-end align-items-center mb-3">
+        <div class="ms-3">
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#gruposModal">Crear Grupo</button>
+        </div>
+    </div>
+
+    <div id="listaGrupos" class="content"></div>
+
+    @Html.Partial("GruposModal")
+    @Html.Partial("MateriasModal")
+    @Html.Partial("GrupoActionsModal")
+</div>
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/docente")
+    @Scripts.Render("~/bundles/docentegrupos")
+    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+
+            // Cuando se abra el modal de crear grupo, cargar las materias disponibles en el modal
+            var modalEl = document.getElementById('gruposModal');
+            if (modalEl) {
+                modalEl.addEventListener('show.bs.modal', function () {
+                    if (typeof cargarMaterias === 'function') cargarMaterias();
+                });
+            }
+        });
+    </script>
+}

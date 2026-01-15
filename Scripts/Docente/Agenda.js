@@ -1,18 +1,4 @@
-﻿
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    flatpickr("#calendario-input", {
-        enableTime: false,
-        dateFormat: "Y-m-d",  // Formato correcto YYYY-MM-DD
-        locale: "es", // Idioma español
-        defaultDate: new Date(),
-        onChange: function (selectedDates, dateStr) {
-            if (selectedDates.length > 0) {
-                cargarEventosPorFecha(dateStr);
-            }
-        }
-    });
+﻿document.addEventListener("DOMContentLoaded", function () {
 
     function cargarEventosPorFecha(fechaSeleccionada) {
         document.getElementById("fechaSeleccionadaTexto").textContent = fechaSeleccionada;
@@ -91,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
             Color: document.getElementById("color").value
         };
 
-        fetch("/EventosAgenda", {
+        fetch("/EventosAgenda/CrearEvento", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

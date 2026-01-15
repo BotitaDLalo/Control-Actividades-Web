@@ -1,0 +1,14 @@
+﻿@{
+    ViewBag.Title = "ERROR";
+}
+
+<main aria-labelledby="title">
+    <hgroup class="title">
+        <h1 id="title">@ViewBag.Title.</h1>
+    </hgroup>
+    <div>
+        <p>
+            Ha ocurrido un error. @Html.ActionLink("Haga clic aquí para volver al inicio", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })
+        </p>
+    </div>
+</main>

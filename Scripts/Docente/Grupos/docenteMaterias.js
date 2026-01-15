@@ -1,5 +1,10 @@
-var div = document.getElementById("docente-datos"); 
-var docenteIdGlobal = div.dataset.docenteid;
+var div = document.getElementById("docente-datos");
+var docenteIdGlobal = 0;
+if (div && div.dataset && div.dataset.docenteid) {
+    docenteIdGlobal = div.dataset.docenteid;
+} else if (localStorage.getItem('docenteId')) {
+    docenteIdGlobal = localStorage.getItem('docenteId');
+}
 
 //Funcion para guarda las materias registradas sin un grupo
 async function guardarMateriaSinGrupo() {
@@ -29,7 +34,7 @@ async function guardarMateriaSinGrupo() {
             DocenteId: docenteIdGlobal // Enviamos el docenteId obtenido previamente
         })
     });
-
+    
     if (response.ok) { // Verificamos si la respuesta es exitosa
         Swal.fire({
             position: "top-end",
@@ -39,8 +44,9 @@ async function guardarMateriaSinGrupo() {
             timer: 2000
         });
         ;// Mostramos una alerta de éxito
-        document.getElementById("materiasForm").reset(); // Limpiamos el formulario
-        cargarMateriasSinGrupo(); // Recargamos la lista de materias sin grupo
+        const form = document.getElementById("materiasForm");
+        if (form) form.reset(); // Limpiamos el formulario
+        if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo(); // Recargamos la lista de materias sin grupo
     } else {
         Swal.fire({
             position: "top-end",
@@ -61,9 +67,10 @@ async function cargarMaterias() {
         if (response.ok) { // Verificamos si la respuesta es exitosa
             const materias = await response.json(); // Convertimos la respuesta en formato JSON
             const contenedorMaterias = document.getElementById("materiasLista"); // Obtenemos el contenedor donde se mostrarán las materias
+            if (!contenedorMaterias) return;
             contenedorMaterias.innerHTML = ""; // Limpiamos cualquier contenido previo en el contenedor
 
-            if (materias.length === 0) { // Si no hay materias disponibles, mostramos un mensaje
+            if (!materias || materias.length === 0) { // Si no hay materias disponibles, mostramos un mensaje
                 contenedorMaterias.innerHTML = "<p>No hay materias disponibles.</p>";
                 return;
             }
@@ -73,11 +80,10 @@ async function cargarMaterias() {
                 const checkbox = document.createElement("input"); // Creamos un checkbox para cada materia
                 checkbox.type = "checkbox"; // Definimos que sea un checkbox
                 checkbox.className = "materia-checkbox"; // Asignamos una clase para identificarlos
-                checkbox.value = materia.materiaId; // Asignamos el ID de la materia como valor del checkbox
-
+                checkbox.value = materia.MateriaId; // Asignamos el ID de la materia como valor del checkbox  
                 const label = document.createElement("label"); // Creamos una etiqueta para el checkbox
                 label.appendChild(checkbox); // Añadimos el checkbox a la etiqueta
-                label.appendChild(document.createTextNode(" " + materia.nombreMateria)); // Añadimos el nombre de la materia a la etiqueta
+                label.appendChild(document.createTextNode(" " + (materia.nombreMateria || materia.NombreMateria))); // Añadimos el nombre de la materia a la etiqueta
 
                 const div = document.createElement("div"); // Creamos un contenedor div para cada materia
                 div.className = "form-check"; // Asignamos una clase para estilo
@@ -94,17 +100,17 @@ async function cargarMaterias() {
 
 // Cargar materias que fueron creadas sin un grupo a la vista principal.
 async function cargarMateriasSinGrupo() {
-    const response = await fetch(`/Materias/ObtenerMateriasSinGrupo?docenteId=${docenteIdGlobal}`);
-    if (response.ok) {
+    try {
+        const response = await fetch(`/Materias/ObtenerMateriasSinGrupo?docenteId=${docenteIdGlobal}`);
+        if (!response.ok) throw new Error('Error en la respuesta');
         const materiasSinGrupo = await response.json();
         const listaMateriasSinGrupo = document.getElementById("listaMateriasSinGrupo");
+        if (!listaMateriasSinGrupo) return;
 
-        // Limpiar contenido anterior y crear el contenedor con Bootstrap Grid
+        // Limpiar contenido anterior
         listaMateriasSinGrupo.innerHTML = "";
-        const rowContainer = document.createElement("div");
-        rowContainer.classList.add("row", "g-3"); // "g-3" agrega un pequeño espacio entre las filas
 
-        if (materiasSinGrupo.length === 0) {
+        if (!materiasSinGrupo || materiasSinGrupo.length === 0) {
             const mensaje = document.createElement("p");
             mensaje.classList.add("text-center", "text-muted");
             mensaje.textContent = "No hay materias registradas.";
@@ -112,137 +118,37 @@ async function cargarMateriasSinGrupo() {
             return;
         }
 
-        materiasSinGrupo.forEach(materia => {
-            const col = document.createElement("div");
-            col.classList.add("col-md-3"); // Ajusta el tamaño de la tarjeta en la fila
+        materiasSinGrupo.forEach((materia, index) => {
+            const card = document.createElement('div');
+            card.className = 'rounded card-layout';
 
-            const card = document.createElement("div");
-            card.classList.add("card", "bg-light", "mb-3", "shadow-sm");
-            card.style.maxWidth = "100%";
+            const title = document.createElement('div');
+            title.className = 'card-title';
+            title.textContent = materia.NombreMateria;
 
-            // Header
-            const header = document.createElement("div");
-            header.classList.add("card-header", "bg-primary", "text-white", "fs-4");
-            header.style.display = "flex";
-            header.style.justifyContent = "space-between";
-            header.textContent = materia.NombreMateria;
+            const subtitle = document.createElement('div');
+            subtitle.className = 'card-subtitle';
+            subtitle.textContent = materia.Descripcion || '';
 
-            // Crear el dropdown
-            const dropdown = document.createElement("div");
-            dropdown.classList.add("dropdown");
+            card.appendChild(title);
+            if (materia.Descripcion) card.appendChild(subtitle);
 
-            const button = document.createElement("button");
-            button.classList.add("btn", "btn-link", "p-0", "text-white");
-            button.setAttribute("data-bs-toggle", "dropdown");
-            button.setAttribute("aria-expanded", "false");
-
-            const icon = document.createElement("i");
-            icon.classList.add("fas", "fa-ellipsis-v");
-            button.appendChild(icon);
-
-            const ul = document.createElement("ul");
-            ul.classList.add("dropdown-menu", "dropdown-menu-end");
-
-            const editLi = document.createElement("li");
-            const editLink = document.createElement("a");
-            editLink.classList.add("dropdown-item");
-            editLink.href = "#";
-            editLink.onclick = () => editarMateria(materia.MateriaId);
-            editLink.textContent = "Editar";
-            editLi.appendChild(editLink);
-
-            const deleteLi = document.createElement("li");
-            const deleteLink = document.createElement("a");
-            deleteLink.classList.add("dropdown-item");
-            deleteLink.href = "#";
-            deleteLink.onclick = () => eliminarMateria(materia.MateriaId);
-            deleteLink.textContent = "Eliminar";
-            deleteLi.appendChild(deleteLink);
-
-            // Añadir los elementos al menú desplegable
-            ul.appendChild(editLi);
-            ul.appendChild(deleteLi);
-
-            // Añadir el botón y el menú al dropdown
-            dropdown.appendChild(button);
-            dropdown.appendChild(ul);
-
-            // Añadir el dropdown al header
-            header.appendChild(dropdown);
-
-            // Body
-            const body = document.createElement("div");
-            body.classList.add("card-body");
-
-            const title = document.createElement("h5");
-            title.classList.add("card-title");
-
-            const description = document.createElement("p");
-            description.classList.add("card-text");
-            description.textContent = materia.Descripcion || "Sin descripción";
-
-            body.appendChild(title);
-            body.appendChild(description);
-
-            // Actividades Recientes - Crear una sección para las actividades
-            if (materia.actividadesRecientes && materia.actividadesRecientes.length > 0) {
-                const actividadesContainer = document.createElement("div");
-                actividadesContainer.classList.add("mt-3"); // Margen superior para separar las actividades
-
-                materia.actividadesRecientes.forEach(actividad => {
-                    const actividadItem = document.createElement("div");
-                    actividadItem.classList.add("actividad-item");
-
-                    const fechaFormateada = new Date(actividad.fechaCreacion).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    });
-
-                    const actividadLink = document.createElement("a");
-                    actividadLink.href = "#";
-                    actividadLink.classList.add("actividad-link");
-                    actividadLink.textContent = actividad.nombreActividad;
-                    actividadLink.setAttribute("data-id", actividad.ActividadId, materia.MateriaId);
-
-                    const actividadFecha = document.createElement("p");
-                    actividadFecha.classList.add("actividad-fecha");
-                    actividadFecha.textContent = `Asignada: ${fechaFormateada}`;
-
-                    actividadItem.appendChild(actividadLink);
-                    actividadItem.appendChild(actividadFecha);
-
-                    actividadesContainer.appendChild(actividadItem);
-                });
-
-                body.appendChild(actividadesContainer); // Agregar actividades al cuerpo de la tarjeta
+            // agregar nombre del docente si viene
+            if (materia.DocenteId || materia.DocenteId === 0) {
+                const nombreDocente = materia.DocenteNombre || materia.DocenteNombre || '';
+                if (nombreDocente) {
+                    const d = document.createElement('div');
+                    d.className = 'card-docente';
+                    d.textContent = 'Docente: ' + nombreDocente;
+                    card.appendChild(d);
+                }
             }
 
-            // Footer
-            const footer = document.createElement("div");
-            footer.classList.add("card-footer", "d-flex", "justify-content-between", "align-items-center");
-
-            const btnVerMateria = document.createElement("button");
-            btnVerMateria.classList.add("btn", "btn-sm", "btn-primary");
-            btnVerMateria.textContent = "Ver Materia";
-            btnVerMateria.onclick = () => irAMateria(materia.MateriaId);
-
-            footer.appendChild(btnVerMateria);
-
-            // Construcción de la card
-            card.appendChild(header);
-            card.appendChild(body);
-            card.appendChild(footer);
-            col.appendChild(card);
-
-            // Agregar la columna al contenedor de la fila
-            rowContainer.appendChild(col);
+            listaMateriasSinGrupo.appendChild(card);
         });
 
-        // Agregar todas las tarjetas dentro del contenedor de filas
-        listaMateriasSinGrupo.appendChild(rowContainer);
-
-    } else {
+    } catch (error) {
+        console.error('Error al cargar materias sin grupo:', error);
         Swal.fire({
             title: "Error al cargar materias",
             html: "Reintentando en <b></b> segundos...",
@@ -266,21 +172,24 @@ async function cargarMateriasSinGrupo() {
 }
 
 
+//Funcion para editar nombre y descripcion de una materia.
+async function editarMateria(MateriaId, NombreMateria, Descripcion) {
 
+    if (Descripcion === null || Descripcion === "null" || Descripcion === undefined) {
+        Descripcion = "";
+    }
 
-//Funcion para editar nombre y descripcion de una materia. Sin funcionar aun.
-async function editarMateria(materiaId, nombreActual, descripcionActual) {
     const { value: formValues } = await Swal.fire({
         title: "Editar Materia",
         html: `
             <div style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <label for="swal-nombre" style="width: 100px;">Materia</label>
-                    <input id="swal-nombre" class="swal2-input"  placeholder="Nombre" value="${nombreActual}">
+                    <input id="swal-nombre" class="swal2-input"  placeholder="Nombre" value="${NombreMateria}">
                 </div>
                 <div style="display: flex; align-items: center; gap: 5px;">
                     <label for="swal-descripcion" style="width: 100px;">Descripción</label>
-                    <input id="swal-descripcion" class="swal2-input" placeholder="Descripción" value="${descripcionActual}">
+                    <input id="swal-descripcion" class="swal2-input" placeholder="Descripción" value="${Descripcion}">
                 </div>
             </div>
         `,
@@ -289,6 +198,13 @@ async function editarMateria(materiaId, nombreActual, descripcionActual) {
         confirmButtonText: "Guardar",
         cancelButtonText: "Cancelar",
         preConfirm: () => {
+            const nombre = document.getElementById("swal-nombre").value.trim();
+
+            if(!nombre) {
+                Swal.showValidationMessage("Por favor, ingresa un nombre para la materia.");
+                return false;
+            }
+
             return {
                 NombreMateria: document.getElementById("swal-nombre").value, // Nombre correcto
                 Descripcion: document.getElementById("swal-descripcion").value // Nombre correcto
@@ -298,11 +214,17 @@ async function editarMateria(materiaId, nombreActual, descripcionActual) {
 
     if (formValues) {
         // Enviar los datos al servidor para actualizar la materia
-        const response = await fetch(`/Materias/ActualizarMateria/${materiaId}`, {
-            method: "PUT",
+        const response = await fetch(`/Materias/ActualizarMateria?materiaId=${MateriaId}`, {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formValues)
         });
+        console.log("Código de respuesta:", response.status);
+        console.log("Tipo de contenido:", response.headers.get("content-type"));
+
+        const text = await response.text();
+        console.log("Respuesta del servidor:", text);
+
 
         if (response.ok) {
             Swal.fire({
@@ -312,7 +234,9 @@ async function editarMateria(materiaId, nombreActual, descripcionActual) {
                 showConfirmButton: false,
                 timer: 2000
             });
-            cargarMaterias(); // Recargar la lista de materias
+            if (typeof cargarGrupos === 'function') cargarGrupos();
+            if (typeof cargarMaterias === 'function') cargarMaterias(); // Recargar la lista de materias
+            if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
         } else {
             Swal.fire({
                 position: "top-end",
@@ -354,7 +278,7 @@ async function eliminarMateria(MateriaId) {
                     timer: 2000
                 });
                 // Se ejecuta funcion inicializar para actualizar vista completa
-                inicializar();
+                if (typeof inicializar === 'function') inicializar();
             } else {
                 await Swal.fire({
                     position: "top-end",
