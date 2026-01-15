@@ -518,42 +518,61 @@ namespace ControlActividades.Controllers
                     .Select(gs => gs.MateriaId)
                     .ToList();
 
-                // Para cada materia, eliminar todas sus dependencias
-                foreach (var subjectId in subjectIds)
-                {
-                    // Eliminar entregables de las actividades de esta materia
-                    var activities = Db.tbActividades.Where(a => a.MateriaId == subjectId).Select(a => a.ActividadId);
-                    var submissions = Db.tbEntregablesAlumno.Where(e => activities.Contains(e.AlumnoActividadId));
-                    Db.tbEntregablesAlumno.RemoveRange(submissions);
+                //// Para cada materia, eliminar todas sus dependencias
+                //foreach (var subjectId in subjectIds)
+                //{
+                //    // Eliminar entregables de las actividades de esta materia
+                //    var activities = Db.tbActividades.Where(a => a.MateriaId == subjectId).Select(a => a.ActividadId);
+                //    var submissions = Db.tbEntregablesAlumno.Where(e => activities.Contains(e.AlumnoActividadId));
+                //    Db.tbEntregablesAlumno.RemoveRange(submissions);
 
-                    // Eliminar actividades
-                    var subjectActivities = Db.tbActividades.Where(a => a.MateriaId == subjectId);
-                    Db.tbActividades.RemoveRange(subjectActivities);
+                //    // Eliminar actividades
+                //    var subjectActivities = Db.tbActividades.Where(a => a.MateriaId == subjectId);
+                //    Db.tbActividades.RemoveRange(subjectActivities);
 
-                    // Eliminar registros de alumnos-materias
-                    var alumnosMaterias = Db.tbAlumnosMaterias.Where(am => am.MateriaId == subjectId);
-                    Db.tbAlumnosMaterias.RemoveRange(alumnosMaterias);
+                //    // Eliminar registros de alumnos-materias
+                //    var alumnosMaterias = Db.tbAlumnosMaterias.Where(am => am.MateriaId == subjectId);
+                //    Db.tbAlumnosMaterias.RemoveRange(alumnosMaterias);
 
-                    // Eliminar todas las relaciones con grupos (incluyendo otros grupos)
-                    var gruposMaterias = Db.tbGruposMaterias.Where(gm => gm.MateriaId == subjectId);
-                    Db.tbGruposMaterias.RemoveRange(gruposMaterias);
+                //    // Eliminar todas las relaciones con grupos (incluyendo otros grupos)
+                //    var gruposMaterias = Db.tbGruposMaterias.Where(gm => gm.MateriaId == subjectId);
+                //    Db.tbGruposMaterias.RemoveRange(gruposMaterias);
 
-                    // Eliminar la materia
-                    var dbSubject = await Db.tbMaterias.FindAsync(subjectId);
-                    if (dbSubject != null)
-                    {
-                        Db.tbMaterias.Remove(dbSubject);
-                    }
-                }
+                //    // Eliminar la materia
+                //    var dbSubject = await Db.tbMaterias.FindAsync(subjectId);
+                //    if (dbSubject != null)
+                //    {
+                //        Db.tbMaterias.Remove(dbSubject);
+                //    }
+                //}
 
-                // Finalmente eliminar el grupo
+                var tieneAlumnos = Db.tbAlumnosGrupos.Where(a => a.GrupoId == id).Any();
+                if (tieneAlumnos)
+                    return BadRequest();
+
+                var tieneActividades = Db.tbActividades.Where(a => subjectIds.Contains(a.MateriaId)).Any();
+                if (tieneActividades)
+                    return BadRequest();
+
+                var materiasTienenAvisos = Db.tbAvisos.Where(a => subjectIds.Contains(a.MateriaId ?? -1)).Any();
+                if (materiasTienenAvisos)
+                    return BadRequest();
+
+                var grupoTieneAvisos = Db.tbAvisos.Where(a => a.GrupoId == id).Any();
+                if(grupoTieneAvisos)
+                    return BadRequest();
+
+
+                var lsMaterias = Db.tbMaterias.Where(a => subjectIds.Contains(a.MateriaId)).ToList();
+
+                Db.tbMaterias.RemoveRange(lsMaterias);
                 Db.tbGrupos.Remove(dbGroup);
+                
                 await Db.SaveChangesAsync();
                 return Ok();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar grupo: {ex.Message}");
                 return BadRequest();
             }
         }
