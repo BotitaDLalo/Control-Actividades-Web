@@ -134,14 +134,28 @@ namespace ControlActividades.Controllers
                 {
                     var lsMateriasId = await Db.tbGruposMaterias.Where(a => a.GrupoId == grupo.GrupoId).Select(a => a.MateriaId).ToListAsync();
 
+                    // Seccion de codigo original
+                    /*
                     var lsMaterias = await Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(m => new
                     {
                         m.MateriaId,
                         m.NombreMateria,
                         m.Descripcion,
                         //m.CodigoColor,
-                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
+                        //Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).ToList()
                     }).ToListAsync();
+                    */
+
+                    // Consulta que usa un Join en lugar de Contains para evitar error 500
+                    var lsMaterias = await (from gm in Db.tbGruposMaterias 
+                        join m in Db.tbMaterias on gm.MateriaId equals m.MateriaId 
+                        where gm.GrupoId == grupo.GrupoId select new
+                            {
+                                m.MateriaId,
+                                m.NombreMateria,
+                                m.Descripcion,
+                                m.CodigoAcceso
+                            }).ToListAsync();
 
 
                     listaGruposMaterias.Add(new
@@ -285,6 +299,7 @@ namespace ControlActividades.Controllers
             }
         }
 
+        /*
         [HttpPost]
         [Route("CrearGrupoMaterias")]
         public async Task<IHttpActionResult> CrearGrupoMaterias([FromBody] GrupoMateriasRegistro group)
@@ -347,6 +362,88 @@ namespace ControlActividades.Controllers
                 return Content(HttpStatusCode.InternalServerError, $"Error al crear el grupo y materias: {ex.Message}");
             }
         }
+        */
+
+        // Metodo modificado para ver problemas al crear grupos con materias
+        [HttpPost]
+        [Route("CrearGrupoMaterias")]
+        public async Task<IHttpActionResult> CrearGrupoMaterias([FromBody] GrupoMateriasRegistro group)
+        {
+            try
+            {
+                int docenteId = group.DocenteId;
+
+                List<tbMaterias> lsMaterias = new List<tbMaterias>();
+                foreach (var materia in group.Materias)
+                {
+                    string codigoAccesoMateria = ObtenerClave();
+                    tbMaterias nuevaMateria = new tbMaterias()
+                    {
+                        DocenteId = docenteId,
+                        NombreMateria = materia.NombreMateria,
+                        Descripcion = materia.Descripcion,
+                        CodigoAcceso = codigoAccesoMateria
+                    };
+
+                    lsMaterias.Add(nuevaMateria);
+                }
+                string codigoAccesoGrupo = ObtenerClave();
+                tbGrupos nuevoGrupo = new tbGrupos()
+                {
+                    DocenteId = group.DocenteId,
+                    NombreGrupo = group.NombreGrupo,
+                    Descripcion = group.Descripcion,
+                    //CodigoColor = group.CodigoColor,
+                    CodigoAcceso = codigoAccesoGrupo
+                };
+
+                Db.tbGrupos.Add(nuevoGrupo);
+                Db.tbMaterias.AddRange(lsMaterias);
+
+                await Db.SaveChangesAsync();
+
+                var nuevoGrupoId = nuevoGrupo.GrupoId;
+                var lsMateriasId = lsMaterias.Select(a => a.MateriaId).ToList();
+                List<tbGruposMaterias> vinculos = new List<tbGruposMaterias>();
+                foreach (var materiaId in lsMateriasId)
+                {
+                    tbGruposMaterias vinculo = new tbGruposMaterias()
+                    {
+                        GrupoId = nuevoGrupoId,
+                        MateriaId = materiaId
+                    };
+                    vinculos.Add(vinculo);
+                }
+                Db.tbGruposMaterias.AddRange(vinculos);
+
+                await Db.SaveChangesAsync();
+
+                // Retornar solo el grupo creado con sus materias
+                var nuevoGrupoConMaterias = new
+                {
+                    GrupoId = nuevoGrupo.GrupoId,
+                    NombreGrupo = nuevoGrupo.NombreGrupo,
+                    Descripcion = nuevoGrupo.Descripcion,
+                    CodigoAcceso = nuevoGrupo.CodigoAcceso,
+                    CodigoColor = nuevoGrupo.CodigoColor,
+                    Materias = lsMaterias.Select(m => new {
+                        m.MateriaId,
+                        m.NombreMateria,
+                        m.Descripcion
+                    }).ToList()
+                };
+
+                return Ok(new List<object> { nuevoGrupoConMaterias });
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, $"Error al crear el grupo y materias: {ex.Message}");
+            }
+        }
+
+
+
+
 
 
         [HttpPut]
@@ -384,17 +481,85 @@ namespace ControlActividades.Controllers
             }
         }
 
+        /*
         [HttpDelete]
-        [Route("DeleteGroup")]
+        [Route("DeleteGroup/{id}")]
         public async Task<IHttpActionResult> DeleteGroup(int id)
         {
-            var dbGroup = await Db.tbGrupos.FindAsync(id);
-            if (dbGroup is null) return Content(HttpStatusCode.NotFound,"Grupo no encontrado");
+            try
+            {
+                var dbGroup = await Db.tbGrupos.FindAsync(id);
+                if (dbGroup is null) return Content(HttpStatusCode.NotFound, "Grupo no encontrado");
 
-            Db.tbGrupos.Remove(dbGroup);
-            await Db.SaveChangesAsync();
-            return Ok(await Db.tbGrupos.ToListAsync());
+                Db.tbGrupos.Remove(dbGroup);
+                await Db.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
+        */
+
+        // Funcion modificada para eliminiar primero materias y despues el grupo
+        [HttpDelete]
+        [Route("DeleteGroup/{id}")]
+        public async Task<IHttpActionResult> DeleteGroup(int id)
+        {
+            try
+            {
+                var dbGroup = await Db.tbGrupos.FindAsync(id);
+                if (dbGroup == null) return Content(HttpStatusCode.NotFound, "Grupo no encontrado");
+
+                // Obtener IDs de las materias asignadas a este grupo
+                var subjectIds = Db.tbGruposMaterias
+                    .Where(gs => gs.GrupoId == id)
+                    .Select(gs => gs.MateriaId)
+                    .ToList();
+
+                // Para cada materia, eliminar todas sus dependencias
+                foreach (var subjectId in subjectIds)
+                {
+                    // Eliminar entregables de las actividades de esta materia
+                    var activities = Db.tbActividades.Where(a => a.MateriaId == subjectId).Select(a => a.ActividadId);
+                    var submissions = Db.tbEntregablesAlumno.Where(e => activities.Contains(e.AlumnoActividadId));
+                    Db.tbEntregablesAlumno.RemoveRange(submissions);
+
+                    // Eliminar actividades
+                    var subjectActivities = Db.tbActividades.Where(a => a.MateriaId == subjectId);
+                    Db.tbActividades.RemoveRange(subjectActivities);
+
+                    // Eliminar registros de alumnos-materias
+                    var alumnosMaterias = Db.tbAlumnosMaterias.Where(am => am.MateriaId == subjectId);
+                    Db.tbAlumnosMaterias.RemoveRange(alumnosMaterias);
+
+                    // Eliminar todas las relaciones con grupos (incluyendo otros grupos)
+                    var gruposMaterias = Db.tbGruposMaterias.Where(gm => gm.MateriaId == subjectId);
+                    Db.tbGruposMaterias.RemoveRange(gruposMaterias);
+
+                    // Eliminar la materia
+                    var dbSubject = await Db.tbMaterias.FindAsync(subjectId);
+                    if (dbSubject != null)
+                    {
+                        Db.tbMaterias.Remove(dbSubject);
+                    }
+                }
+
+                // Finalmente eliminar el grupo
+                Db.tbGrupos.Remove(dbGroup);
+                await Db.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar grupo: {ex.Message}");
+                return BadRequest();
+            }
+        }
+
+
+
         #endregion
 
 
