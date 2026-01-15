@@ -116,7 +116,18 @@ async function cargarEntregablesDeMateria(materiaId) {
     try {
         const resp = await fetch(`/api/Actividades/ObtenerActividadesPorMateria?materiaId=${encodeURIComponent(materiaId)}`);
         if (!resp.ok) throw new Error('No se pudieron cargar actividades');
-        const actividades = await resp.json();
+        const raw = await resp.json();
+        // Normalizar distintas formas de respuesta: puede ser un array directo o un objeto { Actividades: [...] }
+        let actividades = [];
+        if (Array.isArray(raw)) actividades = raw;
+        else if (raw && Array.isArray(raw.Actividades)) actividades = raw.Actividades;
+        else if (raw && Array.isArray(raw.resultado)) actividades = raw.resultado;
+        else {
+            // intentar encontrar la primera propiedad que sea un array
+            const arr = raw && typeof raw === 'object' ? Object.keys(raw).map(k => raw[k]).find(v => Array.isArray(v)) : null;
+            if (arr) actividades = arr;
+        }
+
         if (!actividades || actividades.length === 0) {
             cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>';
             if (sel) sel.innerHTML = '<option value="0">-- Sin actividades --</option>';

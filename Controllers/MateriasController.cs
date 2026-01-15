@@ -1010,20 +1010,39 @@ namespace ControlMaterias.Controllers
                 return RedirectToAction("Index");
             }
 
-            //string userId = User.Identity.GetUserId();
-            //var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+            // Si el usuario es alumno, redirigir a la vista de alumno correspondiente
+            try
+            {
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+                if (!string.IsNullOrEmpty(rolUsuario) && rolUsuario == Roles.ALUMNO)
+                {
+                    if (grupoId.HasValue && grupoId.Value > 0)
+                        return RedirectToAction("Clase", "Alumno", new { tipo = "grupo", id = grupoId.Value });
 
-            //ViewBag.DocenteId = docenteId;
-            //ViewBag.MateriaId = materiaId.Value;
-            //ViewBag.GrupoId = grupoId ?? 0;
+                    return RedirectToAction("Clase", "Alumno", new { tipo = "materia", id = materiaId.Value });
+                }
+            }
+            catch { /* si falla la obtención del rol seguir mostrando vista docente por defecto */ }
 
-            //return View("MateriasDetalles");
+            // asegurar que ViewBag tenga los ids necesarios para las vistas/JS (docente u otros roles)
+            try
+            {
+                string userId = User != null ? User.Identity.GetUserId() : null;
+                var docenteId = 0;
+                if (!string.IsNullOrEmpty(userId))
+                    docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+
+                ViewBag.DocenteId = docenteId;
+                ViewBag.MateriaId = materiaId.HasValue ? materiaId.Value : 0;
+                ViewBag.GrupoId = grupoId ?? 0;
+            }
+            catch { ViewBag.DocenteId = 0; ViewBag.MateriaId = materiaId ?? 0; ViewBag.GrupoId = grupoId ?? 0; }
 
             var nombreMateria = Db.tbMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.NombreMateria).FirstOrDefault();
-
             ViewBag.NombreMateria = nombreMateria;
 
-            return View();
+            // La vista física está en Views/Docente/MateriasDetalles.cshtml
+            return View("~/Views/Docente/MateriasDetalles.cshtml");
         }
 
 

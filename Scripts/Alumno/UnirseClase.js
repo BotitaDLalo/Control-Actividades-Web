@@ -207,8 +207,43 @@ function agregarCardClase(clase) {
         return;
     }
 
+    // Attach a single delegated click handler in capture phase to ensure materia clicks
+    // are processed first and prevent parent group handlers from interfering.
+    if (!window.__alumnoDelegationAttached) {
+        window.__alumnoDelegationAttached = true;
+        contenedor.addEventListener('click', function (e) {
+            // If click inside a materia-card -> navigate to materia
+            const mat = e.target && e.target.closest ? e.target.closest('.materia-card') : null;
+            if (mat) {
+                e.stopImmediatePropagation && e.stopImmediatePropagation();
+                e.stopPropagation && e.stopPropagation();
+                e.preventDefault && e.preventDefault();
+                const mid = mat.dataset ? mat.dataset.materiaId : null;
+                if (mid) {
+                    window.location.href = `/Alumno/Clase?tipo=materia&id=${encodeURIComponent(mid)}`;
+                }
+                return;
+            }
+
+            // If click inside a main class card (group) -> toggle its materias unless click was on a button/link
+            const card = e.target && e.target.closest ? e.target.closest('.class-card') : null;
+            if (card) {
+                if (e.target && (e.target.closest('a') || e.target.closest('button'))) return;
+                const grid = card.querySelector('.materias-grid');
+                if (grid) {
+                    grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+                } else {
+                    const gid = card.dataset && card.dataset.classId ? card.dataset.classId : null;
+                    if (gid) window.location.href = `/Alumno/Clase?tipo=grupo&id=${encodeURIComponent(gid)}`;
+                }
+            }
+        }, true);
+    }
+
     const card = document.createElement("div");
     card.classList.add("class-card");
+    // expose id for delegation
+    card.dataset.classId = id;
 
     const etiqueta = clase.esGrupo ? "Grupo" : "Materia";
 
@@ -231,12 +266,17 @@ function agregarCardClase(clase) {
     }
 
     // Si es un grupo con materias, agregar la vista de materias en formato de cards cuadradas
-    if (clase.esGrupo && clase.materias && clase.materias.length > 0) {
+    // Normalizar propiedad que puede venir como 'Materias' o 'materias'
+    const materiasList = (clase.Materias && Array.isArray(clase.Materias) && clase.Materias.length > 0)
+        ? clase.Materias
+        : (clase.materias && Array.isArray(clase.materias) ? clase.materias : []);
+
+    if (clase.esGrupo && materiasList && materiasList.length > 0) {
         let contenedorMaterias = document.createElement("div");
         contenedorMaterias.classList.add("materias-grid"); // Nueva clase CSS para el grid
         contenedorMaterias.style.display = "none"; // Inicialmente oculto
 
-        clase.materias.forEach(materia => {
+        materiasList.forEach(materia => {
             let materiaCard = document.createElement("div");
             materiaCard.classList.add("materia-card");
 
@@ -253,10 +293,22 @@ function agregarCardClase(clase) {
                 </div>
             `;
 
+            // Determinar el id correcto de la materia (distintos formatos según respuesta)
+            const materiaId = materia.MateriaId || materia.Id || materia.materiaId || materia.id;
+            // Exponer id en atributo data para el manejador delegado
+            materiaCard.dataset.materiaId = materiaId;
+
             // ✅ Agregar evento para ir a la página de la materia
             materiaCard.addEventListener("click", function (event) {
-                event.stopPropagation(); // Evita que el grupo también se active
-                window.location.href = `/Alumno/Clase?tipo=materia&id=${id}`;
+                // Evita que el click active el handler del grupo y prevenir comportamiento por defecto
+                try { event.stopImmediatePropagation(); } catch (e) { }
+                try { event.stopPropagation(); } catch (e) { }
+                try { event.preventDefault(); } catch (e) { }
+                if (materiaId) {
+                    window.location.href = `/Alumno/Clase?tipo=materia&id=${encodeURIComponent(materiaId)}`;
+                } else {
+                    console.warn('Materia sin id válido', materia);
+                }
             });
 
             contenedorMaterias.appendChild(materiaCard);
@@ -265,7 +317,17 @@ function agregarCardClase(clase) {
         card.appendChild(contenedorMaterias);
 
         // Hacer que al hacer clic sobre el grupo se desplieguen/oculten las materias
-        card.addEventListener("click", function () {
+        card.addEventListener("click", function (e) {
+            // Si el clic fue dentro de una materia (o en un enlace/botón dentro), no ejecutar la acción del grupo
+            if (e && e.target && (e.target.closest('.materia-card') || e.target.closest('a') || e.target.closest('button'))) {
+                return;
+            }
+
+            // Si el contenedor de materias está vacío, redirigir al detalle del grupo
+            if (!contenedorMaterias || contenedorMaterias.children.length === 0) {
+                window.location.href = `/Alumno/Clase?tipo=grupo&id=${id}`;
+                return;
+            }
             contenedorMaterias.style.display = contenedorMaterias.style.display === "none" ? "grid" : "none";
         });
     }

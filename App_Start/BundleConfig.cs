@@ -99,7 +99,8 @@ namespace ControlActividades
             //    "~/Scripts/Alumno/*.js"));
 
 
-            bundles.Add(new ScriptBundle("~/bundles/alumno").Include(
+            // Use plain Bundle to avoid Microsoft Ajax minifier failing on newer JS syntax
+            var alumnoBundle = new Bundle("~/bundles/alumno").Include(
                  "~/Scripts/Alumno/alumno.js",
                  "~/Scripts/Alumno/Avisos.js",
                  "~/Scripts/Alumno/Clases.js",
@@ -109,7 +110,8 @@ namespace ControlActividades
                  "~/Scripts/Alumno/VentanasDi.js",
                  "~/Scripts/Alumno/Vistamaterias.js",
                  "~/Scripts/Componentes/componenteAvisos.js"
-            ));
+            );
+            bundles.Add(alumnoBundle);
 
             bundles.Add(new StyleBundle("~/Content/Alumno").Include(
                 "~/Content/Alumno/*.css")

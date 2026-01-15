@@ -54,6 +54,32 @@ function alertaDeErroresGenerales(error) {
 //    });
 //}
 
+// Mostrar alerta cuando la sesión no está disponible y forzar cierre.
+function AlertaCierreSesion() {
+    let timerInterval;
+    Swal.fire({
+        title: "Parece que se perdió la conexión con tu sesión.",
+        html: "La cerraremos por seguridad y podrás volver a iniciar sesión en <b></b>.",
+        timer: 3500,
+        timerProgressBar: true,
+        position: "center",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+            const timer = Swal.getPopup().querySelector("b");
+            timerInterval = setInterval(() => {
+                if (timer) timer.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}s`;
+            }, 200);
+        },
+        willClose: () => {
+            clearInterval(timerInterval);
+            try { cerrarSesion(); } catch (e) { window.location.href = '/Cuenta/IniciarSesion'; }
+        }
+    }).then((result) => {
+        /* no-op */
+    });
+}
+
 
 // Función para cerrar sesión
 async function cerrarSesion() {
