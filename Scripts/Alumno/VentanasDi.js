@@ -18,7 +18,11 @@ function cargarContenido(seccion, nombreVista) {
     // en la vista `DetalleMateria` y ejecutar las funciones cliente correspondientes.
     if (nombreVista === "Avisos") {
         console.log('Cargando parcial de Avisos');
-        fetch(`/Alumno/${nombreVista}?alumnoId=${alumnoIdGlobal}`)
+        // include materiaId/grupoId when available so server can scope avisos to the current class
+        var qs = `alumnoId=${encodeURIComponent(alumnoIdGlobal)}`;
+        try { if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) qs += `&materiaId=${encodeURIComponent(materiaIdGlobal)}`; } catch(e){}
+        try { if (typeof grupoIdGlobal !== 'undefined' && grupoIdGlobal) qs += `&grupoId=${encodeURIComponent(grupoIdGlobal)}`; } catch(e){}
+        fetch(`/Alumno/${nombreVista}?${qs}`)
             .then(response => response.text())
             .then(html => {
                 const target = document.getElementById(`contenido${nombreVista}`);

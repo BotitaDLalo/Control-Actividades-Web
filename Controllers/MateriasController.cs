@@ -1016,10 +1016,16 @@ namespace ControlMaterias.Controllers
                 var rolUsuario = Fg.ObtenerRolUsuario(User);
                 if (!string.IsNullOrEmpty(rolUsuario) && rolUsuario == Roles.ALUMNO)
                 {
-                    if (grupoId.HasValue && grupoId.Value > 0)
-                        return RedirectToAction("Clase", "Alumno", new { tipo = "grupo", id = grupoId.Value });
+                    // Preferir abrir la materia cuando se proporciona materiaId (aunque venga dentro de un grupo)
+                    if (materiaId.HasValue && materiaId.Value > 0)
+                    {
+                        return RedirectToAction("Clase", "Alumno", new { tipo = "materia", id = materiaId.Value });
+                    }
 
-                    return RedirectToAction("Clase", "Alumno", new { tipo = "materia", id = materiaId.Value });
+                    if (grupoId.HasValue && grupoId.Value > 0)
+                    {
+                        return RedirectToAction("Clase", "Alumno", new { tipo = "grupo", id = grupoId.Value });
+                    }
                 }
             }
             catch { /* si falla la obtención del rol seguir mostrando vista docente por defecto */ }

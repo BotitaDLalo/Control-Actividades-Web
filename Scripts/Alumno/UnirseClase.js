@@ -53,6 +53,8 @@ async function unirseAClase() {
             // If Grupo object present
             if (data && data.Grupo && (data.Grupo.GrupoId || data.Grupo.grupoId)) {
                 const gid = data.Grupo.GrupoId || data.Grupo.grupoId;
+                // persist selection: group selected, clear materia
+                try { localStorage.setItem('grupoIdSeleccionado', String(gid)); localStorage.removeItem('materiaIdSeleccionada'); } catch(e){}
                 // redirect to group view
                 window.location.href = `/Alumno/Clase?tipo=grupo&id=${encodeURIComponent(gid)}`;
                 return;
@@ -61,6 +63,8 @@ async function unirseAClase() {
             // If Materia object present
             if (data && data.Materia && (data.Materia.MateriaId || data.Materia.materiaId)) {
                 const mid = data.Materia.MateriaId || data.Materia.materiaId;
+                // persist selection: materia selected, clear group
+                try { localStorage.setItem('materiaIdSeleccionada', String(mid)); localStorage.removeItem('grupoIdSeleccionado'); } catch(e){}
                 window.location.href = `/Alumno/Clase?tipo=materia&id=${encodeURIComponent(mid)}`;
                 return;
             }

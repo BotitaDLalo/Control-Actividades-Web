@@ -308,8 +308,8 @@
         var grupoIdGlobal = window.grupoIdGlobal;
         // Persist current materia/grupo selection so alumnos list can be restored
         try {
-            if (materiaIdGlobal) localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal));
-            if (grupoIdGlobal && grupoIdGlobal !== '0') localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal));
+            if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }
+            if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
         } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
     
     </script>

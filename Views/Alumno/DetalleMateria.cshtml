@@ -63,6 +63,8 @@ else
     <script>
         var alumnoIdGlobal = @alumnoId;
         var materiaIdGlobal = @(hasModel ? Model.MateriaId : 0);
+        // clear any stale group selection when opening a specific materia to avoid showing group-scoped avisos
+        try { if (materiaIdGlobal && materiaIdGlobal !== 0) { localStorage.removeItem('grupoIdSeleccionado'); localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); } } catch(e){}
     </script>
     <script src="~/Scripts/Alumno/actividades.js"></script>
     <script src="~/Scripts/Alumno/actividadDetalle.js"></script>
