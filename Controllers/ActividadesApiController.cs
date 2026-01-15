@@ -50,13 +50,14 @@ namespace ControlActividades.Controllers
                 var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
                 var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
 
+                // Evitar seleccionar columnas que pueden no existir en instalaciones antiguas de la BD
                 var lsEntregas = await Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId)
                     .Select(e => new
                     {
                         e.EntregableId,
                         e.TipoEntregaId,
                         e.Contenido,
-                        e.FechaCalificado,
+                        // FechaCalificado puede no existir en la BD en algunas instalaciones; omitimos su lectura aquí
                         Calificacion = e.Calificacion ?? 0,
                         Comentario = e.Comentario
                     }).ToListAsync();
@@ -578,7 +579,7 @@ namespace ControlActividades.Controllers
                         alumnoEntregable.Respuesta = entregable.Contenido;
 
 
-                        alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                        alumnoEntregable.Calificacion = entregable.Calificacion;
 
 
                         lsEntregables.Add(alumnoEntregable);

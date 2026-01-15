@@ -394,8 +394,9 @@ function renderActividadesDirect(listado) {
 async function IrAActividad(actividadIdSeleccionada) {
    //guardar el id de la materia para acceder a la materia en la que se entro y usarla en otro script
    localStorage.setItem("actividadSeleccionada", actividadIdSeleccionada);
-    // Redirige a la página de detalles de la materia
-    window.open(`/Docente/EvaluarActividades`, '_blank'); //Aqui lleva en la url el id de la actividadSeleccionada
+    // Redirige a la ruta que decide la vista según rol en el servidor
+    var url = `/Actividades/DetallesActividad?actividadId=${encodeURIComponent(actividadIdSeleccionada)}`;
+    window.open(url, '_blank'); // Abrir en nueva pestaña
 }
 // Funciones para manejar los botones
 

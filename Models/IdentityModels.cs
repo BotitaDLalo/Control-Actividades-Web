@@ -51,6 +51,7 @@ namespace ControlActividades.Models
         public DbSet<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set; }
         public DbSet<tbEntregables> tbEntregables { get; set; }
         public DbSet<cTipoEntrega> cTipoEntrega { get; set; }
+        public DbSet<cEstadoEntrega> cEstadoEntrega { get; set; }
         public DbSet<cTipoNotificacion> cTipoNotificacion { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

@@ -157,16 +157,16 @@ namespace ControlActividades.Controllers
                     .Where(a => a.ActividadId == actividadId)
                     .Select(a => new
                     {
-                    a.ActividadId,
+                        a.ActividadId,
                         a.NombreActividad,
                         a.Descripcion,
-                    a.MateriaId,
-                        a.FechaCreacion,
-                        a.FechaLimite,
+                        a.MateriaId,
+                        FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                         a.Puntaje,
-                    a.Enviado,
-                    a.PermitirEntregasTarde,
-                        a.FechaProgramada
+                        a.Enviado,
+                        a.PermitirEntregasTarde,
+                        FechaProgramada = a.FechaProgramada
                     })
                     .FirstOrDefaultAsync();
 
@@ -182,6 +182,39 @@ namespace ControlActividades.Controllers
             {
                 Response.StatusCode = 500; // Internal Server Error
                 return Json(new { mensaje = "Error al obtener la actividad", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Redirige a la vista correspondiente según el rol (Docente -> EvaluarActividades, Alumno -> ActividadDetalle)
+        [HttpGet]
+        public ActionResult DetallesActividad(int actividadId)
+        {
+            try
+            {
+                var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
+                if (actividad == null)
+                {
+                    return HttpNotFound("Actividad no encontrada");
+                }
+
+                // Si es docente o administrador, llevar a la vista de evaluación (docente)
+                if (User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador")))
+                {
+                    return RedirectToAction("EvaluarActividades", "Docente", new { actividadId = actividadId, materiaId = actividad.MateriaId });
+                }
+
+                // Si es alumno, llevar a su detalle de actividad
+                if (User != null && User.IsInRole("Alumno"))
+                {
+                    return RedirectToAction("ActividadDetalle", "Alumno", new { actividadId = actividadId });
+                }
+
+                // Por defecto, redirigir al index de la aplicación
+                return RedirectToAction("Index", "Home");
+            }
+            catch
+            {
+                return RedirectToAction("Index", "Home");
             }
         }
 

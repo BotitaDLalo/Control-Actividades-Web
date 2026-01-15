@@ -4,6 +4,7 @@ using ControlActividades.Recursos;
 using ControlActividades.Services;
 using Newtonsoft.Json;
 using System.IO;
+using System.Data.SqlClient;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -54,6 +55,47 @@ namespace ControlActividades.Controllers
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+        }
+
+        // Asegura que exista al menos un registro en cEstadoEntrega y devuelve un EstadoEntregaId válido
+        private async Task<int> ResolveEstadoEntregaIdAsync(int preferido)
+        {
+            try
+            {
+                var existe = await Db.cEstadoEntrega.AnyAsync(e => e.EstadoEntregaId == preferido);
+                if (existe) return preferido;
+
+                var anyId = await Db.cEstadoEntrega.Select(e => (int?)e.EstadoEntregaId).FirstOrDefaultAsync();
+                if (anyId.HasValue) return anyId.Value;
+
+                // crear valores por defecto
+                var recibido = new cEstadoEntrega { Nombre = "Recibida" };
+                var pendiente = new cEstadoEntrega { Nombre = "Pendiente" };
+                Db.cEstadoEntrega.Add(recibido);
+                Db.cEstadoEntrega.Add(pendiente);
+                await Db.SaveChangesAsync();
+
+                return preferido == 1 ? recibido.EstadoEntregaId : recibido.EstadoEntregaId;
+            }
+            catch
+            {
+                return preferido > 0 ? preferido : 1;
+            }
+        }
+
+        // Helper: verifica si existe una tabla en la base de datos (SQL Server)
+        private bool TableExists(string tableName)
+        {
+            try
+            {
+                var sql = @"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @p0";
+                var count = Db.Database.SqlQuery<int>(sql, tableName).FirstOrDefault();
+                return count > 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         // Verifica que el alumno pueda acceder/entregar la actividad:
@@ -142,6 +184,9 @@ namespace ControlActividades.Controllers
                 DateTime parsedFecha;
                 if (DateTime.TryParse(httpRequest.Form["FechaEntrega"], out parsedFecha)) fechaEnt = parsedFecha;
 
+                // Asegurar que exista un EstadoEntrega válido (evitar violación de FK)
+                int estadoResolved = await ResolveEstadoEntregaIdAsync(1);
+
                 // Verificar permisos: el alumno debe pertenecer a la materia o a un grupo que la contiene
                 if (!await AlumnoPuedeAccederActividadAsync(alumnoId, actividadId))
                     return Content(HttpStatusCode.Forbidden, new { mensaje = "No tienes permiso para entregar esta actividad." });
@@ -153,40 +198,171 @@ namespace ControlActividades.Controllers
                     return Content(HttpStatusCode.Forbidden, new { mensaje = "La fecha límite ya pasó y no se permiten entregas tardías para esta actividad." });
                 }
 
-                // Reutilizar entrega existente si ya existe (permitir múltiples entregables por entrega)
-                var entregaAlumnoExistente = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
-                int entregaAlumnoId;
-                if (entregaAlumnoExistente == null)
+                int entregaAlumnoId = 0;
+                tbEntregables entregables = null;
+                tbEntregableAlumno entregableLegacy = null;
+                // Intentar usar la tabla nueva; si falla por inexistencia, usar fallback legacy
+                try
                 {
-                    tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                    // Reutilizar entrega existente si ya existe (permitir múltiples entregables por entrega)
+                    var entregaAlumnoExistente = await Db.Set<tbEntregaActividadAlumno>().FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+                    if (entregaAlumnoExistente == null)
                     {
-                        ActividadId = actividadId,
-                        AlumnoId = alumnoId,
-                        FechaEntrega = fechaEnt,
-                        EstadoEntregaId = 1
+                        tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                        {
+                            ActividadId = actividadId,
+                            AlumnoId = alumnoId,
+                            FechaEntrega = fechaEnt,
+                            EstadoEntregaId = estadoResolved
+                        };
+
+                        Db.Set<tbEntregaActividadAlumno>().Add(entregaAlumno);
+                        await Db.SaveChangesAsync();
+                        entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
+                    }
+                    else
+                    {
+                        // actualizar fecha de entrega y conservar estado
+                        entregaAlumnoExistente.FechaEntrega = fechaEnt;
+                        entregaAlumnoExistente.EstadoEntregaId = estadoResolved;
+                        await Db.SaveChangesAsync();
+                        entregaAlumnoId = entregaAlumnoExistente.EntregaActividadAlumnoId;
+                    }
+
+                    // Resolver TipoEntregaId asegurando que el valor exista en la tabla cTipoEntrega.
+                    int preferido = (savedUrls.Count > 0) ? 2 : 1;
+                    int tipoId = await ResolveTipoEntregaIdAsync(preferido);
+
+                    // Asegurar que el registro padre exista en la base antes de insertar el hijo
+                    var padre = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.EntregaActividadAlumnoId == entregaAlumnoId);
+                    if (padre == null)
+                    {
+                        // intentar localizar por ActividadId + AlumnoId
+                        padre = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+                        if (padre == null)
+                        {
+                        var nuevoPadre = new tbEntregaActividadAlumno()
+                            {
+                                ActividadId = actividadId,
+                                AlumnoId = alumnoId,
+                                FechaEntrega = fechaEnt,
+                            EstadoEntregaId = estadoResolved
+                            };
+                            Db.tbEntregaActividadAlumno.Add(nuevoPadre);
+                            await Db.SaveChangesAsync();
+                            entregaAlumnoId = nuevoPadre.EntregaActividadAlumnoId;
+                        }
+                        else
+                        {
+                            entregaAlumnoId = padre.EntregaActividadAlumnoId;
+                        }
+                    }
+
+                    // Asegurar que el padre esté cargado en el contexto y asociarlo como navegación
+                    var padreEntity = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.EntregaActividadAlumnoId == entregaAlumnoId);
+                    if (padreEntity == null)
+                    {
+                        // como respaldo, volver a cargar por ActividadId+AlumnoId
+                        padreEntity = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+                    }
+
+                    entregables = new tbEntregables()
+                    {
+                        EntregaActividadAlumnoId = entregaAlumnoId,
+                        TipoEntregaId = tipoId,
+                        Contenido = contenidoGuardar
                     };
+                    Db.tbEntregables.Add(entregables);
+                    try
+                    {
+                        await Db.SaveChangesAsync();
+                    }
+                    catch (Exception saveEx)
+                    {
+                        // comprobar existencia del padre justo antes de devolver el error para diagnóstico
+                        bool padreExiste = await Db.tbEntregaActividadAlumno.AnyAsync(a => a.EntregaActividadAlumnoId == entregaAlumnoId);
+                        var detallePadre = padreExiste ? "Padre encontrado en DB" : "Padre NO encontrado en DB";
+                        // comprobar existencia del tipo de entrega
+                        bool tipoExiste = await Db.cTipoEntrega.AnyAsync(t => t.TipoActividadId == entregables.TipoEntregaId);
+                        var detalleTipo = tipoExiste ? "TipoEntrega existe" : "TipoEntrega NO existe";
+                        // conteos generales
+                        var cntEntregables = await Db.tbEntregables.CountAsync();
+                        var cntPadres = await Db.tbEntregaActividadAlumno.CountAsync();
+                        var cntTipos = await Db.cTipoEntrega.CountAsync();
 
-                    Db.tbEntregaActividadAlumno.Add(entregaAlumno);
-                    await Db.SaveChangesAsync();
-                    entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
-                }
-                else
-                {
-                    // actualizar fecha de entrega y conservar estado
-                    entregaAlumnoExistente.FechaEntrega = fechaEnt;
-                    entregaAlumnoExistente.EstadoEntregaId = 1;
-                    await Db.SaveChangesAsync();
-                    entregaAlumnoId = entregaAlumnoExistente.EntregaActividadAlumnoId;
-                }
+                        // construir cadena con inner exceptions
+                        string innerChain = saveEx.ToString();
+                        Exception ie = saveEx.InnerException;
+                        while (ie != null)
+                        {
+                            innerChain += "\nINNER: " + ie.Message + "\n" + ie.ToString();
+                            ie = ie.InnerException;
+                        }
 
-                tbEntregables entregables = new tbEntregables()
+                        return Content(HttpStatusCode.InternalServerError, new
+                        {
+                            mensaje = "Error al guardar entregable",
+                            entregaAlumnoId = entregaAlumnoId,
+                            estadoPadre = detallePadre,
+                            estadoTipo = detalleTipo,
+                            counts = new { entregables = cntEntregables, padres = cntPadres, tipos = cntTipos },
+                            exception = saveEx.Message,
+                            innerException = innerChain
+                        });
+                    }
+                }
+                catch (Exception ex)
                 {
-                    EntregaActividadAlumnoId = entregaAlumnoId,
-                    TipoEntregaId = (savedUrls.Count > 0) ? 2 : 1,
-                    Contenido = contenidoGuardar,
-                };
-                Db.tbEntregables.Add(entregables);
-                await Db.SaveChangesAsync();
+                    // Buscar en la cadena de InnerException si la causa es tabla inexistente en SQL Server
+                    Exception ie = ex;
+                    bool isInvalidObject = false;
+                    while (ie != null)
+                    {
+                        if (ie.Message != null && ie.Message.Contains("Invalid object name 'dbo.tbEntregaActividadAlumno'"))
+                        {
+                            isInvalidObject = true;
+                            break;
+                        }
+                        ie = ie.InnerException;
+                    }
+
+                    if (isInvalidObject)
+                    {
+                        var entregaExistLegacy = await Db.Set<tbAlumnosActividades>().FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+                        if (entregaExistLegacy == null)
+                        {
+                            tbAlumnosActividades nueva = new tbAlumnosActividades()
+                            {
+                                ActividadId = actividadId,
+                                AlumnoId = alumnoId,
+                                FechaEntrega = fechaEnt,
+                                EstatusEntrega = true
+                            };
+                            Db.Set<tbAlumnosActividades>().Add(nueva);
+                            await Db.SaveChangesAsync();
+                            entregaAlumnoId = nueva.AlumnoActividadId;
+                        }
+                        else
+                        {
+                            entregaExistLegacy.FechaEntrega = fechaEnt;
+                            entregaExistLegacy.EstatusEntrega = true;
+                            await Db.SaveChangesAsync();
+                            entregaAlumnoId = entregaExistLegacy.AlumnoActividadId;
+                        }
+
+                        entregableLegacy = new tbEntregableAlumno()
+                        {
+                            AlumnoActividadId = entregaAlumnoId,
+                            Respuesta = contenidoGuardar
+                        };
+                        Db.Set<tbEntregableAlumno>().Add(entregableLegacy);
+                        await Db.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
 
                 // Notificar al docente que un alumno entregó (FCM + persistir notificación)
                 try
@@ -205,12 +381,27 @@ namespace ControlActividades.Controllers
                 }
                 catch { }
 
-                return Ok(new
+                // Preparar respuesta según la rama usada
+                if (entregables != null)
                 {
-                    EntregaActividadAlumnoId = entregaAlumnoId,
-                    EntregableId = entregables.EntregableId,
-                    Contenido = entregables.Contenido
-                });
+                    return Ok(new
+                    {
+                        EntregaActividadAlumnoId = entregaAlumnoId,
+                        EntregableId = entregables.EntregableId,
+                        Contenido = entregables.Contenido
+                    });
+                }
+                else if (entregableLegacy != null)
+                {
+                    return Ok(new
+                    {
+                        AlumnoActividadId = entregaAlumnoId,
+                        EntregaId = entregableLegacy.EntregaId,
+                        Respuesta = entregableLegacy.Respuesta
+                    });
+                }
+
+                return Ok(new { EntregaActividadAlumnoId = entregaAlumnoId });
             }
             catch (Exception ex)
             {
@@ -231,6 +422,41 @@ namespace ControlActividades.Controllers
             catch
             {
                 return respuesta ?? string.Empty;
+            }
+        }
+
+        // Intenta resolver el TipoEntregaId solicitado; si no existe en la tabla cTipoEntrega
+        // devuelve el primer Id disponible o crea registros por defecto (1=TEXTO,2=ARCHIVO) cuando sea necesario.
+        private async Task<int> ResolveTipoEntregaIdAsync(int preferido)
+        {
+            try
+            {
+                // Verificar existencia del preferido
+                var existe = await Db.cTipoEntrega.AnyAsync(t => t.TipoActividadId == preferido);
+                if (existe) return preferido;
+
+                // Si no existe, intentar obtener cualquier id existente
+                var anyId = await Db.cTipoEntrega.Select(t => (int?)t.TipoActividadId).FirstOrDefaultAsync();
+                if (anyId.HasValue) return anyId.Value;
+
+                // Si la tabla está vacía, insertar valores por defecto
+                var texto = new cTipoEntrega { Nombre = "Texto" };
+                var archivo = new cTipoEntrega { Nombre = "Archivo" };
+                Db.cTipoEntrega.Add(texto);
+                Db.cTipoEntrega.Add(archivo);
+                await Db.SaveChangesAsync();
+
+                // Intentar devolver el preferido si coincide con los que acabamos de crear
+                if (preferido == 1) return texto.TipoActividadId;
+                if (preferido == 2) return archivo.TipoActividadId;
+
+                // Por defecto devolver el primero creado
+                return texto.TipoActividadId;
+            }
+            catch
+            {
+                // En caso de error, devolver 1 como fallback razonable
+                return preferido > 0 ? preferido : 1;
             }
         }
 
@@ -738,6 +964,9 @@ namespace ControlActividades.Controllers
                     entregaAlumnoId = entregaExist.EntregaActividadAlumnoId;
                 }
 
+                // Asegurar que el TipoEntregaId exista antes de insertar
+                int tipoPreferido = 1;
+                int tipoResolved = await ResolveTipoEntregaIdAsync(tipoPreferido);
                 tbEntregables entregables = new tbEntregables()
                 {
                     EntregaActividadAlumnoId = entregaAlumnoId,
@@ -751,12 +980,17 @@ namespace ControlActividades.Controllers
 
                 var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
 
-
                 //var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividadId).FirstOrDefaultAsync();
 
-                var lsDatosEntregables = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == datosAlumnoActividad.EntregaActividadAlumnoId).ToList(); 
+                if (datosAlumnoActividad == null)
+                {
+                    // No existe registro de entrega en la tabla nueva; retornar BadRequest para que el cliente use el flujo legacy o muestre formulario
+                    return BadRequest();
+                }
 
-                if (datosAlumnoActividad != null && lsDatosEntregables.Count > 0)
+                var lsDatosEntregables = await Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == datosAlumnoActividad.EntregaActividadAlumnoId).ToListAsync(); 
+
+                if (lsDatosEntregables.Count > 0)
                 {
                     //int entregaId = datosEntregable.EntregaId;
 
