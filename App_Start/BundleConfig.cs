@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System;
+using System.Web;
 using System.Web.Optimization;
 
 namespace ControlActividades
@@ -27,16 +28,23 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Variables")
                 .Include(
                     "~/Content/Variables/colors.css",
-                    "~/Content/Variables/fuentes.css"
+                    "~/Content/Variables/fuentes.css",
+                    "~/Content/Variables/modo-claro.css"
                 )
             );
 
+            bundles.Add(new StyleBundle("~/Content/Moleculas")
+                .Include(
+                    "~/Content/Moleculas/botones.css",
+                    "~/Content/Moleculas/inputs.css"
+                )
+            );
             bundles.Add(new StyleBundle("~/Content/Componentes")
                 .Include(
                     "~/Content/Componentes/Calendario.css",
                     "~/Content/Componentes/cards.css",
-                    "~/Content/Componentes/carga.css",
-                    "~/Content/Componentes/header.css"
+                    "~/Content/Componentes/modal.css",
+                    "~/Content/Componentes/carga.css"
                 )
             );
 
@@ -51,25 +59,32 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Dashboard/css").Include(
                     "~/Content/Dashboard/cards.css",
                     "~/Content/Dashboard/content.css",
-                    "~/Content/Dashboard/nav-bar.css",
+                    "~/Content/Dashboard/header.css",
                     "~/Content/Dashboard/sidebar.css"
             ));
 
 
             //SCRIPTS GENERALES
             bundles.Add(new ScriptBundle("~/bundles/carga")
-                .Include("~/Scripts/Componentes/PantallaCarga.js")
+                .Include("~/Scripts/Componentes/PantallaCarga.js",
+                        "~/Scripts/Shared/modoColor.js")
             );
 
             bundles.Add(new Bundle("~/bundles/header")
                 .Include("~/Scripts/Shared/headerNotifications.js")
             );
 
+            //Calendario
+            bundles.Add(new Bundle("~/bundles/calendario")
+                .Include("~/Scripts/Agenda/calendario.js",
+                         "~/Scripts/Agenda/calendario-crear.js",
+                         "~/Scripts/Agenda/calendario-detalles.js")
+            );
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")
             //        .IncludeDirectory("~/Scripts/Docente/Grupos", "*.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/docente")
+            bundles.Add(new Bundle("~/bundles/docente")
                 .Include("~/Scripts/Docente/*.js")
                 );
 
@@ -128,5 +143,8 @@ namespace ControlActividades
             // Disable optimizations in development to load files directly
             BundleTable.EnableOptimizations = false;
         }
+
+        // Public version token for cache-busting in views (changes on app restart)
+        public static readonly string Version = DateTime.UtcNow.Ticks.ToString();
     }
 }

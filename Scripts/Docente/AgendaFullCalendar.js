@@ -1,16 +1,17 @@
 ﻿// Prevent duplicate initialization when script is loaded multiple times
 if (window.__agendaFullCalendarInitialized) {
     console.warn('AgendaFullCalendar already initialized, skipping duplicate load');
+    return;
 } else {
     window.__agendaFullCalendarInitialized = true;
 
     document.addEventListener("DOMContentLoaded", function () {
 
         console.log("FullCalendar inicializando...");
-    //modal
-    //modal-detalles
-    //modal-crear
-        //modal-editar
+        //modalEvento
+        //modalCrearEvento
+        //modalDetalleEvento
+            //modalEditarEvento
 
         //JERARQUÍA
         //CALENDARIO CON TODOS LOS EVENTO
@@ -18,240 +19,214 @@ if (window.__agendaFullCalendarInitialized) {
         //MODAL CREAR EVENTO    ||  MODAL DETALLES EVENTO ESPECÍFICO
                                     //MODAL EDITAR EVENTO
 
-    const calendarEl = document.getElementById("calendar");
+        const calendarEl = document.getElementById("calendar");
 
-    //Modal de creación
-    const modalCrear = document.getElementById("modalCrearEvento");
-    const btnCerrarCrear = document.querySelector(".close-crear");
+        //Modal de creación
+        const modalEvento = new bootstrap.Modal('#modalEvento');
+        const modalCrear = new bootstrap.Modal('#modalCrearEvento');
+        const modalDetalle = new bootstrap.Modal('#modalDetalleEvento');
+        const modalEditar = new bootstrap.Modal('#modalEditarEvento');
 
-    // Inicializar FullCalendar
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        locale: "es",
-        height: "auto",
+        // Inicializar FullCalendar
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: "dayGridMonth",
+            locale: "es",
+            height: "auto",
 
-        eventDisplay: "block",
+            eventDisplay: "block",
         
-        views: {
-            dayGridMonth: {
-                dayMaxEvents: 3,
-                dayMaxEventRows: true
-            }
-        },
+            views: {
+                dayGridMonth: {
+                    dayMaxEvents: 3,
+                    dayMaxEventRows: true
+                }
+            },
 
-        // Cuando se selecciona un día 
-        dateClick: function (info) {
-            abrirModal(info.dateStr);
-        },
+            // Cuando se selecciona un día 
+            dateClick: function (info) {
+                abrirModal(info.dateStr);
+            },
 
-        // EVENTOS DEL DOCENTE
-        events: function (fetchInfo, successCallback, failureCallback) {
-            fetch('/EventosAgenda/ObtenerEventosDocente')
-                .then(res => res.json())
-                .then(data => {
+            // EVENTOS DEL DOCENTE
+            events: function (fetchInfo, successCallback, failureCallback) {
+                fetch('/EventosAgenda/ObtenerEventosDocente')
+                    .then(res => res.json())
+                    .then(data => {
 
-                    console.log("Eventos obtenidos:", data);
-                    if (!Array.isArray(data)) {
-                        successCallback([]);
-                        return;
-                    }
+                        console.log("Eventos obtenidos:", data);
+                        if (!Array.isArray(data)) {
+                            successCallback([]);
+                            return;
+                        }
 
-                    const eventos = data.map(e => {
+                        const eventos = data.map(e => {
 
-                        const final = convertirFechaNetAInput(e.fechaFinal);
+                            const final = convertirFechaNetAInput(e.fechaFinal);
 
-                        return {
-                            id: e.eventoId,
-                            title: e.titulo,
-                            start:
-                                convertirFechaNetAInput(e.fechaInicio),
-                            end:
-                                ajustarFechaFin(final),
-                            color: e.color === "azul" ? "#007bff" : "#6c757d",
-                            borderColor: "transparent"
+                            return {
+                                id: e.eventoId,
+                                title: e.titulo,
+                                start:
+                                    convertirFechaNetAInput(e.fechaInicio),
+                                end:
+                                    ajustarFechaFin(final),
+                                color: e.color === "azul" ? "#007bff" : "#6c757d",
+                                borderColor: "transparent"
                             
-                        };
+                            };
+                        });
+
+                        successCallback(eventos);
+                    })
+                    .catch(err => {
+                        console.error("Error al cargar eventos:", err);
+                        failureCallback(err);
+                    });
+            }
+
+
+        });
+
+        calendar.render();
+
+        function ajustarFechaFin(fecha) {
+            const date = new Date(fecha);
+            date.setDate(date.getDate() + 1);
+            return date.toISOString().split("T")[0];
+        }
+        function convertirFecha(fecha) {
+            // Asegurar formato ISO (YYYY-MM-DD)
+            const fechaISO = fecha.replace(/\//g, "-");
+
+            const fechaObj = new Date(fechaISO + "T00:00");
+            return fechaObj.toLocaleDateString("es-ES");
+        }
+
+        // MODAL
+        const btnAgregar = document.getElementById("btnAgregarEvento");
+        const formContainer = document.getElementById("formEventoContainer");
+        const listaEventos = document.getElementById("listaEventos");
+        const textoFecha = document.getElementById("fechaSeleccionadaTexto");
+
+
+        //MODAL QUE MUESTRA LOS EVENTOS DEL DÍA SELECCIONADO
+
+        function abrirModal(fecha) {
+            textoFecha.textContent = convertirFecha(fecha);
+
+            //Fecha en el formulario al momento de crear evento
+            document.getElementById("FechaInicio").value = fecha + "T00:00";
+            document.getElementById("fechaFinal").value = fecha + "T23:59";
+
+            cargarEventosDia(fecha);
+            modalEvento.show();
+        }
+    
+        // Modal de creación. Agregar nuevo evento
+    
+        btnAgregar.addEventListener("click", () => {
+            cargarGruposMaterias();
+            modalCrear.show();
+        });
+    
+
+ 
+
+        //Obtener materias y grupos
+        async function cargarGruposMaterias() {
+            try {
+                const resp = await fetch("/EventosAgenda/ObtenerGruposYMaterias");
+                const data = await resp.json();
+
+                const contGrupos = document.getElementById("contenedorGrupos");
+                const contSueltas = document.getElementById("contenedorMateriasSueltas");
+
+                contGrupos.innerHTML = "";
+                contSueltas.innerHTML = "";
+
+                // Grupos
+                data.grupos.forEach(grupo => {
+
+                    const divGrupo = document.createElement("div");
+                    divGrupo.classList.add("grupo-item");
+
+                    //Encabezado con botón expandir, checkbox y nombre
+
+                    divGrupo.innerHTML = `
+                    <div class="grupo-header">
+                        <label>
+                            <input type="checkbox" class="chk-grupo" data-grupo="${grupo.GrupoId}">
+                            <strong>${grupo.NombreGrupo}</strong>
+                        </label>
+                        <button type="button" class="btn-expandir" data-grupo=${grupo.GrupoId}">▶</button>
+                    </div>
+
+                    <div class="materias-del-grupo collapse"></div>
+                `;
+
+                    //Contenedor para meter las materias de los grupos
+                    const contMaterias = divGrupo.querySelector(".materias-del-grupo");
+
+                    grupo.Materias.forEach(mat => {
+                        const divMat = document.createElement("div");
+                        divMat.innerHTML = `
+                            <label>
+                                <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
+                                ${mat.NombreMateria}
+                            </label>
+                        `;
+                        contMaterias.appendChild(divMat);
                     });
 
-                    successCallback(eventos);
-                })
-                .catch(err => {
-                    console.error("Error al cargar eventos:", err);
-                    failureCallback(err);
-                });
-        }
-
-
-    });
-
-    calendar.render();
-
-    function ajustarFechaFin(fecha) {
-        const date = new Date(fecha);
-        date.setDate(date.getDate() + 1);
-        return date.toISOString().split("T")[0];
-    }
-
-    // MODAL
-    
-    const modal = document.getElementById("modalEvento");
-    const btnAgregar = document.getElementById("btnAgregarEvento");
-    const formContainer = document.getElementById("formEventoContainer");
-    const listaEventos = document.getElementById("listaEventos");
-    const textoFecha = document.getElementById("fechaSeleccionadaTexto");
-    const btnCerrar = document.querySelector(".close-modal12");
-
-    //MODAL QUE MUESTRA LOS EVENTOS DEL DÍA SELECCIONADO
-    function convertirFecha(fecha) {
-        // Asegurar formato ISO (YYYY-MM-DD)
-        const fechaISO = fecha.replace(/\//g, "-");
-
-        const fechaObj = new Date(fechaISO + "T00:00");
-        return fechaObj.toLocaleDateString("es-ES");
-    }
-
-    function abrirModal(fecha) {
-        textoFecha.textContent = convertirFecha(fecha);
-        modal.style.display = "flex";
-
-        //Fecha en el formulario al momento de crear evento
-        document.getElementById("FechaInicio").value = fecha + "T00:00";
-        document.getElementById("fechaFinal").value = fecha + "T23:59";
-
-        cargarEventosDia(fecha);
-    }
-    
-    if (btnCerrar) {
-        btnCerrar.addEventListener("click", () => {
-            if (modal) modal.style.display = "none";
-            if (listaEventos) listaEventos.innerHTML = "";
-            const modalEventoEl = document.getElementById('modalEvento');
-            if (modalEventoEl) modalEventoEl.style.display = "none";
-        });
-    }
-
-    // Modal de creación. Agregar nuevo evento
-    if (btnAgregar) {
-        btnAgregar.addEventListener("click", () => {
-            if (modalCrear) modalCrear.style.display = "flex";
-            cargarGruposMaterias();
-        });
-    }
-
-    if (btnCerrarCrear) {
-        btnCerrarCrear.addEventListener("click", () => {
-            if (modalCrear) modalCrear.style.display = "none";
-            limpiarFormularioEvento();
-        });
-    }
-
-    window.addEventListener("click", function (e) {
-        if (e.target === modalCrear) {
-            modalCrear.style.display = "none";
-            limpiarFormularioEvento();
-        }
-
-        if (e.target === modal) {
-            modal.style.display = "none";
-            listaEventos.innerHTML = "";
-        }
-    });
-
-    //Obtener materias y grupos
-    async function cargarGruposMaterias() {
-        try {
-            const resp = await fetch("/EventosAgenda/ObtenerGruposYMaterias");
-            const data = await resp.json();
-
-            const contGrupos = document.getElementById("contenedorGrupos");
-            const contSueltas = document.getElementById("contenedorMateriasSueltas");
-
-            contGrupos.innerHTML = "";
-            contSueltas.innerHTML = "";
-
-            // Grupos
-            data.grupos.forEach(grupo => {
-
-                const divGrupo = document.createElement("div");
-                divGrupo.classList.add("grupo-item");
-
-                //Encabezado con botón expandir, checkbox y nombre
-
-                divGrupo.innerHTML = `
-                <div class="grupo-header">
-                    <label>
-                        <input type="checkbox" class="chk-grupo" data-grupo="${grupo.GrupoId}">
-                        <strong>${grupo.NombreGrupo}</strong>
-                    </label>
-                    <button type="button" class="btn-expandir" data-grupo=${grupo.GrupoId}">▶</button>
-                </div>
-
-                <div class="materias-del-grupo collapse"></div>
-            `;
-
-                //Contenedor para meter las materias de los grupos
-                const contMaterias = divGrupo.querySelector(".materias-del-grupo");
-
-                grupo.Materias.forEach(mat => {
-                    const divMat = document.createElement("div");
-                    divMat.innerHTML = `
-                        <label>
-                            <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
-                            ${mat.NombreMateria}
-                        </label>
-                    `;
-                    contMaterias.appendChild(divMat);
+                    contGrupos.appendChild(divGrupo);
                 });
 
-                contGrupos.appendChild(divGrupo);
-            });
 
+                // Materias sin grupos
+                if (data.materiasSueltas.length > 0) {
 
-            // Materias sin grupos
-            if (data.materiasSueltas.length > 0) {
+                    data.materiasSueltas.forEach(mat => {
+                        const divMat = document.createElement("div");
+                        divMat.classList.add("materia-suelta-item");
+                        divMat.innerHTML = `
+                            <label>
+                                <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
+                                ${mat.NombreMateria}
+                            </label>
+                        `;
+                        contSueltas.appendChild(divMat);
+                    });
+                }
 
-                data.materiasSueltas.forEach(mat => {
-                    const divMat = document.createElement("div");
-                    divMat.classList.add("materia-suelta-item");
-                    divMat.innerHTML = `
-                        <label>
-                            <input type="checkbox" class="chk-materia-suelta" data-materia="${mat.MateriaId}">
-                            ${mat.NombreMateria}
-                        </label>
-                    `;
-                    contSueltas.appendChild(divMat);
-                });
+                activarExpandibles();
+                activarLogicaCheckBoxes();
             }
-
-            activarExpandibles();
-            activarLogicaCheckBoxes();
+            catch (err) {
+                console.error("Error cargando grupos y materias:", err);
+            }
         }
-        catch (err) {
-            console.error("Error cargando grupos y materias:", err);
-        }
-    }
 
-    //Cambiar tabs de grupos y materias sueltas
-    document.querySelectorAll(".nav-link").forEach(btn => {
-        btn.addEventListener("click", function () {
+        //Cambiar tabs de grupos y materias sueltas
+        document.querySelectorAll(".nav-link").forEach(btn => {
+            btn.addEventListener("click", function () {
 
-            const tabId = this.dataset.tab;
+                const tabId = this.dataset.tab;
 
-            // Quitar estado activo de botones
-            document.querySelectorAll(".nav-link").forEach(b => b.classList.remove("active"));
+                // Quitar estado activo de botones
+                document.querySelectorAll(".nav-link").forEach(b => b.classList.remove("active"));
 
-            // Activar botón actual
-            this.classList.add("active");
+                // Activar botón actual
+                this.classList.add("active");
 
-            // Ocultar TODAS las pestañas
-            document.querySelectorAll(".tab-pane").forEach(tab => {
-                tab.classList.remove("active", "show");
+                // Ocultar TODAS las pestañas
+                document.querySelectorAll(".tab-pane").forEach(tab => {
+                    tab.classList.remove("active", "show");
+                });
+
+                // Mostrar pestaña seleccionada
+                document.getElementById(tabId).classList.add("active", "show");
             });
-
-            // Mostrar pestaña seleccionada
-            document.getElementById(tabId).classList.add("active", "show");
         });
-    });
 
 
         function activarExpandibles() {
@@ -274,154 +249,154 @@ if (window.__agendaFullCalendarInitialized) {
             });
         }
 
-    function activarLogicaCheckBoxes() {
+        function activarLogicaCheckBoxes() {
 
-        // Marcar un grupo marca todas sus materias
-        document.querySelectorAll(".chk-grupo").forEach(chkGrupo => {
-            chkGrupo.addEventListener("change", function () {
-                const grupoId = this.dataset.grupo;
+            // Marcar un grupo marca todas sus materias
+            document.querySelectorAll(".chk-grupo").forEach(chkGrupo => {
+                chkGrupo.addEventListener("change", function () {
+                    const grupoId = this.dataset.grupo;
 
-                document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]`)
-                    .forEach(chk => chk.checked = this.checked);
-            });
-        });
-
-        // Al desmarcar todas las materias se desmarca el grupo
-        document.querySelectorAll(".chk-materia").forEach(chk => {
-            chk.addEventListener("change", function () {
-                const grupoId = this.dataset.grupo;
-
-                const todas = document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]`);
-                const marcadas = document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]:checked`);
-
-                const chkGrupo = document.querySelector(`.chk-grupo[data-grupo="${grupoId}"]`);
-
-                // si todas las materias están marcadas se marca el grupo
-                if (marcadas.length === todas.length) chkGrupo.checked = true;
-
-                // si se desmarca alguna materia se desmarca el grupo
-                if (marcadas.length < todas.length) chkGrupo.checked = false;
-            });
-        });
-    }
-
-
-
-    // CREAR
-    document.getElementById("formEvento").addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-
-        // Obtener grupos seleccionados
-        const grupos = [...document.querySelectorAll('.chk-grupo:checked')]
-            .map(x => x.dataset.grupo)
-            .join(',');
-
-        // Obtener materias seleccionadas
-        const materias = [...document.querySelectorAll('.chk-materia:checked')]
-            .map(x => x.dataset.materia);
-
-        // Obtener materias sin grupo
-        const materiasSueltas = [...document.querySelectorAll('.chk-materia-suelta:checked')]
-            .map(x => x.dataset.materia);
-
-        const todasLasMaterias = [...materias, ...materiasSueltas].join(',');
-
-        // Agregar al FormData
-        formData.append("GruposSeleccionados", grupos);
-        formData.append("MateriasSeleccionadas", todasLasMaterias);
-
-        try {
-
-            const response = await fetch("/EventosAgenda/CrearEvento", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-
-                Swal.fire({
-                    title: "Evento creado correctamente",
-                    icon: "success"
+                    document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]`)
+                        .forEach(chk => chk.checked = this.checked);
                 });
-                limpiarFormularioEvento();
+            });
 
-                document.getElementById("modalCrearEvento").style.display = "none"; //oculta el modal
-                calendar.refetchEvents(); // Recargar eventos
+            // Al desmarcar todas las materias se desmarca el grupo
+            document.querySelectorAll(".chk-materia").forEach(chk => {
+                chk.addEventListener("change", function () {
+                    const grupoId = this.dataset.grupo;
+
+                    const todas = document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]`);
+                    const marcadas = document.querySelectorAll(`.chk-materia[data-grupo="${grupoId}"]:checked`);
+
+                    const chkGrupo = document.querySelector(`.chk-grupo[data-grupo="${grupoId}"]`);
+
+                    // si todas las materias están marcadas se marca el grupo
+                    if (marcadas.length === todas.length) chkGrupo.checked = true;
+
+                    // si se desmarca alguna materia se desmarca el grupo
+                    if (marcadas.length < todas.length) chkGrupo.checked = false;
+                });
+            });
+        }
+
+
+
+        // CREAR
+        document.getElementById("formEvento").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            // Obtener grupos seleccionados
+            const grupos = [...document.querySelectorAll('.chk-grupo:checked')]
+                .map(x => x.dataset.grupo)
+                .join(',');
+
+            // Obtener materias seleccionadas
+            const materias = [...document.querySelectorAll('.chk-materia:checked')]
+                .map(x => x.dataset.materia);
+
+            // Obtener materias sin grupo
+            const materiasSueltas = [...document.querySelectorAll('.chk-materia-suelta:checked')]
+                .map(x => x.dataset.materia);
+
+            const todasLasMaterias = [...materias, ...materiasSueltas].join(',');
+
+            // Agregar al FormData
+            formData.append("GruposSeleccionados", grupos);
+            formData.append("MateriasSeleccionadas", todasLasMaterias);
+
+            try {
+
+                const response = await fetch("/EventosAgenda/CrearEvento", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+
+                    Swal.fire({
+                        title: "Evento creado correctamente",
+                        icon: "success"
+                    });
+                    limpiarFormularioEvento();
+
+                    modalCrear.hide();
+                    calendar.refetchEvents(); // Recargar eventos
                 
 
 
-            } else {
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Ocurrió un error al crear el evento"
+                    });
+                }
+            }
+            catch (error) {
+                console.error("Error:", error);
                 Swal.fire({
                     icon: "error",
                     title: "Error",
                     text: "Ocurrió un error al crear el evento"
                 });
             }
+        });
+        // stray token removed and ensure limpiar function exists
+        function limpiarFormularioEvento() {
+            $("#formEvento")[0].reset();
+            $("#FechaInicio").val("");
+            $("#FechaFinal").val("");
         }
-        catch (error) {
-            console.error("Error:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Ocurrió un error al crear el evento"
-            });
-        }
-    });
-    // stray token removed and ensure limpiar function exists
-    function limpiarFormularioEvento() {
-        $("#formEvento")[0].reset();
-        $("#FechaInicio").val("");
-        $("#FechaFinal").val("");
-    }
 
-    //VER EN CONSOLA LOS DATOS DE LOS CHECKBOXES AL HACER CLIC
-    document.addEventListener("change", e => {
-        if (e.target.matches(".chk-grupo, .chk-materia, .chk-materia-suelta")) {
-            console.log("Click:", e.target);
-            console.log("dataset:", e.target.dataset);
-        }
-    });
+        //VER EN CONSOLA LOS DATOS DE LOS CHECKBOXES AL HACER CLIC
+        document.addEventListener("change", e => {
+            if (e.target.matches(".chk-grupo, .chk-materia, .chk-materia-suelta")) {
+                console.log("Click:", e.target);
+                console.log("dataset:", e.target.dataset);
+            }
+        });
     
 
-    // Cargar eventos del día para el modal
-    async function cargarEventosDia(fecha) {
-        try {
-            const resp = await fetch(`/EventosAgenda/ObtenerEventosPorFecha?fecha=${fecha}`);
-            const data = await resp.json();
+        // Cargar eventos del día para el modal
+        async function cargarEventosDia(fecha) {
+            try {
+                const resp = await fetch(`/EventosAgenda/ObtenerEventosPorFecha?fecha=${fecha}`);
+                const data = await resp.json();
 
-            listaEventos.innerHTML = "";
+                listaEventos.innerHTML = "";
 
-            if (data.mensaje) {
-                listaEventos.innerHTML = "<p>No hay eventos para esta fecha.</p>";
-                return;
-            }
+                if (data.mensaje) {
+                    listaEventos.innerHTML = "<p>No hay eventos para esta fecha.</p>";
+                    return;
+                }
 
-            data.forEach(ev => {
-                const div = document.createElement("div");
-                div.classList.add("evento-item");
-                div.innerHTML = `
-                    <h3 class="evento-titulo" data-id="${ev.eventoId}">${ev.titulo}</h3>
-                    <p>${ev.descripcion}</p>
-                `;
-                listaEventos.appendChild(div);
-            });
-
-            listaEventos.querySelectorAll(".evento-titulo").forEach(titulo => {
-                titulo.addEventListener("click", function () {
-                    const id = this.dataset.id;
-                    if (id) {
-                        abrirModalDetalle(id);
-                    }
+                data.forEach(ev => {
+                    const div = document.createElement("div");
+                    div.classList.add("evento-item");
+                    div.innerHTML = `
+                        <h3 class="evento-titulo" data-id="${ev.eventoId}">${ev.titulo}</h3>
+                        <p>${ev.descripcion}</p>
+                    `;
+                    listaEventos.appendChild(div);
                 });
-            });
-        } catch (e) {
-            console.error("Error cargando eventos:", e);
+
+                listaEventos.querySelectorAll(".evento-titulo").forEach(titulo => {
+                    titulo.addEventListener("click", function () {
+                        const id = this.dataset.id;
+                        if (id) {
+                            abrirModalDetalle(id);
+                        }
+                    });
+                });
+            } catch (e) {
+                console.error("Error cargando eventos:", e);
+            }
         }
-    }
 
     });
 
@@ -439,15 +414,9 @@ function convertirFechaNetAInput(fechaNet) {
 }
 
 // ---------- MODAL DE DETALLES DEL EVENTO ----------
-const modalDetalle = document.getElementById("modalDetalleEvento");
-const btnCerrarDetalle = document.querySelector(".close-detalle");
-const btnCerrarDetalle2 = document.getElementById("btnCerrarDetalle");
+const modalDetalleEl = document.getElementById("modalDetalleEvento");
 const btnEditarEvento = document.getElementById("btnEditarEvento");
 const btnEliminarEvento = document.getElementById("btnEliminarEvento");
-
-// Cerrar modal detalles
-if (btnCerrarDetalle) btnCerrarDetalle.addEventListener("click", () => { modalDetalle.style.display = "none"; });
-if (btnCerrarDetalle2) btnCerrarDetalle2.addEventListener("click", () => { modalDetalle.style.display = "none"; });
 
 async function abrirModalDetalle(eventoId) {
     try {
@@ -555,9 +524,9 @@ async function abrirModalDetalle(eventoId) {
 
 
         // Abrir modal detalle
-        modalDetalle.style.display = "flex";
 
-        modalDetalle.dataset.eventoId = evento.eventoId;
+        modalDetalleEl.dataset.eventoId = evento.eventoId;
+        modalDetalle.show();
 
     } catch (err) {
         console.error("Error abrirModalDetalle:", err);
@@ -568,22 +537,7 @@ async function abrirModalDetalle(eventoId) {
 
 
 // EDITAR
-
-// ---------- CERRAR MODAL EDITAR ----------
 const modalEditar = document.getElementById("modalEditarEvento");
-const btnCerrarEditar = document.querySelector(".close-editar");
-
-btnCerrarEditar.addEventListener("click", () => {
-    modalEditar.style.display = "none";
-});
-
-
-// Cerrar click fuera del contenido
-window.addEventListener("click", function (e) {
-    if (e.target === modalDetalle) {
-        modalDetalle.style.display = "none";
-    }
-});
 
 
 if (btnEditarEvento) btnEditarEvento.addEventListener("click", function () {
@@ -619,7 +573,7 @@ async function abrirModalEditarEvento(eventoId) {
         await cargarGruposMateriasEditar(data);
 
         // Abrir modal
-        document.getElementById("modalEditarEvento").style.display = "flex";
+        modalEditar.show();
 
     } catch (error) {
         console.error("Error al cargar evento:", error);
@@ -804,10 +758,6 @@ document.getElementById("formEditarEvento").addEventListener("submit", async fun
             icon: "success"
         });
 
-        // Cerrar modal
-        document.getElementById("modalEditarEvento").style.display = "none";
-        modalDetalle.style.display = "none";
-
         // Refrescar calendario 
         //calendar.refetchEvents(); // Recargar eventos
 
@@ -821,7 +771,6 @@ document.getElementById("formEditarEvento").addEventListener("submit", async fun
 if (btnEliminarEvento) {
     btnEliminarEvento.addEventListener("click", async function () {
         const id = modalDetalle.dataset.eventoId;
-        //modalDetalle.style.display = "none";
         
         if (!id) {
             Swal.fire({
@@ -868,8 +817,8 @@ if (btnEliminarEvento) {
                     //calendar.refetchEvents();
 
                     // Cerrar modal
-                    modalDetalle.style.display = "none";
-                    //modalEvento.style.display = "none";
+                    //modalDetalle.style.display = "none";
+                    
 
                 } catch (err) {
                     console.error("Error eliminando evento:", err);

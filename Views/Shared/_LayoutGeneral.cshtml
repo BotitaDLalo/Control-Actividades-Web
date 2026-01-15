@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     @Styles.Render("~/Content/css")
     @Styles.Render("~/Content/Variables")
+    @Styles.Render("~/Content/Moleculas")
     @Styles.Render("~/Content/Componentes")
     @Styles.Render("~/Content/Dashboard/css")
     @*@Styles.Render("~/Content/Docente/css")*@
@@ -18,7 +19,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
-    
+
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
@@ -28,12 +29,17 @@
         <div class="spinner"></div>
     </div>
     <div class="layout">
-        @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
-        @Html.Partial("~/Views/Shared/_Header.cshtml")
+        <aside class="layout-sidebar">
+            @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
+        </aside>
 
-        <div class="page">
+        <header class="layout-header">
+            @Html.Partial("~/Views/Shared/_Header.cshtml")
+        </header>
+
+        <main class="layout-content">
             @RenderBody()
-        </div>
+        </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -445,6 +445,55 @@ namespace ControlActividades.Controllers
 
 
 
+        [HttpGet]
+        [Route("ObtenerAlumnosPorGrupo")]
+        public async Task<IHttpActionResult> ObtenerAlumnosPorGrupo(int grupoId)
+        {
+            try
+            {
+                // obtener ids de materias que pertenecen al grupo
+                var materiasIds = await Db.tbGruposMaterias.Where(gm => gm.GrupoId == grupoId).Select(gm => gm.MateriaId).ToListAsync();
+
+                if (materiasIds == null || !materiasIds.Any())
+                    return Ok(new List<object>());
+
+                // obtener ids de alumnos asignados a esas materias (sin duplicados)
+                var alumnosIds = await Db.tbAlumnosMaterias.Where(am => materiasIds.Contains(am.MateriaId)).Select(am => am.AlumnoId).Distinct().ToListAsync();
+
+                if (alumnosIds == null || !alumnosIds.Any())
+                    return Ok(new List<object>());
+
+                // Db.tbAlumnos does not store email directly; resolve via UserManager using UserId
+                var alumnosEntities = await Db.tbAlumnos.Where(a => alumnosIds.Contains(a.AlumnoId)).ToListAsync();
+                var resultado = new List<object>();
+                foreach (var a in alumnosEntities)
+                {
+                    string email = string.Empty;
+                    try
+                    {
+                        var user = await UserManager.FindByIdAsync(a.UserId);
+                        if (user != null) email = user.Email ?? string.Empty;
+                    }
+                    catch { /* ignore user lookup errors */ }
+
+                    resultado.Add(new
+                    {
+                        AlumnoId = a.AlumnoId,
+                        Email = email,
+                        Nombre = a.Nombre,
+                        ApellidoPaterno = a.ApellidoPaterno,
+                        ApellidoMaterno = a.ApellidoMaterno
+                    });
+                }
+
+                return Ok(resultado);
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.BadRequest, new { e.Message });
+            }
+        }
+
 
         [HttpPut]
         [Route("ActualizarGrupo")]

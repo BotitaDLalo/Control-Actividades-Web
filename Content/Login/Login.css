@@ -14,7 +14,7 @@
 body {
     /* Center login both horizontally and vertically */
     min-height: 100vh;
-    background-color: white;
+    background-color: var(--bg-principal);
 }
 
 .signin-box {

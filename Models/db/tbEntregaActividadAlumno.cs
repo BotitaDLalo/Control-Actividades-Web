@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace ControlActividades.Models.db
 {
-    [Table("tbEntregableActividadAlumno")]
+    // Nombre correcto de la tabla en la base de datos
+    [Table("tbEntregaActividadAlumno")]
     public class tbEntregaActividadAlumno
     {
         [Key]

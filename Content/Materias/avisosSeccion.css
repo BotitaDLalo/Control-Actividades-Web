@@ -4,7 +4,7 @@
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 15px;
-    background: #ffffff;
+    background: var(--bg-principal);
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
@@ -29,20 +29,21 @@
     margin-right: 15px;
 }
 
+.aviso-fecha-publicado {
+    font-size: 14px;
+    color: var(--txt-bajo);
+}
+
 .aviso-info {
+    color: var(--txt-principal);
     flex-grow: 1;
 }
 
     .aviso-info strong {
         font-size: 24px;
         font-weight: bold;
-        color: #333;
+        color: var(--txt-principal-light);
     }
-
-.aviso-fecha-publicado {
-    font-size: 14px;
-    color: #888;
-}
 
 .aviso-fecha-entrega {
     font-size: 14px;

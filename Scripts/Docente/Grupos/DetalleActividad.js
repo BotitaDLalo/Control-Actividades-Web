@@ -15,8 +15,8 @@ function parseServerDate(dateVal) {
     if (typeof dateVal === 'string') {
         // Trim
         var s = dateVal.trim();
-        // If string looks like /Date(1620000000000)/
-        var msMatch = s.match(/\\/?Date\\(([-\\d]+)(?:[-+][0-9]+)?\\)\\/?/);
+        // If string looks like /Date(1620000000000)/ (ASP.NET JSON date)
+        var msMatch = s.match(/\/Date\((-?\d+)(?:[-+][0-9]+)?\)\/?/);
         if (msMatch) {
             var ms = parseInt(msMatch[1], 10);
             if (!isNaN(ms)) return new Date(ms);
@@ -61,7 +61,13 @@ function formatDateToLocale(dateVal) {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    if (actividadIdGlobal != null && materiaIdGlobal != null) {
+    // Re-read localStorage at runtime in case another script set the keys after this file was parsed
+    actividadIdGlobal = localStorage.getItem("actividadSeleccionada");
+    materiaIdGlobal = localStorage.getItem("materiaIdSeleccionada");
+    grupoIdGlobal = localStorage.getItem("grupoIdSeleccionado");
+    docenteIdGlobal = localStorage.getItem("docenteId");
+
+    if (actividadIdGlobal != null) {
         fetch("/Actividades/ObtenerActividadPorId?actividadId=" + actividadIdGlobal)
             .then(function (response) {
                 if (!response.ok) {
@@ -96,6 +102,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     puntajeMaximo = data.Puntaje;
                     if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = data.AlumnosEntregados || "0 de 0";
                     if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = data.ActividadesCalificadas || "0 de 0";
+
+                    // si no teníamos materiaId, obtenerla desde la actividad y guardarla
+                    try {
+                        if ((!materiaIdGlobal || materiaIdGlobal === 'null' || materiaIdGlobal === 'undefined') && data.MateriaId) {
+                            materiaIdGlobal = data.MateriaId;
+                            localStorage.setItem('materiaIdSeleccionada', materiaIdGlobal);
+                        }
+                    } catch (e) { console.warn(e); }
                 } else {
                     console.error("No se encontraron datos válidos para esta actividad.");
                 }
@@ -105,12 +119,42 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    prepararAlumnosYActividades();
+    // Esperar un poco para permitir que materiaIdGlobal se establezca a partir de la actividad
+    setTimeout(function () {
+        prepararAlumnosYActividades();
+    }, 250);
 });
 
 function prepararAlumnosYActividades() {
+    // Cargar lista de alumnos de la materia y luego solicitar las entregas desde la API
     AlumnosDeMateriaParaActividades()
-        .then(obtenerActividadesParaEvaluar)
+        .then(async function () {
+            try {
+                var actividadId = localStorage.getItem("actividadSeleccionada");
+                if (!actividadId) return;
+                const resp = await fetch('/api/Actividades/ObtenerAlumnosEntregables?actividadId=' + encodeURIComponent(actividadId));
+                if (!resp.ok) throw new Error('No se pudieron obtener las entregas');
+                const data = await resp.json();
+                // data should be RespuestaAlumnosEntregables with AlumnosEntregables list
+                actividadesData = data || {};
+
+                // construir arrays entregados / noEntregados para compatibilidad con el renderizado
+                const alumnos = JSON.parse(localStorage.getItem('alumnos_materia_' + materiaIdGlobal) || '[]');
+                const entregados = Array.isArray(data.AlumnosEntregables) ? data.AlumnosEntregables : (data.entregados || []);
+                const entregadosAlumnoIds = entregados.map(e => e.AlumnoId);
+                const noEntregados = alumnos.filter(a => !entregadosAlumnoIds.includes(a.AlumnoId));
+
+                // adaptar estructura esperada por renderizarAlumnos
+                actividadesData.entregados = entregados;
+                actividadesData.noEntregados = noEntregados.map(function (a) {
+                    return { AlumnoId: a.AlumnoId, Nombre: a.Nombre, ApellidoPaterno: a.ApellidoPaterno, ApellidoMaterno: a.ApellidoMaterno };
+                });
+
+                renderizarAlumnos(actividadesData);
+            } catch (err) {
+                console.error(err);
+            }
+        })
         .catch(function (err) { console.error(err); });
 }
 
@@ -169,17 +213,32 @@ function renderizarAlumnos(data) {
 
     if (data.entregados && listaEntregados) {
         data.entregados.forEach(function (alumno) {
+            // soportar dos formas: antiguo (AlumnoActividadId + Entrega) o nuevo (EntregaId, AlumnoId, Respuesta)
+            var nombre = alumno.Nombre || alumno.Nombres || '';
+            var apeP = alumno.ApellidoPaterno || alumno.ApellidoPaterno || alumno.ApellidoMaterno ? (alumno.ApellidoPaterno || '') : '';
+            var apeM = alumno.ApellidoMaterno || alumno.ApellidoMaterno || '';
             var fechaEntrega = alumno.FechaEntrega ? (parseServerDate(alumno.FechaEntrega) ? parseServerDate(alumno.FechaEntrega).toLocaleDateString('es-ES') : 'Sin entregar') : 'Sin entregar';
-            var fechaCalificacion = alumno.Entrega && alumno.Entrega.FechaCalificacionAsignada ? (parseServerDate(alumno.Entrega.FechaCalificacionAsignada) ? parseServerDate(alumno.Entrega.FechaCalificacionAsignada).toLocaleDateString('es-ES') : 'Sin calificar') : 'Sin calificar';
+            var fechaCalificacion = (alumno.FechaCalificacionAsignada || alumno.FechaCalificacionAsignada) ? (parseServerDate(alumno.FechaCalificacionAsignada).toLocaleDateString('es-ES')) : (alumno.FechaCalificacionAsignada ? parseServerDate(alumno.FechaCalificacionAsignada).toLocaleDateString('es-ES') : 'Sin calificar');
+
+            // id para verRespuesta: preferir EntregaId, sino AlumnoActividadId o AlumnoActividadId dentro de objeto
+            var idParaVer = alumno.AlumnoActividadId || alumno.AlumnoActividad || alumno.AlumnoActividadId || alumno.AlumnoId;
+            // id de entregable (EntregableId) usado para calificar
+            var entregableId = alumno.Entrega && alumno.Entrega.EntregaId ? alumno.Entrega.EntregaId : (alumno.EntregaId || alumno.EntregableId || 0);
+
+            var fechaCalifMostrar = 'Sin calificar';
+            if (alumno.FechaCalificado) fechaCalifMostrar = formatDateToLocale(alumno.FechaCalificado);
+            var comentarioMostrar = alumno.Comentario ? ('Comentario: ' + escapeHtml(alumno.Comentario)) : '';
 
             var alumnoHTML =
                 '<div class="list-group-item d-flex justify-content-between align-items-center">' +
-                '<div><h5 class="mb-1" style="font-weight: bold; color: #333;">' + alumno.Nombre + ' ' + alumno.ApellidoPaterno + ' ' + alumno.ApellidoMaterno + '</h5>' +
-                '<p class="mb-1" style="color: #777;">Entregó: ' + fechaEntrega + '</p></div>' +
-                '<span class="badge bg-success">Entregado</span>' +
-                '<button class="btn btn-primary btn-sm" onclick="verRespuesta(' + alumno.AlumnoActividadId + ')">Ver Respuesta</button>' +
-                '<button class="btn btn-warning btn-sm" onclick="abrirModalCalificar(' + (alumno.Entrega ? alumno.Entrega.EntregaId : 0) + ', ' + puntajeMaximo + ')">Calificar</button>' +
-                '<p class="mb-1" style="color: #777;">Calificado el: ' + fechaCalificacion + '</p>' +
+                '<div style="flex:1"><h5 class="mb-1" style="font-weight: bold; color: #333;">' + (nombre + ' ' + (alumno.ApellidoPaterno || '') + ' ' + (alumno.ApellidoMaterno || '')).trim() + '</h5>' +
+                '<p class="mb-1" style="color: #777;">Entregó: ' + fechaEntrega + '</p>' +
+                '<p class="mb-1" style="color: #777;">Calificado: ' + fechaCalifMostrar + '</p>' +
+                '<p class="mb-1" style="color: #777;">' + comentarioMostrar + '</p></div>' +
+                '<div style="display:flex;gap:8px">' +
+                '<button class="btn btn-primary btn-sm" onclick="verRespuesta(' + (idParaVer || 0) + ',' + (alumno.AlumnoId || 0) + ')">Ver Respuesta</button>' +
+                '<button class="btn btn-warning btn-sm" onclick="abrirModalCalificar(' + (entregableId || 0) + ', ' + puntajeMaximo + ')">Calificar</button>' +
+                '</div>' +
                 '</div>';
 
             listaEntregados.innerHTML += alumnoHTML;
@@ -206,31 +265,34 @@ function convertirUrlsEnEnlaces(texto) {
 }
 
 // Mostrar la respuesta (archivos / texto) de un alumno en el modal
-function verRespuesta(alumnoActividadId) {
+function verRespuesta(alumnoActividadIdSeleccionada, alumnoId) {
     try {
-        const lista = actividadesData.entregados || actividadesData.Entregados || [];
+        const lista = actividadesData.entregados || actividadesData.AlumnosEntregables || actividadesData.entregados || [];
         const found = lista.find(function (e) {
             if (!e) return false;
-            if (e.AlumnoActividadId && e.AlumnoActividadId === alumnoActividadId) return true;
-            if (e.AlumnoActividad && e.AlumnoActividad.AlumnoActividadId === alumnoActividadId) return true;
+            // match by EntregableId / EntregaId / AlumnoId / AlumnoActividadId
+            if (e.EntregableId && e.EntregableId === alumnoActividadIdSeleccionada) return true;
+            if (e.EntregaId && e.EntregaId === alumnoActividadIdSeleccionada) return true;
+            if (e.AlumnoActividadId && e.AlumnoActividadId === alumnoActividadIdSeleccionada) return true;
+            if (alumnoId && e.AlumnoId && e.AlumnoId === alumnoId) return true;
             return false;
         });
 
         if (!found) {
-            console.warn('No se encontró la entrega para AlumnoActividadId', alumnoActividadId);
+            console.warn('No se encontró la entrega para identificador', alumnoActividadIdSeleccionada, 'o alumnoId', alumnoId);
             alert('No se encontró la respuesta del alumno.');
             return;
         }
 
         // intentar extraer texto/archivos
         var respuestaRaw = null;
-        if (found.Entrega && (found.Entrega.Respuesta || found.Entrega.respuesta)) respuestaRaw = found.Entrega.Respuesta || found.Entrega.respuesta;
-        if (!respuestaRaw && (found.Respuesta || found.respuesta)) respuestaRaw = found.Respuesta || found.respuesta;
+        if (found.Contenido || found.Respuesta || found.respuesta) respuestaRaw = found.Contenido || found.Respuesta || found.respuesta;
+        if (!respuestaRaw && found.Entrega && (found.Entrega.Contenido || found.Entrega.Respuesta)) respuestaRaw = found.Entrega.Contenido || found.Entrega.Respuesta;
 
         var html = '';
         if (respuestaRaw) {
             try {
-                var parsed = JSON.parse(respuestaRaw);
+                var parsed = typeof respuestaRaw === 'string' ? JSON.parse(respuestaRaw) : respuestaRaw;
                 if (parsed) {
                     if (parsed.Archivos && Array.isArray(parsed.Archivos) && parsed.Archivos.length > 0) {
                         html += '<p><strong>Archivos adjuntos:</strong></p><ul>';
@@ -239,6 +301,8 @@ function verRespuesta(alumnoActividadId) {
                     }
                     if (parsed.Respuesta) {
                         html += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(parsed.Respuesta) + '</pre></div>';
+                    } else if (typeof parsed === 'string') {
+                        html += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(parsed) + '</pre></div>';
                     }
                 }
             } catch (err) {
@@ -300,10 +364,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var cal = parseInt(document.getElementById('calificacion').value || '0', 10);
         if (!entregaId || isNaN(cal)) { alert('Entrega o calificación inválida'); return; }
         try {
+            var comentario = (document.getElementById('comentario') || {}).value || '';
             const resp = await fetch('/api/Actividades/AsignarCalificacion', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ EntregaId: entregaId, Calificacion: cal })
+                body: JSON.stringify({ EntregaId: entregaId, Calificacion: cal, Comentario: comentario })
             });
             if (!resp.ok) throw new Error('Error al guardar la calificación');
             // cerrar modal

@@ -27,7 +27,7 @@ namespace ControlActividades.Controllers
         public EventosAgendaController()
         {
         }
-
+        #region consantes
         public EventosAgendaController(ApplicationUserManager userManager, 
             ApplicationSignInManager signInManager, 
             RoleManager<IdentityRole> roleManager, 
@@ -113,6 +113,8 @@ namespace ControlActividades.Controllers
                 _notifServ = value;
             }
         }
+
+        #endregion
         public ActionResult IrACalendario()
         {
             if (User.IsInRole("Docente"))

@@ -12,7 +12,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
-    background-color: white;
+    background-color: var(--bg-principal);
 }
 
     /* Cuando se activa */
