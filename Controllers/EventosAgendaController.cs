@@ -557,8 +557,7 @@ namespace ControlActividades.Controllers
                 titulo = eventoEntity.Titulo,
                 descripcion = eventoEntity.Descripcion,
                 fechaInicio = eventoEntity.FechaInicio.ToString("o"), // ISO 8601
-                fechaFinal = eventoEntity.FechaFinal.ToString("o"),
-                color = eventoEntity.Color
+                fechaFinal = eventoEntity.FechaFinal.ToString("o")
             };
 
             // Materias asociadas al evento (ids)

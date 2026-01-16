@@ -608,6 +608,8 @@
     <Content Include="Scripts\Administrador\Autorizar.js" />
     <Content Include="Scripts\Agenda\calendario-detalles.js" />
     <Content Include="Scripts\Agenda\calendario-crear.js" />
+    <Content Include="Scripts\Agenda\calendario-editar.js" />
+    <Content Include="Scripts\Agenda\calendario-form.js" />
     <Content Include="Scripts\Agenda\calendario.js" />
     <Content Include="Scripts\Alumnos\alumnos.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />

@@ -78,7 +78,9 @@ namespace ControlActividades
             bundles.Add(new Bundle("~/bundles/calendario")
                 .Include("~/Scripts/Agenda/calendario.js",
                          "~/Scripts/Agenda/calendario-crear.js",
-                         "~/Scripts/Agenda/calendario-detalles.js")
+                         "~/Scripts/Agenda/calendario-detalles.js",
+                         "~/Scripts/Agenda/calendario-editar.js",
+                         "~/Scripts/Agenda/calendario-form.js")
             );
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")

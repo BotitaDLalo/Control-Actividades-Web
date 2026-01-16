@@ -51,7 +51,6 @@
             document.getElementById("detalle-fecha-final").textContent =
                 new Date(evento.fechaFinal).toLocaleString("es-MX", opciones);
 
-            document.getElementById("detalle-color").textContent = evento.color;
 
             // --- DESTINATARIOS ---
             const contDest = document.getElementById("detalle-destinatarios");
@@ -116,6 +115,23 @@
             Swal.fire("Error", "Error al cargar el detalle", "error");
         }
     };
+
+    const btnEditarEvento = document.getElementById("btnEditarEvento");
+
+    if (btnEditarEvento) {
+        btnEditarEvento.addEventListener("click", () => {
+            const id = modalDetalleEl.dataset.eventoId;
+            if (!id) return;
+
+            // Notificar que se quiere editar
+            document.dispatchEvent(new CustomEvent("editarEvento", {
+                detail: { eventoId: id }
+            }));
+
+            modalDetalle.hide();
+        });
+    }
+
 
     // ELIMINAR EVENTO
     const btnEliminarEvento = document.getElementById("btnEliminarEvento");
