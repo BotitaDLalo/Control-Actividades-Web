@@ -73,9 +73,10 @@ namespace ControlActividades
                 "~/Scripts/Docente/Grupos/ActividadIA.js",
                 "~/Scripts/Docente/Grupos/Calendario.js",
                 "~/Scripts/Docente/Grupos/DetalleActividad.js",
+                // Ensure docente utilities (defines docenteIdGlobal) load before DetalleMateria
+                "~/Scripts/Docente/Grupos/docente.js",
                 "~/Scripts/Docente/Grupos/DetalleMateria.js",
                 "~/Scripts/Docente/Grupos/DetalleMaterialIconos.js",
-                "~/Scripts/Docente/Grupos/docente.js",
                 "~/Scripts/Docente/Grupos/docenteErrores.js",
                 "~/Scripts/Docente/Grupos/docenteGrupos.js",
                 "~/Scripts/Docente/Grupos/docenteMaterias.js",

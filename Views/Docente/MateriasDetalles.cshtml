@@ -306,6 +306,20 @@
         // also expose local variables expected by existing scripts
         var materiaIdGlobal = window.materiaIdGlobal;
         var grupoIdGlobal = window.grupoIdGlobal;
+        // Fallback: intentar poblar encabezado inmediatamente usando el id proporcionado por el servidor
+        try {
+            if (materiaIdGlobal) {
+                fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
+                    .then(r => { if (!r.ok) throw r; return r.json(); })
+                    .then(d => {
+                        if (d && d.NombreMateria) {
+                            var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
+                            var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
+                            try { document.querySelector('.materia-header').style.backgroundColor = (d.CodigoColor || '#d63384'); } catch (e) { }
+                        }
+                    }).catch(() => { /* no-op */ });
+            }
+        } catch (e) { }
         // Persist current materia/grupo selection so alumnos list can be restored
         try {
             if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }

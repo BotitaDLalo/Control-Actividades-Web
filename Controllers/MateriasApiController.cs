@@ -266,10 +266,29 @@ namespace ControlActividades.Controllers
         [Route("ObtenerMateriaUnica")]
         public async Task<IHttpActionResult> ObtenerMateriaUnica(int id)
         {
-            var subject = await Db.tbMaterias.FindAsync(id);
-            if (subject is null) return Content(HttpStatusCode.NotFound,"Materia no encontrado");
+            try
+            {
+                var subject = await Db.tbMaterias
+                    .Where(m => m.MateriaId == id)
+                    .Select(m => new
+                    {
+                        m.MateriaId,
+                        m.NombreMateria,
+                        m.Descripcion,
+                        m.CodigoAcceso,
+                        m.CodigoColor,
+                        m.DocenteId
+                    })
+                    .FirstOrDefaultAsync();
 
-            return Ok(subject);
+                if (subject is null) return Content(HttpStatusCode.NotFound, "Materia no encontrado");
+
+                return Ok(subject);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Error al obtener materia", error = ex.Message });
+            }
         }
 
 
