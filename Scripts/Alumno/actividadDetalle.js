@@ -96,13 +96,17 @@ async function verificarEnvio() {
 
 async function enviarEntrega() {
     const respuesta = document.getElementById('respuesta').value.trim();
+    const respuestaLink = (document.getElementById('respuestaLink') || {}).value || '';
     const fileInput = document.getElementById('fileEntrega');
-    if (!respuesta && (!fileInput || !fileInput.files || fileInput.files.length === 0)) { alert('Agrega una respuesta o un archivo.'); return; }
+    if (!respuesta && !respuestaLink && (!fileInput || !fileInput.files || fileInput.files.length === 0)) { alert('Agrega una respuesta, un link o un archivo.'); return; }
 
     const form = new FormData();
     form.append('ActividadId', actividadIdGlobal);
     form.append('AlumnoId', alumnoIdGlobal);
-    form.append('Respuesta', respuesta);
+    // Enviar contenido estructurado: Respuesta (texto) y Link opcional
+    const payload = { Respuesta: respuesta };
+    if (respuestaLink) payload.Link = respuestaLink;
+    form.append('Respuesta', JSON.stringify(payload));
     form.append('FechaEntrega', new Date().toISOString());
 
     if (fileInput && fileInput.files && fileInput.files.length > 0) {

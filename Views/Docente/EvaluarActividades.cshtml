@@ -36,11 +36,13 @@
                     </div>
                 </div>
                 <div class="row mt-3">
-                    <div class="col-md-6">
-                        <strong>Permitir entregas tarde:</strong> <span id="permitirTardeBadge" class="badge bg-secondary">Cargando...</span>
+                    <div class="col-md-6 d-flex align-items-center">
+                        <strong class="me-2">Permitir entregas tarde:</strong>
+                        <span id="permitirTardeBadge" class="badge bg-secondary me-2">No</span>
+                        <button id="togglePermitirTardeBtn" class="btn btn-sm btn-outline-primary" title="Cambiar permiso de entregas tarde" disabled>Cambiar</button>
                     </div>
                     <div class="col-md-6 text-end">
-                        <button id="togglePermitirTardeBtn" class="btn btn-sm btn-outline-primary">Cambiar</button>
+                        <!-- botón movido junto al texto de Permitir entregas tarde -->
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -208,24 +210,51 @@
                 } catch (e) { }
 
                 if (btn) {
-                    btn.addEventListener('click', async function () {
-                        try {
-                            // obtener estado actual desde badge
-                            var permitir = (badge && badge.innerText === 'Sí');
-                            var nueva = !permitir;
-                            var actividadId = localStorage.getItem('actividadSeleccionada');
-                            if (!actividadId) return alert('Actividad no identificada');
-                            var resp = await fetch(`/api/Actividades/TogglePermitirEntregasTarde?actividadId=${actividadId}&permitir=${nueva}`, { method: 'POST' });
-                            if (!resp.ok) {
-                                var txt = await resp.text().catch(() => null);
-                                alert('No se pudo actualizar: ' + (txt || resp.statusText));
-                                return;
-                            }
-                            actualizarBadge(nueva);
-                            // store in global actividadData for other scripts
-                            try { window.actividadData = window.actividadData || {}; window.actividadData.PermitirEntregasTarde = nueva; } catch (e) { }
-                        } catch (e) { console.error(e); alert('Error al actualizar permiso'); }
-                    });
+                    // asegurar que el botón se habilite si ya existe información de actividad
+                    try {
+                        if (window.actividadData && typeof window.actividadData.PermitirEntregasTarde !== 'undefined') {
+                            actualizarBadge(window.actividadData.PermitirEntregasTarde);
+                            btn.disabled = false;
+                        } else {
+                            // intentar obtener la actividad desde la API para inicializar badge
+                            (async function () {
+                                try {
+                                    var actividadIdLocal = localStorage.getItem('actividadSeleccionada');
+                                    if (!actividadIdLocal) return;
+                                    var r = await fetch('/api/Actividades/ObtenerActividad?id=' + encodeURIComponent(actividadIdLocal), { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                                    if (!r.ok) return;
+                                    var act = await r.json();
+                                    if (act) {
+                                        var permitirAct = act.PermitirEntregasTarde !== undefined ? act.PermitirEntregasTarde : (act.PermitirTarde !== undefined ? act.PermitirTarde : null);
+                                        if (permitirAct !== null) {
+                                            actualizarBadge(permitirAct);
+                                            btn.disabled = false;
+                                            try { window.actividadData = window.actividadData || {}; window.actividadData.PermitirEntregasTarde = permitirAct; } catch (e) { }
+                                        }
+                                    }
+                                } catch (e) { /* no-op */ }
+                            })();
+                        }
+
+                        btn.addEventListener('click', async function () {
+                            try {
+                                // obtener estado actual desde badge
+                                var permitir = (badge && badge.innerText === 'Sí');
+                                var nueva = !permitir;
+                                var actividadId = localStorage.getItem('actividadSeleccionada');
+                                if (!actividadId) return alert('Actividad no identificada');
+                                var resp = await fetch(`/api/Actividades/TogglePermitirEntregasTarde?actividadId=${actividadId}&permitir=${nueva}`, { method: 'POST', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                                if (!resp.ok) {
+                                    var txt = await resp.text().catch(() => null);
+                                    alert('No se pudo actualizar: ' + (txt || resp.statusText));
+                                    return;
+                                }
+                                actualizarBadge(nueva);
+                                // store in global actividadData for other scripts
+                                try { window.actividadData = window.actividadData || {}; window.actividadData.PermitirEntregasTarde = nueva; } catch (e) { }
+                            } catch (e) { console.error(e); alert('Error al actualizar permiso'); }
+                        });
+                    } catch (e) { console.warn(e); }
                 }
             } catch (e) { console.warn(e); }
         });

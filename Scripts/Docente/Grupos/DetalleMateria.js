@@ -109,7 +109,8 @@ function cambiarSeccion(seccion) {
     }
 
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`).classList.add('active');
+    var tabBtn = document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`);
+    if (tabBtn && tabBtn.classList) tabBtn.classList.add('active');
 
     // Cargar datos si se seleccionan secciones dinámicas
     if (seccion === "actividades") {

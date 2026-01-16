@@ -741,11 +741,37 @@ namespace ControlActividades.Controllers
                         entregaAlumnoId = entregaExist.EntregaActividadAlumnoId;
                     }
 
+                    // Construir contenido que incluya enlaces si la petición ya envió un JSON con Link/Enlaces
+                    string contenidoGuardar = respuesta ?? string.Empty;
+                    try
+                    {
+                        if (!string.IsNullOrWhiteSpace(respuesta))
+                        {
+                            var j = JsonConvert.DeserializeObject<dynamic>(respuesta);
+                            if (j != null)
+                            {
+                                // Si viene Link o Enlaces en el JSON enviado por el cliente, normalizar a { Respuesta, Link }
+                                if (j.Link != null || j.Enlaces != null)
+                                {
+                                    var texto = j.Respuesta != null ? (string)j.Respuesta : string.Empty;
+                                    var links = j.Link != null ? j.Link : j.Enlaces;
+                                    contenidoGuardar = JsonConvert.SerializeObject(new { Respuesta = texto, Link = links });
+                                }
+                                else
+                                {
+                                    // mantener el JSON original o el texto
+                                    contenidoGuardar = respuesta;
+                                }
+                            }
+                        }
+                    }
+                    catch { /* si falla, se conserva respuesta tal cual */ }
+
                     var entregableEntity = new tbEntregables
                     {
                         EntregaActividadAlumnoId = entregaAlumnoId,
                         TipoEntregaId = 1,
-                        Contenido = respuesta
+                        Contenido = contenidoGuardar
                     };
                     Db.tbEntregables.Add(entregableEntity);
                     await Db.SaveChangesAsync();
@@ -778,10 +804,27 @@ namespace ControlActividades.Controllers
                         entregaAlumnoId = entregaExistLegacy.AlumnoActividadId;
                     }
 
+                    // legacy: si el campo 'respuesta' contiene JSON con Link/Enlaces, normalizar antes de guardar
+                    string contenidoLegacy = respuesta ?? string.Empty;
+                    try
+                    {
+                        if (!string.IsNullOrWhiteSpace(respuesta))
+                        {
+                            var j = JsonConvert.DeserializeObject<dynamic>(respuesta);
+                            if (j != null && (j.Link != null || j.Enlaces != null))
+                            {
+                                var texto = j.Respuesta != null ? (string)j.Respuesta : string.Empty;
+                                var links = j.Link != null ? j.Link : j.Enlaces;
+                                contenidoLegacy = JsonConvert.SerializeObject(new { Respuesta = texto, Link = links });
+                            }
+                        }
+                    }
+                    catch { }
+
                     var entregableLegacy = new tbEntregableAlumno
                     {
                         AlumnoActividadId = entregaAlumnoId,
-                        Respuesta = respuesta
+                        Respuesta = contenidoLegacy
                     };
                     Db.Set<tbEntregableAlumno>().Add(entregableLegacy);
                     await Db.SaveChangesAsync();
