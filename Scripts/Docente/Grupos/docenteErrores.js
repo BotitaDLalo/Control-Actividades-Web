@@ -56,6 +56,9 @@ function alertaDeErroresGenerales(error) {
 
 // Mostrar alerta cuando la sesión no está disponible y forzar cierre.
 function AlertaCierreSesion() {
+    // Alerta deshabilitada intencionalmente para docentes.
+    // Código original comentado para mantener referencia y poder revertir fácilmente.
+    /*
     let timerInterval;
     Swal.fire({
         title: "Parece que se perdió la conexión con tu sesión.",
@@ -76,8 +79,12 @@ function AlertaCierreSesion() {
             try { cerrarSesion(); } catch (e) { window.location.href = '/Cuenta/IniciarSesion'; }
         }
     }).then((result) => {
-        /* no-op */
+        // no-op
     });
+    */
+
+    // No-op: evitar mostrar modal y no forzar cierre de sesión aquí.
+    console.log('AlertaCierreSesion desactivada (modal comentado).');
 }
 
 

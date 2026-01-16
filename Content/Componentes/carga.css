@@ -4,7 +4,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 9999;
+    /* Keep loader below Bootstrap modal/backdrop (modal-backdrop ~1050) so it won't cover modals */
+    z-index: 1040;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -12,13 +13,14 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
-    background-color: white;
+    /* make background transparent so it does not create a full-screen overlay color */
+    background-color: transparent;
 }
 
-    /* Cuando se activa */
+    /* Cuando se activa: show spinner but do not block clicks (leave interaction to modals/backdrops) */
     .carga.visible {
         opacity: 1;
-        pointer-events: auto;
+        pointer-events: none;
     }
 
 .spinner {

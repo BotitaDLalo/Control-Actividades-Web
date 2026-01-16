@@ -5,6 +5,23 @@ var grupoIdGlobal = localStorage.getItem("grupoIdSeleccionado");
 var actividadIdGlobal = localStorage.getItem("actividadSeleccionada");
 var puntajeMaximo = null;
 
+// Helper: elimina backdrops residuales y restaura el body para evitar overlay gris pegado
+function _cleanupModalBackdrops() {
+    try {
+        // jQuery if available
+        if (window.jQuery) {
+            window.jQuery('.modal-backdrop').remove();
+        } else {
+            var b = document.querySelectorAll('.modal-backdrop');
+            b.forEach(function (el) { el.parentNode && el.parentNode.removeChild(el); });
+        }
+        // quitar clase que evita scroll
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    } catch (e) { console.warn('cleanup modal backdrops error', e); }
+}
+
 function parseServerDate(dateVal) {
     if (!dateVal) return null;
     // If already a Date
@@ -317,7 +334,8 @@ function verRespuesta(alumnoActividadIdSeleccionada, alumnoId) {
         if (textoElem) textoElem.innerHTML = html;
         var modalEl = document.getElementById('respuestaModal');
         if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
+            _cleanupModalBackdrops();
+            var modal = new bootstrap.Modal(modalEl, { backdrop: true });
             modal.show();
         }
     } catch (e) {
@@ -348,7 +366,9 @@ function abrirModalCalificar(entregaId, puntajeMaximo) {
         }
         var modalEl = document.getElementById('calificarModal');
         if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
+            // limpiar backdrops residuales antes de mostrar
+            _cleanupModalBackdrops();
+            var modal = new bootstrap.Modal(modalEl, { backdrop: true });
             modal.show();
         }
     } catch (e) { console.error(e); }
