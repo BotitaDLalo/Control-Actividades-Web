@@ -5,6 +5,21 @@
         const SAFETY_TIMEOUT_MS = 8000; // force-hide after this time
 
         function mostrarLoader() {
+            // If a bootstrap modal is currently shown, don't display the global loader
+            // so it doesn't overlay or interfere with modal interactions.
+            function isModalOpen() {
+                try {
+                    return document.querySelector('.modal.show') !== null;
+                } catch (e) { return false; }
+            }
+
+            if (isModalOpen()) {
+                // ensure loader is hidden when modal is open
+                __loaderCounter = 0;
+                $("#loader").removeClass("visible");
+                return;
+            }
+
             __loaderCounter++;
             // show immediately
             $("#loader").addClass("visible");
@@ -40,6 +55,15 @@
 
         $(document).ajaxStop(function () {
             ocultarLoader();
+        });
+
+        // If a modal is shown while a loader is visible, force-hide the loader so the modal remains usable
+        $(document).on('shown.bs.modal', function () {
+            try {
+                __loaderCounter = 0;
+                $("#loader").removeClass("visible");
+                if (__loaderSafetyTimeout) { clearTimeout(__loaderSafetyTimeout); __loaderSafetyTimeout = null; }
+            } catch (e) { }
         });
 
         // Mostrar loader en cambio de página

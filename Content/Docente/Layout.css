@@ -297,3 +297,27 @@ Estilos del submenu usuario*/
     right: 8px;
 }
 
+/* ===== Fix para conflictos de z-index con modals =====
+   Varias hojas de estilo personalizadas usan z-index altos (2000..2060)
+   lo que puede dejar los modales de Bootstrap por debajo y hacer que
+   el backdrop o elementos personalizados intercepten los clicks.
+   Forzamos valores superiores para que los modales queden por encima.
+*/
+.modal-backdrop {
+    z-index: 2990 !important;
+}
+.modal {
+    z-index: 3000 !important;
+}
+.modal.show {
+    z-index: 3000 !important;
+}
+
+/* Si hay modales personalizados que usan clases distintas, esta regla
+   asegura que el contenido del modal reciba eventos (pointer-events).
+*/
+.modal .modal-content,
+.modal .modal-dialog {
+    pointer-events: auto;
+}
+

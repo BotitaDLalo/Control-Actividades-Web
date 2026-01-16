@@ -23,6 +23,13 @@
         pointer-events: none;
     }
 
+/* Ensure the spinner and any children never capture pointer events so the
+   UI remains interactive while the visual loader is shown. */
+.carga,
+.carga * {
+    pointer-events: none !important;
+}
+
 .spinner {
     border: 8px solid #f3f3f3;
     border-top: 8px solid #3498db;
