@@ -49,7 +49,10 @@ namespace ControlActividades.Controllers
                     query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
 
-                var actividadesEntities = await query.ToListAsync();
+                // Ordenar por fecha de creación descendente para que lo más reciente aparezca primero
+                var actividadesEntities = await query
+                    .OrderByDescending(a => a.FechaCreacion)
+                    .ToListAsync();
 
                 if (actividadesEntities == null || actividadesEntities.Count == 0)
                 {
