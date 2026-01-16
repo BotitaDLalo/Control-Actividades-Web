@@ -161,27 +161,37 @@
 
     <!--Editar-->
     <div class="modal fade modal-custom" id="modalEditarEvento" tabindex="-1">
-        <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
 
             <div class="modal-content modal-content-custom">
 
                 <div class="modal-header modal-header-custom">
                     <h5 class="modal-title modal-title-custom">Editar evento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body modal-body-custom">
+
                     <form id="formEditarEvento" class="form-custom">
                         <input type="hidden" id="editar-evento-id" />
 
                         <label for="editar-titulo">Título:</label>
                         <input type="text" id="editar-titulo" required>
 
-                        <label for="editar-fecha-inicio">Fecha inicio:</label>
-                        <input type="datetime-local" id="editar-fecha-inicio" required>
+                        <label for="editar-descripcion">Descripción:</label>
+                        <textarea id="editar-descripcion" name="Descripcion" required></textarea>
 
-                        <label for="editar-fecha-final">Fecha final:</label>
-                        <input type="datetime-local" id="editar-fecha-final">
+                        <div class="fechas-juntas">
+                            <div class="campo-fecha">
+                                <label for="editar-fecha-inicio">Fecha inicio:</label>
+                                <input type="datetime-local" id="editar-fecha-inicio" required>
+                            </div>
+
+                            <div class="campo-fecha">
+                                <label for="editar-fecha-final">Fecha final:</label>
+                                <input type="datetime-local" id="editar-fecha-final">
+                            </div>
+                        </div>
 
                         <label for="editar-color">Color:</label>
                         <select id="editar-color" name="Color" required>
@@ -189,14 +199,9 @@
                             <option value="gris">Gris</option>
                         </select>
 
+                        <h3>Destinatarios</h3>
 
-                        <label for="editar-descripcion">Descripción:</label>
-                        <textarea id="editar-descripcion"></textarea>
-
-                        <p class="titulo-seccion">Destinatarios:</p>
-
-                        <div class="grupos-materias-container" id="editar-contenedorGruposMaterias">
-                        </div>
+                        <div class="grupos-materias-container" id="editar-contenedorGruposMaterias"></div>
 
                         <button type="submit" class="btn btn-primary-custom">Guardar cambios</button>
                     </form>
