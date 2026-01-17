@@ -201,7 +201,29 @@
 
                         <h3>Destinatarios</h3>
 
-                        <div class="grupos-materias-container" id="editar-contenedorGruposMaterias"></div>
+                        <div class="tab-style-4 card-style mb-30">
+                            <nav class="nav nav-tabs">
+                                <button type="button" class="nav-link-custom active" data-tab="tabGruposEditar">
+                                    Grupos
+                                </button>
+
+                                <button type="button" class="nav-link-custom" data-tab="tabMateriasSueltasEditar">
+                                    Materias sin grupo
+                                </button>
+                            </nav>
+
+                            <div class="tab-content">
+                                <!--Contenedor de grupos-->
+                                <div id="tabGruposEditar" class="tab-pane fade active show">
+                                    <div id="contenedorGruposEditar"></div>
+                                </div>
+
+                                <!--Contenedor de materias sueltas-->
+                                <div id="tabMateriasSueltasEditar" class="tab-pane fade">
+                                    <div id="contenedorMateriasSueltasEditar"></div>
+                                </div>
+                            </div>
+                        </div>
 
                         <button type="submit" class="btn btn-primary-custom">Guardar cambios</button>
                     </form>
@@ -221,8 +243,7 @@
     </script>
     <script src="~/Scripts/Agenda/calendario.js"></script>
     <script src="~/Scripts/Agenda/calendario-crear.js"></script>
-    <!--/*<script src="~/Scripts/Docente/AgendaFullCalendar.js"></script>-->
-
+    
 }
 
 @section Styles {

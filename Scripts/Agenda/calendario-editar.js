@@ -1,6 +1,19 @@
 ﻿let modalEditar;
 let modalEditarEl;
 
+document.addEventListener("DOMContentLoaded", () => {
+    modalEditarEl = document.getElementById("modalEditarEvento");
+    modalEditar = bootstrap.Modal.getOrCreateInstance(modalEditarEl);
+
+    activarTabs();
+});
+
+
+//Escuchar evento (viene de calendario-detalles) para abrir el modal de editar
+document.addEventListener("editarEvento", (e) => {
+    const { eventoId } = e.detail;
+    abrirModalEditarEvento(eventoId);
+});
 function convertirFechaNetAInput(fechaNet) {
     const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
     const fechaUTC = new Date(timestamp);
@@ -10,17 +23,19 @@ function convertirFechaNetAInput(fechaNet) {
 
     return fechaLocal.toISOString().slice(0, 16);
 }
+function activarTabs() {
+    document.querySelectorAll("#modalEditarEvento .nav-link-custom").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const tabId = this.dataset.tab;
 
-document.addEventListener("DOMContentLoaded", () => {
-    modalEditarEl = document.getElementById("modalEditarEvento");
-    modalEditar = bootstrap.Modal.getOrCreateInstance(modalEditarEl);
-});
+            document.querySelectorAll("#modalEditarEvento .nav-link-custom").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
 
-//Escuchar evento (viene de calendario-detalles) para abrir el modal de editar
-document.addEventListener("editarEvento", (e) => {
-    const { eventoId } = e.detail;
-    abrirModalEditarEvento(eventoId);
-});
+            document.querySelectorAll("#modalEditarEvento .tab-pane").forEach(tab => tab.classList.remove("active", "show"));
+            document.getElementById(tabId).classList.add("active", "show");
+        });
+    });
+}
 
 async function abrirModalEditarEvento(eventoId) {
     try {
@@ -32,13 +47,13 @@ async function abrirModalEditarEvento(eventoId) {
         document.getElementById("editar-evento-id").value = data.eventoId;
         document.getElementById("editar-titulo").value = data.titulo;
         document.getElementById("editar-descripcion").value = data.descripcion;
-        document.getElementById("editar-color").value = data.color;
 
         document.getElementById("editar-fecha-inicio").value =
             convertirFechaNetAInput(data.fechaInicio);
         document.getElementById("editar-fecha-final").value =
             convertirFechaNetAInput(data.fechaFinal);
 
+        document.getElementById("editar-color").value = data.color;
         await cargarGruposMateriasEditar(data);
 
         modalEditar.show();
@@ -49,14 +64,18 @@ async function abrirModalEditarEvento(eventoId) {
     }
 }
 
+
 // Cargar grupos y/o materias en el modal
 async function cargarGruposMateriasEditar(evento) {
     try {
         const resp = await fetch("/EventosAgenda/ObtenerGruposYMaterias");
         const data = await resp.json();
 
-        const contenedor = document.getElementById("editar-contenedorGruposMaterias");
-        contenedor.innerHTML = ""; // limpiar
+        const contGrupos = document.getElementById("contenedorGruposEditar");
+        const contSueltas = document.getElementById("contenedorMateriasSueltasEditar");
+
+        contGrupos.innerHTML = ""; // limpiar
+        contSueltas.innerHTML = ""; // limpiar
 
         // GRUPOS
         data.grupos.forEach(grupo => {
@@ -64,15 +83,17 @@ async function cargarGruposMateriasEditar(evento) {
             divGrupo.classList.add("grupo-item");
 
             divGrupo.innerHTML = `
+            <div class="grupo-header">
                 <label>
                     <input type="checkbox" class="editar-chk-grupo" data-grupo="${grupo.GrupoId}">
                     <strong>${grupo.NombreGrupo}</strong>
                 </label>
-                <div class="editar-materias-del-grupo" style="margin-left: 20px;"></div>
+                <button type="button" class="btn-expandir" data-grupo="${grupo.GrupoId}">▶</button>
+            </div>
+            <div class="editar-materias-del-grupo hidden"></div>
             `;
 
             const contMat = divGrupo.querySelector(".editar-materias-del-grupo");
-
             grupo.Materias.forEach(mat => {
                 const divMat = document.createElement("div");
 
@@ -89,30 +110,30 @@ async function cargarGruposMateriasEditar(evento) {
                 contMat.appendChild(divMat);
             });
 
-            contenedor.appendChild(divGrupo);
+            contGrupos.appendChild(divGrupo);
         });
 
         // MATERIAS SIN GRUPO
-        if (data.materiasSueltas.length > 0) {
-            const titulo = document.createElement("h4");
-            titulo.textContent = "Materias sin grupo";
-            contenedor.appendChild(titulo);
+        
+            
+        data.materiasSueltas.forEach(mat => {
+            const divMat = document.createElement("div");
+            divMat.classList.add("materia-suelta-item");
+            divMat.innerHTML = `
+                <label>
+                    <input type="checkbox"
+                            class="editar-chk-materia-suelta"
+                            data-materia="${mat.MateriaId}">
+                    ${mat.NombreMateria}
+                </label>
+            `;
 
-            data.materiasSueltas.forEach(mat => {
-                const divMat = document.createElement("div");
+            contSueltas.appendChild(divMat);
+        });
 
-                divMat.innerHTML = `
-                    <label>
-                        <input type="checkbox"
-                               class="editar-chk-materia-suelta"
-                               data-materia="${mat.MateriaId}">
-                        ${mat.NombreMateria}
-                    </label>
-                `;
-
-                contenedor.appendChild(divMat);
-            });
-        }
+        activarExpandibles();
+        activarLogicaCheckBoxes();
+        
 
         // Materias y grupos seleccionados
         marcarSeleccionadosEditar(evento);
@@ -123,6 +144,40 @@ async function cargarGruposMateriasEditar(evento) {
         console.error("Error al cargar grupos/materias para editar:", error);
     }
 }
+
+function activarExpandibles() {
+    document.querySelectorAll(".btn-expandir").forEach(boton => {
+        boton.addEventListener("click", function () {
+            const contenedorMaterias = this.closest(".grupo-item").querySelector(".editar-materias-del-grupo");
+            const estaOculto = contenedorMaterias.classList.contains("hidden");
+            contenedorMaterias.classList.toggle("hidden", !estaOculto);
+            this.textContent = estaOculto ? "▼" : "▶";
+        });
+    });
+}
+
+function activarLogicaCheckBoxes() {
+    // Grupo -> materias
+    document.querySelectorAll(".editar-chk-grupo").forEach(chkGrupo => {
+        chkGrupo.addEventListener("change", function () {
+            const grupoId = this.dataset.grupo;
+            document.querySelectorAll(`.editar-chk-materia[data-grupo="${grupoId}"]`)
+                .forEach(chk => chk.checked = this.checked);
+        });
+    });
+
+    // Materias -> grupo
+    document.querySelectorAll(".editar-chk-materia").forEach(chk => {
+        chk.addEventListener("change", function () {
+            const grupoId = this.dataset.grupo;
+            const todas = document.querySelectorAll(`.editar-chk-materia[data-grupo="${grupoId}"]`);
+            const marcadas = document.querySelectorAll(`.editar-chk-materia[data-grupo="${grupoId}"]:checked`);
+            const chkGrupo = document.querySelector(`.editar-chk-grupo[data-grupo="${grupoId}"]`);
+            chkGrupo.checked = (marcadas.length === todas.length);
+        });
+    });
+}
+
 
 function marcarSeleccionadosEditar(evento) {
 
