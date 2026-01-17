@@ -411,6 +411,7 @@
     <Compile Include="Controllers\AlumnoApiController.cs" />
     <Compile Include="Controllers\AlumnoController.cs" />
     <Compile Include="Controllers\AvisosApiController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CargaMasivaController.cs" />
     <Compile Include="Controllers\DebugApiController.cs" />
     <Compile Include="Controllers\DevController.cs" />
@@ -427,6 +428,7 @@
     <Compile Include="Controllers\MateriasController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
     <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
+    <Compile Include="Filters\NoCacheAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -611,6 +613,8 @@
     <Content Include="Scripts\Administrador\Autorizar.js" />
     <Content Include="Scripts\Agenda\calendario-detalles.js" />
     <Content Include="Scripts\Agenda\calendario-crear.js" />
+    <Content Include="Scripts\Agenda\calendario-editar.js" />
+    <Content Include="Scripts\Agenda\calendario-form.js" />
     <Content Include="Scripts\Agenda\calendario.js" />
     <Content Include="Scripts\Alumnos\alumnos.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
@@ -752,6 +756,7 @@
     <Content Include="Views\Materias\MateriasModal.cshtml" />
     <Content Include="Views\Materias\CrearActividadModal.cshtml" />
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
+    <Content Include="Views\Administrador\VerDocentes.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
@@ -776,6 +781,7 @@
     <Folder Include="Dashboard\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
+    <Folder Include="Views\Base\" />
     <Folder Include="Views\Eventos\" />
   </ItemGroup>
   <ItemGroup>

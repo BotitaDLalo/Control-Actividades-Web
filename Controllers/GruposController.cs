@@ -20,7 +20,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ControlActividades.Controllers
 {
-    public class GruposController : Controller
+    public class GruposController : BaseController
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;

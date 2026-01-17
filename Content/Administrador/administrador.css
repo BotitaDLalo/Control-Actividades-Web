@@ -1,9 +1,34 @@
 ﻿.table-responsive {
     margin: 30px 0;
 }
-
-.table td, .table th {
-    font-size: 22px;
+.container-custom {
+    background-color: var(--bg-principal);
+    padding: 20px;
+    margin: 18px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.title-custom {
+    padding-left: 18px;
+    padding-top: 10px;
+    color: var(--txt-principal);
+}
+.table-header-custom {
+    color: var(--txt-principal);
+    font-size: 14px;
+}
+.table-body-custom .table tr .table td{
+    color: var(--txt-principal-light);
+}
+.table-tr-custom {
+    background: yellow;
+}
+.table td {
+    background: var(--bg-principal-light);
+    font-size: 12px;
+    color: var(--txt-principal-light);
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 #modalValidacion p {

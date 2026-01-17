@@ -1,4 +1,4 @@
-﻿// Prevent duplicate initialization
+// Prevent duplicate initialization
 (function () {
 
     if (window.__agendaFullCalendarInitialized) {
@@ -151,16 +151,7 @@
             return date.toISOString().split("T")[0];
         }
 
-        function convertirFechaNetAInput(fechaNet) {
-            const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
-            const fechaUTC = new Date(timestamp);
-
-            // Convertir a hora local sin que el navegador lo cambie
-            const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
-
-            return fechaLocal.toISOString().slice(0, 16);
-        }
-
+        //Cuando se crea un evento, recargar eventos
         document.addEventListener('eventoCreado', () => {
             calendar.refetchEvents();
         });
@@ -178,3 +169,12 @@
 
 })();
 
+function convertirFechaNetAInput(fechaNet) {
+    const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
+    const fechaUTC = new Date(timestamp);
+
+    // Convertir a hora local sin que el navegador lo cambie
+    const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
+
+    return fechaLocal.toISOString().slice(0, 16);
+}
