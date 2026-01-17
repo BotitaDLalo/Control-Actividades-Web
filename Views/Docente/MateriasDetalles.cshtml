@@ -20,6 +20,7 @@
         </div>
     <script>
         // Cargar y mostrar actividades como accordion; dentro cargar entregables ordenados por alumno
+        // Asegurar que el HTML generado no rompa el diseño: envolvemos en contenedores y usamos clases de bootstrap
         async function cargarActividadesParaEntregables() {
             try {
                 var cont = document.getElementById('listaEntregables');
@@ -30,16 +31,45 @@
                 const payload = await resp.json();
                 const lista = payload && payload.Actividades ? payload.Actividades : (Array.isArray(payload) ? payload : []);
                 if (!lista || lista.length === 0) { cont.innerHTML = '<p class="text-muted p-3">No hay actividades para esta materia.</p>'; return; }
-
-                var html = '<div class="accordion" id="accordionActividades">';
+                // Build accordion inside a card for better layout
+                var html = '<div class="card"><div class="card-body p-0"><div class="accordion" id="accordionActividades">';
                 lista.forEach(function (a, idx) {
                     var id = a.ActividadId || a.actividadId || a.Id || ('act_' + idx);
                     var nombre = a.NombreActividad || a.nombreActividad || a.Nombre || ('Actividad ' + id);
                     var descripcion = a.Descripcion || '';
-                    html += `<div class="accordion-item">\n                        <h2 class="accordion-header" id="heading${id}">\n                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="false" aria-controls="collapse${id}">\n                            ${escapeHtml(nombre)}\n                          </button>\n                        </h2>\n                        <div id="collapse${id}" class="accordion-collapse collapse" aria-labelledby="heading${id}" data-bs-parent="#accordionActividades">\n                          <div class="accordion-body" data-actividad-id="${id}">\n                            <p class="text-muted">${escapeHtml(descripcion)}</p>\n                            <div class="entregables-contenedor" id="cont_entregables_${id}"><small class="text-muted">Presiona el encabezado para cargar entregables.</small></div>\n                          </div>\n                        </div>\n                      </div>`;
+                    html += `<div class="accordion-item">\n                        <h2 class="accordion-header" id="heading${id}">\n                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="false" aria-controls="collapse${id}">\n                            ${escapeHtml(nombre)}\n                          </button>\n                        </h2>\n                        <div id="collapse${id}" class="accordion-collapse collapse" aria-labelledby="heading${id}" data-bs-parent="#accordionActividades">\n                          <div class="accordion-body" data-actividad-id="${id}">\n                            <p class="text-muted mb-2">${escapeHtml(descripcion)}</p>\n                            <div class="entregables-contenedor" id="cont_entregables_${id}"><small class="text-muted">Presiona el encabezado para cargar entregables.</small></div>\n                          </div>\n                        </div>\n                      </div>`;
                 });
-                html += '</div>';
+                html += '</div></div></div>';
                 cont.innerHTML = html;
+                // Para cada actividad, consultar rápidamente si tiene entregables pendientes (sin calificar)
+                lista.forEach(async function (a, idx) {
+                    try {
+                        var id = a.ActividadId || a.actividadId || a.Id || ('act_' + idx);
+                        var badgeEl = document.querySelector(`#heading${id} .badge-pendientes`);
+                        // fetch entregables for this activity and count pendientes
+                        const r = await fetch(`/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(id)}`);
+                        if (!r.ok) return;
+                        const d = await r.json();
+                        const items = d && d.AlumnosEntregables ? d.AlumnosEntregables : [];
+                        const pendientes = items.filter(it => it.Calificacion === null || typeof it.Calificacion === 'undefined').length;
+                        if (pendientes > 0) {
+                            var btn = document.querySelector(`#heading${id} .accordion-button`);
+                            if (btn) {
+                                // append small badge if not present (styled to not break layout)
+                                if (!btn.querySelector('.badge-pendientes')) {
+                                    var span = document.createElement('span');
+                                    span.className = 'badge bg-danger ms-2 badge-pendientes';
+                                    span.style.fontSize = '0.8rem';
+                                    span.style.verticalAlign = 'middle';
+                                    span.innerText = pendientes;
+                                    btn.appendChild(span);
+                                } else {
+                                    badgeEl.innerText = pendientes;
+                                }
+                            }
+                        }
+                    } catch (e) { /* ignore per-activity errors */ }
+                });
 
                 lista.forEach(function (a, idx) {
                     var id = a.ActividadId || a.actividadId || a.Id || ('act_' + idx);
@@ -171,9 +201,11 @@
                 <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
 
                 <label for="selectActividadEntregables" class="mb-0">Filtrar por actividad:</label>
-                <select id="selectActividadEntregables" class="form-select form-select-sm">
-                    <option value="0">-- Seleccione una actividad --</option>
-                </select>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <select id="selectActividadEntregables" class="form-select form-select-sm">
+                        <option value="0">-- Seleccione una actividad --</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
@@ -240,7 +272,7 @@
 
 @section Scripts {
     <script>
-        async function cargarActividadesParaEntregables() {
+        async function poblarSelectActividadesEntregables() {
             try {
                 var sel = document.getElementById('selectActividadEntregables');
                 if (!sel) return;
@@ -274,11 +306,26 @@
         // also expose local variables expected by existing scripts
         var materiaIdGlobal = window.materiaIdGlobal;
         var grupoIdGlobal = window.grupoIdGlobal;
+        // Fallback: intentar poblar encabezado inmediatamente usando el id proporcionado por el servidor
+        try {
+            if (materiaIdGlobal) {
+                fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
+                    .then(r => { if (!r.ok) throw r; return r.json(); })
+                    .then(d => {
+                        if (d && d.NombreMateria) {
+                            var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
+                            var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
+                            try { document.querySelector('.materia-header').style.backgroundColor = (d.CodigoColor || '#d63384'); } catch (e) { }
+                        }
+                    }).catch(() => { /* no-op */ });
+            }
+        } catch (e) { }
         // Persist current materia/grupo selection so alumnos list can be restored
         try {
-            if (materiaIdGlobal) localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal));
-            if (grupoIdGlobal && grupoIdGlobal !== '0') localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal));
+            if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }
+            if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
         } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
+    
     </script>
     @Scripts.Render("~/bundles/jqueryval")
 
@@ -324,9 +371,8 @@
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
                 });
-
-        // Cargar actividades en el filtro de entregables
-        document.addEventListener('DOMContentLoaded', function () { cargarActividadesParaEntregables(); });
+                // Actualizar lista de actividades en la sección Entregables
+                cargarActividadesParaEntregables();
                 if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); return true; }
                 else { Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
             } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }

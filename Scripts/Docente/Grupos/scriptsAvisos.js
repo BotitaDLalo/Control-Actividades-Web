@@ -95,7 +95,21 @@ async function cargarAvisosDeMateria() {
     try {
         const response = await fetch(`/Materias/ObtenerAvisos?IdMateria=${materiaIdGlobal}`);
         if (!response.ok) throw new Error("No se encontraron avisos.");
-        const avisos = await response.json();
+        const payload = await response.json();
+        // payload puede venir como un arreglo directo o como { avisos: [...], RolUsuario: ... }
+        let avisos = [];
+        if (Array.isArray(payload)) {
+            avisos = payload;
+        } else if (payload && Array.isArray(payload.avisos)) {
+            avisos = payload.avisos;
+        } else if (payload && Array.isArray(payload.resultado)) {
+            avisos = payload.resultado;
+        } else {
+            // intentar extraer la primera propiedad que sea un array
+            const arr = payload && typeof payload === 'object' ? Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v)) : null;
+            if (arr) avisos = arr;
+        }
+
         renderizarAvisos(avisos);
     } catch (error) {
         listaAvisos.innerHTML = `<p class="aviso-error">${error.message}</p>`;
@@ -106,14 +120,15 @@ function renderizarAvisos(avisos) {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
     listaAvisos.innerHTML = ""; // Limpiar el contenedor
 
-    if (avisos.length === 0) {
+    if (!avisos || avisos.length === 0) {
         listaAvisos.innerHTML = "<p>No hay avisos registrados para esta materia.</p>";
         return;
     }
-    avisos.reverse();
 
+    // asegurarse que es array y clonarlo antes de invertir para no mutar origen
+    const items = avisos.slice().reverse();
 
-    avisos.forEach(aviso => {
+    items.forEach(aviso => {
         const avisoItem = document.createElement("div");
         avisoItem.classList.add("aviso-item");
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
@@ -123,7 +138,7 @@ function renderizarAvisos(avisos) {
                 <div class="aviso-icono">📢</div>
                 <div class="aviso-info">
                     <strong>${aviso.Titulo}</strong>
-                    <p class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion}</p>
+                    <p class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</p>
                     <p class="ver-completo">Ver completo</p>
                 </div>
                 <div class="aviso-botones-container">

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Web;
 using System.Web.Optimization;
 
@@ -93,9 +93,10 @@ namespace ControlActividades
                 "~/Scripts/Docente/Grupos/ActividadIA.js",
                 "~/Scripts/Docente/Grupos/Calendario.js",
                 "~/Scripts/Docente/Grupos/DetalleActividad.js",
+                // Ensure docente utilities (defines docenteIdGlobal) load before DetalleMateria
+                "~/Scripts/Docente/Grupos/docente.js",
                 "~/Scripts/Docente/Grupos/DetalleMateria.js",
                 "~/Scripts/Docente/Grupos/DetalleMaterialIconos.js",
-                "~/Scripts/Docente/Grupos/docente.js",
                 "~/Scripts/Docente/Grupos/docenteErrores.js",
                 "~/Scripts/Docente/Grupos/docenteGrupos.js",
                 "~/Scripts/Docente/Grupos/docenteMaterias.js",
@@ -119,8 +120,8 @@ namespace ControlActividades
             //    "~/Scripts/Alumno/*.js"));
 
 
-            //ALUMNO
-            bundles.Add(new Bundle("~/bundles/alumno").Include(
+            // Use plain Bundle to avoid Microsoft Ajax minifier failing on newer JS syntax
+            var alumnoBundle = new Bundle("~/bundles/alumno").Include(
                  "~/Scripts/Alumno/alumno.js",
                  "~/Scripts/Alumno/Avisos.js",
                  "~/Scripts/Alumno/Clases.js",
@@ -130,7 +131,8 @@ namespace ControlActividades
                  "~/Scripts/Alumno/VentanasDi.js",
                  "~/Scripts/Alumno/Vistamaterias.js",
                  "~/Scripts/Componentes/componenteAvisos.js"
-            ));
+            );
+            bundles.Add(alumnoBundle);
 
             bundles.Add(new StyleBundle("~/Content/Alumno").Include(
                 "~/Content/Alumno/*.css")

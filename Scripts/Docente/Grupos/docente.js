@@ -1,6 +1,6 @@
 var div = document.getElementById("docente-datos");
 var docenteIdGlobal = div && div.dataset ? div.dataset.docenteid : null;
-let materiasPorCrear = []; // Lista de materias a crear
+var materiasPorCrear = []; // Lista de materias a crear
 let intentosAcceder = 0;
 
 

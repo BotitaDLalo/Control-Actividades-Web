@@ -130,3 +130,33 @@
         gap: 8px;
     }
 }
+
+/* Contenedor de actividades en la vista de alumno: permitir scroll vertical
+   si hay muchas actividades (evita que sólo se vean 3 y el resto quede fuera)
+*/
+#listaActividadesAlumno,
+#listaActividadesDeMateria {
+    max-height: 520px; /* ajustable según diseño */
+    overflow-y: auto;
+    padding-right: 8px; /* espacio para la scrollbar en algunos navegadores */
+}
+
+/* Espacio entre items y mejora de ergonomía en pantallas pequeñas */
+.actividad-item {
+    margin-bottom: 12px;
+}
+
+/* Scrollbar thin styling (soporta WebKit / Blink y Firefox modernos) */
+#listaActividadesAlumno::-webkit-scrollbar,
+#listaActividadesDeMateria::-webkit-scrollbar {
+    width: 10px;
+}
+#listaActividadesAlumno::-webkit-scrollbar-thumb,
+#listaActividadesDeMateria::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.15);
+    border-radius: 6px;
+}
+#listaActividadesAlumno {
+    -ms-overflow-style: auto; /* IE/Edge */
+    scrollbar-width: thin; /* Firefox */
+}

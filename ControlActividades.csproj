@@ -426,6 +426,7 @@
     <Compile Include="Controllers\MateriasApiController.cs" />
     <Compile Include="Controllers\MateriasController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
+    <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

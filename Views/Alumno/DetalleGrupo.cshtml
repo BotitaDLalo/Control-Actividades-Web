@@ -2,16 +2,20 @@
     Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
     ViewData["Title"] = "Inicio - Alumno";
 
-    int alumnoId = ViewBag.AlumnoId;
+    int alumnoId = 0;
+    if (ViewBag.AlumnoId != null)
+    {
+        int.TryParse(ViewBag.AlumnoId.ToString(), out alumnoId);
+    }
 }
 
 @*@model ControlActividades.Models.db.tbGrupos;*@
 
 <div class="materia-container">
     <div class="materia-header" id="materiaHeader">
-        <h2>@Model.NombreGrupo</h2>
+        <h2>@(Model?.NombreGrupo ?? "")</h2>
         <div class="materia-info">
-            <span>Código de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
+            <span>Código de clase: <strong id="codigoAcceso">@(Model?.CodigoAcceso ?? "")</strong></span>
             <i class="fas fa-cog"></i>
         </div>
     </div>

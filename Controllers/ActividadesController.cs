@@ -49,7 +49,10 @@ namespace ControlActividades.Controllers
                     query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
 
-                var actividadesEntities = await query.ToListAsync();
+                // Ordenar por fecha de creación descendente para que lo más reciente aparezca primero
+                var actividadesEntities = await query
+                    .OrderByDescending(a => a.FechaCreacion)
+                    .ToListAsync();
 
                 if (actividadesEntities == null || actividadesEntities.Count == 0)
                 {
@@ -153,28 +156,28 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var actividad = await Db.tbActividades
-                    .Where(a => a.ActividadId == actividadId)
-                    .Select(a => new
-                    {
-                        a.ActividadId,
-                        a.NombreActividad,
-                        a.Descripcion,
-                        a.MateriaId,
-                        FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        a.Puntaje,
-                        a.Enviado,
-                        a.PermitirEntregasTarde,
-                        FechaProgramada = a.FechaProgramada
-                    })
-                    .FirstOrDefaultAsync();
-
-                if (actividad == null)
+                // Cargar la entidad y mapear a DTO en memoria para evitar errores de traducción de EF
+                var entidad = await Db.tbActividades.FindAsync(actividadId);
+                if (entidad == null)
                 {
                     Response.StatusCode = 404; // Not Found
                     return Json(new { mensaje = "No se encontró la actividad con el ID especificado." }, JsonRequestBehavior.AllowGet);
                 }
+
+                var actividad = new
+                {
+                    entidad.ActividadId,
+                    entidad.NombreActividad,
+                    entidad.Descripcion,
+                    entidad.MateriaId,
+                    FechaCreacion = entidad.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = entidad.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    entidad.Puntaje,
+                    entidad.Enviado,
+                    // PermitirEntregasTarde no está mapeado en la BD (NotMapped); devolver valor por defecto
+                    PermitirEntregasTarde = entidad.PermitirEntregasTarde,
+                    FechaProgramada = entidad.FechaProgramada
+                };
 
                 return Json(actividad, JsonRequestBehavior.AllowGet);
             }
