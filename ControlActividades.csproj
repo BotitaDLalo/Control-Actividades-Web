@@ -484,6 +484,7 @@
     <Compile Include="Models\db\tbMaterias.cs" />
     <Compile Include="Models\db\tbNotificaciones.cs" />
     <Compile Include="Models\db\tbUsuariosFcmTokens.cs" />
+    <Compile Include="Models\FormsViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\ModelosGenerales.cs" />
@@ -526,10 +527,13 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\cards.css" />
     <Content Include="Content\Componentes\modal.css" />
+    <Content Include="Content\Dashboard\cards-grupos-materias.css" />
     <Content Include="Content\Dashboard\header.css" />
     <Content Include="Content\dataTables.dataTables.css" />
     <Content Include="Content\dataTables.dataTables.min.css" />
     <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\grupo_2.svg" />
+    <Content Include="Content\Iconos\materia_2.svg" />
     <Content Include="Content\Iconos\ojo-azul.svg" />
     <Content Include="Content\Iconos\notiAviso-Azul.svg" />
     <Content Include="Content\Iconos\notiEvento.svg" />

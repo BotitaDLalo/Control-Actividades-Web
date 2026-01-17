@@ -504,7 +504,7 @@ namespace ControlActividades.Models
         public int AlumnoId { get; set; }
     }
 
-    
+
     public class EnvioRes
     {
         //        EntregaId = datosEntregable.EntregaId,
@@ -513,9 +513,9 @@ namespace ControlActividades.Models
         //        Status = datosAlumnoActividad.EstatusEntrega,
         //        FechaEntrega = fechaEntrega,
         //        Calificacion = calificacion
-        public int  EntregaActividadAlumnoId { get; set; } 
-        
-        public int EntregableId {  get; set; }
+        public int EntregaActividadAlumnoId { get; set; }
+
+        public int EntregableId { get; set; }
 
         public string Contenido { get; set; }
 
@@ -525,7 +525,7 @@ namespace ControlActividades.Models
 
         public int? Calificacion { get; set; }
 
-        public bool EstadoEntrega { get; set; }    
+        public bool EstadoEntrega { get; set; }
     }
 
     public class GrupoViewModel
@@ -539,6 +539,32 @@ namespace ControlActividades.Models
         public string CodigoColor { get; set; }
 
         public string CodigoAcceso { get; set; }
+
+        public int? DocenteId { get; set; }
+
+        public string ApellidoPaternoDocente { get; set; }
+
+        public string ApellidoMaternoDocente { get; set; }
+
+        public string NombresDocente { get; set; }
+    }
+
+    public class MateriaViewModel
+    {
+        public int MateriaId { get; set; }
+
+        public int? GrupoId { get; set; }
+        public string NombreMateria { get; set; }
+
+        public string CodigoColor { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string ApellidoPaternoDocente { get; set; }
+
+        public string ApellidoMaternoDocente { get; set; }
+
+        public string NombresDocente { get; set; }
     }
 
     public class CrearAvisoRequest
@@ -547,7 +573,7 @@ namespace ControlActividades.Models
         public string Titulo { get; set; }
         public string Descripcion { get; set; }
         public int? GrupoId { get; set; }
-        public int MateriaId {  get; set; }
+        public int MateriaId { get; set; }
     }
 
     public class EnvioActividadAlumnoResponse
@@ -559,19 +585,19 @@ namespace ControlActividades.Models
         public int ActividadId { get; set; }
 
         public DateTime FechaEntrega { get; set; }
-        
+
         public string Contenido { get; set; }
 
         public int Calificacion { get; set; }
 
-        public int EstadoEntregaId { get; set; }    
+        public int EstadoEntregaId { get; set; }
     }
 
     public class EliminarAlumnoClase
     {
-        public int AlumnoId { get; set; }   
-        public int? GrupoId { get; set;  }
-        public int? MateriaId { get; set;  }
+        public int AlumnoId { get; set; }
+        public int? GrupoId { get; set; }
+        public int? MateriaId { get; set; }
     }
     public class AlumnoEliminarGrupoRequest
     {
