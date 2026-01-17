@@ -241,14 +241,12 @@
     <script>
         var docenteIdGlobal = @docenteId;
     </script>
-    <script src="~/Scripts/Agenda/calendario.js"></script>
-    <script src="~/Scripts/Agenda/calendario-crear.js"></script>
-    
+    @Scripts.Render("~/bundles/calendario")
+
 }
 
 @section Styles {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
     <link href="~/Content/Componentes/Calendario.css" rel="stylesheet" />
     <link href="~/Content/Docente/calendarioDocente.css" rel="stylesheet" />
-    <link href="~/Content/Componentes/modal.css" rel="stylesheet" />
 }

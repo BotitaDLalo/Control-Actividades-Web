@@ -41,15 +41,15 @@
     }
 
 .nav-link-custom {
-    background-color: var(--blanco);
-    color: var(--negro);
+    background-color: var(--bg-principal);
+    color: var(--txt-principal);
     padding: 8px 12px;
     cursor: pointer;
     transition: background 0.3s, color 0.3s; /* suave transición */
 }
     .nav-link-custom.active {
-        background-color: var(--bg-principal);
-        color: var(--blanco);
+        background-color: var(--bg-secundario);
+        color: var(--txt-principal);
         border: 1px solid var(--negro);
         border-bottom: none;
         font-weight: bold;

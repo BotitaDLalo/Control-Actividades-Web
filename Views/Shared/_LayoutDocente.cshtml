@@ -60,8 +60,6 @@
     <script src="~/signalr/hubs"></script>
     @Scripts.Render("~/bundles/header")
 
-    <script src="~/Scripts/sidebar.js"></script>
-
     <script type="module">
         import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
         document.addEventListener("DOMContentLoaded", function () {
@@ -75,7 +73,6 @@
        (BundleTable.EnableOptimizations = false) the individual script files are output
        and DOMContentLoaded handlers register correctly. *@
     @Scripts.Render("~/bundles/docentegrupos")
-    @Scripts.Render("~/bundles/calendario")
 
     @RenderSection("Scripts", required: false)
 </body>
