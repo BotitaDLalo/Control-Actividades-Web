@@ -1,5 +1,5 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-    //Cargar los avisos asinados a la materia
+    //Cargar los avisos asignados a la materia
     cargarAvisosDeMateria();
 });
 
