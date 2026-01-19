@@ -10,8 +10,6 @@ namespace ControlActividades.Models
 {
     public class AsignarCalificacionPeticion
     {
-        public int EntregaId { get; set; }
-
         public int EntregableId { get; set; }
 
         public int Calificacion { get; set; }
@@ -129,6 +127,7 @@ namespace ControlActividades.Models
     public class EmailVerificadoAlumno
     {
         [Required]
+        public int AlumnoId { get; set; }
         public string Email { get; set; }
 
         public string UserName { get; set; }
@@ -150,7 +149,7 @@ namespace ControlActividades.Models
         [Required]
         public string FechaEntrega { get; set; }
 
-        public List<string> Enlaces { get; set; }
+        public int TipoEntregaId { get; set; }
     }
 
     public class ErrorViewModel
@@ -361,9 +360,20 @@ namespace ControlActividades.Models
 
         public string CodigoAcceso { get; set; }
 
-        public string CodigoColor { get; set; }
+        // 🔧 CORREGIDO: CodigoColor ahora es nullable para evitar errores de serialización cuando el valor es null
+        public string CodigoColor { get; set; } = "#2196F3"; // Valor por defecto: azul
 
         public List<MateriaRes> Materias { get; set; }
+    }
+
+    public class ActividadRes
+    {
+        public int ActividadId { get; set; }
+        public string NombreActividad { get; set; }
+        public string Descripcion { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public DateTime FechaLimite { get; set; }
+        public int Puntaje { get; set; }
     }
 
     public class MateriaRes
@@ -374,7 +384,7 @@ namespace ControlActividades.Models
 
         public string Descripcion { get; set; }
 
-        public List<tbActividades> Actividades { get; set; }
+        public List<ActividadRes> Actividades { get; set; }
     }
 
     public class UnirseAClaseMRespuesta
@@ -488,6 +498,11 @@ namespace ControlActividades.Models
     {
         public string Token { get; set; }
     }
+    public class AlumnoEliminarRequest
+    {
+        public int MateriaId { get; set; }
+        public int AlumnoId { get; set; }
+    }
 
 
     public class EnvioRes
@@ -498,9 +513,9 @@ namespace ControlActividades.Models
         //        Status = datosAlumnoActividad.EstatusEntrega,
         //        FechaEntrega = fechaEntrega,
         //        Calificacion = calificacion
-        public int  EntregaActividadAlumnoId { get; set; } 
-        
-        public int EntregableId {  get; set; }
+        public int EntregaActividadAlumnoId { get; set; }
+
+        public int EntregableId { get; set; }
 
         public string Contenido { get; set; }
 
@@ -510,7 +525,7 @@ namespace ControlActividades.Models
 
         public int? Calificacion { get; set; }
 
-        public bool EstadoEntrega { get; set; }    
+        public bool EstadoEntrega { get; set; }
     }
 
     public class GrupoViewModel
@@ -524,6 +539,32 @@ namespace ControlActividades.Models
         public string CodigoColor { get; set; }
 
         public string CodigoAcceso { get; set; }
+
+        public int? DocenteId { get; set; }
+
+        public string ApellidoPaternoDocente { get; set; }
+
+        public string ApellidoMaternoDocente { get; set; }
+
+        public string NombresDocente { get; set; }
+    }
+
+    public class MateriaViewModel
+    {
+        public int MateriaId { get; set; }
+
+        public int? GrupoId { get; set; }
+        public string NombreMateria { get; set; }
+
+        public string CodigoColor { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string ApellidoPaternoDocente { get; set; }
+
+        public string ApellidoMaternoDocente { get; set; }
+
+        public string NombresDocente { get; set; }
     }
 
     public class CrearAvisoRequest
@@ -532,7 +573,43 @@ namespace ControlActividades.Models
         public string Titulo { get; set; }
         public string Descripcion { get; set; }
         public int? GrupoId { get; set; }
-        public int MateriaId {  get; set; }
+        public int MateriaId { get; set; }
     }
+
+    public class EnvioActividadAlumnoResponse
+    {
+        public int AlumnoId { get; set; }
+        public int EntregaActividadAlumnoId { get; set; }
+        public int EntregableId { get; set; }
+
+        public int ActividadId { get; set; }
+
+        public DateTime FechaEntrega { get; set; }
+
+        public string Contenido { get; set; }
+
+        public int Calificacion { get; set; }
+
+        public int EstadoEntregaId { get; set; }
+    }
+
+    public class EliminarAlumnoClase
+    {
+        public int AlumnoId { get; set; }
+        public int? GrupoId { get; set; }
+        public int? MateriaId { get; set; }
+    }
+    public class AlumnoEliminarGrupoRequest
+    {
+        public int GrupoId { get; set; }
+        public int AlumnoId { get; set; }
+    }
+    /*public class AvisoDto
+    {
+        public int AvisoId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+    }*/
+
 
 }

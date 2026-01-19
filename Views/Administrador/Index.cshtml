@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_LayoutAdministrador.cshtml";
 }
 
-<h2>Validación registro docentes</h2>
+<h2 class="title-custom">Validación registro docentes</h2>
 <!-- Modal -->
 <div class="modal fade" id="modalValidacion" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -97,85 +97,75 @@
     </div>
 </div>
 
-
-<!-- Tabla de docentes -->
-<table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Apellido Paterno</th>
-            <th>Apellido Materno</th>
-            <th>Nombres</th>
-            <th>Email</th>
-            <th>Estatus</th>
-            <th>Envio correo</th>
-            <th>Acciones</th>
-            <th>VER COMO</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var docente in Model)
-        {
-            <tr data-status="active">
-                <td>@docente.ApellidoPaterno</td>
-                <td>@docente.ApellidoMaterno</td>
-                <td>@docente.Nombre</td>
-                <td>@docente.Email</td>
-                <td>
-                    @switch (docente.Autorizado)
-                    {
-                        case "Autorizado":
-                            <span class="badge bg-success">Autorizado</span>
-                            break;
-
-                        case "Denegado":
-                            <span class="badge bg-danger">Denegado</span>
-                            break;
-
-                        case "Pendiente":
-                            <span class="badge bg-warning">Pendiente</span>
-                            break;
-                    }
-                </td>
-                <td>
-                    @switch (docente.EnvioCorreo)
-                    {
-                        case "Enviado":
-                            <span class="badge bg-success">Enviado</span>
-                            break;
-
-                        case "Sin enviar":
-                            <span class="badge bg-warning">Sin enviar</span>
-                            break;
-                    }
-                </td>
-                <td>
-                    <button class="btn btn-secondary btn-administrar"
-                            data-bs-toggle="modal"
-                            data-bs-target="#modalValidacion"
-                            data-docente-id="@docente.DocenteId"
-                            data-docente-enviocorreo="@docente.EnvioCorreo"
-                            data-docente-apellidopaterno="@docente.ApellidoPaterno"
-                            data-docente-apellidomaterno="@docente.ApellidoMaterno"
-                            data-docente-nombres="@docente.Nombre"
-                            data-docente-email="@docente.Email"
-                            data-docente-estatus="@docente.Autorizado">
-                        Administrar
-                    </button>
-                </td>
-                <td>
-                    @using (Html.BeginForm("IngresarComoDocente", "Administrador", FormMethod.Post))
-                    {
-                        @Html.Hidden("userId", docente.UserId)
-
-                        <button type="submit" class="btn-ver">
-                            <img src="~/Content/Iconos/ojo-azul.svg" alt="Ingresar como docente" width="20">
-                        </button>
-                    }
-                </td>
+<div class="container-custom">
+    <!-- Tabla de docentes -->
+    <table class="table table-striped table-hover">
+        <thead class="table-header-custom">
+            <tr>
+                <th>Apellido Paterno</th>
+                <th>Apellido Materno</th>
+                <th>Nombres</th>
+                <th>Email</th>
+                <th>Estatus</th>
+                <th>Envio correo</th>
+                <th>Acciones</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody class="table-body-custom">
+            @foreach (var docente in Model)
+            {
+                <tr data-status="active">
+                    <td>@docente.ApellidoPaterno</td>
+                    <td>@docente.ApellidoMaterno</td>
+                    <td>@docente.Nombre</td>
+                    <td>@docente.Email</td>
+                    <td>
+                        @switch (docente.Autorizado)
+                        {
+                            case "Autorizado":
+                                <span class="badge bg-success">Autorizado</span>
+                                break;
+
+                            case "Denegado":
+                                <span class="badge bg-danger">Denegado</span>
+                                break;
+
+                            case "Pendiente":
+                                <span class="badge bg-warning">Pendiente</span>
+                                break;
+                        }
+                    </td>
+                    <td>
+                        @switch (docente.EnvioCorreo)
+                        {
+                            case "Enviado":
+                                <span class="badge bg-success">Enviado</span>
+                                break;
+
+                            case "Sin enviar":
+                                <span class="badge bg-warning">Sin enviar</span>
+                                break;
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary btn-administrar"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalValidacion"
+                                data-docente-id="@docente.DocenteId"
+                                data-docente-enviocorreo="@docente.EnvioCorreo"
+                                data-docente-apellidopaterno="@docente.ApellidoPaterno"
+                                data-docente-apellidomaterno="@docente.ApellidoMaterno"
+                                data-docente-nombres="@docente.Nombre"
+                                data-docente-email="@docente.Email"
+                                data-docente-estatus="@docente.Autorizado">
+                            Administrar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
 @section Scripts{
     @Scripts.Render("~/bundles/jqueryval")

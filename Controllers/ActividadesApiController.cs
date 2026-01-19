@@ -315,6 +315,9 @@ namespace ControlActividades.Controllers
                 nuevaActividad.FechaCreacion = DateTime.Now;
 
 
+                nuevaActividad.Enviado = true;
+
+
                 //nuevaActividad.TipoActividadId = 1;
 
                 // Guardar la actividad en la base de datos
@@ -601,73 +604,20 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var entregaId = asignarCalificacion.EntregaId;
-                var fechaNuevaCalificacion = DateTime.Now;
-                var nuevaCalificacion = asignarCalificacion.Calificacion;
-                // Intentar actualizar el registro en la tabla tbEntregables (modelo actual)
-                int idBuscado = asignarCalificacion.EntregableId != 0 ? asignarCalificacion.EntregableId : entregaId;
+                var entregableId = asignarCalificacion.EntregableId;
+                var calificacion = asignarCalificacion.Calificacion;
 
-                var entregable = await Db.tbEntregables.FindAsync(idBuscado);
-                if (entregable != null)
-                {
-                    entregable.Calificacion = nuevaCalificacion;
-                    entregable.FechaCalificado = fechaNuevaCalificacion;
-                    // Si se envió comentario (legacy: CalificacionDto), asignarlo
-                    try
-                    {
-                        // intentar obtener comentario desde asignarCalificacion (si existe)
-                        var comentarioProp = asignarCalificacion.GetType().GetProperty("Comentario");
-                        if (comentarioProp != null)
-                        {
-                            var comentarioVal = comentarioProp.GetValue(asignarCalificacion) as string;
-                            if (!string.IsNullOrEmpty(comentarioVal)) entregable.Comentario = comentarioVal;
-                        }
-                    }
-                    catch { }
 
-                    await Db.SaveChangesAsync();
+                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == entregableId);
 
-                    // Enviar notificación al alumno
-                    try
-                    {
-                        // obtener alumno propietario de la entrega
-                        var entregaActividad = await Db.tbEntregaActividadAlumno.Where(ea => ea.tbEntregables.Any(t => t.EntregableId == entregable.EntregableId)).FirstOrDefaultAsync();
-                        if (entregaActividad != null)
-                        {
-                            var alumnoUserId = await Db.tbAlumnos.Where(a => a.AlumnoId == entregaActividad.AlumnoId).Select(a => a.UserId).FirstOrDefaultAsync();
-                            if (!string.IsNullOrEmpty(alumnoUserId))
-                            {
-                                var ns = new Services.NotificacionesService(Db, new Services.FCMService());
-                                string titulo = "Tu actividad fue calificada";
-                                string cuerpo = $"Tu entrega fue calificada con: {nuevaCalificacion}" + (entregable.Comentario != null ? ". Comentario: " + entregable.Comentario : "");
-                                var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == alumnoUserId).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
-                                //await ns.ProcesarNotificacion(new List<string> { alumnoUserId }, tokens, titulo, cuerpo, "Calificacion");
-                            }
-                        }
-                    }
-                    catch (Exception) { }
+                if (entregable == null) return BadRequest();
 
-                    return Ok();
-                }
+                entregable.Calificacion = calificacion;
+                entregable.FechaCalificado = DateTime.Now;
 
-                // Fallback: si no existe en tbEntregables, intentar en tbCalificaciones (legacy)
-                var calificacion = await Db.tbCalificaciones.FirstOrDefaultAsync(a => a.EntregaId == entregaId);
-                if (calificacion == null)
-                {
-                    tbCalificaciones cal = new tbCalificaciones()
-                    {
-                        Calificacion = nuevaCalificacion,
-                        EntregaId = entregaId,
-                        FechaCalificacionAsignada = fechaNuevaCalificacion
-                    };
-                    Db.tbCalificaciones.Add(cal);
-                }
-                else
-                {
-                    calificacion.Calificacion = nuevaCalificacion;
-                    calificacion.FechaCalificacionAsignada = fechaNuevaCalificacion;
-                }
+                Db.Entry(entregable).State = EntityState.Modified;
                 await Db.SaveChangesAsync();
+
                 return Ok();
 
             }

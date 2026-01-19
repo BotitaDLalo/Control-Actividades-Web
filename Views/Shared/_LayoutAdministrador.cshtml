@@ -3,13 +3,15 @@
 <head>
     <meta charset="utf-8" />
     @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/Variables")
+    @Styles.Render("~/Content/Moleculas")
+    @Styles.Render("~/Content/Componentes")
     @Styles.Render("~/Content/Dashboard/css")
     @Styles.Render("~/Content/Administrador/css")
 
+    @RenderSection("Styles", required: false)
 
     @Scripts.Render("~/bundles/modernizr")
-
-    @*<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">*@
 
     @*<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">*@
 
@@ -21,42 +23,35 @@
 
     <!-- Use Inter font site-wide -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        html, body {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-    </style>
 
 </head>
 <body>
-    <div class="layout">
-        @Html.Partial("~/Views/Shared/_Header.cshtml")
-
-        <div class="page">
-            @RenderBody()
-        </div>
-    </div>
-
-    <!--SPINNER DE CARGA-->
+    <!--LAYOUT ADMIN-->
     <div id="loader" class="carga">
         <div class="spinner"></div>
     </div>
 
+    <div class="layout">
+        <aside class="layout-sidebar">
+            @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
+        </aside>
+
+        <header class="layout-header">
+            @Html.Partial("~/Views/Shared/_Header.cshtml")
+        </header>
+
+        <main class="layout-content">
+            @RenderBody()
+        </main>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/carga")
+    @Scripts.Render("~/bundles/header")
 
-    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
-
-    <!--
-        <div class="container">
-            <main role="main" class="pb-3">
-                @*RenderBody()*@
-
-                <br />
-                <br />
-
-            </main>
-        </div>
-        -->
     <!--
          <!-- Modal de privacidad
          <div id="privacy-modal" class="modal">
@@ -78,12 +73,19 @@
              </div>
          </div>
     -->
+    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
+    <script type="module">
+        import { registrarTokenFcm } from '/Scripts/Firebase/firebase.js';
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                registrarTokenFcm();
+            }, 500);
+        });
+    </script>
+
     @RenderSection("Scripts", required: false)
-    @RenderSection("Styles", required: false)
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

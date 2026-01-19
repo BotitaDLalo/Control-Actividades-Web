@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;

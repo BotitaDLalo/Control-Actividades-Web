@@ -9,10 +9,7 @@
     }
 }
 
-
 @*@model ControlActividades.Models.db.tbGrupos;*@
-
-
 
 <div class="materia-container">
     <div class="materia-header" id="materiaHeader">
@@ -59,14 +56,9 @@
     </div>
 
 </div>
+
 @section Scripts{
     <script>
         const alumnoIdGlobal = '@alumnoId';
     </script>
-    @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/alumno")
-}
-
-@section Styles{
-    @Styles.Render("~/Content/Alumno/css")
 }

@@ -14,8 +14,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    color: white;
-    background-color: #3395d6;
+    color: var(--bg-inverso);
+    background-color: var(--bg-secundario);
 }
 
 .materia-info {

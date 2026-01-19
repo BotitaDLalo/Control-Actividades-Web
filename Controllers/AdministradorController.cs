@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -12,10 +13,13 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using ControlActividades.Filters;
 
 namespace ControlActividades.Controllers
 {
-    public class AdministradorController : Controller
+    [Authorize(Roles = "Administrador")]
+    [NoCache]
+    public class AdministradorController : BaseController
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
@@ -152,6 +156,24 @@ namespace ControlActividades.Controllers
             return View(lsDocentesAdministrar);
         }
 
+        public ActionResult VerDocentes()
+        {
+            List<DocentesValidacion> lsDocentesAdministrar = new List<DocentesValidacion>();
+            var lsDocentes = Db.tbDocentes.ToList();
+            foreach (var d in lsDocentes)
+            {
+                DocentesValidacion docente = new DocentesValidacion()
+                {
+                    DocenteId = d.DocenteId,
+                    ApellidoPaterno = d.ApellidoPaterno,
+                    ApellidoMaterno = d.ApellidoMaterno,
+                    Nombre = d.Nombre,
+                    UserId = d.UserId
+                };
+                lsDocentesAdministrar.Add(docente);
+            }
+            return View(lsDocentesAdministrar);
+        }
         #region Metodos de la tabla
         private static string EstadoAutorizado(bool? status)
         {
@@ -349,36 +371,25 @@ namespace ControlActividades.Controllers
         #endregion
 
         #region Ingreso como docente
+        
         [HttpPost]
-        //[Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador")]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> IngresarComoDocente(string userId)
         {
-            // SOLO para prueba
+            //Validar que el userId no esté vacío
             if (string.IsNullOrEmpty(userId))
             {
-                //Poner mensaje de error "El docente no existe, etc"
+                //MENSAJE DE ERROR
                 return RedirectToAction("Index");
             }
-            /*
-            //Evita impersonaciones dobles
-            if (Session["IsImpersonating"] != null && Session["ImpersonatedUserId"]?.ToString() != userId)
-            {
-                return RedirectToAction("Index");
-            }*/
-
+           
             string adminId = User.Identity.GetUserId();
             if (string.IsNullOrEmpty(adminId))
             {
                 return RedirectToAction("Index");
             }
 
-            //Guardar la sesión del admin
-            Session["AdminOriginalId"] = adminId;
-            Session["IsImpersonating"] = true;
-            Session["ImpersonateUserId"] = userId;
-
-            // CERRAR SESIÓN DEL ADMINISTRADOR E INICIAR COMO DOCENTE                      
-            
             // Obtener docente
             var docente = await UserManager.FindByIdAsync(userId);
             if(docente == null)
@@ -386,24 +397,70 @@ namespace ControlActividades.Controllers
                 return RedirectToAction("Index");
             }
 
+            //Verificar rol
             if(!await UserManager.IsInRoleAsync(userId, "Docente"))
             {
                 return RedirectToAction("Index");
             }
 
-            //Cerrar sesión del admin
-            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-
-            // Iniciar sesión como docente sin contraseña
-            await SignInManager.SignInAsync(
+            //Crear identidad del dcoente
+            var identity = await UserManager.CreateIdentityAsync(
                 docente,
-                isPersistent: false,
-                rememberBrowser: false
+                DefaultAuthenticationTypes.ApplicationCookie
+            );
+
+            //Claims de impersonación
+            identity.AddClaim(new Claim("IsImpersonating", "true"));
+            identity.AddClaim(new Claim("AdminOriginalId", adminId));
+            identity.AddClaim(new Claim("AdminOriginalName", User.Identity.Name));
+
+            // Reemplazar cookie
+            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            AuthenticationManager.SignIn(
+                new AuthenticationProperties
+                {
+                    IsPersistent = false
+                },
+                identity
             );
 
             //Redirigir al home del docente
-            return RedirectToAction("Index", "Docente");
+            return RedirectToAction("Index", "Grupos");
+
         }
+
+
+        [AllowAnonymous]
+        public async Task<ActionResult> SalirImpersonacion()
+        {
+            var principal = (ClaimsPrincipal)User;
+
+            if(!principal.HasClaim("IsImpersonating", "true"))
+                return RedirectToAction("Index", "Home");
+
+            var adminId = principal.FindFirst("AdminOriginalId")?.Value;
+            
+            if(adminId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var admin = await UserManager.FindByIdAsync(adminId);
+            if(admin == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+
+            await SignInManager.SignInAsync(
+                admin, isPersistent: false, rememberBrowser: false
+            );
+
+            return RedirectToAction("Index", "Administrador");
+        }
+
+
         #endregion
         protected override void Dispose(bool disposing)
         {

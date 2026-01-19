@@ -20,7 +20,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ControlActividades.Controllers
 {
-    public class GruposController : Controller
+    public class GruposController : BaseController
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
@@ -125,16 +125,19 @@ namespace ControlActividades.Controllers
                 tieneMaterias = alumnoTieneMaterias;
             }
 
+            List<GrupoViewModel> lsGrupos = ObtenerGruposPorUsuario();
+
             if (!tieneGrupos && tieneMaterias)
             {
-                return View();
+                return View(lsGrupos);
             }
             else if (!tieneGrupos)
             {
-                return View("~/Views/Materias/Index.cshtml");
+                //return View("~/Views/Materias/Index.cshtml");
+                return RedirectToAction("Index","Materias");
             }
 
-            return View();
+            return View(lsGrupos);
         }
 
 
@@ -171,8 +174,54 @@ namespace ControlActividades.Controllers
             return Json(grupos, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpGet]
-        public JsonResult ObtenerGruposPorUsuario()
+        //[HttpGet]
+        //public JsonResult ObtenerGruposPorUsuario()
+        //{
+        //    List<GrupoViewModel> grupos = new List<GrupoViewModel>();
+        //    var usuarioId = Fg.ObtenerUsuarioId(User);
+
+        //    if (User.IsInRole(Roles.DOCENTE))
+        //    {
+        //        grupos = Db.tbGrupos.Where(g => g.DocenteId == usuarioId)
+        //                .Select(g => new GrupoViewModel
+        //                {
+        //                    GrupoId = g.GrupoId,
+        //                    NombreGrupo = g.NombreGrupo,
+        //                    Descripcion = g.Descripcion,
+        //                    CodigoColor = g.CodigoColor,
+        //                    CodigoAcceso = g.CodigoAcceso
+        //                })
+        //                .ToList();
+
+
+        //    }
+        //    else if (User.IsInRole(Roles.ALUMNO))
+        //    {
+        //        var lsAlumnoGruposId = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId).Select(a => a.GrupoId).ToList();
+
+        //        var lsAlumnoMateriasId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Select(a => a.MateriaId).ToList();
+
+        //        var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => lsAlumnoMateriasId.Contains(a.MateriaId)).Select(a => a.GrupoId).Distinct().ToList();
+
+        //        lsAlumnoGruposId.AddRange(lsMateriasGrupoId);
+
+        //        grupos = Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
+        //                .Select(g => new GrupoViewModel
+        //                {
+        //                    GrupoId = g.GrupoId,
+        //                    NombreGrupo = g.NombreGrupo,
+        //                    Descripcion = g.Descripcion,
+        //                    CodigoColor = g.CodigoColor,
+        //                    CodigoAcceso = g.CodigoAcceso
+        //                })
+        //                .ToList();
+        //    }
+
+        //    return Json(grupos, JsonRequestBehavior.AllowGet);
+        //}
+
+
+        public List<GrupoViewModel> ObtenerGruposPorUsuario()
         {
             List<GrupoViewModel> grupos = new List<GrupoViewModel>();
             var usuarioId = Fg.ObtenerUsuarioId(User);
@@ -186,11 +235,12 @@ namespace ControlActividades.Controllers
                             NombreGrupo = g.NombreGrupo,
                             Descripcion = g.Descripcion,
                             CodigoColor = g.CodigoColor,
-                            CodigoAcceso = g.CodigoAcceso
+                            CodigoAcceso = g.CodigoAcceso,
+                            ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
+                            ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
+                            NombresDocente = g.Docentes.Nombre,
                         })
                         .ToList();
-
-
             }
             else if (User.IsInRole(Roles.ALUMNO))
             {
@@ -209,12 +259,15 @@ namespace ControlActividades.Controllers
                             NombreGrupo = g.NombreGrupo,
                             Descripcion = g.Descripcion,
                             CodigoColor = g.CodigoColor,
-                            CodigoAcceso = g.CodigoAcceso
+                            CodigoAcceso = g.CodigoAcceso,
+                            ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
+                            ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
+                            NombresDocente = g.Docentes.Nombre
                         })
                         .ToList();
             }
 
-            return Json(grupos, JsonRequestBehavior.AllowGet);
+            return grupos;
         }
 
         [HttpGet]
@@ -225,7 +278,9 @@ namespace ControlActividades.Controllers
                 return RedirectToAction("Index", "Grupos");
             }
 
-            return View();
+            var lsMateriasDeGrupo = ObtenerMateriasPorGrupo(grupoId.Value); 
+
+            return View(lsMateriasDeGrupo);
         }
 
         [HttpPost]
@@ -266,13 +321,59 @@ namespace ControlActividades.Controllers
         }
 
 
-        [HttpGet]
-        public JsonResult ObtenerMateriasPorGrupo(int grupoId)
+        //[HttpGet]
+        //public JsonResult ObtenerMateriasPorGrupo(int grupoId)
+        //{
+        //    var materiasIds = Db.tbGruposMaterias
+        //        .Where(gm => gm.GrupoId == grupoId)
+        //        .Select(gm => gm.MateriaId)
+        //        .ToList();
+
+        //    if (User.IsInRole(Roles.ALUMNO))
+        //    {
+        //        var usuarioId = Fg.ObtenerUsuarioId(User);
+        //        var alumnoPerteneceGrupo = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId && a.GrupoId == grupoId).Any();
+
+        //        if (!alumnoPerteneceGrupo)
+        //        {
+        //            materiasIds = materiasIds.Where(a => Db.tbAlumnosMaterias.Any(am => am.AlumnoId == usuarioId && am.MateriaId == a)).ToList();
+        //        }
+
+        //    }
+
+        //    var materiasConActividades = Db.tbMaterias
+        //        .Where(m => materiasIds.Contains(m.MateriaId))
+        //        .Select(m => new
+        //        {
+        //            m.MateriaId,
+        //            m.NombreMateria,
+        //            m.Descripcion,
+        //            m.CodigoColor,
+        //            ActividadesRecientes = Db.tbActividades
+        //                .Where(a => a.MateriaId == m.MateriaId)
+        //                .OrderByDescending(a => a.FechaCreacion)
+        //                .Take(2)
+        //                .Select(a => new
+        //                {
+        //                    a.ActividadId,
+        //                    a.NombreActividad,
+        //                    a.FechaCreacion
+        //                })
+        //                .ToList()
+        //        })
+        //        .ToList();
+
+        //    return Json(materiasConActividades, JsonRequestBehavior.AllowGet);
+        //}
+
+        public List<MateriaViewModel> ObtenerMateriasPorGrupo(int grupoId)
         {
             var materiasIds = Db.tbGruposMaterias
                 .Where(gm => gm.GrupoId == grupoId)
                 .Select(gm => gm.MateriaId)
                 .ToList();
+
+            var docenteGrupo = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => new { a.Docentes.ApellidoPaterno, a.Docentes.ApellidoMaterno, a.Docentes.Nombre }).FirstOrDefault();
 
             if (User.IsInRole(Roles.ALUMNO))
             {
@@ -281,37 +382,28 @@ namespace ControlActividades.Controllers
 
                 if (!alumnoPerteneceGrupo)
                 {
-                    materiasIds = materiasIds.Where(a=> Db.tbAlumnosMaterias.Any(am=> am.AlumnoId == usuarioId && am.MateriaId == a)).ToList();
+                    materiasIds = materiasIds.Where(a => Db.tbAlumnosMaterias.Any(am => am.AlumnoId == usuarioId && am.MateriaId == a)).ToList();
                 }
 
             }
 
-            var materiasConActividades = Db.tbMaterias
+            var lsMaterias = Db.tbMaterias
                 .Where(m => materiasIds.Contains(m.MateriaId))
-                .Select(m => new
+                .Select(m => new MateriaViewModel
                 {
-                    m.MateriaId,
-                    m.NombreMateria,
-                    m.Descripcion,
-                    m.CodigoColor,
-                    ActividadesRecientes = Db.tbActividades
-                        .Where(a => a.MateriaId == m.MateriaId)
-                        .OrderByDescending(a => a.FechaCreacion)
-                        .Take(2)
-                        .Select(a => new
-                        {
-                            a.ActividadId,
-                            a.NombreActividad,
-                            a.FechaCreacion
-                        })
-                        .ToList()
+                    MateriaId = m.MateriaId,
+                    GrupoId = grupoId,
+                    NombreMateria =  m.NombreMateria,
+                    Descripcion = m.Descripcion,
+                    CodigoColor = m.CodigoColor,
+                    ApellidoPaternoDocente = docenteGrupo.ApellidoPaterno,
+                    ApellidoMaternoDocente = docenteGrupo.ApellidoMaterno,
+                    NombresDocente = docenteGrupo.Nombre
                 })
                 .ToList();
 
-            return Json(materiasConActividades, JsonRequestBehavior.AllowGet);
+            return lsMaterias;
         }
-
-
         [HttpDelete]
         public JsonResult EliminarGrupo(int grupoId)
         {

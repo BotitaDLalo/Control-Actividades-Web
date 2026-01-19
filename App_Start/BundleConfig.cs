@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Web;
 using System.Web.Optimization;
 
@@ -24,19 +24,27 @@ namespace ControlActividades
                       "~/Scripts/bootstrap.bundle.min.js"));
 
             // Keep only global site CSS in the main bundle. Dashboard-specific CSS should not be bundled globally to avoid layout conflicts (e.g. ".layout" rule).
+            //ESTILOS GENERALES
             bundles.Add(new StyleBundle("~/Content/Variables")
                 .Include(
                     "~/Content/Variables/colors.css",
-                    "~/Content/Variables/fuentes.css"
+                    "~/Content/Variables/fuentes.css",
+                    "~/Content/Variables/modo-claro.css"
                 )
             );
 
+            bundles.Add(new StyleBundle("~/Content/Moleculas")
+                .Include(
+                    "~/Content/Moleculas/botones.css",
+                    "~/Content/Moleculas/inputs.css"
+                )
+            );
             bundles.Add(new StyleBundle("~/Content/Componentes")
                 .Include(
                     "~/Content/Componentes/Calendario.css",
                     "~/Content/Componentes/cards.css",
-                    "~/Content/Componentes/carga.css",
-                    "~/Content/Componentes/header.css"
+                    "~/Content/Componentes/modal.css",
+                    "~/Content/Componentes/carga.css"
                 )
             );
 
@@ -51,20 +59,34 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Dashboard/css").Include(
                     "~/Content/Dashboard/cards.css",
                     "~/Content/Dashboard/content.css",
-                    "~/Content/Dashboard/nav-bar.css",
+                    "~/Content/Dashboard/header.css",
                     "~/Content/Dashboard/sidebar.css"
             ));
 
 
+            //SCRIPTS GENERALES
             bundles.Add(new ScriptBundle("~/bundles/carga")
-                .Include("~/Scripts/Componentes/PantallaCarga.js")
+                .Include("~/Scripts/Componentes/PantallaCarga.js",
+                        "~/Scripts/Shared/modoColor.js")
             );
 
+            bundles.Add(new Bundle("~/bundles/header")
+                .Include("~/Scripts/Shared/headerNotifications.js")
+            );
+
+            //Calendario
+            bundles.Add(new Bundle("~/bundles/calendario")
+                .Include("~/Scripts/Agenda/calendario.js",
+                         "~/Scripts/Agenda/calendario-crear.js",
+                         "~/Scripts/Agenda/calendario-detalles.js",
+                         "~/Scripts/Agenda/calendario-editar.js",
+                         "~/Scripts/Agenda/calendario-form.js")
+            );
             //bundles.Add(new ScriptBundle("~/bundles/docente")
             //        .IncludeDirectory("~/Scripts/Docente", "*.js")
             //        .IncludeDirectory("~/Scripts/Docente/Grupos", "*.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/docente")
+            bundles.Add(new Bundle("~/bundles/docente")
                 .Include("~/Scripts/Docente/*.js")
                 );
 

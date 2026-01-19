@@ -583,6 +583,7 @@ namespace ControlActividades.Controllers
             return Content(HttpStatusCode.NotFound, new { mensaje = "Código de acceso no válido" });
         }
 
+        /*
         [HttpPost]
         [Route("UnirseAClaseM")]
         public async Task<IHttpActionResult> UnirseAClaseM([FromBody] UnirseAClaseRequest request)
@@ -696,6 +697,218 @@ namespace ControlActividades.Controllers
                 return BadRequest();
             }
         }
+        */
+
+        // Nuevo metodo para registrarse mediante codigo de clase
+        [HttpPost]
+        [Route("UnirseAClaseM")]
+        public async Task<IHttpActionResult> UnirseAClaseM([FromBody] UnirseAClaseRequest request)
+        {
+            try
+            {
+                // 1. Validación del request
+                if (request == null || string.IsNullOrEmpty(request.CodigoAcceso) || request.AlumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new 
+                    { 
+                        mensaje = "Datos de solicitud inválidos: AlumnoId y CodigoAcceso son obligatorios."
+                    });
+                }
+
+                // 2. Normalizar código a mayúsculas para comparación case-insensitive
+                var codigoNormalizado = request.CodigoAcceso.Trim().ToUpper();
+
+                // 3. Buscar grupo con comparación case-insensitive
+                var grupo = await Db.tbGrupos
+                    .FirstOrDefaultAsync(g => g.CodigoAcceso.ToUpper() == codigoNormalizado);
+
+                if (grupo != null)
+                {
+                    // 4. Validar que el docente existe
+                    var docente = await Db.tbDocentes
+                        .FirstOrDefaultAsync(d => d.DocenteId == grupo.DocenteId);
+
+                    if (docente == null)
+                    {
+                        return Content(HttpStatusCode.NotFound, new
+                        {
+                            mensaje = "Docente no encontrado. El grupo no tiene un docente asociado válido."
+                        });
+                    }
+
+                    // 5. ✅ VALIDAR si el alumno YA ESTÁ registrado en este grupo
+                    var alumnoYaEnGrupo = await Db.tbAlumnosGrupos
+                        .AnyAsync(ag => ag.AlumnoId == request.AlumnoId && ag.GrupoId == grupo.GrupoId);
+
+                    if (alumnoYaEnGrupo)
+                    {
+                        // El alumno ya está registrado en este grupo
+                        return Content(HttpStatusCode.Conflict, new
+                        {
+                            mensaje = $"Ya estás registrado en el grupo '{grupo.NombreGrupo}'. No puedes unirte nuevamente.",
+                            grupoId = grupo.GrupoId,
+                            nombreGrupo = grupo.NombreGrupo,
+                            esGrupo = true
+                        });
+                    }
+
+                    // 6. Obtener materias del grupo
+                    var lsMateriasId = await Db.tbGruposMaterias
+                        .Where(gm => gm.GrupoId == grupo.GrupoId)
+                        .Select(gm => gm.MateriaId)
+                        .ToListAsync();
+
+                    var lsMaterias = await Db.tbMaterias
+                        .Where(m => lsMateriasId.Contains(m.MateriaId))
+                        .Select(m => new MateriaRes
+                        {
+                            MateriaId = m.MateriaId,
+                            NombreMateria = m.NombreMateria,
+                            Descripcion = m.Descripcion,
+                            Actividades = Db.tbActividades
+                                .Where(a => a.MateriaId == m.MateriaId)
+                                .Select(a => new ActividadRes
+                                {
+                                    ActividadId = a.ActividadId,
+                                    NombreActividad = a.NombreActividad,
+                                    Descripcion = a.Descripcion,
+                                    FechaCreacion = a.FechaCreacion,
+                                    FechaLimite = a.FechaLimite,
+                                    Puntaje = a.Puntaje
+                                })
+                                .ToList()
+                        })
+                        .ToListAsync();
+
+                    // 7. Crear respuesta del grupo
+                    var grupoRes = new GrupoRes()
+                    {
+                        GrupoId = grupo.GrupoId,
+                        NombreGrupo = grupo.NombreGrupo,
+                        Descripcion = grupo.Descripcion,
+                        CodigoAcceso = grupo.CodigoAcceso,
+                        // 🔧 CORREGIDO: Asignar color por defecto si es null para evitar errores de serialización
+                        CodigoColor = string.IsNullOrEmpty(grupo.CodigoColor) ? "#2196F3" : grupo.CodigoColor,
+                        Materias = lsMaterias
+                    };
+
+                    // 8. Crear relación alumno-grupo
+                    var nuevaRelacion = new tbAlumnosGrupos
+                    {
+                        AlumnoId = request.AlumnoId,
+                        GrupoId = grupo.GrupoId
+                    };
+
+                    Db.tbAlumnosGrupos.Add(nuevaRelacion);
+                    await Db.SaveChangesAsync();
+
+                    // 9. Retornar respuesta exitosa
+                    var respuesta = new UnirseAClaseMRespuesta()
+                    {
+                        Grupo = grupoRes,
+                        EsGrupo = true
+                    };
+
+                    return Ok(respuesta);
+                }
+
+                // 10. Si no es grupo, buscar materia con comparación case-insensitive
+                var materia = await Db.tbMaterias
+                    .FirstOrDefaultAsync(m => m.CodigoAcceso.ToUpper() == codigoNormalizado);
+
+                if (materia != null)
+                {
+                    // 11. Validar que el docente existe
+                    var docente = await Db.tbDocentes
+                        .FirstOrDefaultAsync(d => d.DocenteId == materia.DocenteId);
+
+                    if (docente == null)
+                    {
+                        return Content(HttpStatusCode.NotFound, new
+                        {
+                            mensaje = "Docente no encontrado. La materia no tiene un docente asociado válido."
+                        });
+                    }
+
+                    // 12. ✅ VALIDAR si el alumno YA ESTÁ registrado en esta materia
+                    var alumnoYaEnMateria = await Db.tbAlumnosMaterias
+                        .AnyAsync(am => am.AlumnoId == request.AlumnoId && am.MateriaId == materia.MateriaId);
+
+                    if (alumnoYaEnMateria)
+                    {
+                        // El alumno ya está registrado en esta materia
+                        return Content(HttpStatusCode.Conflict, new
+                        {
+                            mensaje = $"Ya estás registrado en la materia '{materia.NombreMateria}'. No puedes unirte nuevamente.",
+                            materiaId = materia.MateriaId,
+                            nombreMateria = materia.NombreMateria,
+                            esGrupo = false
+                        });
+                    }
+
+                    // 13. Crear respuesta de la materia
+                    var materiaRes = new MateriaRes()
+                    {
+                        MateriaId = materia.MateriaId,
+                        NombreMateria = materia.NombreMateria,
+                        Descripcion = materia.Descripcion,
+                        Actividades = await Db.tbActividades
+                            .Where(a => a.MateriaId == materia.MateriaId)
+                            .Select(a => new ActividadRes
+                            {
+                                ActividadId = a.ActividadId,
+                                NombreActividad = a.NombreActividad,
+                                Descripcion = a.Descripcion,
+                                FechaCreacion = a.FechaCreacion,
+                                FechaLimite = a.FechaLimite,
+                                Puntaje = a.Puntaje
+                            })
+                            .ToListAsync()
+                    };
+
+                    // 14. Crear relación alumno-materia
+                    var nuevaRelacion = new tbAlumnosMaterias
+                    {
+                        AlumnoId = request.AlumnoId,
+                        MateriaId = materia.MateriaId
+                    };
+
+                    Db.tbAlumnosMaterias.Add(nuevaRelacion);
+                    await Db.SaveChangesAsync();
+
+                    // 15. Retornar respuesta exitosa
+                    var respuesta = new UnirseAClaseMRespuesta()
+                    {
+                        Materia = materiaRes,
+                        EsGrupo = false
+                    };
+
+                    return Ok(respuesta);
+                }
+
+                // 16. Código no encontrado - ni en grupos ni en materias
+                return Content(HttpStatusCode.NotFound, new
+                {
+                    mensaje = "Código de acceso inválido o inexistente. Verifica que el código sea correcto."
+                });
+            }
+            catch (Exception ex)
+            {
+                // 17. Logging del error
+                // _logger.LogError(ex, "Error al unirse a clase para AlumnoId: {AlumnoId}, Codigo: {Codigo}", 
+                //     request?.AlumnoId, request?.CodigoAcceso);
+
+                // 18. Retornar error 500 con mensaje genérico
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error interno del servidor. Inténtalo de nuevo más tarde."
+                });
+            }
+        }
+
+
+
+
 
         [HttpPost]
         [Route("RegistrarEnvioActividadAlumno")]
@@ -707,155 +920,17 @@ namespace ControlActividades.Controllers
                 var alumnoId = entregable.AlumnoId;
                 var respuesta = entregable.Respuesta;
                 var fechaEntrega = entregable.FechaEntrega;
+                var tipoEntregaId = entregable.TipoEntregaId;
 
-                // Verificar permisos
-                if (!await AlumnoPuedeAccederActividadAsync(alumnoId, actividadId))
-                    return Content(HttpStatusCode.Forbidden, new { mensaje = "No tienes permiso para entregar esta actividad." });
-
-                DateTime fechaEntParsed;
-                if (!DateTime.TryParse(fechaEntrega, out fechaEntParsed)) fechaEntParsed = DateTime.Now;
-
-                // Si existe la tabla nueva, usarla
-                if (TableExists("tbEntregaActividadAlumno"))
+                if (entregable.ActividadId <= 0 || entregable.AlumnoId <= 0)
                 {
-                    var entregaExist = await Db.Set<tbEntregaActividadAlumno>().FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
-                    int entregaAlumnoId;
-                    if (entregaExist == null)
+                    return Content(HttpStatusCode.BadRequest, new
                     {
-                            var nueva = new tbEntregaActividadAlumno
-                        {
-                            ActividadId = actividadId,
-                            AlumnoId = alumnoId,
-                            FechaEntrega = fechaEntParsed,
-                                EstadoEntregaId = await ResolveEstadoEntregaIdAsync(1)
-                        };
-                        Db.Set<tbEntregaActividadAlumno>().Add(nueva);
-                        await Db.SaveChangesAsync();
-                        entregaAlumnoId = nueva.EntregaActividadAlumnoId;
-                    }
-                    else
-                    {
-                        entregaExist.FechaEntrega = fechaEntParsed;
-                        entregaExist.EstadoEntregaId = 1;
-                        await Db.SaveChangesAsync();
-                        entregaAlumnoId = entregaExist.EntregaActividadAlumnoId;
-                    }
-
-                    // Construir contenido que incluya enlaces si la petición ya envió un JSON con Link/Enlaces
-                    string contenidoGuardar = respuesta ?? string.Empty;
-                    try
-                    {
-                        if (!string.IsNullOrWhiteSpace(respuesta))
-                        {
-                            var j = JsonConvert.DeserializeObject<dynamic>(respuesta);
-                            if (j != null)
-                            {
-                                // Si viene Link o Enlaces en el JSON enviado por el cliente, normalizar a { Respuesta, Link }
-                                if (j.Link != null || j.Enlaces != null)
-                                {
-                                    var texto = j.Respuesta != null ? (string)j.Respuesta : string.Empty;
-                                    var links = j.Link != null ? j.Link : j.Enlaces;
-                                    contenidoGuardar = JsonConvert.SerializeObject(new { Respuesta = texto, Link = links });
-                                }
-                                else
-                                {
-                                    // mantener el JSON original o el texto
-                                    contenidoGuardar = respuesta;
-                                }
-                            }
-                        }
-                    }
-                    catch { /* si falla, se conserva respuesta tal cual */ }
-
-                    var entregableEntity = new tbEntregables
-                    {
-                        EntregaActividadAlumnoId = entregaAlumnoId,
-                        TipoEntregaId = 1,
-                        Contenido = contenidoGuardar
-                    };
-                    Db.tbEntregables.Add(entregableEntity);
-                    await Db.SaveChangesAsync();
-
-                    return Ok();
+                        mensaje = "ActividadId y AlumnoId deben ser mayores a 0.",
+                        ActividadId = entregable.ActividadId,
+                        AlumnoId = entregable.AlumnoId
+                    });
                 }
-                else
-                {
-                    // Legacy flow
-                    var entregaExistLegacy = await Db.Set<tbAlumnosActividades>().FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
-                    int entregaAlumnoId;
-                    if (entregaExistLegacy == null)
-                    {
-                        var nueva = new tbAlumnosActividades
-                        {
-                            ActividadId = actividadId,
-                            AlumnoId = alumnoId,
-                            FechaEntrega = fechaEntParsed,
-                            EstatusEntrega = true
-                        };
-                        Db.Set<tbAlumnosActividades>().Add(nueva);
-                        await Db.SaveChangesAsync();
-                        entregaAlumnoId = nueva.AlumnoActividadId;
-                    }
-                    else
-                    {
-                        entregaExistLegacy.FechaEntrega = fechaEntParsed;
-                        entregaExistLegacy.EstatusEntrega = true;
-                        await Db.SaveChangesAsync();
-                        entregaAlumnoId = entregaExistLegacy.AlumnoActividadId;
-                    }
-
-                    // legacy: si el campo 'respuesta' contiene JSON con Link/Enlaces, normalizar antes de guardar
-                    string contenidoLegacy = respuesta ?? string.Empty;
-                    try
-                    {
-                        if (!string.IsNullOrWhiteSpace(respuesta))
-                        {
-                            var j = JsonConvert.DeserializeObject<dynamic>(respuesta);
-                            if (j != null && (j.Link != null || j.Enlaces != null))
-                            {
-                                var texto = j.Respuesta != null ? (string)j.Respuesta : string.Empty;
-                                var links = j.Link != null ? j.Link : j.Enlaces;
-                                contenidoLegacy = JsonConvert.SerializeObject(new { Respuesta = texto, Link = links });
-                            }
-                        }
-                    }
-                    catch { }
-
-                    var entregableLegacy = new tbEntregableAlumno
-                    {
-                        AlumnoActividadId = entregaAlumnoId,
-                        Respuesta = contenidoLegacy
-                    };
-                    Db.Set<tbEntregableAlumno>().Add(entregableLegacy);
-                    await Db.SaveChangesAsync();
-
-                    return Ok();
-                }
-            }
-            catch (Exception)
-            {
-                return BadRequest();
-            }
-            try
-            {
-                var actividadId = entregable.ActividadId;
-                var alumnoId = entregable.AlumnoId;
-                var respuesta = entregable.Respuesta;
-                var fechaEntrega = entregable.FechaEntrega;
-
-                var fechaLimite = Db.tbActividades.Where(a => a.ActividadId == actividadId).Select(a => a.FechaLimite).FirstOrDefault();
-
-                //tbAlumnosActividades actividad = new tbAlumnosActividades()
-                //{
-                //    ActividadId = actividadId,
-                //    AlumnoId = alumnoId,
-                //    FechaEntrega = DateTime.Parse(fechaEntrega),
-                //    EstatusEntrega = true
-                //};
-
-
-
-                //Db.tbAlumnosActividades.Add(actividad);
 
                 // Verificar permisos y existencia de actividad
                 if (!await AlumnoPuedeAccederActividadAsync(alumnoId, actividadId))
@@ -895,7 +970,7 @@ namespace ControlActividades.Controllers
                 tbEntregables entregables = new tbEntregables()
                 {
                     EntregaActividadAlumnoId = entregaAlumnoId,
-                    TipoEntregaId = tipoResolved,
+                    TipoEntregaId = tipoEntregaId,
                     Contenido = respuesta,
                 };
                 Db.tbEntregables.Add(entregables);
@@ -921,23 +996,44 @@ namespace ControlActividades.Controllers
 
                     //var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).Select(a => a.Calificacion).FirstOrDefaultAsync();
 
-                    //return Ok(new
-                    //{
-                    //    EntregaId = datosEntregable.EntregaId,
-                    //    AlumnoActividadId = alumnoActividad.,
-                    //    Respuesta = datosEntregable?.Respuesta ?? "",
-                    //    Status = datosAlumnoActividad.EstatusEntrega,
-                    //    Calificacion = calificacion
-                    //});
+                    var lsEnvios = new List<EnvioActividadAlumnoResponse>();
+                    
+                    foreach (var datoEntregable in lsDatosEntregables)
+                    {
+                        var estadoEntregaId = datosAlumnoActividad.EstadoEntregaId;
 
-                    return Ok();
+                        var envio = new EnvioActividadAlumnoResponse()
+                        {
+                            AlumnoId = alumnoId,
+                            EntregaActividadAlumnoId = datoEntregable.EntregaActividadAlumnoId,
+                            EntregableId = datoEntregable.EntregableId,
+                            ActividadId = datosAlumnoActividad.ActividadId,
+                            FechaEntrega = datosAlumnoActividad.FechaEntrega,
+                            Contenido = datoEntregable.Contenido,
+                            Calificacion = datoEntregable.Calificacion ?? 0,
+                            EstadoEntregaId = estadoEntregaId
+                        };
+
+                        lsEnvios.Add(envio);
+                    }
+
+
+                    return Ok(lsEnvios);
                 }
 
-                return BadRequest();
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error: No se pudo guardar completamente la entrega."
+                });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest();
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error al registrar el envío de la actividad.",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
             }
         }
 
@@ -947,67 +1043,159 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                // Intentar flujo nuevo (tbEntregaActividadAlumno + tbEntregables)
-                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId);
-
-                List<EnvioRes> lsEnvios = new List<EnvioRes>();
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a=>a.ActividadId == ActividadId && a.AlumnoId==AlumnoId);
 
                 if (datosAlumnoActividad != null)
                 {
                     var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
+
                     var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
 
-                    var lsEntregas = await Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId).ToListAsync();
-                    foreach (var entrega in lsEntregas)
+
+                    //List<EnvioRes> lsEnvios = new List<EnvioRes>();
+                    List<EnvioActividadAlumnoResponse> lsEnvios = new List<EnvioActividadAlumnoResponse>();
+
+                    var lsEntregas = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId).ToList();
+                    if (lsEntregas.Count > 0)
                     {
-                        EnvioRes envio = new EnvioRes()
+                        foreach (var entrega in lsEntregas)
                         {
-                            EntregaActividadAlumnoId = entregaActividadId,
-                            EntregableId = entrega.EntregableId,
-                            Contenido = entrega.Contenido,
-                            EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
-                            FechaEntrega = fechaEntrega ?? new DateTime(),
-                            Calificacion = entrega.Calificacion,
-                            EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
-                        };
-                        lsEnvios.Add(envio);
+                            //EnvioRes envio = new EnvioRes()
+                            //{
+                            //    EntregaActividadAlumnoId = entregaActividadId,
+                            //    EntregableId = entrega.EntregableId,
+                            //    Contenido = entrega.Contenido,
+                            //    EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+                            //    FechaEntrega = fechaEntrega ?? new DateTime(),
+                            //    Calificacion = entrega.Calificacion.ToString() ?? "",
+                            //    EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
+                            //};
+
+
+                            //lsEnvios.Add(envio);
+
+                            EnvioActividadAlumnoResponse envio = new EnvioActividadAlumnoResponse()
+                            {
+                                AlumnoId = datosAlumnoActividad.AlumnoId,
+                                EntregaActividadAlumnoId = datosAlumnoActividad.EntregaActividadAlumnoId,
+                                EntregableId = entrega.EntregableId,
+                                ActividadId = datosAlumnoActividad.ActividadId,
+                                FechaEntrega = datosAlumnoActividad.FechaEntrega,
+                                Contenido = entrega.Contenido,
+                                Calificacion = entrega.Calificacion ?? 0,
+                                EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId
+                            };
+
+                            lsEnvios.Add(envio);    
+                        }
+
+                        return Ok(lsEnvios);
                     }
-
-                    if (lsEnvios.Count > 0) return Ok(lsEnvios);
-                    return BadRequest();
                 }
 
-                // Si no hay registro en la tabla nueva, intentar flujo legacy (tbAlumnosActividades + tbEntregableAlumno)
-                var datosLegacy = await Db.Set<tbAlumnosActividades>().FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId);
-                if (datosLegacy == null) return BadRequest();
-
-                var alumnoActividadId = datosLegacy.AlumnoActividadId;
-                var fechaEntregaLegacy = datosLegacy.FechaEntrega;
-
-                var lsEntregasLegacy = await Db.Set<tbEntregableAlumno>().Where(e => e.AlumnoActividadId == alumnoActividadId).ToListAsync();
-                foreach (var entrega in lsEntregasLegacy)
-                {
-                    // intentar obtener calificación si existe
-                    var cal = await Db.tbCalificaciones.Where(c => c.EntregaId == entrega.EntregaId).Select(c => (int?)c.Calificacion).FirstOrDefaultAsync();
-                    EnvioRes envio = new EnvioRes()
-                    {
-                        EntregaActividadAlumnoId = alumnoActividadId,
-                        EntregableId = entrega.EntregaId,
-                        Contenido = entrega.Respuesta,
-                        EstadoEntregaId = datosLegacy.EstatusEntrega ? 1 : 0,
-                        FechaEntrega = fechaEntregaLegacy,
-                        Calificacion = cal,
-                        EstadoEntrega = datosLegacy.EstatusEntrega
-                    };
-                    lsEnvios.Add(envio);
-                }
-
-                if (lsEnvios.Count > 0) return Ok(lsEnvios);
                 return BadRequest();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest();
+                // 9. ✅ Logging detallado del error
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Error al obtener los envíos de la actividad.",
+                    error = ex.Message,
+                    ActividadId = ActividadId,
+                    AlumnoId = AlumnoId
+                });
+            }
+        }
+
+        [HttpPost] 
+        [Route("EliminarAlumnoMateria")]
+        public async Task<IHttpActionResult> EliminarAlumnoDeMateria([FromBody] AlumnoEliminarRequest request)
+        {
+            try
+            {
+                int materiaId = request.MateriaId;
+                int alumnoId = request.AlumnoId;
+
+                if (materiaId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Materia y Alumno son obligatorios." });
+                }
+
+                var actividadesMateria = Db.tbActividades.Where(a => a.MateriaId == materiaId).Select(a => a.ActividadId).ToList();
+
+                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => a.AlumnoId == alumnoId && actividadesMateria.Contains(a.ActividadId)).Any();
+                if (alumnoTieneEntregas)
+                    return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + "El alumno ha realizado entregas en las actividades asignadas." });
+
+                var relacionAEliminar = await Db.tbAlumnosMaterias
+                    .FirstOrDefaultAsync(am => am.MateriaId == materiaId && am.AlumnoId == alumnoId);
+
+                if (relacionAEliminar == null)
+                {
+                    // Si la relación no existe, podría significar que ya fue eliminado o que los datos son incorrectos.
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en la materia especificada." });
+                }
+
+                Db.tbAlumnosMaterias.Remove(relacionAEliminar);
+
+                await Db.SaveChangesAsync();
+
+                return Ok(new { mensaje = "Alumno eliminado de la materia correctamente." });
+            }
+            catch (Exception e)
+            {
+                // Manejo de excepciones
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + e.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("EliminarAlumnoGrupo")]
+        public async Task<IHttpActionResult> EliminarAlumnoDeGrupo([FromBody] AlumnoEliminarGrupoRequest request)
+        {
+            try
+            {
+                int grupoId = request.GrupoId;
+                int alumnoId = request.AlumnoId;
+
+                if (grupoId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Grupo y Alumno son obligatorios." });
+                }
+
+
+                var lsMateriasGrupo = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
+
+                var actividadesMaterias = Db.tbActividades.Where(a => lsMateriasGrupo.Contains(a.MateriaId)).Select(a=>a.ActividadId).ToList();
+
+                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => a.AlumnoId == alumnoId && actividadesMaterias.Contains(a.ActividadId)).Any();
+                if (alumnoTieneEntregas)
+                    return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + "El alumno ha realizado entregas en las actividades asignadas." });
+
+
+
+                // 1. Buscar la relación en la tabla tbAlumnosGrupos
+                var relacionAEliminar = await Db.tbAlumnosGrupos
+                    .FirstOrDefaultAsync(ag => ag.GrupoId == grupoId && ag.AlumnoId == alumnoId);
+
+                if (relacionAEliminar == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en el grupo especificado." });
+                }
+
+                // 2. Eliminar la relación
+                Db.tbAlumnosGrupos.Remove(relacionAEliminar);
+
+                // 3. Guardar cambios en la base de datos
+                await Db.SaveChangesAsync();
+
+                // 4. Retornar éxito
+                return Ok(new { mensaje = "Alumno eliminado del grupo correctamente." });
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno del grupo: " + e.Message });
             }
         }
 
@@ -1364,6 +1552,8 @@ namespace ControlActividades.Controllers
             }
         }
 
+        // Dentro de tu AlumnoApiController.cs o la clase donde se encuentra el método
+
         private async Task<List<EmailVerificadoAlumno>> ObtenerListaAlumnos(List<int> lsAlumnosId)
         {
             try
@@ -1378,6 +1568,10 @@ namespace ControlActividades.Controllers
 
                         var alumno = new EmailVerificadoAlumno()
                         {
+                            // 🎯 LÍNEA AÑADIDA: Asignar el ID del alumno al DTO de respuesta
+                            AlumnoId = alumnoDatos.AlumnoId,
+                            // O si tu DTO usa la propiedad 'Id': Id = alumnoDatos.AlumnoId, 
+
                             Email = userName?.Email ?? "",
                             UserName = userName?.UserName ?? "",
                             Nombre = alumnoDatos.Nombre,
@@ -1396,8 +1590,53 @@ namespace ControlActividades.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("EliminarAlumnoGrupo")]
+        public async Task<IHttpActionResult> EliminarAlumnoGrupo([FromBody] EliminarAlumnoClase eliminarAlumnoClase)
+        {
+            try
+            {
+                var alumnoId = eliminarAlumnoClase.AlumnoId;
+                var grupoId = eliminarAlumnoClase.GrupoId;
 
 
+                var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
+
+                var lsActividadesMateria = Db.tbActividades.Where(a => lsMateriasGrupoId.Contains(a.MateriaId)).Select(a => a.ActividadId).Distinct().ToList();
+
+                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 1).Any();
+
+                if(alumnoTieneEntregas)
+                    return BadRequest();
+
+
+                var lsAlumnoBorradores = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 2).ToList();
+
+                if (lsAlumnoBorradores.Count > 0)
+                {
+                    var lsAlumnoBorradoresId = lsAlumnoBorradores.Select(a => a.EntregaActividadAlumnoId).ToList();
+                    var lsEntregables = Db.tbEntregables.Where(a => lsAlumnoBorradoresId.Contains(a.EntregaActividadAlumnoId)).ToList();
+
+                    Db.tbEntregables.RemoveRange(lsEntregables);
+
+                    Db.tbEntregaActividadAlumno.RemoveRange(lsAlumnoBorradores);
+
+                    await Db.SaveChangesAsync();
+                }
+
+
+                var alumnoGrupo = await Db.tbAlumnosGrupos.FirstOrDefaultAsync(a => a.AlumnoId == alumnoId && a.GrupoId == grupoId);
+
+                Db.tbAlumnosGrupos.Remove(alumnoGrupo);
+                await Db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {

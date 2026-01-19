@@ -26,6 +26,12 @@
 </div>
 
 @section Scripts{
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/docente")
+    @Scripts.Render("~/bundles/docentegrupos")
+    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function(){
             if (typeof cargarGrupos === 'function') cargarGrupos();
@@ -39,9 +45,4 @@
             }
         });
     </script>
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/docente")
-    @Scripts.Render("~/bundles/docentegrupos")
-    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
 }

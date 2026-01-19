@@ -18,12 +18,17 @@
     </div>
 
     <div id="listaMateriasSinGrupo" class="content">
-        <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
+        <!-- Las tarjetas se cargan dinÃ¡micamente por `cargarMateriasSinGrupo()` en JS -->
     </div>
 
-@Html.Partial("MateriasModal")
+    @Html.Partial("MateriasModal")
+</div>
 
 @section Scripts{
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/docente")
+    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function(){
             if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
@@ -38,8 +43,4 @@
             });
         });
     </script>
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/docente")
-    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
 }

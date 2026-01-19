@@ -13,8 +13,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
-    /* make background transparent so it does not create a full-screen overlay color */
-    background-color: transparent;
+    background-color: var(--bg-principal);
 }
 
     /* Cuando se activa: show spinner but do not block clicks (leave interaction to modals/backdrops) */
