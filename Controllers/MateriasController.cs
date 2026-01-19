@@ -1111,7 +1111,8 @@ namespace ControlMaterias.Controllers
             ViewBag.NombreMateria = nombreMateria;
 
             // La vista física está en Views/Docente/MateriasDetalles.cshtml
-            return View();
+            // Aseguramos que se cargue la vista correcta especificando la ruta completa
+            return View("~/Views/Docente/MateriasDetalles.cshtml");
         }
 
 
