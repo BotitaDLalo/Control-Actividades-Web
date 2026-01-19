@@ -12,12 +12,14 @@
 }
 <div id="docente-datos" data-docenteid="@docenteId"></div>
 <div class="materia-container">
-    <div class="materia-header" id="materiaHeader" style="background-color: #d63384;">
-        <h1><span id="materiaNombre">Cargando...</span></h1>
-        <div class="materia-info">
-            <span>Código de clase: <strong id="codigoAcceso">Cargando...</strong></span>
-            <i class="fas fa-copy copiar-icono" onclick="copiarCodigoAcceso()" title="Copiar código"></i>
+    <div class="materia-card-custom gr-1 materia-header" id="materiaHeader" style="background-color: #d63384;">
+        <div class="txt">
+            <h1 id="materiaNombre">Cargando...</h1>
+            <p style="margin:6px 0 0 0; font-size:14px; opacity:0.95">Código de clase: <strong id="codigoAcceso">Cargando...</strong> <i class="fas fa-copy copiar-icono" onclick="copiarCodigoAcceso()" title="Copiar código" style="margin-left:8px"></i></p>
         </div>
+        <div class="ico-card"><i class="fas fa-book"></i></div>
+    </div>
+
     <script>
         // Cargar y mostrar actividades como accordion; dentro cargar entregables ordenados por alumno
         // Asegurar que el HTML generado no rompa el diseño: envolvemos en contenedores y usamos clases de bootstrap
@@ -153,9 +155,8 @@
             } catch (e) { console.error(e); cont.innerHTML = '<div class="text-danger p-3">Error al cargar entregables.</div>'; }
         }
 
-        function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
+        function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>\"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
     </script>
-    </div>
 
     <nav class="materia-nav">
         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
@@ -272,6 +273,7 @@
 
 @section Scripts {
     <script>
+<<<<<<< Updated upstream
         async function poblarSelectActividadesEntregables() {
             try {
                 var sel = document.getElementById('selectActividadEntregables');
@@ -299,13 +301,15 @@
             } catch (e) { console.error(e); }
         }
         // expose as globals so other scripts can read them
+=======
+        // Exponer ids y base path para los scripts compartidos
+>>>>>>> Stashed changes
         window.materiaIdGlobal = '@materiaId';
         window.grupoIdGlobal = '@grupoId';
-        // base path to support applications hosted in virtual directories
         window.appBasePath = '@Url.Content("~")';
-        // also expose local variables expected by existing scripts
         var materiaIdGlobal = window.materiaIdGlobal;
         var grupoIdGlobal = window.grupoIdGlobal;
+<<<<<<< Updated upstream
         // Fallback: intentar poblar encabezado inmediatamente usando el id proporcionado por el servidor
         try {
             if (materiaIdGlobal) {
@@ -328,7 +332,37 @@
     
     </script>
     @Scripts.Render("~/bundles/jqueryval")
+=======
+>>>>>>> Stashed changes
 
+        // Intento inicial de poblar encabezado si se dispone de materiaId
+        (function () {
+            try {
+                if (materiaIdGlobal) {
+                    fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
+                        .then(r => { if (!r.ok) throw r; return r.json(); })
+                        .then(d => {
+                            if (d && d.NombreMateria) {
+                                var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
+                                var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
+                                try { document.querySelector('.materia-header').style.backgroundColor = (d.CodigoColor || '#d63384'); } catch (e) { }
+                            }
+                        }).catch(() => { /* no-op */ });
+                }
+            } catch (e) { }
+            try {
+                if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }
+                if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
+            } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
+        })();
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/docentegrupos")
+
+    <script src="~/Scripts/Materias/materia-detalles.js"></script>
+    <script src="~/Scripts/Avisos/avisos.js"></script>
+    <script src="~/Scripts/Materias/configuracion.js"></script>
 }
 
 <div class="modal fade" id="entregablesModal" tabindex="-1" aria-hidden="true">
@@ -454,4 +488,5 @@
 
 @section Styles{
     @Styles.Render("~/Content/Docente/css")
+    @Styles.Render("~/Content/Materia-Detalles/css")
 }

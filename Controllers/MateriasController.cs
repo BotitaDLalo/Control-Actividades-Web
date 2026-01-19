@@ -1005,11 +1005,11 @@ namespace ControlMaterias.Controllers
 
         public ActionResult MateriaDetalles(int? materiaId, int? grupoId)
         {
-            if (!materiaId.HasValue && !grupoId.HasValue)
+            // Redirigir a la vista docente centralizada `MateriasDetalles` para evitar mantener dos vistas casi idénticas.
+            if (!materiaId.HasValue)
             {
                 return RedirectToAction("Index");
             }
-
             // Si el usuario es alumno, redirigir a la vista de alumno correspondiente
             try
             {

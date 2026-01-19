@@ -3,6 +3,8 @@
     cargarAvisosDeMateria();
 });
 
+function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
+
 //Funcion para publicar un aviso
 async function publicarAviso() {
     // Obtener valores de los inputs
@@ -118,6 +120,7 @@ async function cargarAvisosDeMateria() {
 
 function renderizarAvisos(avisos) {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
+    if (!listaAvisos) return;
     listaAvisos.innerHTML = ""; // Limpiar el contenedor
 
     if (!avisos || avisos.length === 0) {
@@ -129,6 +132,7 @@ function renderizarAvisos(avisos) {
     const items = avisos.slice().reverse();
 
     items.forEach(aviso => {
+<<<<<<< Updated upstream
         const avisoItem = document.createElement("div");
         avisoItem.classList.add("aviso-item");
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
@@ -145,33 +149,33 @@ function renderizarAvisos(avisos) {
                     <button class="aviso-editar-btn" data-id="${aviso.AvisoId}">Editar</button>
                     <button class="aviso-eliminar-btn" data-id="${aviso.AvisoId}">Eliminar</button>
                 </div>
+=======
+        const avisoItem = document.createElement('div');
+        avisoItem.className = 'aviso-item';
+        // Crear card
+        avisoItem.innerHTML = `
+            <div class="aviso-icono">📢</div>
+            <div class="aviso-info">
+                <strong>${escapeHtml(aviso.Titulo)}</strong>
+                <div class="aviso-descripcion oculto">${escapeHtml(aviso.Descripcion)}</div>
+                <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</div>
+                <div class="ver-completo">Ver completo</div>
+>>>>>>> Stashed changes
             </div>
-            <div>
-                <p class="actividad-descripcion oculto">${aviso.Descripcion}</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-left:12px">
+                <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${aviso.AvisoId}">Editar</button>
+                <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar</button>
             </div>
         `;
 
-        // Mostrar/ocultar descripción al hacer clic en "Ver completo"
-        const verCompleto = avisoItem.querySelector(".ver-completo");
-        const descripcion = avisoItem.querySelector(".actividad-descripcion");
-        
-        verCompleto.addEventListener("click", () => {
-            // Alternar entre mostrar y ocultar la descripción
-            if (descripcion.classList.contains("oculto")) {
-                descripcion.classList.remove("oculto");
-                descripcion.classList.add("visible");
-            } else {
-                descripcion.classList.remove("visible");
-                descripcion.classList.add("oculto");
-            }
-        });
+        // toggle descripcion
+        const ver = avisoItem.querySelector('.ver-completo');
+        const desc = avisoItem.querySelector('.aviso-descripcion');
+        if (ver && desc) ver.addEventListener('click', () => { desc.classList.toggle('oculto'); desc.classList.toggle('visible'); });
 
-        // Agregar eventos a los botones
-        const btnEliminar = avisoItem.querySelector(".aviso-eliminar-btn");
-        const btnEditar = avisoItem.querySelector(".aviso-editar-btn");
-
-        btnEliminar.addEventListener("click", () => eliminarAviso(aviso.AvisoId));
-        btnEditar.addEventListener("click", () => editarAviso(aviso.AvisoId));
+        // botones
+        avisoItem.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', () => eliminarAviso(aviso.AvisoId)));
+        avisoItem.querySelectorAll('.btn-editar').forEach(b => b.addEventListener('click', () => editarAviso(aviso.AvisoId)));
 
         listaAvisos.appendChild(avisoItem);
     });

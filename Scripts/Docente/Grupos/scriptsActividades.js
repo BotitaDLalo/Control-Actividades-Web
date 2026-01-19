@@ -343,25 +343,22 @@ function renderActividadesDirect(listado) {
         const actividadItem = document.createElement('div');
         actividadItem.classList.add('actividad-item');
         actividadItem.innerHTML = `
-            <div class="actividad-header">
-                <div class="icono">📋</div>
-                <div class="info">
-                    <strong>${actividad.NombreActividad}</strong>
-                    <p class="fecha-publicado">Publicado: ${formatearFecha(actividad.FechaCreacion)}</p>
-                    <p class="badge-estado" style="margin-top:6px;"><span class="badge bg-secondary">${estado}</span></p>
-                    <p class="puntaje" style="font-weight: bold; color: #d35400;">Puntaje: ${actividad.Puntaje}</p>
-                    <p class="actividad-descripcion oculto">${descripcionActividadConEnlace}</p>
-                    <p class="ver-completo">Ver completo</p>
-                </div>
-                <div class="fecha-entrega">
-                    <strong>Fecha de entrega:</strong><br>
-                    ${formatearFecha(actividad.FechaLimite)}
-                </div>
-                <div class="botones-container">
-                    <button class="btn-ir-actividades" data-id="${actividad.ActividadId}">Ir a actividad</button>
-                    <button class="editar-btn" data-id="${actividad.ActividadId}">Editar</button>
-                    <button class="eliminar-btn" data-id="${actividad.ActividadId}">Eliminar</button>
-                </div>
+            <div class="icono">📋</div>
+            <div class="info">
+                <strong>${escapeHtml(actividad.NombreActividad)}</strong>
+                <p class="fecha-publicado">Publicado: ${formatearFecha(actividad.FechaCreacion)}</p>
+                <p class="puntaje" style="font-weight: bold; color: #d35400;">Puntaje: ${actividad.Puntaje}</p>
+                <p class="actividad-descripcion oculto">${descripcionActividadConEnlace}</p>
+                <p class="ver-completo">Ver completo</p>
+            </div>
+            <div class="fecha-entrega">
+                <strong>Fecha de entrega:</strong><br>
+                ${formatearFecha(actividad.FechaLimite)}
+            </div>
+            <div class="botones-container">
+                <button class="btn btn-sm btn-primary btn-ir-actividades" data-id="${actividad.ActividadId}">Ver / Entregar</button>
+                <button class="btn btn-sm btn-warning editar-btn" data-id="${actividad.ActividadId}">Editar</button>
+                <button class="btn btn-sm btn-danger eliminar-btn" data-id="${actividad.ActividadId}">Eliminar</button>
             </div>
         `;
 

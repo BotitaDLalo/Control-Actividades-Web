@@ -739,7 +739,6 @@
     <Content Include="Views\Grupos\Index.cshtml" />
     <Content Include="Views\Materias\Index.cshtml" />
     <Content Include="Views\Grupos\GrupoMaterias.cshtml" />
-    <Content Include="Views\Materias\MateriaDetalles.cshtml" />
     <Content Include="Views\Materias\MateriasModal.cshtml" />
     <Content Include="Views\Materias\CrearActividadModal.cshtml" />
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
