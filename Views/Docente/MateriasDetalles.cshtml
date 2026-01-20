@@ -145,7 +145,9 @@
                     var respTxt = it.Respuesta ? (it.Respuesta.length > 200 ? it.Respuesta.substring(0, 200) + '...' : it.Respuesta) : '-';
                     var fecha = it.FechaEntrega ? new Date(it.FechaEntrega).toLocaleString() : '-';
                     var cal = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? '<em>Pendiente</em>' : it.Calificacion;
-                    html += `<tr data-entrega-id="${it.EntregaId}" data-alumno-id="${it.AlumnoId}"><td>${escapeHtml(nombre)}</td><td><pre style="white-space:pre-wrap;margin:0">${escapeHtml(respTxt)}</pre></td><td>${fecha}</td><td class="cal-cell">${cal}</td><td><button class="btn btn-sm btn-primary btn-evaluar" data-entrega-id="${it.EntregaId}" data-respuesta="${encodeURIComponent(it.Respuesta || '')}">Evaluar</button></td></tr>`;
+                    var btnText = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'Evaluar' : 'Editar';
+                    var btnClass = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'btn btn-sm btn-success btn-evaluar' : 'btn btn-sm btn-warning btn-evaluar';
+                    html += `<tr data-entrega-id="${it.EntregaId}" data-alumno-id="${it.AlumnoId}"><td>${escapeHtml(nombre)}</td><td><pre style="white-space:pre-wrap;margin:0">${escapeHtml(respTxt)}</pre></td><td>${fecha}</td><td class="cal-cell">${cal}</td><td><button class="${btnClass}" data-entrega-id="${it.EntregaId}" data-respuesta="${encodeURIComponent(it.Respuesta || '')}">${btnText}</button></td></tr>`;
                 });
                 html += '</tbody></table></div>';
                 cont.innerHTML = html;
