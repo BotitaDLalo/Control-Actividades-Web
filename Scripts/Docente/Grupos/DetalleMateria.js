@@ -165,7 +165,7 @@ async function cargarEntregablesDeMateria(materiaId) {
         // cache and populate select
         actividadesCache = actividades;
         if (sel) {
-            sel.innerHTML = '<option value="0">-- Seleccione una actividad --</option>';
+            sel.innerHTML = '<option value="all">-- Todas las actividades --</option><option value="0">-- Seleccione una actividad --</option>';
             actividades.forEach(a => {
                 var opt = document.createElement('option');
                 opt.value = a.ActividadId || a.actividadId || a.ActividadId;
@@ -173,7 +173,13 @@ async function cargarEntregablesDeMateria(materiaId) {
                 sel.appendChild(opt);
             });
             sel.onchange = function () {
-                var id = parseInt(this.value || '0');
+                var val = this.value || '0';
+                if (val === 'all') {
+                    // mostrar todos los entregables agrupados por actividad
+                    cargarTodosEntregables(actividades);
+                    return;
+                }
+                var id = parseInt(val || '0');
                 if (id > 0) cargarEntregablesPorActividad(id);
                 else cont.innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
             };
@@ -210,11 +216,107 @@ async function cargarEntregablesDeMateria(materiaId) {
             };
         }
         cont.innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
+        // Al cargar actividades, por defecto mostramos todos los entregables agrupados
+        try { cargarTodosEntregables(actividades); } catch (e) { /* noop */ }
     } catch (err) {
         console.error(err);
         cont.innerHTML = '<p class="text-danger">Error al cargar actividades.</p>';
         if (sel) sel.innerHTML = '<option value="0">-- Error --</option>';
     }
+}
+
+// Cargar entregables de todas las actividades y agruparlos
+async function cargarTodosEntregables(actividades) {
+    var cont = document.getElementById('listaEntregables');
+    if (!cont) return;
+    cont.innerHTML = '<p class="text-muted">Cargando entregables de todas las actividades...</p>';
+
+    try {
+        if (!Array.isArray(actividades) || actividades.length === 0) {
+            cont.innerHTML = '<p class="text-muted">No hay actividades para mostrar entregables.</p>';
+            return;
+        }
+
+        // Realizar peticiones en paralelo (pero limitar en caso de muchas actividades)
+        const maxParallel = 10;
+        const chunks = [];
+        for (let i = 0; i < actividades.length; i += maxParallel) chunks.push(actividades.slice(i, i + maxParallel));
+
+        const resultsMap = {};
+        for (const chunk of chunks) {
+            const promises = chunk.map(a => {
+                const id = a.ActividadId || a.actividadId || a.ActividadId;
+                return fetch(`/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(id)}`)
+                    .then(r => r.ok ? r.json().catch(() => null) : null)
+                    .then(data => ({ id: id, meta: a, data: data }))
+                    .catch(() => ({ id: id, meta: a, data: null }));
+            });
+
+            const res = await Promise.all(promises);
+            res.forEach(r => { resultsMap[r.id] = r; });
+        }
+
+        // Construir vista agrupada
+        renderEntregablesGrouped(resultsMap, actividades, cont);
+    } catch (err) {
+        console.error('Error al cargar todos los entregables:', err);
+        cont.innerHTML = '<p class="text-danger">Error al cargar entregables.</p>';
+    }
+}
+
+function renderEntregablesGrouped(resultsMap, actividades, container) {
+    container.innerHTML = '';
+    // Mostrar resumen total
+    let total = 0;
+    actividades.forEach(a => {
+        const id = a.ActividadId || a.actividadId || a.ActividadId;
+        const r = resultsMap[id];
+        if (r && r.data && Array.isArray(r.data.AlumnosEntregables)) total += r.data.AlumnosEntregables.length;
+    });
+    const header = document.createElement('div');
+    header.innerHTML = `<p><strong>Total entregables:</strong> ${total} &nbsp; <strong>Actividades:</strong> ${actividades.length}</p>`;
+    container.appendChild(header);
+
+    actividades.forEach(a => {
+        const id = a.ActividadId || a.actividadId || a.ActividadId;
+        const r = resultsMap[id];
+        const activityTitle = a.NombreActividad || a.nombreActividad || ('Actividad ' + id);
+
+        const actDiv = document.createElement('div');
+        actDiv.className = 'actividad-entregables mb-3';
+        const h = document.createElement('h6');
+        h.textContent = activityTitle;
+        actDiv.appendChild(h);
+
+        if (!r || !r.data || !r.data.AlumnosEntregables || r.data.AlumnosEntregables.length === 0) {
+            const p = document.createElement('p'); p.className = 'text-muted'; p.textContent = 'No hay entregables.'; actDiv.appendChild(p);
+        } else {
+            const list = document.createElement('div'); list.className = 'list-group';
+            (r.data.AlumnosEntregables || []).forEach(ent => {
+                const item = document.createElement('div'); item.className = 'list-group-item d-flex justify-content-between align-items-start';
+                const left = document.createElement('div');
+                left.innerHTML = `<div><strong>${ent.NombreUsuario || (ent.Nombres + ' ' + ent.ApellidoPaterno)}</strong></div><div class="small text-muted">Entregado: ${ent.FechaEntrega ? new Date(ent.FechaEntrega).toLocaleString() : '—'}</div>`;
+                const right = document.createElement('div'); right.className = 'd-flex gap-2 align-items-center';
+                const btn = document.createElement('button'); btn.className = 'btn btn-sm btn-primary btn-ver-entrega'; btn.textContent = 'Ver';
+                btn.dataset.entregaid = ent.EntregaId || 0; btn.dataset.respuesta = ent.Respuesta || '';
+                const badge = document.createElement('span'); badge.className = 'badge bg-secondary'; badge.textContent = (typeof ent.Calificacion !== 'undefined' && ent.Calificacion !== null) ? ent.Calificacion : '—';
+                right.appendChild(btn); right.appendChild(badge);
+                item.appendChild(left); item.appendChild(right);
+                list.appendChild(item);
+            });
+            // attach listeners
+            list.querySelectorAll('.btn-ver-entrega').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var respuesta = this.dataset.respuesta || '';
+                    var nombre = this.parentNode.parentNode.querySelector('strong') ? this.parentNode.parentNode.querySelector('strong').innerText : '';
+                    Swal.fire({ title: 'Respuesta de ' + nombre, html: '<pre style="text-align:left; white-space:pre-wrap;">' + (respuesta || 'Sin respuesta') + '</pre>', width: 800 });
+                });
+            });
+            actDiv.appendChild(list);
+        }
+
+        container.appendChild(actDiv);
+    });
 }
 
 function renderEntregablesForActivity(data, container) {
