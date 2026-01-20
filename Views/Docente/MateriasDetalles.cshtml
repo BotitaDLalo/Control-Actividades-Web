@@ -12,12 +12,15 @@
 }
 <div id="docente-datos" data-docenteid="@docenteId"></div>
 <div class="materia-container">
-    <div class="materia-card-custom gr-1 materia-header" id="materiaHeader" style="background-color: #d63384;">
-        <div class="txt">
-            <h1 id="materiaNombre">Cargando...</h1>
-            <p style="margin:6px 0 0 0; font-size:14px; opacity:0.95">Código de clase: <strong id="codigoAcceso">Cargando...</strong> <i class="fas fa-copy copiar-icono" onclick="copiarCodigoAcceso()" title="Copiar código" style="margin-left:8px"></i></p>
+    <!-- Compact header: shows materia name and access code without large decorative card -->
+    <div class="materia-header-compact materia-header d-flex align-items-center justify-content-between" style="padding:12px 20px; border-radius:8px; margin-bottom:12px; background: linear-gradient(90deg,#42c1ff 0%,#1e88e5 100%); color:#fff;">
+        <div style="display:flex;flex-direction:column;">
+            <h2 id="materiaNombre" style="margin:0; font-size:1.4rem; font-weight:600;">Cargando...</h2>
+            <small style="opacity:0.95; margin-top:6px;">Código: <strong id="codigoAcceso">Cargando...</strong>
+                <button type="button" class="btn btn-sm btn-light" style="margin-left:8px; padding:2px 8px; font-size:0.85rem;" onclick="copiarCodigoAcceso()" title="Copiar código">Copiar</button>
+            </small>
         </div>
-        <div class="ico-card"><i class="fas fa-book"></i></div>
+        <div class="ico-card" style="font-size:28px; opacity:0.95;"><i class="fas fa-book"></i></div>
     </div>
 
     <script>
@@ -273,19 +276,29 @@
 
 @section Scripts {
     <script>
-<<<<<<< Updated upstream
+        // Poblar select de entregables (opcional)
         async function poblarSelectActividadesEntregables() {
             try {
                 var sel = document.getElementById('selectActividadEntregables');
                 if (!sel) return;
                 const resp = await fetch('/api/Actividades/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(materiaIdGlobal));
                 if (!resp.ok) return;
-                const lista = await resp.json();
+                const payload = await resp.json().catch(() => null);
+                var lista = [];
+                if (!payload) return;
+                if (Array.isArray(payload)) lista = payload;
+                else if (payload.Actividades && Array.isArray(payload.Actividades)) lista = payload.Actividades;
+                else {
+                    // try find first array property
+                    const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
+                    if (arr) lista = arr;
+                }
+
                 sel.innerHTML = '<option value="0">-- Seleccione una actividad --</option>';
                 lista.forEach(function (a) {
                     var opt = document.createElement('option');
                     opt.value = a.ActividadId || a.Id || a.actividadId || 0;
-                    opt.text = a.NombreActividad || a.Nombre || a.NombreActividad || a.NombreActividad;
+                    opt.text = a.NombreActividad || a.Nombre || a.nombreActividad || '';
                     sel.appendChild(opt);
                 });
                 sel.addEventListener('change', function () {
@@ -294,46 +307,18 @@
                         document.getElementById('listaEntregables').innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
                         return;
                     }
-                    // Cargar entregables en línea para la actividad seleccionada
                     localStorage.setItem('actividadSeleccionada', id);
                     cargarEntregablesPorActividad(id);
                 });
             } catch (e) { console.error(e); }
         }
-        // expose as globals so other scripts can read them
-=======
+
         // Exponer ids y base path para los scripts compartidos
->>>>>>> Stashed changes
         window.materiaIdGlobal = '@materiaId';
         window.grupoIdGlobal = '@grupoId';
         window.appBasePath = '@Url.Content("~")';
         var materiaIdGlobal = window.materiaIdGlobal;
         var grupoIdGlobal = window.grupoIdGlobal;
-<<<<<<< Updated upstream
-        // Fallback: intentar poblar encabezado inmediatamente usando el id proporcionado por el servidor
-        try {
-            if (materiaIdGlobal) {
-                fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
-                    .then(r => { if (!r.ok) throw r; return r.json(); })
-                    .then(d => {
-                        if (d && d.NombreMateria) {
-                            var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
-                            var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
-                            try { document.querySelector('.materia-header').style.backgroundColor = (d.CodigoColor || '#d63384'); } catch (e) { }
-                        }
-                    }).catch(() => { /* no-op */ });
-            }
-        } catch (e) { }
-        // Persist current materia/grupo selection so alumnos list can be restored
-        try {
-            if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }
-            if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
-        } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
-    
-    </script>
-    @Scripts.Render("~/bundles/jqueryval")
-=======
->>>>>>> Stashed changes
 
         // Intento inicial de poblar encabezado si se dispone de materiaId
         (function () {
@@ -342,10 +327,11 @@
                     fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
                         .then(r => { if (!r.ok) throw r; return r.json(); })
                         .then(d => {
-                            if (d && d.NombreMateria) {
+                if (d && d.NombreMateria) {
+                                // update compact header
                                 var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
                                 var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
-                                try { document.querySelector('.materia-header').style.backgroundColor = (d.CodigoColor || '#d63384'); } catch (e) { }
+                                try { var hdr = document.querySelector('.materia-header-compact'); if (hdr && d.CodigoColor) hdr.style.background = d.CodigoColor; } catch (e) { }
                             }
                         }).catch(() => { /* no-op */ });
                 }
@@ -355,6 +341,18 @@
                 if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
             } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
         })();
+
+        // Ensure actividades are loaded when this view is rendered. If the actividades script
+        // hasn't run yet, retry shortly. This avoids timing issues between bundles and inline scripts.
+        setTimeout(function () {
+            try {
+                if (typeof cargarActividadesDeMateria === 'function') {
+                    cargarActividadesDeMateria(materiaIdGlobal, true);
+                } else {
+                    console.debug('cargarActividadesDeMateria not yet available');
+                }
+            } catch (e) { console.error('Error invoking cargarActividadesDeMateria:', e); }
+        }, 150);
     </script>
 
     @Scripts.Render("~/bundles/jqueryval")

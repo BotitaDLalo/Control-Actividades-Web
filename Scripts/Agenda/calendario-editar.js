@@ -13,7 +13,14 @@ function convertirFechaNetAInput(fechaNet) {
 
 document.addEventListener("DOMContentLoaded", () => {
     modalEditarEl = document.getElementById("modalEditarEvento");
-    modalEditar = bootstrap.Modal.getOrCreateInstance(modalEditarEl);
+    if (modalEditarEl && typeof bootstrap !== 'undefined' && bootstrap.Modal && typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+        try {
+            modalEditar = bootstrap.Modal.getOrCreateInstance(modalEditarEl);
+        } catch (e) {
+            console.warn('No se pudo inicializar modalEditar:', e);
+            modalEditar = null;
+        }
+    }
 });
 
 //Escuchar evento (viene de calendario-detalles) para abrir el modal de editar
@@ -167,7 +174,9 @@ function activarLogicaEditar() {
 }
 
 //Submit del formulario de edición
-document.getElementById("formEditarEvento").addEventListener("submit", async e => {
+var _formEditarEvento = document.getElementById("formEditarEvento");
+if (_formEditarEvento) {
+    _formEditarEvento.addEventListener("submit", async e => {
     e.preventDefault();
 
     const confirm = await Swal.fire({

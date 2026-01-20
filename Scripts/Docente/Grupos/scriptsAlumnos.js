@@ -23,7 +23,7 @@ function setupAlumnoSearch() {
         debounceTimer = setTimeout(async function () {
             try {
                 var basePath = (window.appBasePath || '');
-                var resp = await fetch(basePath + 'Materias/BuscarAlumnosPorCorreo?query=' + encodeURIComponent(q), { credentials: 'same-origin' });
+                var resp = await fetch('/Materias/BuscarAlumnosPorCorreo?query=' + encodeURIComponent(q), { credentials: 'same-origin' });
                 if (!resp.ok) { renderSugerencias([]); return; }
                 var data = await resp.json().catch(function(){return [];});
                 renderSugerencias(data || []);
@@ -51,7 +51,7 @@ function setupAlumnoSearch() {
                 body.append('correo', correo);
                 body.append('materiaId', materiaId);
                 var basePath = (window.appBasePath || '');
-                var resp = await fetch(basePath + 'Materias/AsignarAlumnoMateria', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString(), credentials: 'same-origin' });
+                var resp = await fetch('/Materias/AsignarAlumnoMateria', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString(), credentials: 'same-origin' });
                 if (!resp.ok) {
                     var txt = await resp.text().catch(()=>'');
                     alert('Error al asignar alumno: ' + (txt || resp.status));
@@ -160,7 +160,7 @@ async function cargarAlumnosAsignados(materiaOrAlumnos) {
         var materiaId = (typeof materiaOrAlumnos !== 'undefined' && materiaOrAlumnos) ? materiaOrAlumnos : (typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : (window.materiaIdGlobal || null));
         if (!materiaId) { cont.innerHTML = '<p class="text-muted">No hay materia seleccionada.</p>'; return; }
         var basePath = (window.appBasePath || '');
-        var resp = await fetch(basePath + 'Materias/ObtenerAlumnosPorMateria?materiaId=' + encodeURIComponent(materiaId));
+        var resp = await fetch('/Materias/ObtenerAlumnosPorMateria?materiaId=' + encodeURIComponent(materiaId));
         if (!resp.ok) { cont.innerHTML = '<p class="text-danger">Error al cargar alumnos.</p>'; return; }
         var data = await resp.json();
         var alumnos = [];
@@ -177,7 +177,7 @@ async function eliminardelgrupo(enlaceId) {
     if (!confirm('¿Eliminar alumno?')) return;
     try {
         var basePath = (window.appBasePath || '');
-        var r = await fetch(basePath + 'Materias/EliminarAlumnoDeMateria?idEnlace=' + encodeURIComponent(enlaceId), { method: 'DELETE' });
+        var r = await fetch('/Materias/EliminarAlumnoDeMateria?idEnlace=' + encodeURIComponent(enlaceId), { method: 'DELETE' });
         if (!r.ok) throw new Error('No eliminado');
         alert('Alumno eliminado');
         if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) fd.append('MateriaId', materiaIdGlobal);
                 console.log('ImportarAlumnosExcel: enviando', file.name, 'MateriaId=', materiaIdGlobal, 'GrupoId=', grupoId);
                 var basePath = (window.appBasePath || '');
-                var resp = await fetch(basePath + 'api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd, credentials: 'same-origin' });
+                var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd, credentials: 'same-origin' });
                 var json = await resp.json().catch(function(){return {};});
                 if (!resp.ok) { alert(json.mensaje || 'Error importar'); return; }
 

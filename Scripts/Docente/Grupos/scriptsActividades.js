@@ -10,52 +10,79 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
         var seccionAct = document.getElementById('seccion-actividades');
         if (seccionAct) {
-            var container = document.createElement('div');
-            container.style.marginTop = '10px';
-            container.style.display = 'flex';
-            container.style.gap = '8px';
-            container.style.alignItems = 'center';
+            // If a control with id 'filtroActividades' already exists on the page,
+            // reuse it (attach listeners / restore state) instead of injecting a new one.
+            var existing = document.getElementById('filtroActividades');
+            if (existing) {
+                try {
+                    var saved = localStorage.getItem('filtroActividades');
+                    if (saved) existing.value = saved;
+                } catch (e) { }
 
-            var label = document.createElement('label'); label.style.margin = '0'; label.textContent = 'Filtro: ';
-            var select = document.createElement('select'); select.id = 'filtroActividades'; select.className = 'form-select'; select.style.width = 'auto'; select.style.display = 'inline-block';
-            [['all','Todas'], ['borrador','Borradores'], ['publicada','Publicadas'], ['programada','Programadas'] ].forEach(function(opt){
-                var o = document.createElement('option'); o.value = opt[0]; o.textContent = opt[1]; select.appendChild(o);
-            });
-            container.appendChild(label); container.appendChild(select);
-            // try to insert before divider if present, otherwise append
-            var ref = seccionAct.querySelector('.divider');
-            if (ref) seccionAct.insertBefore(container, ref); else seccionAct.appendChild(container);
+                function aplicarFiltroDesdeSelectExistente() {
+                    console.debug('Filtro existente cambiado a', existing.value);
+                    try { localStorage.setItem('filtroActividades', existing.value); } catch(e){}
 
-            // restore previous selection if any
-            try {
-                var saved = localStorage.getItem('filtroActividades');
-                if (saved) select.value = saved;
-            } catch (e) { }
+                    if (actividadesCacheGlobal && Array.isArray(actividadesCacheGlobal) && actividadesCacheGlobal.length>0) {
+                        renderizarActividades(actividadesCacheGlobal);
+                    }
 
-            function aplicarFiltroDesdeSelect() {
-                console.debug('Filtro cambiado a', select.value);
-                try { localStorage.setItem('filtroActividades', select.value); } catch(e){}
-
-                // If we have cached activities, render them immediately for snappy UX
-                if (actividadesCacheGlobal && Array.isArray(actividadesCacheGlobal) && actividadesCacheGlobal.length>0) {
-                    renderizarActividades(actividadesCacheGlobal);
+                    var midToUse = window.materiaIdGlobal || materiaIdGlobal || null;
+                    setTimeout(function(){ cargarActividadesDeMateria(midToUse, true); }, 0);
                 }
 
-                // Always refresh from server to ensure data is up-to-date and filtering uses latest values
-                // pass explicit materia id to avoid relying on globals
-                var midToUse = window.materiaIdGlobal || materiaIdGlobal || null;
-                setTimeout(function(){ cargarActividadesDeMateria(midToUse, true); }, 0);
-                // don't toggle tabs here; just refresh data. A global delegated listener ensures changes trigger reload.
-            }
+                existing.addEventListener('change', aplicarFiltroDesdeSelectExistente);
+                existing.addEventListener('input', aplicarFiltroDesdeSelectExistente);
+                existing.addEventListener('click', function(){ setTimeout(aplicarFiltroDesdeSelectExistente, 0); });
+                try { setTimeout(aplicarFiltroDesdeSelectExistente, 10); } catch(e){}
+            } else {
+                var container = document.createElement('div');
+                container.style.marginTop = '10px';
+                container.style.display = 'flex';
+                container.style.gap = '8px';
+                container.style.alignItems = 'center';
 
-            select.addEventListener('change', aplicarFiltroDesdeSelect);
-            // also listen to 'input' and 'click' for scenarios where change may not fire
-            select.addEventListener('input', aplicarFiltroDesdeSelect);
-            select.addEventListener('click', function(){ setTimeout(aplicarFiltroDesdeSelect, 0); });
-            // trigger once to apply restored selection
-            try { setTimeout(aplicarFiltroDesdeSelect, 10); } catch(e){}
+                var label = document.createElement('label'); label.style.margin = '0'; label.textContent = 'Filtro: ';
+                var select = document.createElement('select'); select.id = 'filtroActividades'; select.className = 'form-select'; select.style.width = 'auto'; select.style.display = 'inline-block';
+                [['all','Todas'], ['borrador','Borradores'], ['publicada','Publicadas'], ['programada','Programadas'] ].forEach(function(opt){
+                    var o = document.createElement('option'); o.value = opt[0]; o.textContent = opt[1]; select.appendChild(o);
+                });
+                container.appendChild(label); container.appendChild(select);
+                // try to insert before divider if present, otherwise append
+                var ref = seccionAct.querySelector('.divider');
+                if (ref) seccionAct.insertBefore(container, ref); else seccionAct.appendChild(container);
+
+                // restore previous selection if any
+                try {
+                    var saved = localStorage.getItem('filtroActividades');
+                    if (saved) select.value = saved;
+                } catch (e) { }
+
+                function aplicarFiltroDesdeSelect() {
+                    console.debug('Filtro cambiado a', select.value);
+                    try { localStorage.setItem('filtroActividades', select.value); } catch(e){}
+
+                    // If we have cached activities, render them immediately for snappy UX
+                    if (actividadesCacheGlobal && Array.isArray(actividadesCacheGlobal) && actividadesCacheGlobal.length>0) {
+                        renderizarActividades(actividadesCacheGlobal);
+                    }
+
+                    // Always refresh from server to ensure data is up-to-date and filtering uses latest values
+                    // pass explicit materia id to avoid relying on globals
+                    var midToUse = window.materiaIdGlobal || materiaIdGlobal || null;
+                    setTimeout(function(){ cargarActividadesDeMateria(midToUse, true); }, 0);
+                    // don't toggle tabs here; just refresh data. A global delegated listener ensures changes trigger reload.
+                }
+
+                select.addEventListener('change', aplicarFiltroDesdeSelect);
+                // also listen to 'input' and 'click' for scenarios where change may not fire
+                select.addEventListener('input', aplicarFiltroDesdeSelect);
+                select.addEventListener('click', function(){ setTimeout(aplicarFiltroDesdeSelect, 0); });
+                // trigger once to apply restored selection
+                try { setTimeout(aplicarFiltroDesdeSelect, 10); } catch(e){}
+            }
         }
-    } catch(e){ console.warn('No se pudo inyectar filtroActividades', e); }
+    } catch(e){ console.warn('No se pudo inyectar o inicializar filtroActividades', e); }
 
     cargarActividadesDeMateria();
     
@@ -217,8 +244,26 @@ async function cargarActividadesDeMateria(midParam, forceReload) {
         // include filtro (if set) so server can return filtered results
         var filtroEl = document.getElementById('filtroActividades');
         var filtroVal = filtroEl ? filtroEl.value : null;
-        const basePath = (window.appBasePath || '');
-        const response = await fetch(basePath + `Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''));
+        // normalize base path to avoid accidental '//' protocol-relative URLs when appBasePath === '/'
+        const rawBasePath = (window.appBasePath || '');
+        const basePath = rawBasePath.replace(/\/$/, '');
+
+        // Try multiple endpoints (MVC and API variants) to be resilient to routing differences
+        const endpoints = [
+            (basePath || '') + `/Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''),
+            (basePath || '') + `/api/Actividades/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''),
+            (basePath || '') + `/api/Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : '')
+        ];
+
+        let response = null;
+        try {
+            response = await tryEndpoints(endpoints, { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+        } catch (err) {
+            console.warn('No endpoint responded for actividades:', err);
+            listaActividades.innerHTML = '<p class="mensaje-error">No se pudieron obtener actividades del servidor.</p>';
+            return;
+        }
+
         const text = await response.text();
         let payload = null;
         try { payload = text ? JSON.parse(text) : null; } catch (e) { payload = null; }
