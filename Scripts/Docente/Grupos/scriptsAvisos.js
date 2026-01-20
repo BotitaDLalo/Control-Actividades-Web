@@ -1,5 +1,47 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
     //Cargar los avisos asinados a la materia
+    // inyectar controles de filtro (nombre + fechas)
+    try {
+        var cont = document.getElementById('seccion-avisos') || document.body;
+        var filtroDiv = document.createElement('div');
+        filtroDiv.style.display = 'flex';
+        filtroDiv.style.gap = '8px';
+        filtroDiv.style.marginBottom = '10px';
+
+        var inputNombre = document.createElement('input');
+        inputNombre.id = 'filtroAvisoNombre';
+        inputNombre.placeholder = 'Buscar por título...';
+        inputNombre.className = 'form-control form-control-sm';
+        inputNombre.style.width = '220px';
+
+        var inputDesde = document.createElement('input');
+        inputDesde.type = 'date';
+        inputDesde.id = 'filtroAvisoDesde';
+        inputDesde.className = 'form-control form-control-sm';
+        inputDesde.style.width = '150px';
+
+        var inputHasta = document.createElement('input');
+        inputHasta.type = 'date';
+        inputHasta.id = 'filtroAvisoHasta';
+        inputHasta.className = 'form-control form-control-sm';
+        inputHasta.style.width = '150px';
+
+        var btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-primary';
+        btn.textContent = 'Filtrar';
+        btn.addEventListener('click', function(){ cargarAvisosDeMateria(); });
+
+        filtroDiv.appendChild(inputNombre);
+        filtroDiv.appendChild(inputDesde);
+        filtroDiv.appendChild(inputHasta);
+        filtroDiv.appendChild(btn);
+
+        // intentar insertar antes de la lista si existe
+        var lista = document.getElementById('listaDeAvisosDeMateria');
+        if (lista) lista.parentNode.insertBefore(filtroDiv, lista);
+        else document.body.insertBefore(filtroDiv, document.body.firstChild);
+    } catch(e) { console.warn('No se pudo insertar filtros de avisos', e); }
+
     cargarAvisosDeMateria();
 });
 
@@ -111,6 +153,32 @@ async function cargarAvisosDeMateria() {
             const arr = payload && typeof payload === 'object' ? Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v)) : null;
             if (arr) avisos = arr;
         }
+
+        // aplicar filtro cliente si hay controles
+        try {
+            var nombre = (document.getElementById('filtroAvisoNombre') || {}).value || '';
+            var desde = (document.getElementById('filtroAvisoDesde') || {}).value || '';
+            var hasta = (document.getElementById('filtroAvisoHasta') || {}).value || '';
+            if (nombre || desde || hasta) {
+                avisos = avisos.filter(function(a){
+                    var ok = true;
+                    if (nombre) ok = ok && (a.Titulo || '').toLowerCase().indexOf(nombre.toLowerCase()) !== -1;
+                    if (desde) {
+                        var f = new Date(a.FechaCreacion);
+                        var d = new Date(desde);
+                        if (!isNaN(f)) ok = ok && f >= d;
+                    }
+                    if (hasta) {
+                        var f2 = new Date(a.FechaCreacion);
+                        var h = new Date(hasta);
+                        // incluir todo el día
+                        h.setHours(23,59,59,999);
+                        if (!isNaN(f2)) ok = ok && f2 <= h;
+                    }
+                    return ok;
+                });
+            }
+        } catch(e) { console.warn(e); }
 
         renderizarAvisos(avisos);
     } catch (error) {

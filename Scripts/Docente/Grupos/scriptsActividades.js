@@ -89,16 +89,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-// Función que registra una nueva actividad
-async function registrarActividad() {
+    // Función que registra una nueva actividad
+async function registrarActividad(enviarAhora) {
     let nombre = document.getElementById("nombre").value.trim();
     let descripcion = document.getElementById("descripcion").value.trim();
-    let fechaHoraLimite = document.getElementById("fechaHoraLimite").value;
+        // ahora fecha y hora se seleccionan por separado
+        let fechaInput = document.getElementById('fechaLimite');
+        let horaInput = document.getElementById('horaLimite');
+        let fechaHoraLimite = '';
+        if (fechaInput && horaInput) {
+            fechaHoraLimite = fechaInput.value && horaInput.value ? `${fechaInput.value}T${horaInput.value}` : '';
+        }
     let puntajeInput = document.getElementById("puntaje");
-    let sinPuntajeCheckbox = document.getElementById("sinPuntaje");
     let puntaje = null;
-    if (puntajeInput && !puntajeInput.disabled && puntajeInput.value !== '') {
+    if (puntajeInput && puntajeInput.value !== '') {
         puntaje = parseInt(puntajeInput.value, 10);
+        if (isNaN(puntaje)) puntaje = null;
     }
 
     // Referencia al botón para mostrar estado
@@ -106,7 +112,7 @@ async function registrarActividad() {
     var originalBtnHtml = btn ? btn.innerHTML : null;
 
     // Validaciones básicas
-    if (!nombre || !descripcion || !fechaHoraLimite || (puntaje === null && !sinPuntajeCheckbox.checked)) {
+    if (!nombre || !descripcion || !fechaHoraLimite) {
         Swal.fire({
             icon: "warning",
             title: "Campos incompletos",
@@ -137,19 +143,14 @@ async function registrarActividad() {
         NombreActividad: nombre,
         Descripcion: descripcion,
         FechaLimite: fechaHoraLimite,
-        TipoActividadId: 1, // Cambiar si se obtiene dinámicamente
-        Puntaje: sinPuntajeCheckbox && sinPuntajeCheckbox.checked ? (intNull()) : puntaje,
+        Puntaje: (puntaje === null || puntaje === 0) ? 0 : puntaje,
         MateriaId: parseInt(materiaIdGlobal, 10)
     };
+    // enviarAhora = true => publicar; false => borrador; undefined/null => publicar (por compatibilidad)
+    actividad.Enviado = (typeof enviarAhora === 'boolean') ? enviarAhora : true;
     // publicar ahora / despues / borrador
     try {
-        const est = document.getElementById('estatusPublicacion').value;
-        if (est === 'true') actividad.Enviado = true;
-        else if (est === 'false') actividad.Enviado = false;
-        else actividad.Enviado = null;
-
-        const fechaProg = document.getElementById('fechaProgramada').value;
-        if (fechaProg) actividad.FechaProgramada = fechaProg;
+        // previously we used estatus/fecha programada; modal now compact => nothing to read
     } catch (e) { }
 
     try {
@@ -175,14 +176,7 @@ async function registrarActividad() {
             throw new Error(mensaje);
         }
 
-        Swal.fire({
-            position: "top-end",
-            title: "Actividad creada",
-            text: "La actividad ha sido publicada correctamente.",
-            icon: "success",
-            timer: 1500,
-            showConfirmButton: false
-        });
+        Swal.fire({ position: "top-end", title: "Actividad creada", text: actividad.Enviado ? "La actividad ha sido publicada correctamente." : "La actividad fue guardada como borrador.", icon: "success", timer: 1500, showConfirmButton: false });
 
         // Cerrar modal si está abierto (Bootstrap 4/5)
         try {
@@ -534,21 +528,22 @@ async function editarActividad(id) {
         // llenar formulario
         document.getElementById('nombre').value = data.NombreActividad || '';
         document.getElementById('descripcion').value = data.Descripcion || '';
-        document.getElementById('fechaHoraLimite').value = toInputDateTimeValue(data.FechaLimite || data.FechaCreacion);
-        document.getElementById('puntaje').value = data.Puntaje || 0;
-        // set publication status and scheduled date
+        // llenar fecha y hora por separado
         try {
-            var estEl = document.getElementById('estatusPublicacion');
-            var fechaProgEl = document.getElementById('fechaProgramada');
-            if (estEl) {
-                if (data.Enviado === true) estEl.value = 'true';
-                else if (data.Enviado === false) estEl.value = 'false';
-                else estEl.value = 'null';
+            var d = document.getElementById('fechaLimite');
+            var h = document.getElementById('horaLimite');
+            var fechaISO = data.FechaLimite || data.FechaCreacion;
+            if (fechaISO) {
+                var dt = new Date(fechaISO);
+                if (!isNaN(dt)) {
+                    if (d) d.value = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+                    if (h) h.value = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+                    // store for modal show handler
+                    window._editarFechaISO = fechaISO;
+                }
             }
-            if (fechaProgEl) {
-                fechaProgEl.value = toInputDateTimeValue(data.FechaProgramada || '');
-            }
-        } catch (e) { }
+        } catch (e) { console.warn(e); }
+        document.getElementById('puntaje').value = (data.Puntaje === 0 || data.Puntaje == null) ? '' : data.Puntaje;
 
         // establecer materia global si no existe
         if (!materiaIdGlobal && window.materiaIdGlobal) materiaIdGlobal = window.materiaIdGlobal;
@@ -608,20 +603,11 @@ async function actualizarActividad(id) {
         NombreActividad: nombre,
         Descripcion: descripcion,
         FechaLimite: fechaHoraLimite,
-        Puntaje: sinPuntajeCheckbox && sinPuntajeCheckbox.checked ? null : puntaje,
-        TipoActividadId: 1
+        Puntaje: (puntaje === null || puntaje === 0) ? 0 : puntaje
     };
 
     // incluir estatus y fecha programada si aplica
-    try {
-        const est = document.getElementById('estatusPublicacion').value;
-        if (est === 'true') body.Enviado = true;
-        else if (est === 'false') body.Enviado = false;
-        else body.Enviado = null;
-
-        const fechaProg = document.getElementById('fechaProgramada').value;
-        if (fechaProg) body.FechaProgramada = fechaProg;
-    } catch (e) { }
+    // modal ya no contiene estatus/fecha programada
 
     const endpoints = [
         `/api/Actividades/ActualizarActividad?id=${id}`,
