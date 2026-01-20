@@ -498,6 +498,9 @@
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
+    <Compile Include="Services\IMigracionUsuariosService.cs" />
+    <Compile Include="Services\MigracionResultado.cs" />
+    <Compile Include="Services\MigracionUsuariosService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
     <Compile Include="Services\ScheduledPublishingService.cs" />
     <Compile Include="Startup.cs" />

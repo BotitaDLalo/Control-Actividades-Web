@@ -1,14 +1,31 @@
-﻿using System;
+﻿using ControlActividades.Dtos.Migracion;
+using ControlActividades.Models;
+using ControlActividades.Services;
+using Microsoft.AspNet.Identity.Owin;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
-using ControlActividades.Dtos.Migracion;
 
 namespace ControlActividades.Controllers
 {
     [RoutePrefix("api/migracion")]
     public class MigracionUsuariosController : ApiController
     {
+
+        private readonly IMigracionUsuariosService _migracionService;
+
+        public MigracionUsuariosController()
+        {
+            var context = HttpContext.Current.GetOwinContext();
+            var userManager = context.GetUserManager<ApplicationUserManager>();
+            var dbContext = context.Get<ApplicationDbContext>();
+
+            _migracionService = new MigracionUsuariosService(userManager, dbContext);
+        }
+
         [HttpGet]
         [Route("ping")]
         public IHttpActionResult Ping()
@@ -18,17 +35,16 @@ namespace ControlActividades.Controllers
 
         [HttpPost]
         [Route("usuarios")]
-        public IHttpActionResult MigrarUsuarios(MigracionUsuariosDto dto)
+        public async Task<IHttpActionResult> MigrarUsuarios(MigracionUsuariosDto dto)
         {
-            if(dto == null || dto.Usuarios == null || !dto.Usuarios.Any())
+            if(dto?.Usuarios == null || !dto.Usuarios.Any())
             {
-                return BadRequest("El objeto DTO no puede ser nulo.");
+                return BadRequest("No hay usuarios.");
             }
 
-            return Ok(new
-            {
-                TotalRecibidos = dto.Usuarios.Count
-            });
+            var resultado = await _migracionService.MigrarUsuariosAsync(dto.Usuarios);
+
+            return Ok(resultado);
         }
     }
 }
