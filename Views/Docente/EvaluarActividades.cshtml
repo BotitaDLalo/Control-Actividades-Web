@@ -36,6 +36,16 @@
                     </div>
                 </div>
                 <div class="row mt-3">
+                    <div class="col-md-6 d-flex align-items-center">
+                        <strong class="me-2">Permitir entregas tarde:</strong>
+                        <span id="permitirTardeBadge" class="badge bg-secondary me-2">No</span>
+                        <button id="togglePermitirTardeBtn" class="btn btn-sm btn-outline-primary" title="Cambiar permiso de entregas tarde" disabled>Cambiar</button>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <!-- botón movido junto al texto de Permitir entregas tarde -->
+                    </div>
+                </div>
+                <div class="row mt-3">
                     <div class="col-md-12">
                         <strong>Alumnos que han entregado:</strong> <span class="badge bg-success" id="alumnosEntregados">Cargando...</span>
                         <br>
@@ -109,8 +119,219 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/docente")
     @Scripts.Render("~/bundles/docentegrupos")
+
+    <script>
+        (function () {
+            try {
+                // Si no hay actividad/materia en localStorage, intentar obtenerlas desde query string o ViewBag
+                var actividad = localStorage.getItem('actividadSeleccionada');
+                var materia = localStorage.getItem('materiaIdSeleccionada');
+
+                var params = new URLSearchParams(window.location.search);
+                var actividadFromUrl = params.get('actividadId') || params.get('actividadSeleccionada');
+                var materiaFromUrl = params.get('materiaId') || params.get('materiaIdSeleccionada');
+
+                if (!actividad && actividadFromUrl) {
+                    localStorage.setItem('actividadSeleccionada', actividadFromUrl);
+                    actividad = actividadFromUrl;
+                }
+
+                if (!materia) {
+                    if (materiaFromUrl) {
+                        localStorage.setItem('materiaIdSeleccionada', materiaFromUrl);
+                        materia = materiaFromUrl;
+                    } else {
+                        // intentar usar ViewBag si está presente
+                        var vb = '@(ViewBag.MateriaId ?? "")';
+                        if (vb && vb !== '') {
+                            localStorage.setItem('materiaIdSeleccionada', vb);
+                            materia = vb;
+                        }
+                    }
+                }
+
+                // Si aún falta alguno, mostrar mensaje claro en la UI y evitar llamadas innecesarias
+                if (!actividad || !materia) {
+                    console.warn('EvaluarActividades: falta actividadSeleccionada o materiaIdSeleccionada en localStorage.');
+                    var nombreElem = document.getElementById('nombreActividad');
+                    var descElem = document.getElementById('descripcionActividad');
+                    var fechaCreacionElem = document.getElementById('fechaCreacion');
+                    var fechaLimiteElem = document.getElementById('fechaLimite');
+                    var tipoElem = document.getElementById('tipoActividad');
+                    var puntajeElem = document.getElementById('puntajeMaximo');
+                    var alumnosEntregadosElem = document.getElementById('alumnosEntregados');
+                    var actividadesCalificadasElem = document.getElementById('actividadesCalificadas');
+
+                    if (nombreElem) nombreElem.innerText = 'No hay actividad seleccionada';
+                    if (descElem) descElem.innerText = 'No hay actividad seleccionada';
+                    if (fechaCreacionElem) fechaCreacionElem.innerText = '-';
+                    if (fechaLimiteElem) fechaLimiteElem.innerText = '-';
+                    if (tipoElem) tipoElem.innerText = '-';
+                    if (puntajeElem) puntajeElem.innerText = '-';
+                    if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = '0';
+                    if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = '0';
+
+                    var listaEnt = document.getElementById('listaAlumnosEntregados');
+                    var listaNoEnt = document.getElementById('listaAlumnosSinEntregar');
+                    if (listaEnt) listaEnt.innerHTML = '<div class="text-muted p-3">No se ha seleccionado una actividad. Abra la actividad desde Materias para evaluarla.</div>';
+                    if (listaNoEnt) listaNoEnt.innerHTML = '<div class="text-muted p-3">No se ha seleccionado una actividad. Abra la actividad desde Materias para evaluarla.</div>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+
+        // Inicializar control toggle para permitir entregas tarde
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                var btn = document.getElementById('togglePermitirTardeBtn');
+                var badge = document.getElementById('permitirTardeBadge');
+                var actividad = localStorage.getItem('actividadSeleccionada');
+                if (!actividad) return;
+
+                // ya cargado por DetalleActividad.js que llama ObtenerActividadPorId
+                // escuchamos cambios globales en localStorage por si otro script actualiza
+                function actualizarBadge(val) {
+                    if (!badge) return;
+                    if (val === true || String(val).toLowerCase() === 'true') {
+                        badge.className = 'badge bg-success';
+                        badge.innerText = 'Sí';
+                    } else {
+                        badge.className = 'badge bg-secondary';
+                        badge.innerText = 'No';
+                    }
+                }
+
+                // Inicializar con valor actual si existe en la página
+                try {
+                    var current = window.actividadData && window.actividadData.PermitirEntregasTarde;
+                    if (typeof current !== 'undefined') actualizarBadge(current);
+                } catch (e) { }
+
+                if (btn) {
+                    // asegurar que el botón se habilite si ya existe información de actividad
+                    try {
+                        if (window.actividadData && typeof window.actividadData.PermitirEntregasTarde !== 'undefined') {
+                            actualizarBadge(window.actividadData.PermitirEntregasTarde);
+                            btn.disabled = false;
+                        } else {
+                            // intentar obtener la actividad desde la API para inicializar badge
+                            (async function () {
+                                try {
+                                    var actividadIdLocal = localStorage.getItem('actividadSeleccionada');
+                                    if (!actividadIdLocal) return;
+                                    var r = await fetch('/api/Actividades/ObtenerActividad?id=' + encodeURIComponent(actividadIdLocal), { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                                    if (!r.ok) return;
+                                    var act = await r.json();
+                                    if (act) {
+                                        var permitirAct = act.PermitirEntregasTarde !== undefined ? act.PermitirEntregasTarde : (act.PermitirTarde !== undefined ? act.PermitirTarde : null);
+                                        if (permitirAct !== null) {
+                                            actualizarBadge(permitirAct);
+                                            btn.disabled = false;
+                                            try { window.actividadData = window.actividadData || {}; window.actividadData.PermitirEntregasTarde = permitirAct; } catch (e) { }
+                                        }
+                                    }
+                                } catch (e) { /* no-op */ }
+                            })();
+                        }
+
+                        btn.addEventListener('click', async function () {
+                            try {
+                                // obtener estado actual desde badge
+                                var permitir = (badge && badge.innerText === 'Sí');
+                                var nueva = !permitir;
+                                var actividadId = localStorage.getItem('actividadSeleccionada');
+                                if (!actividadId) return alert('Actividad no identificada');
+                                var resp = await fetch(`/api/Actividades/TogglePermitirEntregasTarde?actividadId=${actividadId}&permitir=${nueva}`, { method: 'POST', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                                if (!resp.ok) {
+                                    var txt = await resp.text().catch(() => null);
+                                    alert('No se pudo actualizar: ' + (txt || resp.statusText));
+                                    return;
+                                }
+                                actualizarBadge(nueva);
+                                // store in global actividadData for other scripts
+                                try { window.actividadData = window.actividadData || {}; window.actividadData.PermitirEntregasTarde = nueva; } catch (e) { }
+                            } catch (e) { console.error(e); alert('Error al actualizar permiso'); }
+                        });
+                    } catch (e) { console.warn(e); }
+                }
+            } catch (e) { console.warn(e); }
+        });
+    </script>
+
+    <script>
+        // Inicializador ligero para poblar listas de entregados y no entregados
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                var actividad = localStorage.getItem('actividadSeleccionada') || (new URLSearchParams(window.location.search)).get('actividadId');
+                var materia = localStorage.getItem('materiaIdSeleccionada') || (new URLSearchParams(window.location.search)).get('materiaId');
+
+                if (!actividad || !materia) {
+                    console.warn('Falta actividad o materia en localStorage/URL. No se cargarán alumnos.');
+                    return;
+                }
+
+                // Si existe la función más completa del bundle, usarla
+                if (typeof prepararAlumnosYActividades === 'function') {
+                    // asegurar que localStorage tenga los valores
+                    localStorage.setItem('actividadSeleccionada', actividad);
+                    localStorage.setItem('materiaIdSeleccionada', materia);
+                    prepararAlumnosYActividades();
+                    return;
+                }
+
+                // Fallback: solicitar lista de alumnos y entregas y construir no entregados
+                fetch('/Actividades/AlumnosParaCalificarActividades?materiaId=' + encodeURIComponent(materia))
+                    .then(function (r) { if (!r.ok) throw new Error('No se pudieron cargar los alumnos.'); return r.json(); })
+                    .then(function (alumnos) {
+                        localStorage.setItem('alumnos_materia_' + materia, JSON.stringify(alumnos));
+                        return fetch('/api/Actividades/ObtenerAlumnosEntregables?actividadId=' + encodeURIComponent(actividad));
+                    })
+                    .then(function (r) { if (!r.ok) throw new Error('No se pudieron obtener las entregas'); return r.json(); })
+                    .then(function (data) {
+                        var alumnos = JSON.parse(localStorage.getItem('alumnos_materia_' + materia) || '[]');
+                        var entregados = Array.isArray(data.AlumnosEntregables) ? data.AlumnosEntregables : (data.entregados || []);
+                        var entregadosAlumnoIds = entregados.map(function (e) { return e.AlumnoId; });
+                        var noEntregados = alumnos.filter(function (a) { return !entregadosAlumnoIds.includes(a.AlumnoId); });
+
+                        // Actualizar badges
+                        var alumnosEntregadosElem = document.getElementById('alumnosEntregados');
+                        var actividadesCalificadasElem = document.getElementById('actividadesCalificadas');
+                        if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = entregados.length + ' de ' + alumnos.length;
+                        if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = '0 de ' + alumnos.length;
+
+                        // Renderizar listas
+                        var listaEnt = document.getElementById('listaAlumnosEntregados');
+                        var listaNo = document.getElementById('listaAlumnosSinEntregar');
+                        if (listaEnt) {
+                            listaEnt.innerHTML = '';
+                            entregados.forEach(function (al) {
+                                var nombre = al.Nombres || al.Nombre || '';
+                                var apeP = al.ApellidoPaterno || '';
+                                var apeM = al.ApellidoMaterno || '';
+                                var html = '<div class="list-group-item d-flex justify-content-between align-items-center">' +
+                                    '<div><strong>' + (nombre + ' ' + apeP + ' ' + apeM).trim() + '</strong></div>' +
+                                    '<div><small class="text-success">Entregado</small></div>' +
+                                    '</div>';
+                                listaEnt.innerHTML += html;
+                            });
+                        }
+                        if (listaNo) {
+                            listaNo.innerHTML = '';
+                            noEntregados.forEach(function (a) {
+                                var html = '<div class="list-group-item d-flex justify-content-between align-items-center">' +
+                                    '<div><strong>' + (a.Nombre + ' ' + (a.ApellidoPaterno || '') + ' ' + (a.ApellidoMaterno || '')).trim() + '</strong></div>' +
+                                    '<div><span class="badge bg-danger">No entregado</span></div>' +
+                                    '</div>';
+                                listaNo.innerHTML += html;
+                            });
+                        }
+                    })
+                    .catch(function (err) { console.error(err); });
+            } catch (e) { console.error(e); }
+        });
+    </script>
 }
 
 @section Styles{

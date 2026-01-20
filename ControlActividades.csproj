@@ -411,7 +411,9 @@
     <Compile Include="Controllers\AlumnoApiController.cs" />
     <Compile Include="Controllers\AlumnoController.cs" />
     <Compile Include="Controllers\AvisosApiController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CargaMasivaController.cs" />
+    <Compile Include="Controllers\DebugApiController.cs" />
     <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\DocenteApiController.cs" />
     <Compile Include="Controllers\DocenteController.cs" />
@@ -425,6 +427,8 @@
     <Compile Include="Controllers\MateriasApiController.cs" />
     <Compile Include="Controllers\MateriasController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
+    <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
+    <Compile Include="Filters\NoCacheAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -483,6 +487,7 @@
     <Compile Include="Models\db\tbMaterias.cs" />
     <Compile Include="Models\db\tbNotificaciones.cs" />
     <Compile Include="Models\db\tbUsuariosFcmTokens.cs" />
+    <Compile Include="Models\FormsViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\ModelosGenerales.cs" />
@@ -524,22 +529,27 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\cards.css" />
-    <Content Include="Content\Componentes\cards.css" />
-    <Content Include="Content\Componentes\header.css" />
+    <Content Include="Content\Componentes\modal.css" />
+    <Content Include="Content\Dashboard\cards-grupos-materias.css" />
+    <Content Include="Content\Dashboard\header.css" />
     <Content Include="Content\dataTables.dataTables.css" />
     <Content Include="Content\dataTables.dataTables.min.css" />
     <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\grupo_2.svg" />
+    <Content Include="Content\Iconos\materia_2.svg" />
     <Content Include="Content\Iconos\ojo-azul.svg" />
     <Content Include="Content\Iconos\notiAviso-Azul.svg" />
     <Content Include="Content\Iconos\notiEvento.svg" />
     <Content Include="Content\Iconos\notiAviso.svg" />
     <Content Include="Content\Iconos\notiActividadCreada.svg" />
     <Content Include="Content\Iconos\notiActividadCreada-Azul.svg" />
+    <Content Include="Content\Moleculas\inputs.css" />
+    <Content Include="Content\Moleculas\botones.css" />
+    <Content Include="Content\Variables\modo-claro.css" />
     <Content Include="Content\Variables\fuentes.css" />
     <Content Include="Content\Componentes\carga.css" />
     <Content Include="Content\Dashboard\cards.css" />
     <Content Include="Content\Dashboard\content.css" />
-    <Content Include="Content\Dashboard\nav-bar.css" />
     <Content Include="Content\Dashboard\sidebar.css" />
     <Content Include="Content\Materias\actividadesSeccion.css" />
     <Content Include="Content\Materias\alumnosSeccion.css" />
@@ -595,13 +605,17 @@
     <Content Include="Content\Iconos\x.svg" />
     <Content Include="Content\Imgs\background-student.jpg" />
     <Content Include="Content\Login\Login.css" />
-    <Content Include="Content\sidebar.css" />
     <Content Include="Content\site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Scripts\Actividades\actividades.js" />
     <Content Include="Scripts\Actividades\entregables.js" />
     <Content Include="Scripts\Administrador\Autorizar.js" />
+    <Content Include="Scripts\Agenda\calendario-detalles.js" />
+    <Content Include="Scripts\Agenda\calendario-crear.js" />
+    <Content Include="Scripts\Agenda\calendario-editar.js" />
+    <Content Include="Scripts\Agenda\calendario-form.js" />
+    <Content Include="Scripts\Agenda\calendario.js" />
     <Content Include="Scripts\Alumnos\alumnos.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
     <Content Include="Scripts\Alumno\actividades.js" />
@@ -679,6 +693,7 @@
     <Content Include="Scripts\Materias\materias-grupo.js" />
     <Content Include="Scripts\Materias\materias-sin-grupo.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Shared\modoColor.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
     <Content Include="Templates\Emails\ResetPassword.html" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
@@ -741,6 +756,7 @@
     <Content Include="Views\Materias\MateriasModal.cshtml" />
     <Content Include="Views\Materias\CrearActividadModal.cshtml" />
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
+    <Content Include="Views\Administrador\VerDocentes.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
@@ -765,6 +781,7 @@
     <Folder Include="Dashboard\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
+    <Folder Include="Views\Base\" />
     <Folder Include="Views\Eventos\" />
   </ItemGroup>
   <ItemGroup>

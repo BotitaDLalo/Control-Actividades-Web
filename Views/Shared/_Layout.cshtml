@@ -15,30 +15,44 @@
     @Styles.Render("~/Content/Componentes")
     @Scripts.Render("~/bundles/modernizr")
 
-    <style>
-        html, body {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
+<style>
+    html, body {
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: var(--bg-principal);
+    }
 
-        /* Hacer la animación de los submenús (bootstrap collapse) más lenta: 0.3s */
-        .collapsing {
-            -webkit-transition: height 0.3s ease;
-            transition: height 0.3s ease;
-        }
+    /* Hacer la animación de los submenús (bootstrap collapse) más lenta: 0.3s */
+    .collapsing {
+        -webkit-transition: height 0.3s ease;
+        transition: height 0.3s ease;
+    }
 
-        /* Asegura que las transiciones relacionadas con collapse también usen 0.3s */
-        .collapse {
-            -webkit-transition: height 0.3s ease;
-            transition: height 0.3s ease;
-        }
-    </style>
+    /* Asegura que las transiciones relacionadas con collapse también usen 0.3s */
+    .collapse {
+        -webkit-transition: height 0.3s ease;
+        transition: height 0.3s ease;
+    }
+</style>
 </head>
 <body>
 
     <div class="app-main" style="display:flex; min-height:100vh;">
         <main class="app-content" style="flex:1; padding:20px;">
+            @if (Session["IsImpersonating"] is bool isImpersonating && isImpersonating)
+            {
+                <div class="impersonation-banner">
+                    ⚠ Estás ingresando como <strong>Docente</strong> usando una cuenta de administrador
+                    <a href="@Url.Action("VolverAdministrador", "Administrador")"
+                       class="btn btn-sm btn-warning ms-3">
+                        Volver a administrador
+                    </a>
+                </div>
+            }
+
             @RenderBody()
             <hr />
+            <script src="~/Scripts/Shared/headerNotifications.js"></script>
+
             <footer>
                 <p>&copy; @DateTime.Now.Year - Control Actividades</p>
             </footer>
@@ -50,6 +64,7 @@
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/carga")
 
+    <!--LAYOUT-->
     <!--SPINNER DE CARGA-->
     <div id="loader" class="carga">
         <div class="spinner"></div>

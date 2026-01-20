@@ -1,6 +1,5 @@
 ﻿async function cargarGrupos() {
     try {
-        //const response = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
         const response = await fetch(`/Grupos/ObtenerGruposPorUsuario`);
         if (!response.ok) throw new Error('Error al obtener grupos');
         const grupos = await response.json();

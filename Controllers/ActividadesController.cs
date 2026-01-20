@@ -49,7 +49,10 @@ namespace ControlActividades.Controllers
                     query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
 
-                var actividadesEntities = await query.ToListAsync();
+                // Ordenar por fecha de creación descendente para que lo más reciente aparezca primero
+                var actividadesEntities = await query
+                    .OrderByDescending(a => a.FechaCreacion)
+                    .ToListAsync();
 
                 if (actividadesEntities == null || actividadesEntities.Count == 0)
                 {
@@ -153,26 +156,28 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var actividad = await Db.tbActividades
-                    .Where(a => a.ActividadId == actividadId)
-                    .Select(a => new
-                    {
-                        a.ActividadId,
-                        a.NombreActividad,
-                        a.Descripcion,
-                        a.FechaCreacion,
-                        a.FechaLimite,
-                        a.Puntaje,
-                        a.Enviado,
-                        a.FechaProgramada
-                    })
-                    .FirstOrDefaultAsync();
-
-                if (actividad == null)
+                // Cargar la entidad y mapear a DTO en memoria para evitar errores de traducción de EF
+                var entidad = await Db.tbActividades.FindAsync(actividadId);
+                if (entidad == null)
                 {
                     Response.StatusCode = 404; // Not Found
                     return Json(new { mensaje = "No se encontró la actividad con el ID especificado." }, JsonRequestBehavior.AllowGet);
                 }
+
+                var actividad = new
+                {
+                    entidad.ActividadId,
+                    entidad.NombreActividad,
+                    entidad.Descripcion,
+                    entidad.MateriaId,
+                    FechaCreacion = entidad.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = entidad.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    entidad.Puntaje,
+                    entidad.Enviado,
+                    // PermitirEntregasTarde no está mapeado en la BD (NotMapped); devolver valor por defecto
+                    PermitirEntregasTarde = entidad.PermitirEntregasTarde,
+                    FechaProgramada = entidad.FechaProgramada
+                };
 
                 return Json(actividad, JsonRequestBehavior.AllowGet);
             }
@@ -180,6 +185,39 @@ namespace ControlActividades.Controllers
             {
                 Response.StatusCode = 500; // Internal Server Error
                 return Json(new { mensaje = "Error al obtener la actividad", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Redirige a la vista correspondiente según el rol (Docente -> EvaluarActividades, Alumno -> ActividadDetalle)
+        [HttpGet]
+        public ActionResult DetallesActividad(int actividadId)
+        {
+            try
+            {
+                var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
+                if (actividad == null)
+                {
+                    return HttpNotFound("Actividad no encontrada");
+                }
+
+                // Si es docente o administrador, llevar a la vista de evaluación (docente)
+                if (User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador")))
+                {
+                    return RedirectToAction("EvaluarActividades", "Docente", new { actividadId = actividadId, materiaId = actividad.MateriaId });
+                }
+
+                // Si es alumno, llevar a su detalle de actividad
+                if (User != null && User.IsInRole("Alumno"))
+                {
+                    return RedirectToAction("ActividadDetalle", "Alumno", new { actividadId = actividadId });
+                }
+
+                // Por defecto, redirigir al index de la aplicación
+                return RedirectToAction("Index", "Home");
+            }
+            catch
+            {
+                return RedirectToAction("Index", "Home");
             }
         }
 

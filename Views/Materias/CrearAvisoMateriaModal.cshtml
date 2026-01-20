@@ -5,13 +5,18 @@
 
 <div class="modal fade" id="crearAvisoMateriaModal" tabindex="-1" aria-labelledby="crearAvisoMateriaModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="crearAvisoMateriaModalLabel">Crear Aviso</h5>
+
+        <div class="modal-content modal-content-custom">
+
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title modal-title-custom" id="crearAvisoMateriaModalLabel">
+                    Crear Aviso
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
-                <form id="avisosForm">
+
+            <div class="modal-body modal-body-custom">
+                <form id="avisosForm" class="form-custom">
                     <label for="titulo">Título del Aviso:</label>
                     <input type="text" id="titulo" class="form-control" autocomplete="off" autocorrect="off" spellcheck="false">
 
@@ -19,7 +24,8 @@
                     <textarea id="descripcionAviso" class="form-control" rows="4"></textarea>
                 </form>
             </div>
-            <div class="modal-footer">
+
+            <div class="modal-footer modal-footer-custom">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="publicarAviso()">Publicar</button>
             </div>

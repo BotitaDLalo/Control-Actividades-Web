@@ -2,12 +2,54 @@
 //let docenteIdGlobal = localStorage.getItem("docenteId");
 
 document.addEventListener("DOMContentLoaded", function () {
-    if (materiaIdGlobal && docenteIdGlobal) {
-        fetch(`/Materias/ObtenerDetallesMateria?materiaId=${materiaIdGlobal}&docenteId=${docenteIdGlobal}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Error en la respuesta de la API");
-                }
+    const urlParams = new URLSearchParams(window.location.search);
+    const materiaId = urlParams.get('materiaId');
+    const seccion = urlParams.get('seccion') || 'avisos';
+
+    // Cargar datos de encabezado de materia (no depende de docenteId)
+    async function loadMateriaHeader() {
+        try {
+            const id = (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) ? materiaIdGlobal : materiaId;
+            if (!id) return;
+
+            // Preferir API que no requiere docenteId
+            const resp = await fetch(`/api/Materias/ObtenerMateriaUnica?id=${encodeURIComponent(id)}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                populateHeader(data);
+                return;
+            }
+
+            // Fallback: intentar endpoint MVC que requiere docenteId (si está disponible)
+            const docId = (typeof docenteIdGlobal !== 'undefined' && docenteIdGlobal) ? docenteIdGlobal : 0;
+            const resp2 = await fetch(`/Materias/ObtenerDetallesMateria?materiaId=${encodeURIComponent(id)}&docenteId=${encodeURIComponent(docId)}`);
+            if (resp2.ok) {
+                const data2 = await resp2.json();
+                populateHeader(data2);
+            }
+        } catch (error) {
+            console.error('Error al obtener los datos de la materia:', error);
+        }
+    }
+
+    function populateHeader(data) {
+        if (!data) return;
+        const name = data.NombreMateria || data.Nombre || data.nombreMateria;
+        const codigo = data.CodigoAcceso || data.Codigo || data.codigoAcceso;
+        const color = data.CodigoColor || data.codigoColor || '#d63384';
+        if (name) {
+            const el = document.getElementById('materiaNombre');
+            if (el) el.innerText = name;
+        }
+        if (codigo) {
+            const el = document.getElementById('codigoAcceso');
+            if (el) el.innerText = codigo;
+        }
+        try { document.querySelector('.materia-header').style.backgroundColor = color; } catch (e) { }
+    }
+
+    // iniciar carga del header
+    loadMateriaHeader();
 
 async function cargarEntregablesPorActividad(actividadId) {
     var cont = document.getElementById('listaEntregables');
@@ -51,25 +93,9 @@ async function cargarEntregablesPorActividad(actividadId) {
         cont.innerHTML = '<p class="text-danger">Error al cargar entregables.</p>';
     }
 }
-                return response.json();
-            })
-            .then(data => {
-                if (data.NombreMateria && data.CodigoAcceso && data.CodigoColor) {
-                    document.getElementById("materiaNombre").innerText = data.NombreMateria;
-                    document.getElementById("codigoAcceso").innerText = data.CodigoAcceso;
-                    document.querySelector(".materia-header").style.backgroundColor = data.CodigoColor;
-                } else {
-                    console.error("No se encontraron datos válidos para esta materia.");
-                }
-            })
-            .catch(error => console.error("Error al obtener los datos de la materia:", error));
-    }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const materiaId = urlParams.get('materiaId'); 
-    const seccion = urlParams.get('seccion') || 'avisos'; 
-
-    cambiarSeccion(seccion);  
+    // Mostrar sección solicitada
+    cambiarSeccion(seccion);
 
 });
 
@@ -83,7 +109,8 @@ function cambiarSeccion(seccion) {
     }
 
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`).classList.add('active');
+    var tabBtn = document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`);
+    if (tabBtn && tabBtn.classList) tabBtn.classList.add('active');
 
     // Cargar datos si se seleccionan secciones dinámicas
     if (seccion === "actividades") {
@@ -116,7 +143,18 @@ async function cargarEntregablesDeMateria(materiaId) {
     try {
         const resp = await fetch(`/api/Actividades/ObtenerActividadesPorMateria?materiaId=${encodeURIComponent(materiaId)}`);
         if (!resp.ok) throw new Error('No se pudieron cargar actividades');
-        const actividades = await resp.json();
+        const raw = await resp.json();
+        // Normalizar distintas formas de respuesta: puede ser un array directo o un objeto { Actividades: [...] }
+        let actividades = [];
+        if (Array.isArray(raw)) actividades = raw;
+        else if (raw && Array.isArray(raw.Actividades)) actividades = raw.Actividades;
+        else if (raw && Array.isArray(raw.resultado)) actividades = raw.resultado;
+        else {
+            // intentar encontrar la primera propiedad que sea un array
+            const arr = raw && typeof raw === 'object' ? Object.keys(raw).map(k => raw[k]).find(v => Array.isArray(v)) : null;
+            if (arr) actividades = arr;
+        }
+
         if (!actividades || actividades.length === 0) {
             cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>';
             if (sel) sel.innerHTML = '<option value="0">-- Sin actividades --</option>';

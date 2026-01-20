@@ -8,13 +8,18 @@
 <div class="container">
     <h2 id="tituloActividad">Cargando...</h2>
     <p id="descripcionActividad"></p>
-    <p>Fecha límite: <span id="fechaLimite"></span></p>
+    <p>Fecha lÃ­mite: <span id="fechaLimite"></span></p>
 
     <div id="estadoEntrega"></div>
 
     <div id="entregaForm">
         <label for="respuesta">Respuesta:</label>
         <textarea id="respuesta" class="form-control" rows="6"></textarea>
+        <div class="mt-2">
+            <label for="respuestaLink">Enlace (opcional):</label>
+            <input type="url" id="respuestaLink" class="form-control" placeholder="https://ejemplo.com/album" />
+            <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
+        </div>
         <div class="mt-2">
             <label for="fileEntrega">Adjuntar archivo / foto (opcional)</label>
             <input type="file" id="fileEntrega" class="form-control" multiple />

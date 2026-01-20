@@ -1,0 +1,28 @@
+﻿.modal-content-custom {
+    background-color: var(--bg-principal);
+    border-radius: 12px;
+    border: 1px solid var(--borde-defecto);
+}
+
+/* Header */
+.modal-header-custom {
+    border-bottom: 1px solid var(--borde-defecto);
+    padding: 1rem 1.25rem;
+}
+
+.modal-title-custom {
+    font-weight: 600;
+    color: var(--txt-principal);
+}
+
+/* Body */
+.modal-body-custom {
+    padding: 1.25rem;
+    color: var(--txt-principal);
+}
+
+/* Footer */
+.modal-footer-custom {
+    padding: 1rem 1.25rem;
+    gap: .5rem;
+}

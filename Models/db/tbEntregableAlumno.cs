@@ -11,10 +11,9 @@ namespace ControlActividades.Models.db
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int EntregaId {  get; set; }
-
+        [ForeignKey("AlumnosActividades")]
         public int AlumnoActividadId { get; set; }
         public string Respuesta {  get; set; }
-
         public virtual tbAlumnosActividades AlumnosActividades { get; set; }
         public virtual ICollection<tbCalificaciones> Calificaciones { get; set; }
 

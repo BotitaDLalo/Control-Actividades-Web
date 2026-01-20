@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <!-- Modal simple para ingresar c�digo de acceso -->
+    <!-- Modal simple para ingresar código de acceso -->
     <div id="unirseModal" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
@@ -74,6 +74,101 @@
     </script>
     <script src="~/Scripts/Alumno/Clases.js"></script>
     <script src="~/Scripts/Alumno/UnirseClase.js"></script>
+    <script>
+        // abrir modal cuando se presione el botón
+        // Carga la lista "Mis materias" y calcula tareas pendientes por materia
+        async function loadMisMaterias() {
+            const container = document.getElementById('misMaterias');
+            if (!container) return;
+            container.innerHTML = '<div class="list-group-item text-muted">Cargando materias...</div>';
+
+            try {
+                const resp = await fetch(`/api/Materias/ObtenerMateriasAlumno?alumnoId=${alumnoIdGlobal}`);
+                if (!resp.ok) throw new Error('No se pudieron obtener las materias');
+                const materias = await resp.json();
+
+                container.innerHTML = '';
+                if (!Array.isArray(materias) || materias.length === 0) {
+                    container.innerHTML = '<div class="list-group-item text-muted">No est�s inscrito en ninguna materia.</div>';
+                    return;
+                }
+
+                for (const m of materias) {
+                    const item = document.createElement('a');
+                    item.href = `/Alumno/Clase?tipo=materia&id=${m.MateriaId}`;
+                    item.className = 'list-group-item list-group-item-action d-flex flex-column align-items-start';
+
+                    const title = document.createElement('div');
+                    title.className = 'mb-1';
+                    title.style.fontWeight = '600';
+                    title.textContent = m.NombreMateria || m.NombreMateria || 'Materia';
+
+                    const status = document.createElement('small');
+                    status.className = 'materia-status text-muted';
+                    status.textContent = 'Calculando tareas pendientes...';
+
+                    item.appendChild(title);
+                    item.appendChild(status);
+
+                    container.appendChild(item);
+
+                    // Obtener actividades visibles para el alumno (usa endpoint que filtra publicadas)
+                    try {
+                        const actResp = await fetch(`/Actividades/ObtenerActividadesPorMateria?materiaId=${m.MateriaId}`);
+                        if (!actResp.ok) {
+                            // No hay actividades visibles o error -> marcar sin pendientes
+                            status.className = 'materia-status text-success';
+                            status.textContent = 'Sin tareas pendientes';
+                            continue;
+                        }
+
+                        const actividades = await actResp.json();
+                        if (!Array.isArray(actividades) || actividades.length === 0) {
+                            status.className = 'materia-status text-success';
+                            status.textContent = 'Sin tareas pendientes';
+                            continue;
+                        }
+
+                        // Para cada actividad consultar si el alumno ya entreg�
+                        const checks = actividades.map(a =>
+                            fetch(`/api/Alumnos/ObtenerEnviosActividadesAlumno?ActividadId=${a.ActividadId}&AlumnoId=${alumnoIdGlobal}`)
+                                .then(r => ({ ok: r.ok, status: r.status }))
+                                .catch(() => ({ ok: false }))
+                        );
+
+                        const results = await Promise.all(checks);
+
+                        // Si r.ok == true => tiene entregas -> no pendiente
+                        let pendientes = 0;
+                        for (let i = 0; i < results.length; i++) {
+                            const res = results[i];
+                            if (!res.ok) pendientes++;
+                        }
+
+                        if (pendientes === 0) {
+                            status.className = 'materia-status text-success';
+                            status.textContent = 'Sin tareas pendientes';
+                        } else {
+                            status.className = 'materia-status text-danger';
+                            status.textContent = pendientes + (pendientes === 1 ? ' tarea sin entregar' : ' tareas sin entregar');
+                        }
+                    } catch (err) {
+                        status.className = 'materia-status text-muted';
+                        status.textContent = 'No se pudo calcular estado';
+                        console.warn('Error al calcular pendientes para materia', m.MateriaId, err);
+                    }
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="list-group-item text-danger">Error cargando materias</div>';
+                console.error(e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Ejecutar carga de materias si estamos en la vista alumno y hay alumnoId
+            try { if (typeof alumnoIdGlobal !== 'undefined' && alumnoIdGlobal) loadMisMaterias(); } catch (e) { }
+        });
+    </script>
     <script>
         // abrir modal cuando se presione el bot�n
         document.addEventListener('DOMContentLoaded', function () {

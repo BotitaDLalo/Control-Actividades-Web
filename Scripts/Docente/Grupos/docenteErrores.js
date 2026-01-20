@@ -1,5 +1,5 @@
 ﻿var div = document.getElementById("docente-datos");
-var docenteIdGlobal = div.dataset.docenteid;
+var docenteIdGlobal = div && div.dataset ? div.dataset.docenteid : null;
 
 //Funcion que detecta errores generales
 function alertaDeErroresGenerales(error) {
@@ -53,6 +53,39 @@ function alertaDeErroresGenerales(error) {
 //        }
 //    });
 //}
+
+// Mostrar alerta cuando la sesión no está disponible y forzar cierre.
+function AlertaCierreSesion() {
+    // Alerta deshabilitada intencionalmente para docentes.
+    // Código original comentado para mantener referencia y poder revertir fácilmente.
+    /*
+    let timerInterval;
+    Swal.fire({
+        title: "Parece que se perdió la conexión con tu sesión.",
+        html: "La cerraremos por seguridad y podrás volver a iniciar sesión en <b></b>.",
+        timer: 3500,
+        timerProgressBar: true,
+        position: "center",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+            const timer = Swal.getPopup().querySelector("b");
+            timerInterval = setInterval(() => {
+                if (timer) timer.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}s`;
+            }, 200);
+        },
+        willClose: () => {
+            clearInterval(timerInterval);
+            try { cerrarSesion(); } catch (e) { window.location.href = '/Cuenta/IniciarSesion'; }
+        }
+    }).then((result) => {
+        // no-op
+    });
+    */
+
+    // No-op: evitar mostrar modal y no forzar cierre de sesión aquí.
+    console.log('AlertaCierreSesion desactivada (modal comentado).');
+}
 
 
 // Función para cerrar sesión

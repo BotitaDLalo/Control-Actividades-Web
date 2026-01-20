@@ -7,9 +7,14 @@
         return;
     }
 
-    $.get("/Alumno/ObtenerAvisos?alumnoId=" + alumnoIdGlobal, function (data) {
+    // include materiaId/grupoId if present so server returns scoped avisos
+    var qs = 'alumnoId=' + encodeURIComponent(alumnoIdGlobal);
+    try { if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) qs += '&materiaId=' + encodeURIComponent(materiaIdGlobal); } catch(e){}
+    try { if (typeof grupoIdGlobal !== 'undefined' && grupoIdGlobal) qs += '&grupoId=' + encodeURIComponent(grupoIdGlobal); } catch(e){}
+
+    $.get('/Alumno/ObtenerAvisos?' + qs, function (data) {
         var avisosHtml = "";
-        data.reverse();
+        if (Array.isArray(data)) data = data.slice().reverse();
         if (data.length > 0) {
             data.forEach(function (aviso) {
                 avisosHtml += `

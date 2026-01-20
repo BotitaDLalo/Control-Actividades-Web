@@ -1,4 +1,4 @@
-﻿using FirebaseAdmin.Messaging;
+using FirebaseAdmin.Messaging;
 using NPOI.XWPF.UserModel;
 using System;
 using System.Collections.Generic;
@@ -245,6 +245,7 @@ namespace ControlActividades.Services
 
         }
 
+        
         // Notificación cuando el docente registra un alumno(s)
         public async Task NotificacionRegistrarAlumnoClase(
             List<int> lsAlumnosId,
@@ -280,7 +281,7 @@ namespace ControlActividades.Services
             int? materiaRef = null;
             int? grupoRef = null;
 
-            if (grupoId != -1)
+            if (materiaId > 0)
             {
                 nombreClase = await Db.tbGrupos
                     .Where(g => g.GrupoId == grupoId)
@@ -291,7 +292,7 @@ namespace ControlActividades.Services
                 grupoRef = grupoId;
                 mensaje = $"al grupo {nombreClase}";
             }
-            else if (materiaId != -1)
+            else
             {
                 nombreClase = await Db.tbMaterias
                     .Where(m => m.MateriaId == materiaId)
@@ -363,8 +364,6 @@ namespace ControlActividades.Services
 
         // Notificación cuando el docente califica una tarea
 
-        // Notificación cuando el docente crea una actividad
-
 
         //SECCIÓN DE NOTIFICACIONES PARA -DOCENTES- CUANDO EL ALUMNO HACE UNA ACCIÓN
 
@@ -372,7 +371,6 @@ namespace ControlActividades.Services
 
         // Notificación cuando el alumno deja un comentario (posible implementación)
 
-        // Notificación cuando el alumno sube su tarea
 
         #endregion
 

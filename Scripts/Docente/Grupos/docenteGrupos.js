@@ -122,6 +122,8 @@ async function guardarGrupo() {
         if (typeof cargarGrupos === 'function') cargarGrupos();
         if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
         if (typeof cargarMaterias === 'function') cargarMaterias();
+        // Auto-open group actions modal for the newly created group
+        try { if (grupoId) { abrirAccionesGrupo(grupoId); } } catch (e) { console.warn('No se pudo abrir modal de grupo:', e); }
     } else {
         Swal.fire({
             position: "top-end",
@@ -180,7 +182,44 @@ function removerDeLista(button) {
 //Funcion para obtener los grupos de la base de datos y mostrarlos (render como grid cards)
 async function cargarGrupos() {
     try {
-        const response = await fetch(`/Grupos/ObtenerGrupos?docenteId=${docenteIdGlobal}`);
+        // ensure docenteIdGlobal is resolved at runtime
+        if (!docenteIdGlobal || Number(docenteIdGlobal) === 0) {
+            var divAgain = document.getElementById('docente-datos');
+            if (divAgain && divAgain.dataset && divAgain.dataset.docenteid) {
+                docenteIdGlobal = divAgain.dataset.docenteid;
+            } else if (localStorage.getItem('docenteId')) {
+                docenteIdGlobal = localStorage.getItem('docenteId');
+            }
+        }
+
+        var docenteIdParaConsulta = docenteIdGlobal || '';
+
+        // If not available, try server endpoint to get docenteId
+        if (!docenteIdParaConsulta) {
+            try {
+                const respId = await fetch('/Cuenta/ObtenerDocenteId');
+                if (respId.ok) {
+                    const dataId = await respId.json().catch(() => ({}));
+                    if (dataId && dataId.docenteId) {
+                        docenteIdParaConsulta = dataId.docenteId;
+                        docenteIdGlobal = docenteIdParaConsulta;
+                        try { localStorage.setItem('docenteId', docenteIdParaConsulta); } catch (e) { }
+                    }
+                }
+            } catch (e) {
+                console.warn('No se pudo obtener docenteId desde el servidor:', e);
+            }
+        }
+
+        if (!docenteIdParaConsulta) {
+            const listaGrupos = document.getElementById("listaGrupos");
+            if (listaGrupos) {
+                listaGrupos.innerHTML = '<p class="text-center text-danger">No se pudo identificar al docente. Refresca la página o inicia sesión nuevamente.</p>';
+            }
+            return;
+        }
+
+        const response = await fetch(`/Grupos/ObtenerGrupos?docenteId=${encodeURIComponent(docenteIdParaConsulta)}`);
         if (!response.ok) throw new Error('Error al obtener grupos');
         const grupos = await response.json();
         const listaGrupos = document.getElementById("listaGrupos");
@@ -229,13 +268,18 @@ async function cargarGrupos() {
             // assemble card content
             card.appendChild(row);
 
-            // When clicking the card (except on any interactive button/anchor), redirect to group materias
+            // When clicking the card (except on any interactive button/anchor), go to the group page (full view)
             card.addEventListener('click', function (e) {
                 if (e.target.closest('button') || e.target.closest('a')) return;
                 try {
-                    window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
+                    // If current page is rendered for an alumno, navigate to the alumno view
+                    if (document.getElementById('alumno-datos') || document.getElementById('alumno-datos') !== null && window.location.pathname.indexOf('/Alumno') === 0) {
+                        window.location.href = `/Alumno/Clase?tipo=grupo&id=${grupo.GrupoId}`;
+                    } else {
+                        window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
+                    }
                 } catch (err) {
-                    console.warn('No se pudo redirigir:', err);
+                    console.warn('No se pudo redirigir al grupo:', err);
                 }
             });
 
@@ -256,6 +300,15 @@ async function cargarGrupos() {
 // new abrirAccionesGrupo with improved error reporting
 async function abrirAccionesGrupo(grupoId) {
     try {
+        // ensure docenteIdGlobal is populated (some pages may not have set it at script parse time)
+        if (!docenteIdGlobal || Number(docenteIdGlobal) === 0) {
+            var divAgain = document.getElementById('docente-datos');
+            if (divAgain && divAgain.dataset && divAgain.dataset.docenteid) {
+                docenteIdGlobal = divAgain.dataset.docenteid;
+            } else if (localStorage.getItem('docenteId')) {
+                docenteIdGlobal = localStorage.getItem('docenteId');
+            }
+        }
         window.docenteIdGlobal = docenteIdGlobal;
 
         // Try API endpoint first

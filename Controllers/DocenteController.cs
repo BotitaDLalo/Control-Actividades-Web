@@ -14,7 +14,7 @@ using Microsoft.AspNet.Identity.Owin;
 namespace ControlActividades.Controllers
 {
     [Authorize]
-    public class DocenteController : Controller
+    public class DocenteController : BaseController
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;

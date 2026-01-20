@@ -38,6 +38,48 @@ namespace ControlActividades.Controllers
         {
         }
 
+        // Compatibilidad: permitir que clientes pidan envíos por alumno usando la ruta /api/Actividades/ObtenerEnviosActividadesAlumno
+        [HttpGet]
+        [Route("ObtenerEnviosActividadesAlumno")]
+        public async Task<IHttpActionResult> ObtenerEnviosActividadesAlumno(int ActividadId, int AlumnoId)
+        {
+            try
+            {
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId);
+                if (datosAlumnoActividad == null)
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "No se encontró registro de entrega para el alumno y la actividad." });
+
+                var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
+                var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
+
+                // Evitar seleccionar columnas que pueden no existir en instalaciones antiguas de la BD
+                var lsEntregas = await Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId)
+                    .Select(e => new
+                    {
+                        e.EntregableId,
+                        e.TipoEntregaId,
+                        e.Contenido,
+                        // FechaCalificado puede no existir en la BD en algunas instalaciones; omitimos su lectura aquí
+                        Calificacion = e.Calificacion ?? 0,
+                        Comentario = e.Comentario
+                    }).ToListAsync();
+
+                var result = new
+                {
+                    EntregaActividadAlumnoId = entregaActividadId,
+                    FechaEntrega = fechaEntrega,
+                    EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+                    Entregables = lsEntregas
+                };
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
         public ActividadesApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, NotificacionesService notifServ)
         {
             UserManager = userManager;
@@ -170,35 +212,41 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                bool esDocente = HttpContext.Current != null && HttpContext.Current.User != null && (HttpContext.Current.User.IsInRole("Docente") || HttpContext.Current.User.IsInRole("Administrador"));
+                // Use RequestContext principal (works in WebApi) to determine roles
+                var principal = RequestContext?.Principal;
+                bool esDocente = principal != null && (principal.IsInRole("Docente") || principal.IsInRole("Administrador"));
+
                 var q = Db.tbActividades.Where(a => a.MateriaId == materiaId);
                 if (!esDocente)
                 {
-                    // Para alumnos: publicar solo si Enviado == true o si es programada y la fecha programada ya pasó
+                    // Para alumnos: mostrar únicamente actividades públicas o programadas cuya fecha ya llegó
                     q = q.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
                 }
+
                 var actividades = await q.ToListAsync();
 
                 var listaActividades = actividades.Select(a => new
                 {
                     ActividadId = a.ActividadId,
                     NombreActividad = a.NombreActividad,
-                    DescripcionActividad = a.Descripcion,
-                    FechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    //TipoActividadId = a.TipoActividadId,
+                    Descripcion = a.Descripcion,
+                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                     Puntaje = a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,
                     MateriaId = a.MateriaId
                 }).ToList();
 
+                // Determine rolUsuario using the helper
+                var rolUsuario = Fg.ObtenerRolUsuario(principal);
 
-                return Ok(listaActividades);
+                return Ok(new { Actividades = listaActividades, RolUsuario = rolUsuario });
             }
             catch (Exception ex)
             {
-                return BadRequest($"Ocurrió un error al obtener las actividades para la materia {materiaId}: {ex.Message}");
+                // Return server error with details to help debugging from client
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = $"Error al obtener actividades: {ex.Message}", detalle = ex.ToString() });
             }
         }
 
@@ -281,6 +329,9 @@ namespace ControlActividades.Controllers
                 nuevaActividad.FechaCreacion = DateTime.Now;
 
 
+                nuevaActividad.Enviado = true;
+
+
                 //nuevaActividad.TipoActividadId = 1;
 
                 // Guardar la actividad en la base de datos
@@ -349,6 +400,26 @@ namespace ControlActividades.Controllers
             }
 
             return Ok(dbActivity);
+        }
+
+        [HttpPost]
+        [Route("TogglePermitirEntregasTarde")]
+        public async Task<IHttpActionResult> TogglePermitirEntregasTarde(int actividadId, bool permitir)
+        {
+            try
+            {
+                var activity = await Db.tbActividades.FindAsync(actividadId);
+                if (activity == null) return Content(HttpStatusCode.NotFound, new { mensaje = "Actividad no encontrada" });
+
+                activity.PermitirEntregasTarde = permitir;
+                await Db.SaveChangesAsync();
+
+                return Ok(new { actividadId = actividadId, permitir = permitir });
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = ex.Message });
+            }
         }
 
 
@@ -522,7 +593,7 @@ namespace ControlActividades.Controllers
                         alumnoEntregable.Respuesta = entregable.Contenido;
 
 
-                        alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                        alumnoEntregable.Calificacion = entregable.Calificacion;
 
 
                         lsEntregables.Add(alumnoEntregable);
@@ -547,32 +618,20 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var entregaId = asignarCalificacion.EntregaId;
-                var fechaNuevaCalificacion = DateTime.Now;
-                var nuevaCalificacion = asignarCalificacion.Calificacion;
+                var entregableId = asignarCalificacion.EntregableId;
+                var calificacion = asignarCalificacion.Calificacion;
 
-                //var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).FirstOrDefaultAsync();
 
-                //if (calificacion == null)
-                //{
-                //    tbCalificaciones calificaciones = new tbCalificaciones()
-                //    {
-                //        Calificacion = nuevaCalificacion,
-                //        EntregaId = entregaId,
-                //        FechaCalificacionAsignada = fechaNuevaCalificacion
-                //    };
+                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == entregableId);
 
-                //    Db.tbCalificaciones.Add(calificaciones);
-                //    await Db.SaveChangesAsync();
-                //    return Ok();
-                //}
-                //else
-                //{
-                //    calificacion.Calificacion = nuevaCalificacion;
-                //    calificacion.FechaCalificacionAsignada = fechaNuevaCalificacion;
-                //    await Db.SaveChangesAsync();
-                //    return Ok();
-                //}
+                if (entregable == null) return BadRequest();
+
+                entregable.Calificacion = calificacion;
+                entregable.FechaCalificado = DateTime.Now;
+
+                Db.Entry(entregable).State = EntityState.Modified;
+                await Db.SaveChangesAsync();
+
                 return Ok();
 
             }

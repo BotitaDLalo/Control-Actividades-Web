@@ -9,11 +9,16 @@ using System.Text;
 using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
+using System.Web.Helpers;
+using System.Security.Claims;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Data.Entity;
 using ControlActividades.Migrations;
 using ControlActividades.Models;
+using System.Diagnostics;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin.Security;
 
 namespace ControlActividades
 {
@@ -37,7 +42,12 @@ namespace ControlActividades
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-
+            // Configure AntiForgery to work with ClaimsIdentity (use NameIdentifier claim)
+            try
+            {
+                AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
+            }
+            catch { }
   
             try
             {
@@ -68,6 +78,46 @@ namespace ControlActividades
                 {
                     resp.ContentType = "text/html; charset=utf-8";
                 }
+
+                // During development disable client-side caching so changes to scripts/styles/views
+                // are reflected immediately when debugging (prevents stale cached assets in browser)
+                try
+                {
+                    // Only apply when a debugger is attached (development) to avoid forcing no-cache in production
+                    if (System.Diagnostics.Debugger.IsAttached && HttpContext.Current != null)
+                    {
+                        var cache = HttpContext.Current.Response.Cache;
+                        cache.SetCacheability(System.Web.HttpCacheability.NoCache);
+                        cache.SetNoStore();
+                        cache.SetExpires(DateTime.UtcNow.AddDays(-1));
+                        cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
+                    }
+                }
+                catch { }
+                
+                // Developer convenience: if debugger is attached and the request is the root 
+                // of the application, sign out any existing authentication cookie so the
+                // app always starts at the login page. This avoids stale sessions during development.
+                try
+                {
+                    if (Debugger.IsAttached && HttpContext.Current != null && HttpContext.Current.Request != null)
+                    {
+                        var appPath = HttpContext.Current.Request.AppRelativeCurrentExecutionFilePath ?? "";
+                        if (appPath == "~/")
+                        {
+                            try
+                            {
+                                var auth = HttpContext.Current.GetOwinContext().Authentication;
+                                if (auth != null)
+                                {
+                                    auth.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                                }
+                            }
+                            catch { /* no-op - avoid breaking app start in dev */ }
+                        }
+                    }
+                }
+                catch { }
             }
             catch
             {

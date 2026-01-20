@@ -1,19 +1,22 @@
+using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
-using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
-using NPOI.HSSF.UserModel;
-using System.IO;
 
 namespace ControlActividades.Controllers
 {
@@ -22,9 +25,15 @@ namespace ControlActividades.Controllers
     {
         private ApplicationUserManager _userManager;
         private ApplicationDbContext _db;
+        private NotificacionesService _notifServ;
 
         public CargaMasivaController() { }
-
+        public CargaMasivaController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, NotificacionesService notificacionesService)
+        {
+            UserManager = userManager;
+            Db = DbContext;
+            Ns = notificacionesService;
+        }
         public ApplicationUserManager UserManager
         {
             get
@@ -46,6 +55,18 @@ namespace ControlActividades.Controllers
             private set
             {
                 _db = value;
+            }
+        }
+
+        public NotificacionesService Ns
+        {
+            get
+            {
+                return _notifServ ?? (_notifServ = new NotificacionesService(_db));
+            }
+            private set
+            {
+                _notifServ = value;
             }
         }
 
@@ -184,6 +205,17 @@ namespace ControlActividades.Controllers
                             ApellidoMaterno = alumnoDatos.ApellidoMaterno
                         });
                     }
+                }
+
+
+                if (lsAlumnosId.Any())
+                {
+                    await Ns.NotificacionRegistrarAlumnoClase(
+                        lsAlumnosId,
+                        docenteId: 0,
+                        grupoId: grupoId > 0 ? grupoId : -1,
+                        materiaId: materiaId > 0 ? materiaId : -1
+                        );
                 }
 
                 return Ok(new
