@@ -789,7 +789,10 @@ namespace ControlMaterias.Controllers
                     a.AvisoId,
                     a.Titulo,
                     a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss")
+                    // Campo legible para mostrar en la UI
+                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss"),
+                    // Campo ISO para que el cliente pueda parsear la fecha de forma fiable al filtrar
+                    FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss")
                 });
 
                 var rolUsuario = Fg.ObtenerRolUsuario(User);

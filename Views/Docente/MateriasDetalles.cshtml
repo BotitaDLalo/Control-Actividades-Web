@@ -12,6 +12,27 @@
 }
 <div id="docente-datos" data-docenteid="@docenteId"></div>
 <div class="materia-container">
+    <style>
+        /* Mejorar distribución de columnas en la tabla de entregables */
+        .table-entregables{ table-layout: fixed; width: 100%; min-width: 900px; }
+        .table-entregables th:nth-child(1){ width:25%; }
+        .table-entregables th:nth-child(2){ width:50%; }
+        .table-entregables th:nth-child(3){ width:15%; }
+        .table-entregables th:nth-child(4){ width:6%; }
+        .table-entregables th:nth-child(5){ width:4%; }
+        .table-entregables th, .table-entregables td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; padding: .85rem; }
+        /* permitir que el contenido de la respuesta haga wrap y no desborde la celda */
+        .table-entregables td pre { white-space: pre-wrap; word-break: break-word; margin:0; }
+        .table-entregables .cal-cell { text-align: center; }
+        @@media (max-width: 992px) {
+            .table-entregables{ min-width:700px; }
+            .table-entregables th:nth-child(1){ width:30%; }
+            .table-entregables th:nth-child(2){ width:42%; }
+            .table-entregables th:nth-child(3){ width:18%; }
+            .table-entregables th:nth-child(4){ width:6%; }
+            .table-entregables th:nth-child(5){ width:4%; }
+        }
+    </style>
     <!-- Compact header: shows materia name and access code without large decorative card -->
     <div class="materia-header-compact materia-header d-flex align-items-center justify-content-between" style="padding:12px 20px; border-radius:8px; margin-bottom:12px; background: linear-gradient(90deg,#42c1ff 0%,#1e88e5 100%); color:#fff;">
         <div style="display:flex;flex-direction:column;">
@@ -178,6 +199,13 @@
                         Crear Aviso
                     </button>
                 </div>
+            </div>
+            <!-- Filtros para avisos: buscar por título y filtrar por rango de fechas -->
+            <div class="avisos-filters mb-3" style="display:flex;gap:8px;align-items:center;">
+                <input id="buscarAvisoTitulo" class="form-control" placeholder="Buscar por título..." style="max-width:360px;" />
+                <input id="fechaDesdeAviso" type="date" class="form-control" style="max-width:170px;" />
+                <input id="fechaHastaAviso" type="date" class="form-control" style="max-width:170px;" />
+                <button id="btnLimpiarFiltrosAvisos" class="btn btn-secondary" type="button">Limpiar</button>
             </div>
             <div class="divider"></div>
             <div id="listaDeAvisosDeMateria"></div>

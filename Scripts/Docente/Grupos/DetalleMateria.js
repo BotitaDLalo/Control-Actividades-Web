@@ -1,4 +1,5 @@
 // Obtener el ID del docente almacenado en localStorage
+var respTxt = '-';
 //let docenteIdGlobal = localStorage.getItem("docenteId");
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -96,6 +97,7 @@ async function cargarEntregablesPorActividad(actividadId) {
 
     // Mostrar sección solicitada
     cambiarSeccion(seccion);
+    var html = '<div class="table-responsive"><table class="table table-sm table-entregables"><thead><tr><th>Alumno</th><th>Respuesta</th><th>Fecha</th><th>Calificación</th><th>Acciones</th></tr></thead><tbody>';
 
 });
 
