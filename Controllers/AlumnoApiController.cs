@@ -39,6 +39,7 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private NotificacionesService _notifServ;
         public AlumnoApiController() { }
 
         public AlumnoApiController(
@@ -46,7 +47,8 @@ namespace ControlActividades.Controllers
             ApplicationSignInManager signInManager,
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext DbContext,
-            FuncionalidadesGenerales fg
+            FuncionalidadesGenerales fg,
+            NotificacionesService notifServ
             )
         {
             UserManager = userManager;
@@ -54,6 +56,7 @@ namespace ControlActividades.Controllers
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+            Ns = notifServ;
         }
 
         [HttpPost]
@@ -213,6 +216,18 @@ namespace ControlActividades.Controllers
             set
             {
                 _fg = value;
+            }
+        }
+
+        public NotificacionesService Ns
+        {
+            get
+            {
+                return _notifServ ?? (_notifServ = new NotificacionesService(Db, new FCMService()));
+            }
+            private set
+            {
+                _notifServ = value;
             }
         }
 
@@ -543,6 +558,93 @@ namespace ControlActividades.Controllers
             }
         }
 
+
+        [HttpPost]
+        [Route("EliminarAlumnoMateria")]
+        public async Task<IHttpActionResult> EliminarAlumnoDeMateria(
+            [FromBody] AlumnoEliminarRequest request)
+        {
+            try
+            {
+                if (request.AlumnoMateriaId <= 0)
+                {
+                    return Content(
+                        HttpStatusCode.BadRequest,
+                        new { mensaje = "AlumnoMateriaId es obligatorio." }
+                    );
+                }
+
+                var relacion = await Db.tbAlumnosMaterias
+                    .FirstOrDefaultAsync(x =>
+                        x.AlumnoMateriaId == request.AlumnoMateriaId);
+
+                if (relacion == null)
+                {
+                    return Content(
+                        HttpStatusCode.NotFound,
+                        new { mensaje = "Relación no encontrada." }
+                    );
+                }
+
+                Db.tbAlumnosMaterias.Remove(relacion);
+                await Db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    mensaje = "Alumno eliminado de la materia correctamente."
+                });
+            }
+            catch (Exception e)
+            {
+                return Content(
+                    HttpStatusCode.InternalServerError,
+                    new
+                    {
+                        mensaje = "Error al eliminar alumno: " + e.Message
+                    }
+                );
+            }
+        }
+
+        [HttpPost]
+        [Route("EliminarAlumnoGrupo")]
+        public async Task<IHttpActionResult> EliminarAlumnoDeGrupo([FromBody] AlumnoEliminarGrupoRequest request)
+        {
+            try
+            {
+                int grupoId = request.GrupoId;
+                int alumnoId = request.AlumnoId;
+
+                if (grupoId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Grupo y Alumno son obligatorios." });
+                }
+
+                // 1. Buscar la relación en la tabla tbAlumnosGrupos
+                var relacionAEliminar = await Db.tbAlumnosGrupos
+                    .FirstOrDefaultAsync(ag => ag.GrupoId == grupoId && ag.AlumnoId == alumnoId);
+
+                if (relacionAEliminar == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en el grupo especificado." });
+                }
+
+                // 2. Eliminar la relación
+                Db.tbAlumnosGrupos.Remove(relacionAEliminar);
+
+                // 3. Guardar cambios en la base de datos
+                await Db.SaveChangesAsync();
+
+                // 4. Retornar éxito
+                return Ok(new { mensaje = "Alumno eliminado del grupo correctamente." });
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno del grupo: " + e.Message });
+            }
+        }
+
+
         [HttpPost]
         [Route("CancelarEnvioActividadAlumno")]
         public async Task<IHttpActionResult> CancelarEnvioActividadAlumno([FromBody] CancelarEnvioActividadAlumno datosCancelacion)
@@ -836,11 +938,11 @@ namespace ControlActividades.Controllers
 
                 if (alumnoRegistradoGrupo)
                 {
-                    //await _ns.NotificacionRegistrarAlumnoClase(lsAlumnosId, docenteId, grupoId: grupoId);
+                    await Ns.NotificacionRegistrarAlumnoClase(lsAlumnosId, docenteId, grupoId: grupoId);
                 }
                 else if (alumnoRegistradoMateria)
                 {
-                    //await _ns.NotificacionRegistrarAlumnoClase(lsAlumnosId, docenteId, materiaId: materiaId);
+                    await Ns.NotificacionRegistrarAlumnoClase(lsAlumnosId, docenteId, materiaId: materiaId);
                 }
             }
         }
@@ -868,31 +970,72 @@ namespace ControlActividades.Controllers
 
         [HttpPost]
         [Route("ObtenerListaAlumnosMateria")]
-        public async Task<IHttpActionResult> ObtenerListaAlumnosMateria([FromBody] Indices indice)
+        public async Task<IHttpActionResult> ObtenerListaAlumnosMateria(
+            [FromBody] Indices indice)
         {
             try
             {
                 int grupoId = indice.GrupoId;
                 int materiaId = indice.MateriaId;
 
+                // =========================
+                // CASO 1: CON GRUPO
+                // =========================
                 if (grupoId > 0 && materiaId > 0)
                 {
-                    List<int> lsAlumnosGruposId = await Db.tbAlumnosGrupos.Where(a => a.GrupoId == grupoId).Select(a => a.AlumnoId).ToListAsync();
-                    List<EmailVerificadoAlumno> lsAlumnos = await ObtenerListaAlumnos(lsAlumnosGruposId);
-                    return Ok(lsAlumnos);
+                    var alumnosGrupo = await Db.tbAlumnosGrupos
+                        .Where(g => g.GrupoId == grupoId)
+                        .Select(g => g.AlumnoId)
+                        .ToListAsync();
+
+                    var alumnos = await ObtenerListaAlumnos(alumnosGrupo);
+
+                    return Ok(alumnos);
                 }
-                else
+
+                // =========================
+                // CASO 2: SIN GRUPO (MATERIA)
+                // =========================
+                var alumnosMateria = await Db.tbAlumnosMaterias
+                    .Where(am => am.MateriaId == materiaId)
+                    .Select(am => new
+                    {
+                        am.AlumnoMateriaId,
+                        am.AlumnoId
+                    })
+                    .ToListAsync();
+
+                if (!alumnosMateria.Any())
+                    return Ok(new List<object>());
+
+                var alumnosIds = alumnosMateria
+                    .Select(a => a.AlumnoId)
+                    .ToList();
+
+                var alumnosInfo = await ObtenerListaAlumnos(alumnosIds);
+
+                // 🔑 UNIÓN CORRECTA
+                var resultado = alumnosInfo.Select((a, index) => new
                 {
-                    List<int> lsAlumnosId = await Db.tbAlumnosMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.AlumnoId).ToListAsync();
+                    AlumnoMateriaId = alumnosMateria[index].AlumnoMateriaId,
+                    AlumnoId = alumnosMateria[index].AlumnoId,
 
-                    List<EmailVerificadoAlumno> lsAlumnos = await ObtenerListaAlumnos(lsAlumnosId);
+                    UserName = a.UserName,
+                    Email = a.Email,
+                    Nombre = a.Nombre,
+                    ApellidoPaterno = a.ApellidoPaterno,
+                    ApellidoMaterno = a.ApellidoMaterno,
+                    GrupoId = (int?)null
+                });
 
-                    return Ok(lsAlumnos);
-                }
+                return Ok(resultado);
             }
             catch (Exception e)
             {
-                return Content(HttpStatusCode.BadRequest, new { mensaje = e.Message });
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { mensaje = e.Message }
+                );
             }
         }
 
