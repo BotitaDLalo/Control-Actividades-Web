@@ -155,7 +155,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     var descElem = document.getElementById("descripcionActividad");
                     var fechaCreacionElem = document.getElementById("fechaCreacion");
                     var fechaLimiteElem = document.getElementById("fechaLimite");
-                    var tipoElem = document.getElementById("tipoActividad");
                     var puntajeElem = document.getElementById("puntajeMaximo");
                     var alumnosEntregadosElem = document.getElementById("alumnosEntregados");
                     var actividadesCalificadasElem = document.getElementById("actividadesCalificadas");
@@ -170,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (fechaCreacionElem) fechaCreacionElem.innerText = data.FechaCreacion ? formatDateToLocale(data.FechaCreacion) : "No disponible";
                     if (fechaLimiteElem) fechaLimiteElem.innerText = data.FechaLimite ? formatDateToLocale(data.FechaLimite) : "No disponible";
 
-                    if (tipoElem) tipoElem.innerText = data.TipoActividad || "No disponible";
+                    // `Tipo de Actividad` field removed from UI. No assignment needed.
                     if (puntajeElem) puntajeElem.innerText = (data.Puntaje !== undefined && data.Puntaje !== null) ? data.Puntaje : "0";
                     puntajeMaximo = data.Puntaje;
                     if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = data.AlumnosEntregados || "0 de 0";
@@ -196,6 +195,15 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(function () {
         prepararAlumnosYActividades();
     }, 250);
+    // Poll para refrescar entregas automáticamente (cada 10s) — evita múltiples intervalos
+    try {
+        if (!window._actividadEntregasPollingAttached) {
+            window._actividadEntregasPollingAttached = true;
+            setInterval(function () {
+                try { prepararAlumnosYActividades(); } catch (e) { /* noop */ }
+            }, 10000);
+        }
+    } catch (e) { }
 });
 
 function prepararAlumnosYActividades() {
@@ -216,6 +224,33 @@ function prepararAlumnosYActividades() {
                 const entregados = Array.isArray(data.AlumnosEntregables) ? data.AlumnosEntregables : (data.entregados || []);
                 const entregadosAlumnoIds = entregados.map(e => e.AlumnoId);
                 const noEntregados = alumnos.filter(a => !entregadosAlumnoIds.includes(a.AlumnoId));
+
+                // Actualizar badges de resumen (Alumnos que han entregado / Actividades calificadas)
+                try {
+                    var alumnosEntregadosElem = document.getElementById('alumnosEntregados');
+                    var actividadesCalificadasElem = document.getElementById('actividadesCalificadas');
+                    var totalAlumnos = Array.isArray(alumnos) ? alumnos.length : 0;
+
+                    // totalEntregados: preferir valor enviado por la API si existe
+                    var totalEntregados = (typeof data.TotalEntregados === 'number') ? data.TotalEntregados : (new Set(entregadosAlumnoIds)).size;
+
+                    // calcular alumnos con al menos una calificación asignada
+                    var alumnosConCalif = 0;
+                    try {
+                        var mapCalif = {};
+                        (entregados || []).forEach(function (it) {
+                            try {
+                                if (it && (it.Calificacion !== null && typeof it.Calificacion !== 'undefined')) {
+                                    mapCalif[it.AlumnoId] = true;
+                                }
+                            } catch (e) { }
+                        });
+                        alumnosConCalif = Object.keys(mapCalif).length;
+                    } catch (e) { alumnosConCalif = 0; }
+
+                    if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = totalEntregados + ' de ' + totalAlumnos;
+                    if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = alumnosConCalif + ' de ' + totalAlumnos;
+                } catch (e) { console.warn('No se pudieron actualizar badges de entregados/calificadas', e); }
 
                 // adaptar estructura esperada por renderizarAlumnos
                 actividadesData.entregados = entregados;
