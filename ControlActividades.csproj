@@ -462,6 +462,10 @@
     <Compile Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.Designer.cs">
       <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202601201645501_AddMatricula.cs" />
+    <Compile Include="Migrations\202601201645501_AddMatricula.Designer.cs">
+      <DependentUpon>202601201645501_AddMatricula.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Dtos\Migracion\MigracionUsuariosDto.cs" />
     <Compile Include="Dtos\Migracion\UsuarioMigracionDto.cs" />
@@ -849,6 +853,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.resx">
       <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601201645501_AddMatricula.resx">
+      <DependentUpon>202601201645501_AddMatricula.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

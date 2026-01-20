@@ -13,6 +13,9 @@ namespace ControlActividades.Models.db
         public int AlumnoId { get; set; }
 
         [Required]
+        public string Matricula { get; set; }
+
+        [Required]
         public string ApellidoPaterno { get; set; }
 
         [Required]
