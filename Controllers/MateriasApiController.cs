@@ -576,7 +576,7 @@ namespace ControlActividades.Controllers
                     {
                         Mensaje = "No se puede eliminar la materia porque tiene alumnos inscritos.",
                         Codigo = MateriaErrorCodes.MATERIA_CON_ALUMNOS,
-                        Detalles = $"Hay {countAlumnos} alumno(s) inscrito(s) en esta materia. Desinscribe todos los alumnos antes de eliminar la materia."
+                        Detalles = $"Hay {countAlumnos} alumno(s) inscrito(s) que debes eliminar antes en esta materia."
                     });
                 }
 
@@ -589,7 +589,7 @@ namespace ControlActividades.Controllers
                     {
                         Mensaje = "No se puede eliminar la materia porque tiene actividades creadas.",
                         Codigo = MateriaErrorCodes.MATERIA_CON_ACTIVIDADES,
-                        Detalles = $"Hay {countActividades} actividad(es) asociada(s) a esta materia. Elimina todas las actividades antes de eliminar la materia."
+                        Detalles = $"Hay {countActividades} actividad(es) que debes eliminar antes en esta materia."
                     });
                 }
 
@@ -602,7 +602,7 @@ namespace ControlActividades.Controllers
                     {
                         Mensaje = "No se puede eliminar la materia porque tiene avisos asociados.",
                         Codigo = MateriaErrorCodes.MATERIA_CON_AVISOS,
-                        Detalles = $"Hay {countAvisos} aviso(s) asociado(s) a esta materia. Elimina todos los avisos antes de eliminar la materia."
+                        Detalles = $"Hay {countAvisos} aviso(s) que debes eliminar antes en esta materia."
                     });
                 }
 

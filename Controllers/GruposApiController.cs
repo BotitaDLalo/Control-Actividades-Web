@@ -534,7 +534,7 @@ namespace ControlActividades.Controllers
                     {
                         Mensaje = "No se puede eliminar el grupo porque tiene materias asociadas.",
                         Codigo = GrupoErrorCodes.GRUPO_CON_ACTIVIDADES,
-                        Detalles = $"Hay {countMaterias} materia(s) asociada(s) a este grupo. Elimina todas las materias del grupo antes de eliminarlo."
+                        Detalles = $"Hay {countMaterias} materia(s) que tienes que eliminar antes."
                     });
                 }
 
@@ -547,7 +547,7 @@ namespace ControlActividades.Controllers
                     {
                         Mensaje = "No se puede eliminar el grupo porque tiene alumnos inscritos.",
                         Codigo = GrupoErrorCodes.GRUPO_CON_ALUMNOS,
-                        Detalles = $"Hay {countAlumnos} alumno(s) inscrito(s) en este grupo. Elimina todos los alumnos del grupo antes de eliminarlo."
+                        Detalles = $"Hay {countAlumnos} alumno(s) inscrito(s) que tienes que eliminar antes."
                     });
                 }
 
@@ -560,7 +560,7 @@ namespace ControlActividades.Controllers
                     {
                         Mensaje = "No se puede eliminar el grupo porque tiene avisos asociados.",
                         Codigo = GrupoErrorCodes.GRUPO_CON_AVISOS,
-                        Detalles = $"Hay {countAvisos} aviso(s) asociado(s) a este grupo. Elimina todos los avisos antes de eliminarlo."
+                        Detalles = $"Hay {countAvisos} aviso(s) que debes eliminar antes."
                     });
                 }
 
@@ -582,7 +582,7 @@ namespace ControlActividades.Controllers
                 Console.WriteLine($"[ERROR] DeleteGroup: {ex.Message}\n{ex.StackTrace}");
                 return Content(HttpStatusCode.InternalServerError, new ErrorResponse
                 {
-                    Mensaje = "Ocurrió un error interno al intentar eliminar el grupo.",
+                    Mensaje = "Ocurrió un error interno en el servidor al intentar eliminar el grupo.",
                     Codigo = GrupoErrorCodes.ERROR_INTERNO,
                     Detalles = ex.Message
                 });
