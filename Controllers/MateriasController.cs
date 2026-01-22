@@ -127,7 +127,9 @@ namespace ControlMaterias.Controllers
 
         public ActionResult Index()
         {
-            return View();
+            var lsMaterias = ObtenerMateriasSinGrupoPorUsuario();
+
+            return View(lsMaterias);
         }
 
         [HttpGet]
@@ -323,7 +325,7 @@ namespace ControlMaterias.Controllers
 
                 //ENVÍO DE NOTIFICACIÓN
                 await Ns.NotificacionRegistrarAlumnoClase(
-                        new List<int> { alumnoId.Value},
+                        new List<int> { alumnoId.Value },
                         docenteId: 0,
                         materiaId: materiaId
                     );
@@ -580,7 +582,7 @@ namespace ControlMaterias.Controllers
                 //    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
                 //}
                 var rolUsuario = Fg.ObtenerRolUsuario(User);
-                
+
                 var resultado = actividadesEntities.Select(a => new
                 {
                     a.ActividadId,
@@ -600,7 +602,7 @@ namespace ControlMaterias.Controllers
                 {
                     Actividades = resultado,
                     RolUsuario = rolUsuario
-                },JsonRequestBehavior.AllowGet);
+                }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -787,7 +789,10 @@ namespace ControlMaterias.Controllers
                     a.AvisoId,
                     a.Titulo,
                     a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss")
+                    // Campo legible para mostrar en la UI
+                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss"),
+                    // Campo ISO para que el cliente pueda parsear la fecha de forma fiable al filtrar
+                    FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss")
                 });
 
                 var rolUsuario = Fg.ObtenerRolUsuario(User);
@@ -886,6 +891,7 @@ namespace ControlMaterias.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
+
         private string ObtenerClaveMateria()
         {
             var random = new Random();
@@ -946,91 +952,170 @@ namespace ControlMaterias.Controllers
         }
 
 
-        [HttpGet]
-        public async Task<ActionResult> ObtenerMateriasSinGrupoPorUsuario()
+        //[HttpGet]
+        //public async Task<ActionResult> ObtenerMateriasSinGrupoPorUsuario()
+        //{
+        //    try
+        //    {
+        //        List<tbMaterias> materiasSinGrupo = new List<tbMaterias>();
+        //        var usuarioId = Fg.ObtenerUsuarioId(User);
+
+
+        //        if (User.IsInRole(Roles.DOCENTE))
+        //        {
+        //            materiasSinGrupo = await Db.tbMaterias
+        //            .Where(m => m.DocenteId == usuarioId && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
+        //            .ToListAsync();
+
+        //        }
+        //        else if (User.IsInRole(Roles.ALUMNO))
+        //        {
+        //            var lsMateriasAlumno = await Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId ).Select(a => a.MateriaId).ToListAsync();
+
+        //            lsMateriasAlumno = lsMateriasAlumno.Where(a => !Db.tbGruposMaterias.Any(gm => gm.MateriaId == a)).ToList();
+
+        //            materiasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).ToList();
+        //        }
+
+        //        var resultado = new List<object>();
+
+        //        foreach (var materia in materiasSinGrupo)
+        //        {
+        //            var actividadesRecientes = await Db.tbActividades
+        //                .Where(a => a.MateriaId == materia.MateriaId)
+        //                .OrderByDescending(a => a.FechaCreacion)
+        //                .Take(2)
+        //                .Select(a => new
+        //                {
+        //                    a.ActividadId,
+        //                    a.NombreActividad,
+        //                    a.FechaCreacion
+        //                })
+        //                .ToListAsync();
+
+        //            resultado.Add(new
+        //            {
+        //                materia.MateriaId,
+        //                materia.NombreMateria,
+        //                materia.Descripcion,
+        //                materia.DocenteId,
+        //                DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == materia.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
+        //                materia.CodigoColor,
+        //                materia.CodigoAcceso,
+        //                // materia.DocenteId already included above
+        //                ActividadesRecientes = actividadesRecientes
+        //            });
+        //        }
+
+        //        return Json(resultado, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (System.Exception ex)
+        //    {
+        //        Response.StatusCode = 500;
+        //        return Json(new { mensaje = "Error al obtener las materias", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+
+        public List<MateriaViewModel> ObtenerMateriasSinGrupoPorUsuario()
         {
             try
             {
-                List<tbMaterias> materiasSinGrupo = new List<tbMaterias>();
+                //List<tbMaterias> materiasSinGrupo = new List<tbMaterias>();
+                List<MateriaViewModel> materiasSinGrupo = new List<MateriaViewModel>();
                 var usuarioId = Fg.ObtenerUsuarioId(User);
 
 
                 if (User.IsInRole(Roles.DOCENTE))
                 {
-                    materiasSinGrupo = await Db.tbMaterias
+                    materiasSinGrupo = Db.tbMaterias
                     .Where(m => m.DocenteId == usuarioId && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
-                    .ToListAsync();
+                    .Select(a => new MateriaViewModel
+                    {
+                        MateriaId = a.MateriaId,
+                        GrupoId = a.GruposMaterias.Where(gm => gm.MateriaId == a.MateriaId).Select(gm => gm.GrupoId).FirstOrDefault(),
+                        NombreMateria = a.NombreMateria,
+                        Descripcion = a.Descripcion,
+                        ApellidoPaternoDocente = a.Docentes.ApellidoPaterno,
+                        ApellidoMaternoDocente = a.Docentes.ApellidoMaterno,
+                        NombresDocente = a.Docentes.Nombre
+                    })
+                    .ToList();
 
                 }
                 else if (User.IsInRole(Roles.ALUMNO))
                 {
-                    var lsMateriasAlumno = await Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId ).Select(a => a.MateriaId).ToListAsync();
+                    var lsMateriasAlumno = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Select(a => a.MateriaId).ToList();
 
                     lsMateriasAlumno = lsMateriasAlumno.Where(a => !Db.tbGruposMaterias.Any(gm => gm.MateriaId == a)).ToList();
 
-                    materiasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).ToList();
-                }
-
-                var resultado = new List<object>();
-
-                foreach (var materia in materiasSinGrupo)
-                {
-                    var actividadesRecientes = await Db.tbActividades
-                        .Where(a => a.MateriaId == materia.MateriaId)
-                        .OrderByDescending(a => a.FechaCreacion)
-                        .Take(2)
-                        .Select(a => new
-                        {
-                            a.ActividadId,
-                            a.NombreActividad,
-                            a.FechaCreacion
-                        })
-                        .ToListAsync();
-
-                    resultado.Add(new
+                    materiasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).Select(a => new MateriaViewModel
                     {
-                        materia.MateriaId,
-                        materia.NombreMateria,
-                        materia.Descripcion,
-                        materia.DocenteId,
-                        DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == materia.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
-                        materia.CodigoColor,
-                        materia.CodigoAcceso,
-                        // materia.DocenteId already included above
-                        ActividadesRecientes = actividadesRecientes
-                    });
+                        MateriaId = a.MateriaId,
+                        GrupoId = a.GruposMaterias.Where(gm => gm.MateriaId == a.MateriaId).Select(gm => gm.GrupoId).FirstOrDefault(),
+                        NombreMateria = a.NombreMateria,
+                        Descripcion = a.Descripcion,
+                        ApellidoPaternoDocente = a.Docentes.ApellidoPaterno,
+                        ApellidoMaternoDocente = a.Docentes.ApellidoMaterno,
+                        NombresDocente = a.Docentes.Nombre
+                    }).ToList();
                 }
 
-                return Json(resultado, JsonRequestBehavior.AllowGet);
+                return materiasSinGrupo;
             }
-            catch (System.Exception ex)
+            catch (Exception)
             {
-                Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al obtener las materias", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return new List<MateriaViewModel>();
             }
         }
 
+
         public ActionResult MateriaDetalles(int? materiaId, int? grupoId)
         {
-            if (!materiaId.HasValue && !grupoId.HasValue)
+            // Redirigir a la vista docente centralizada `MateriasDetalles` para evitar mantener dos vistas casi idénticas.
+            if (!materiaId.HasValue)
             {
                 return RedirectToAction("Index");
             }
+            // Si el usuario es alumno, redirigir a la vista de alumno correspondiente
+            try
+            {
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+                if (!string.IsNullOrEmpty(rolUsuario) && rolUsuario == Roles.ALUMNO)
+                {
+                    // Preferir abrir la materia cuando se proporciona materiaId (aunque venga dentro de un grupo)
+                    if (materiaId.HasValue && materiaId.Value > 0)
+                    {
+                        return RedirectToAction("Clase", "Alumno", new { tipo = "materia", id = materiaId.Value });
+                    }
 
-            //string userId = User.Identity.GetUserId();
-            //var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+                    if (grupoId.HasValue && grupoId.Value > 0)
+                    {
+                        return RedirectToAction("Clase", "Alumno", new { tipo = "grupo", id = grupoId.Value });
+                    }
+                }
+            }
+            catch { /* si falla la obtención del rol seguir mostrando vista docente por defecto */ }
 
-            //ViewBag.DocenteId = docenteId;
-            //ViewBag.MateriaId = materiaId.Value;
-            //ViewBag.GrupoId = grupoId ?? 0;
+            // asegurar que ViewBag tenga los ids necesarios para las vistas/JS (docente u otros roles)
+            try
+            {
+                string userId = User != null ? User.Identity.GetUserId() : null;
+                var docenteId = 0;
+                if (!string.IsNullOrEmpty(userId))
+                    docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
-            //return View("MateriasDetalles");
+                ViewBag.DocenteId = docenteId;
+                ViewBag.MateriaId = materiaId.HasValue ? materiaId.Value : 0;
+                ViewBag.GrupoId = grupoId ?? 0;
+            }
+            catch { ViewBag.DocenteId = 0; ViewBag.MateriaId = materiaId ?? 0; ViewBag.GrupoId = grupoId ?? 0; }
 
             var nombreMateria = Db.tbMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.NombreMateria).FirstOrDefault();
-
             ViewBag.NombreMateria = nombreMateria;
 
-            return View();
+            // La vista física está en Views/Docente/MateriasDetalles.cshtml
+            // Aseguramos que se cargue la vista correcta especificando la ruta completa
+            return View("~/Views/Docente/MateriasDetalles.cshtml");
         }
 
 

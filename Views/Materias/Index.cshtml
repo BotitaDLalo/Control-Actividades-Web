@@ -1,4 +1,5 @@
-﻿@using roles = ControlActividades.Roles;
+﻿@model List<ControlActividades.Models.MateriaViewModel>
+@using roles = ControlActividades.Roles;
 @{
     Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
     ViewBag.Title = "Materias sin grupo";
@@ -20,30 +21,79 @@
                 <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#materiasModal" style="min-width:150px; padding:.35rem .9rem;">Crear Materia</button>
             </div>
         </div>
-        @Html.Partial("MateriasModal")
+        @Html.Partial("MateriasModal", new ControlActividades.Models.CrearMateria())
     }
 
     <div id="listaMateriasSinGrupo" class="content">
-        <!-- Las tarjetas se cargan dinámicamente por `cargarMateriasSinGrupo()` en JS -->
+        @foreach (var materia in Model)
+        {
+            <div class="card mb-3 min-vh-50 position-relative custom-card"
+                 style="max-width: 540px">
+                <button class="btn btn-light btn-sm position-absolute top-0 end-0 m-2 custom-button-settings">
+                    <svg fill="#000000"
+                         width="25px"
+                         height="25px"
+                         viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="17.5" r="1.5" />
+                        <circle cx="12" cy="12" r="1.5" />
+                        <circle cx="12" cy="6.5" r="1.5" />
+                    </svg>
+                </button>
+                <a href="@Url.Action("MateriaDetalles", "Materias", new { materiaId = materia.MateriaId})" class="text-decoration-none text-reset">
+                    <div class="row g-0 h-100">
+                        <div class="col-md-4 d-flex align-items-center justify-content-center p-3" style="min-height:180px; background-color: @("#"+(materia.CodigoColor ?? "1db7f7"))">
+                            <img src="~/Content/Iconos/materia_2.svg"
+                                 class="img-fluid rounded-start"
+                                 style="object-fit: cover"
+                                 alt="..." />
+                        </div>
+                        <div class="col-md-8 d-flex flex-column">
+                            <div class="card-body d-flex flex-column h-100">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">@materia.NombreMateria</h5>
+                                    <p class="card-text">
+                                        <small class="text-body-secondary">@materia.ApellidoPaternoDocente @materia.ApellidoMaternoDocente @materia.NombresDocente</small>
+                                    </p>
+                                    <p class="card-text limit-lines">
+                                        @materia.Descripcion
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="card-bottom ">
+                                <p class="card-text">
+                                    <small class="text-body-secondary">Sin actividades</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
     </div>
 </div>
 
-@section Scripts{
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
+@section Styles{
+    <link href="~/Content/Dashboard/cards-grupos-materias.css" rel="stylesheet" />
+}
 
-            const input = document.getElementById('buscarMateria');
-            input.addEventListener('input', function () {
-                const q = this.value.trim().toLowerCase();
-                document.querySelectorAll('#listaMateriasSinGrupo .card-layout').forEach(card => {
-                    const title = (card.textContent || '').toLowerCase();
-                    card.style.display = q === '' || title.indexOf(q) !== -1 ? '' : 'none';
+@section Scripts{
+    @*<script>
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
+
+                const input = document.getElementById('buscarMateria');
+                input.addEventListener('input', function () {
+                    const q = this.value.trim().toLowerCase();
+                    document.querySelectorAll('#listaMateriasSinGrupo .card-layout').forEach(card => {
+                        const title = (card.textContent || '').toLowerCase();
+                        card.style.display = q === '' || title.indexOf(q) !== -1 ? '' : 'none';
+                    });
                 });
             });
-        });
-    </script>
+        </script>
 
-    <script src="~/Scripts/Materias/materias-sin-grupo.js"></script>
+        <script src="~/Scripts/Materias/materias-sin-grupo.js"></script>*@
     @*<script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>*@
 }

@@ -1,6 +1,4 @@
-﻿@{
-    ViewData["Title"] = "MateriasModal";
-}
+﻿@model ControlActividades.Models.CrearMateria
 
 <div class="modal fade" id="materiasModal" tabindex="-1" aria-labelledby="materiasModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" style="margin-top:110px;">
@@ -9,22 +7,48 @@
                 <h5 class="modal-title modal-title-custom" id="materiasModalLabel">Gestión de Materias</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body modal-body-custom">
-                <form id="materiasForm">
+            @using (Html.BeginForm("CrearMateria", "Materias", FormMethod.Post, new { id = "form-materia" }))
+            {
+                <div class="modal-body modal-body-custom">
                     <div class="mb-3">
-                        <label for="nombreMateria" class="form-label">Nombre de la Materia</label>
-                        <input type="text" class="form-control" id="nombreMateria" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Ingrese el nombre de la materia" required>
+                        @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+                        @Html.TextBoxFor(
+                            m => m.Nombre,
+                            new
+                            {
+                                @class = "form-control",
+                                placeholder = "Ingrese el nombre de la materia",
+                                autocomplete = "off",
+                                autocorrect = "off",
+                                spellcheck = "false"
+                            })
+
+                        @*@Html.ValidationMessageFor(m => m.NombreMateria)*@
+                        @*<label for="nombreMateria" class="form-label">Nombre de la Materia</label>
+                            <input type="text" class="form-control" id="nombreMateria" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Ingrese el nombre de la materia" required>*@
                     </div>
                     <div class="mb-3">
-                        <label for="descripcionMateria" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="descripcionMateria" rows="3" placeholder="Ingrese una descripción"></textarea>
+                        @Html.LabelFor(m => m.Descripcion, new { @class = "form-label" })
+
+                        @Html.TextAreaFor(
+                            m => m.Descripcion,
+                            3,
+                            0,
+                            new
+                            {
+                                @class = "form-control",
+                                placeholder = "Ingrese una descripción"
+                            })
+                        @*<label for="descripcionMateria" class="form-label">Descripción</label>*@
+                        @*<textarea class="form-control" id="descripcionMateria" rows="3" placeholder="Ingrese una descripción"></textarea>*@
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer modal-footer-custom">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="guardarMateriaSinGrupo()">Guardar Materia</button>
-            </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    @*<button type="button" class="btn btn-primary" onclick="guardarMateriaSinGrupo()">Guardar Materia</button>*@
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </div>
+            }
         </div>
     </div>
 </div>

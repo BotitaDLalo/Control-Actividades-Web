@@ -635,3 +635,28 @@ function formatearFecha(fechaStr) {
     return fechaStr;
   }
 }
+async function IrAActividad(actividadIdSeleccionada) {
+    //guardar el id de la materia para acceder a la materia en la que se entro y usarla en otro script
+    localStorage.setItem("actividadSeleccionada", actividadIdSeleccionada);
+    // Redirige a la ruta que decide la vista según rol en el servidor
+    // Adjuntar actividadId en query string para que el backend pueda usarla
+    var url = `/Actividades/DetallesActividad?actividadId=${encodeURIComponent(actividadIdSeleccionada)}`;
+    // Abrir en nueva pestaña para comportamiento similar al anterior
+    window.open(url, '_blank');
+}
+// Funciones para manejar los botones
+
+// helper para intentar una lista de endpoints en secuencia
+async function tryEndpoints(endpoints, fetchOptions) {
+    for (let i = 0; i < endpoints.length; i++) {
+        try {
+            const res = await fetch(endpoints[i], fetchOptions);
+            if (res.ok) return res;
+            // if server returned JSON with message, continue to next but remember last response
+            console.warn('Endpoint failed', endpoints[i], res.status);
+        } catch (e) {
+            console.warn('Fetch error for', endpoints[i], e);
+        }
+    }
+    throw new Error('Ningún endpoint respondió correctamente.');
+}

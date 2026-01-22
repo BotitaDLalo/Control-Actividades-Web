@@ -7,6 +7,7 @@ using System.Web;
 
 namespace ControlActividades.Models.db
 {
+    [Table("cTipoEntregas")]
     public class cTipoEntrega
     {
         [Key]

@@ -1,4 +1,4 @@
-﻿let modalEditar;
+let modalEditar;
 let modalEditarEl;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -222,7 +222,9 @@ function activarLogicaEditar() {
 }
 
 //Submit del formulario de edición
-document.getElementById("formEditarEvento").addEventListener("submit", async e => {
+var _formEditarEvento = document.getElementById("formEditarEvento");
+if (_formEditarEvento) {
+    _formEditarEvento.addEventListener("submit", async e => {
     e.preventDefault();
 
     const confirm = await Swal.fire({

@@ -272,7 +272,12 @@ async function cargarGrupos() {
             card.addEventListener('click', function (e) {
                 if (e.target.closest('button') || e.target.closest('a')) return;
                 try {
-                    window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
+                    // If current page is rendered for an alumno, navigate to the alumno view
+                    if (document.getElementById('alumno-datos') || document.getElementById('alumno-datos') !== null && window.location.pathname.indexOf('/Alumno') === 0) {
+                        window.location.href = `/Alumno/Clase?tipo=grupo&id=${grupo.GrupoId}`;
+                    } else {
+                        window.location.href = `/Docente/GrupoMaterias?grupoId=${grupo.GrupoId}`;
+                    }
                 } catch (err) {
                     console.warn('No se pudo redirigir al grupo:', err);
                 }

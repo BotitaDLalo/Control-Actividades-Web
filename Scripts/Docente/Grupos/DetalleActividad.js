@@ -5,6 +5,23 @@ var grupoIdGlobal = localStorage.getItem("grupoIdSeleccionado");
 var actividadIdGlobal = localStorage.getItem("actividadSeleccionada");
 var puntajeMaximo = null;
 
+// Helper: elimina backdrops residuales y restaura el body para evitar overlay gris pegado
+function _cleanupModalBackdrops() {
+    try {
+        // jQuery if available
+        if (window.jQuery) {
+            window.jQuery('.modal-backdrop').remove();
+        } else {
+            var b = document.querySelectorAll('.modal-backdrop');
+            b.forEach(function (el) { el.parentNode && el.parentNode.removeChild(el); });
+        }
+        // quitar clase que evita scroll
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    } catch (e) { console.warn('cleanup modal backdrops error', e); }
+}
+
 function parseServerDate(dateVal) {
     if (!dateVal) return null;
     // If already a Date
@@ -78,11 +95,66 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(function (data) {
                 console.log('Actividad raw data:', data);
                 if (data) {
+                    // Exponer datos globalmente para que otras vistas/scripts (EvaluarActividades) puedan leerlos
+                    try { window.actividadData = data; } catch (e) { }
+
+                    // Actualizar badge de "Permitir entregas tarde" si viene el campo
+                    try {
+                        var permitir = null;
+                        if (typeof data.PermitirEntregasTarde !== 'undefined') permitir = data.PermitirEntregasTarde;
+                        else if (typeof data.PermitirTarde !== 'undefined') permitir = data.PermitirTarde;
+                        var badgeEl = document.getElementById('permitirTardeBadge');
+                        var btnEl = document.getElementById('togglePermitirTardeBtn');
+                        if (badgeEl && permitir !== null) {
+                            if (permitir === true || String(permitir).toLowerCase() === 'true') {
+                                badgeEl.className = 'badge bg-success';
+                                badgeEl.innerText = 'Sí';
+                            } else {
+                                badgeEl.className = 'badge bg-secondary';
+                                badgeEl.innerText = 'No';
+                            }
+                        }
+                        // habilitar botón si existe
+                        if (btnEl) {
+                            btnEl.disabled = false;
+                            // agregar listener robusto aquí (si no existe) para alternar permiso
+                            try {
+                                if (!btnEl.dataset._toggleAttached) {
+                                    btnEl.addEventListener('click', async function () {
+                                        try {
+                                            var permitir = (badgeEl && badgeEl.innerText === 'Sí');
+                                            var nueva = !permitir;
+                                            var actividadId = localStorage.getItem('actividadSeleccionada') || (data && data.ActividadId) || (data && data.ActividadId);
+                                            if (!actividadId) return alert('Actividad no identificada');
+                                            var url = '/api/Actividades/TogglePermitirEntregasTarde?actividadId=' + encodeURIComponent(actividadId) + '&permitir=' + encodeURIComponent(nueva);
+                                            var resp = await fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                                            if (!resp.ok) {
+                                                var txt = await resp.text().catch(() => null);
+                                                alert('No se pudo actualizar: ' + (txt || resp.statusText));
+                                                return;
+                                            }
+                                            // actualizar UI local
+                                            if (badgeEl) {
+                                                if (nueva === true || String(nueva).toLowerCase() === 'true') {
+                                                    badgeEl.className = 'badge bg-success';
+                                                    badgeEl.innerText = 'Sí';
+                                                } else {
+                                                    badgeEl.className = 'badge bg-secondary';
+                                                    badgeEl.innerText = 'No';
+                                                }
+                                            }
+                                            try { window.actividadData = window.actividadData || {}; window.actividadData.PermitirEntregasTarde = nueva; } catch (e) { }
+                                        } catch (e) { console.error(e); alert('Error al actualizar permiso'); }
+                                    });
+                                    btnEl.dataset._toggleAttached = '1';
+                                }
+                            } catch (e) { console.warn('No se pudo adjuntar listener toggle', e); }
+                        }
+                    } catch (e) { console.warn('Error actualizando badge permitirTarde', e); }
                     var nombreElem = document.getElementById("nombreActividad");
                     var descElem = document.getElementById("descripcionActividad");
                     var fechaCreacionElem = document.getElementById("fechaCreacion");
                     var fechaLimiteElem = document.getElementById("fechaLimite");
-                    var tipoElem = document.getElementById("tipoActividad");
                     var puntajeElem = document.getElementById("puntajeMaximo");
                     var alumnosEntregadosElem = document.getElementById("alumnosEntregados");
                     var actividadesCalificadasElem = document.getElementById("actividadesCalificadas");
@@ -97,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (fechaCreacionElem) fechaCreacionElem.innerText = data.FechaCreacion ? formatDateToLocale(data.FechaCreacion) : "No disponible";
                     if (fechaLimiteElem) fechaLimiteElem.innerText = data.FechaLimite ? formatDateToLocale(data.FechaLimite) : "No disponible";
 
-                    if (tipoElem) tipoElem.innerText = data.TipoActividad || "No disponible";
+                    // `Tipo de Actividad` field removed from UI. No assignment needed.
                     if (puntajeElem) puntajeElem.innerText = (data.Puntaje !== undefined && data.Puntaje !== null) ? data.Puntaje : "0";
                     puntajeMaximo = data.Puntaje;
                     if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = data.AlumnosEntregados || "0 de 0";
@@ -123,6 +195,15 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(function () {
         prepararAlumnosYActividades();
     }, 250);
+    // Poll para refrescar entregas automáticamente (cada 10s) — evita múltiples intervalos
+    try {
+        if (!window._actividadEntregasPollingAttached) {
+            window._actividadEntregasPollingAttached = true;
+            setInterval(function () {
+                try { prepararAlumnosYActividades(); } catch (e) { /* noop */ }
+            }, 10000);
+        }
+    } catch (e) { }
 });
 
 function prepararAlumnosYActividades() {
@@ -143,6 +224,33 @@ function prepararAlumnosYActividades() {
                 const entregados = Array.isArray(data.AlumnosEntregables) ? data.AlumnosEntregables : (data.entregados || []);
                 const entregadosAlumnoIds = entregados.map(e => e.AlumnoId);
                 const noEntregados = alumnos.filter(a => !entregadosAlumnoIds.includes(a.AlumnoId));
+
+                // Actualizar badges de resumen (Alumnos que han entregado / Actividades calificadas)
+                try {
+                    var alumnosEntregadosElem = document.getElementById('alumnosEntregados');
+                    var actividadesCalificadasElem = document.getElementById('actividadesCalificadas');
+                    var totalAlumnos = Array.isArray(alumnos) ? alumnos.length : 0;
+
+                    // totalEntregados: preferir valor enviado por la API si existe
+                    var totalEntregados = (typeof data.TotalEntregados === 'number') ? data.TotalEntregados : (new Set(entregadosAlumnoIds)).size;
+
+                    // calcular alumnos con al menos una calificación asignada
+                    var alumnosConCalif = 0;
+                    try {
+                        var mapCalif = {};
+                        (entregados || []).forEach(function (it) {
+                            try {
+                                if (it && (it.Calificacion !== null && typeof it.Calificacion !== 'undefined')) {
+                                    mapCalif[it.AlumnoId] = true;
+                                }
+                            } catch (e) { }
+                        });
+                        alumnosConCalif = Object.keys(mapCalif).length;
+                    } catch (e) { alumnosConCalif = 0; }
+
+                    if (alumnosEntregadosElem) alumnosEntregadosElem.innerText = totalEntregados + ' de ' + totalAlumnos;
+                    if (actividadesCalificadasElem) actividadesCalificadasElem.innerText = alumnosConCalif + ' de ' + totalAlumnos;
+                } catch (e) { console.warn('No se pudieron actualizar badges de entregados/calificadas', e); }
 
                 // adaptar estructura esperada por renderizarAlumnos
                 actividadesData.entregados = entregados;
@@ -299,15 +407,39 @@ function verRespuesta(alumnoActividadIdSeleccionada, alumnoId) {
                         parsed.Archivos.forEach(function (a) { html += '<li><a href="' + a + '" target="_blank">' + a.split('/').pop() + '</a></li>'; });
                         html += '</ul>';
                     }
+                    // Mostrar link si fue enviado (aceptar varias variantes: Link, Enlaces, links)
+                    var posiblesLinks = parsed.Link || parsed.Enlaces || parsed.link || parsed.enlaces || parsed.Links || parsed.links || null;
+                    function ensureProtocol(u) {
+                        if (!u) return u;
+                        var s = String(u).trim();
+                        if (/^https?:\/\//i.test(s)) return s;
+                        // si empieza con www. agregar https://
+                        if (/^www\./i.test(s)) return 'https://' + s;
+                        return s;
+                    }
+                    if (posiblesLinks) {
+                        if (Array.isArray(posiblesLinks)) {
+                            posiblesLinks.forEach(function (ln) {
+                                var href = ensureProtocol(ln);
+                                html += '<p><strong>Enlace:</strong> <a href="' + href + '" target="_blank">' + escapeHtml(String(ln)) + '</a></p>';
+                            });
+                        } else {
+                            var href = ensureProtocol(posiblesLinks);
+                            html += '<p><strong>Enlace:</strong> <a href="' + href + '" target="_blank">' + escapeHtml(String(posiblesLinks)) + '</a></p>';
+                        }
+                    }
                     if (parsed.Respuesta) {
-                        html += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(parsed.Respuesta) + '</pre></div>';
+                        // Convertir posibles URLs dentro del texto en enlaces
+                        html += '<div><strong>Respuesta:</strong><pre style="white-space:pre-wrap;">' + convertirUrlsEnEnlaces(escapeHtml(parsed.Respuesta)) + '</pre></div>';
                     } else if (typeof parsed === 'string') {
-                        html += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(parsed) + '</pre></div>';
+                        html += '<div><strong>Respuesta:</strong><pre style="white-space:pre-wrap;">' + convertirUrlsEnEnlaces(escapeHtml(parsed)) + '</pre></div>';
                     }
                 }
             } catch (err) {
-                // no es JSON
-                html = '<div><strong>Respuesta:</strong><pre>' + escapeHtml(String(respuestaRaw)) + '</pre></div>';
+                // no es JSON -> mostrar texto plano pero convertir URLs en enlaces
+                var textoEsc = escapeHtml(String(respuestaRaw));
+                var textoConEnlaces = convertirUrlsEnEnlaces(textoEsc);
+                html = '<div><strong>Respuesta:</strong><pre style="white-space:pre-wrap;">' + textoConEnlaces + '</pre></div>';
             }
         } else {
             html = '<p>No hay respuesta registrada.</p>';
@@ -317,7 +449,8 @@ function verRespuesta(alumnoActividadIdSeleccionada, alumnoId) {
         if (textoElem) textoElem.innerHTML = html;
         var modalEl = document.getElementById('respuestaModal');
         if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
+            _cleanupModalBackdrops();
+            var modal = new bootstrap.Modal(modalEl, { backdrop: true });
             modal.show();
         }
     } catch (e) {
@@ -348,7 +481,9 @@ function abrirModalCalificar(entregaId, puntajeMaximo) {
         }
         var modalEl = document.getElementById('calificarModal');
         if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
+            // limpiar backdrops residuales antes de mostrar
+            _cleanupModalBackdrops();
+            var modal = new bootstrap.Modal(modalEl, { backdrop: true });
             modal.show();
         }
     } catch (e) { console.error(e); }
@@ -385,3 +520,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+        // Inicializar control toggle para permitir entregas tarde
+        // Nota: no deshabilitamos el botón aquí para no interferir con la lógica
+        // definida en la vista EvaluarActividades (que añade su propio listener).
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                var badge = document.getElementById('permitirTardeBadge');
+                var actividad = localStorage.getItem('actividadSeleccionada');
+                if (!actividad) return;
+
+                // Forzar que el badge muestre 'No' y estilo secundario inicialmente
+                function actualizarBadgeForzado() {
+                    if (!badge) return;
+                    badge.className = 'badge bg-secondary';
+                    badge.innerText = 'No';
+                }
+
+                try { actualizarBadgeForzado(); } catch (e) { }
+                // No añadimos listeners ni deshabilitamos el botón aquí
+            } catch (e) { console.warn(e); }
+        });

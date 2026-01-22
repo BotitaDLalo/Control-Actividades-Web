@@ -4,54 +4,48 @@
 
 
 <div class="modal fade" id="crearActividadModal" tabindex="-1" aria-labelledby="crearActividadModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="crearActividadModalLabel">Crear Actividad</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <form id="actividadesForm">
-                    <label for="nombre">Nombre:</label>
-                    <input type="text" id="nombre" class="form-control" autocomplete="off" autocorrect="off" spellcheck="false">
+                <form id="actividadesForm" style="display:flex;flex-direction:column;gap:12px;">
+                    <div class="form-group mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" id="nombre" class="form-control" autocomplete="off" autocorrect="off" spellcheck="false">
+                    </div>
 
-                    <label for="descripcion">Descripción:</label>
-                    <textarea id="descripcion" class="form-control"></textarea>
+                    <div class="form-group mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea id="descripcion" class="form-control" rows="4"></textarea>
+                    </div>
 
-                    <label for="fechaLimite">Fecha y Hora Límite de Entrega:</label>
-                    <input type="datetime-local" id="fechaHoraLimite" class="form-control">
-
-                    <label for="tipoActividad">Tipo de actividad:</label>
-                    <select id="tipoActividad" class="form-select">
-                        <option value="">Cargando...</option>
-                    </select>
-
-                    <label for="estatusPublicacion" class="mt-2">Estatus de publicación:</label>
-                    <select id="estatusPublicacion" class="form-select">
-                        <option value="true">Publicar ahora</option>
-                        <option value="null">Publicar después (programar)</option>
-                        <option value="false">Borrador</option>
-                    </select>
-
-                    <label for="fechaProgramada" class="mt-2">Fecha programada (solo si eliges "Publicar después"):</label>
-                    <input type="datetime-local" id="fechaProgramada" class="form-control">
-
-                    <div class="d-flex align-items-center mt-2">
-                        <div class="form-check me-3">
-                            <input class="form-check-input" type="checkbox" id="sinPuntaje">
-                            <label class="form-check-label" for="sinPuntaje">Sin puntaje (participación)</label>
+                    <div class="row g-2 mb-2">
+                        <div class="col-12 col-md-6 mb-2 mb-md-0">
+                            <label class="form-label">Fecha límite</label>
+                            <div class="d-flex align-items-center">
+                                <input type="date" id="fechaLimite" class="form-control me-2" style="flex:1;">
+                                <input type="time" id="horaLimite" class="form-control" step="60" style="max-width:140px;">
+                            </div>
                         </div>
-                        <div style="flex:1">
-                            <label for="puntaje">Puntaje:</label>
-                            <input type="number" id="puntaje" class="form-control" min="0" max="100">
+                        <div class="col-12 col-md-6">
+                            <label for="puntaje" class="form-label">Puntaje (opcional)</label>
+                            <input type="number" id="puntaje" class="form-control" min="0" step="1" placeholder="Dejar vacío = Sin puntaje">
                         </div>
                     </div>
+
+                    <small class="text-muted mb-0">Nota: si no indicas puntaje o pones 0 se mostrará como "Sin puntaje".</small>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnPublicarActividad">Publicar</button>
-                <button type="button" class="btn btn-secondary" id="btnSugerencias">Sugerencias</button>
+            <div class="modal-footer d-flex flex-wrap justify-content-end gap-3" style="padding:1rem 1.25rem;">
+                <button type="button" class="btn btn-secondary me-auto" data-bs-dismiss="modal">Cancelar</button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary" id="btnSugerencias">Sugerencias</button>
+                    <button type="button" class="btn btn-outline-secondary" id="btnPublicarBorrador">Publicar como borrador</button>
+                    <button type="button" class="btn btn-primary btn-lg" id="btnPublicarActividad" style="min-width:110px;">Publicar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -95,17 +89,35 @@
             }
 
             crearModal.addEventListener('show.bs.modal', function () {
-                cargarTiposActividad();
+                // no hay tipos ni estatus en el modal compacto
 
                 try {
-                    // If we are not editing an existing actividad, set default time to 23:59 (fin del día)
+                    // If we are not editing an existing actividad, set default date to today and time to 23:59
                     if (!window.editingActividadId) {
-                        const input = document.getElementById('fechaHoraLimite');
-                        if (input) {
-                            const now = new Date();
-                            const defaultDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0, 0);
-                            input.value = toInputDateTimeLocal(defaultDate);
-                        }
+                        const now = new Date();
+                        const defaultDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0, 0);
+                        try {
+                            var d = document.getElementById('fechaLimite');
+                            var h = document.getElementById('horaLimite');
+                            if (d) d.value = `${defaultDate.getFullYear()}-${String(defaultDate.getMonth()+1).padStart(2,'0')}-${String(defaultDate.getDate()).padStart(2,'0')}`;
+                            if (h) h.value = `${String(defaultDate.getHours()).padStart(2,'0')}:${String(defaultDate.getMinutes()).padStart(2,'0')}`;
+                        } catch (e) { }
+                    }
+
+                    // If editing, populate date/time from existing fields if available (editarActividad sets globals)
+                    if (window.editingActividadId) {
+                        try {
+                            // editarActividad should fill inputs when opening, but guard here as well
+                            var fecha = document.getElementById('fechaLimite');
+                            var hora = document.getElementById('horaLimite');
+                            if (window._editarFechaISO) {
+                                var dt = new Date(window._editarFechaISO);
+                                if (!isNaN(dt)) {
+                                    if (fecha) fecha.value = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+                                    if (hora) hora.value = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+                                }
+                            }
+                        } catch (e) { }
                     }
                 } catch (e) { console.warn('No se pudo establecer la fecha por defecto:', e); }
             });
@@ -138,23 +150,14 @@
                 } catch (e) { console.warn(e); }
             });
 
-            // asociar el comportamiento por default al botón (crear)
+            // asociar comportamiento: publicar (enviado=true) y publicar como borrador (enviado=false)
             var defaultBtn = document.getElementById('btnPublicarActividad');
-            if (defaultBtn) defaultBtn.addEventListener('click', registrarActividad);
-
-            // toggle puntaje when checkbox changes
-            var sinP = document.getElementById('sinPuntaje');
-            var puntaje = document.getElementById('puntaje');
-            if (sinP && puntaje) {
-                sinP.addEventListener('change', function () {
-                    if (sinP.checked) {
-                        puntaje.value = '';
-                        puntaje.disabled = true;
-                    } else {
-                        puntaje.disabled = false;
-                    }
-                });
-            }
+            var borradorBtn = document.getElementById('btnPublicarBorrador');
+            if (defaultBtn) defaultBtn.addEventListener('click', function(){ registrarActividad(true); });
+            if (borradorBtn) borradorBtn.addEventListener('click', async function(){
+                const confirmed = await Swal.fire({ icon: 'question', title: '¿Seguro que quiere publicar esta actividad como borrador?', showCancelButton: true, confirmButtonText: 'Sí, publicar como borrador', cancelButtonText: 'Cancelar' });
+                if (confirmed && confirmed.isConfirmed) registrarActividad(false);
+            });
         }
     });
 
