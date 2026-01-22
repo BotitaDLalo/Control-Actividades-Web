@@ -215,3 +215,7 @@
 .nav-sesion-nombre {
     color: var(--txt-principal-light);
 }
+
+.modo-color-icono {
+    max-width: 20px;
+}
