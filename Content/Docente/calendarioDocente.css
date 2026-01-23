@@ -54,3 +54,13 @@
         border-bottom: none;
         font-weight: bold;
     }
+
+.grupo-item {
+    background: var(--bg-principal);
+    border: 1px solid var(--borde-defecto);
+}
+
+.materia-suelta-item {
+    background: var(--bg-principal);
+    border: 1px solid var(--borde-defecto);
+}
