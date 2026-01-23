@@ -530,6 +530,7 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\cards.css" />
     <Content Include="Content\Componentes\modal.css" />
+    <Content Include="Content\Componentes\sweetAlertCustom.css" />
     <Content Include="Content\Dashboard\cards-grupos-materias.css" />
     <Content Include="Content\Dashboard\header.css" />
     <Content Include="Content\dataTables.dataTables.css" />
@@ -537,12 +538,14 @@
     <Content Include="Content\Docente\calendarioDocente.css" />
     <Content Include="Content\Iconos\grupo_2.svg" />
     <Content Include="Content\Iconos\materia_2.svg" />
+    <Content Include="Content\Iconos\icono-modo-oscuro.svg" />
     <Content Include="Content\Iconos\ojo-azul.svg" />
     <Content Include="Content\Iconos\notiAviso-Azul.svg" />
     <Content Include="Content\Iconos\notiEvento.svg" />
     <Content Include="Content\Iconos\notiAviso.svg" />
     <Content Include="Content\Iconos\notiActividadCreada.svg" />
     <Content Include="Content\Iconos\notiActividadCreada-Azul.svg" />
+    <Content Include="Content\Iconos\icono-modo-claro.svg" />
     <Content Include="Content\Moleculas\inputs.css" />
     <Content Include="Content\Moleculas\botones.css" />
     <Content Include="Content\Variables\modo-claro.css" />

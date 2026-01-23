@@ -42,6 +42,7 @@ namespace ControlActividades
             bundles.Add(new StyleBundle("~/Content/Componentes").Include(
                     "~/Content/Componentes/cards.css",
                     "~/Content/Componentes/modal.css",
+                    "~/Content/Componentes/sweetAlertCustom.css",
                     "~/Content/Componentes/carga.css"
             ));
             //Content/site
