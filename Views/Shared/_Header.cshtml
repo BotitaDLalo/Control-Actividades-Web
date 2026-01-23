@@ -17,7 +17,9 @@
         </div>
         <!--Botón modo oscuro-->
         <button id="cambiarModo" class="btn-modo-color btn btn-link p-2" type="button" title="ModoColor" aria-label="Cambiar tema">
-            <p>Presioname</p>
+            <p>
+                <img class="modo-color-icono" src="~/Content/Iconos/icono-modo-claro.svg">
+            </p>
         </button>
 
         <!-- Notifications button -->
@@ -48,13 +50,13 @@
                 </svg>
             </button>
 
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
+            <div class="nav-sesion dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width:220px;">
                 @*<div class="user-info px-3 py-2 d-flex align-items-center">*@
                 <div class="elementos-perfil">
                     <img class="iconos1-nav me-2" src="@Url.Content("~/Content/Iconos/PERFIL-26.svg")" alt="Usuario" />
                     <div>
-                        <div class="dropdown-item mb-0">@User.Identity.Name</div>
-                        <div class="text-muted small">@(User.Identity.IsAuthenticated ? (User.Identity.Name ?? "") : "Invitado")</div>
+                        <div class="dropdown-item mb-0 nav-sesion-titulo">@User.Identity.Name</div>
+                        <div class="nav-sesion-nombre">@(User.Identity.IsAuthenticated ? (User.Identity.Name ?? "") : "Invitado")</div>
                     </div>
                 </div>
                 <div class="dropdown-divider"></div>
@@ -62,7 +64,7 @@
                 @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "px-3 py-2" }))
                 {
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-outline-danger w-100">
+                    <button type="submit" class="btn btn-outline-danger w-100 btn-cerrar-sesion" style="color: white; background-color: red">
                         Cerrar sesión
                     </button>
                 }

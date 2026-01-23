@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             Swal.fire({ icon: 'success', title: 'C\u00F3digo actualizado', text: nuevo, showConfirmButton: false, timer: 1400 });
         } catch (err) {
-            console.error('Error al cambiar código de materia:', err);
+            console.error('Error al cambiar cÃ³digo de materia:', err);
             Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'No se pudo cambiar el c\u00F3digo' });
         }
     });

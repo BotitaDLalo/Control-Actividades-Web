@@ -789,7 +789,10 @@ namespace ControlMaterias.Controllers
                     a.AvisoId,
                     a.Titulo,
                     a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss")
+                    // Campo legible para mostrar en la UI
+                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss"),
+                    // Campo ISO para que el cliente pueda parsear la fecha de forma fiable al filtrar
+                    FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss")
                 });
 
                 var rolUsuario = Fg.ObtenerRolUsuario(User);
@@ -1068,11 +1071,11 @@ namespace ControlMaterias.Controllers
 
         public ActionResult MateriaDetalles(int? materiaId, int? grupoId)
         {
-            if (!materiaId.HasValue && !grupoId.HasValue)
+            // Redirigir a la vista docente centralizada `MateriasDetalles` para evitar mantener dos vistas casi idénticas.
+            if (!materiaId.HasValue)
             {
                 return RedirectToAction("Index");
             }
-
             // Si el usuario es alumno, redirigir a la vista de alumno correspondiente
             try
             {
@@ -1111,7 +1114,8 @@ namespace ControlMaterias.Controllers
             ViewBag.NombreMateria = nombreMateria;
 
             // La vista física está en Views/Docente/MateriasDetalles.cshtml
-            return View();
+            // Aseguramos que se cargue la vista correcta especificando la ruta completa
+            return View("~/Views/Docente/MateriasDetalles.cshtml");
         }
 
 

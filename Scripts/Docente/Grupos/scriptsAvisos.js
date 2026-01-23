@@ -1,7 +1,51 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     //Cargar los avisos asinados a la materia
+    // inyectar controles de filtro (nombre + fechas)
+    try {
+        var cont = document.getElementById('seccion-avisos') || document.body;
+        var filtroDiv = document.createElement('div');
+        filtroDiv.style.display = 'flex';
+        filtroDiv.style.gap = '8px';
+        filtroDiv.style.marginBottom = '10px';
+
+        var inputNombre = document.createElement('input');
+        inputNombre.id = 'filtroAvisoNombre';
+        inputNombre.placeholder = 'Buscar por título...';
+        inputNombre.className = 'form-control form-control-sm';
+        inputNombre.style.width = '220px';
+
+        var inputDesde = document.createElement('input');
+        inputDesde.type = 'date';
+        inputDesde.id = 'filtroAvisoDesde';
+        inputDesde.className = 'form-control form-control-sm';
+        inputDesde.style.width = '150px';
+
+        var inputHasta = document.createElement('input');
+        inputHasta.type = 'date';
+        inputHasta.id = 'filtroAvisoHasta';
+        inputHasta.className = 'form-control form-control-sm';
+        inputHasta.style.width = '150px';
+
+        var btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-primary';
+        btn.textContent = 'Filtrar';
+        btn.addEventListener('click', function(){ cargarAvisosDeMateria(); });
+
+        filtroDiv.appendChild(inputNombre);
+        filtroDiv.appendChild(inputDesde);
+        filtroDiv.appendChild(inputHasta);
+        filtroDiv.appendChild(btn);
+
+        // intentar insertar antes de la lista si existe
+        var lista = document.getElementById('listaDeAvisosDeMateria');
+        if (lista) lista.parentNode.insertBefore(filtroDiv, lista);
+        else document.body.insertBefore(filtroDiv, document.body.firstChild);
+    } catch(e) { console.warn('No se pudo insertar filtros de avisos', e); }
+
     cargarAvisosDeMateria();
 });
+
+function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
 
 //Funcion para publicar un aviso
 async function publicarAviso() {
@@ -110,6 +154,32 @@ async function cargarAvisosDeMateria() {
             if (arr) avisos = arr;
         }
 
+        // aplicar filtro cliente si hay controles
+        try {
+            var nombre = (document.getElementById('filtroAvisoNombre') || {}).value || '';
+            var desde = (document.getElementById('filtroAvisoDesde') || {}).value || '';
+            var hasta = (document.getElementById('filtroAvisoHasta') || {}).value || '';
+            if (nombre || desde || hasta) {
+                avisos = avisos.filter(function(a){
+                    var ok = true;
+                    if (nombre) ok = ok && (a.Titulo || '').toLowerCase().indexOf(nombre.toLowerCase()) !== -1;
+                    if (desde) {
+                        var f = new Date(a.FechaCreacion);
+                        var d = new Date(desde);
+                        if (!isNaN(f)) ok = ok && f >= d;
+                    }
+                    if (hasta) {
+                        var f2 = new Date(a.FechaCreacion);
+                        var h = new Date(hasta);
+                        // incluir todo el día
+                        h.setHours(23,59,59,999);
+                        if (!isNaN(f2)) ok = ok && f2 <= h;
+                    }
+                    return ok;
+                });
+            }
+        } catch(e) { console.warn(e); }
+
         renderizarAvisos(avisos);
     } catch (error) {
         listaAvisos.innerHTML = `<p class="aviso-error">${error.message}</p>`;
@@ -118,6 +188,7 @@ async function cargarAvisosDeMateria() {
 
 function renderizarAvisos(avisos) {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
+    if (!listaAvisos) return;
     listaAvisos.innerHTML = ""; // Limpiar el contenedor
 
     if (!avisos || avisos.length === 0) {
@@ -129,6 +200,7 @@ function renderizarAvisos(avisos) {
     const items = avisos.slice().reverse();
 
     items.forEach(aviso => {
+ 
         const avisoItem = document.createElement("div");
         avisoItem.classList.add("aviso-item");
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
@@ -145,33 +217,33 @@ function renderizarAvisos(avisos) {
                     <button class="aviso-editar-btn" data-id="${aviso.AvisoId}">Editar</button>
                     <button class="aviso-eliminar-btn" data-id="${aviso.AvisoId}">Eliminar</button>
                 </div>
+        `;
+
+        const avisoItem = document.createElement('div');
+        avisoItem.className = 'aviso-item';
+        // Crear card
+        avisoItem.innerHTML = `
+            <div class="aviso-icono">📢</div>
+            <div class="aviso-info">
+                <strong>${escapeHtml(aviso.Titulo)}</strong>
+                <div class="aviso-descripcion oculto">${escapeHtml(aviso.Descripcion)}</div>
+                <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</div>
+                <div class="ver-completo">Ver completo</div>
             </div>
-            <div>
-                <p class="actividad-descripcion oculto">${aviso.Descripcion}</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-left:12px">
+                <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${aviso.AvisoId}">Editar</button>
+                <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar</button>
             </div>
         `;
 
-        // Mostrar/ocultar descripción al hacer clic en "Ver completo"
-        const verCompleto = avisoItem.querySelector(".ver-completo");
-        const descripcion = avisoItem.querySelector(".actividad-descripcion");
-        
-        verCompleto.addEventListener("click", () => {
-            // Alternar entre mostrar y ocultar la descripción
-            if (descripcion.classList.contains("oculto")) {
-                descripcion.classList.remove("oculto");
-                descripcion.classList.add("visible");
-            } else {
-                descripcion.classList.remove("visible");
-                descripcion.classList.add("oculto");
-            }
-        });
+        // toggle descripcion
+        const ver = avisoItem.querySelector('.ver-completo');
+        const desc = avisoItem.querySelector('.aviso-descripcion');
+        if (ver && desc) ver.addEventListener('click', () => { desc.classList.toggle('oculto'); desc.classList.toggle('visible'); });
 
-        // Agregar eventos a los botones
-        const btnEliminar = avisoItem.querySelector(".aviso-eliminar-btn");
-        const btnEditar = avisoItem.querySelector(".aviso-editar-btn");
-
-        btnEliminar.addEventListener("click", () => eliminarAviso(aviso.AvisoId));
-        btnEditar.addEventListener("click", () => editarAviso(aviso.AvisoId));
+        // botones
+        avisoItem.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', () => eliminarAviso(aviso.AvisoId)));
+        avisoItem.querySelectorAll('.btn-editar').forEach(b => b.addEventListener('click', () => editarAviso(aviso.AvisoId)));
 
         listaAvisos.appendChild(avisoItem);
     });

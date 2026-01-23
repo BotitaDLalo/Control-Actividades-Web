@@ -62,6 +62,7 @@ async function cargarActividadesAlumno() {
                         ${fechaLimite ? new Date(fechaLimite).toLocaleString() : 'No disponible'}
                     </div>
                     <div class="botones-container">
+                        <div class="estado-entrega me-2" data-actividad-id="${act.ActividadId || act.actividadId || 0}"></div>
                         <button class="btn-ir-actividades btn btn-primary" data-id="${act.ActividadId || act.actividadId || 0}">Ver / Entregar</button>
                     </div>
                 </div>
@@ -88,6 +89,29 @@ async function cargarActividadesAlumno() {
                 const id = this.dataset.id || this.getAttribute('data-id');
                 irAActividad(id);
             });
+
+            // revisar si el alumno ya entregó / fue calificado
+            (async function marcarEstadoEntrega(actividadId, nodo) {
+                try {
+                    if (!actividadId || !alumnoIdGlobal) return;
+                    const urlEnvios = `/api/Alumnos/ObtenerEnviosActividadesAlumno?ActividadId=${encodeURIComponent(actividadId)}&AlumnoId=${encodeURIComponent(alumnoIdGlobal)}`;
+                    const r = await fetch(urlEnvios);
+                    if (!r.ok) return;
+                    const envios = await r.json();
+                    if (!envios || !Array.isArray(envios) || envios.length === 0) return;
+                    // Si hay envíos, buscar si alguno tiene calificación (>0)
+                    const tieneCalif = envios.some(e => (e.Calificacion || e.calificacion) > 0);
+                    const estadoCont = nodo.querySelector('.estado-entrega');
+                    if (!estadoCont) return;
+                    if (tieneCalif) {
+                        estadoCont.innerHTML = '<span class="badge bg-success">Calificado</span>';
+                    } else {
+                        estadoCont.innerHTML = '<span class="badge bg-info text-dark">Entregado y esperando calificación</span>';
+                    }
+                } catch (e) {
+                    console.warn('No se pudo obtener estado de entrega', e);
+                }
+            })(act.ActividadId || act.actividadId || 0, actividadItem);
 
             cont.appendChild(actividadItem);
         });

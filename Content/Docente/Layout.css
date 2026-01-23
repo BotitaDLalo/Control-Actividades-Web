@@ -6,6 +6,64 @@
     background: var(--bg-principal);
 }
 
+/* Header card for materia details (Docente) */
+.materia-card-custom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #fff;
+    width: 100%;
+}
+
+.materia-card-custom .txt {
+    flex: 1 1 auto;
+    min-width: 0; /* allow ellipsis */
+}
+
+.materia-card-custom #materiaNombre {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.materia-card-custom p {
+    margin: 6px 0 0 0;
+    font-size: 14px;
+    color: rgba(255,255,255,0.95);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#codigoAcceso {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-weight: 700;
+}
+
+.copiar-icono {
+    cursor: pointer;
+    color: #fff;
+}
+
+.ico-card {
+    flex: 0 0 auto;
+    margin-left: 18px;
+    font-size: 36px;
+    opacity: 0.95;
+}
+
 /* If you want a hero/banner gradient in specific pages, add the class `docente-hero` to a container and style it here */
 .docente-hero {
     background: #36D1DC; /* fallback for old browsers */
