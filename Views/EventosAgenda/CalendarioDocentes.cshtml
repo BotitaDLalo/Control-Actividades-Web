@@ -116,7 +116,9 @@
             <div class="modal-content modal-content-custom">
 
                 <div class="modal-header modal-header-custom">
-                    <h5 class="modal-title modal-title-custom" id="detalle-titulo">Título del evento</h5>
+                    <h5 class="modal-title modal-title-custom" id="detalle-titulo">
+                        Título del evento
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
@@ -129,8 +131,11 @@
                     </div>
 
                     <div class="detalle-descripcion">
-                        <h6 id="descripcion-titulo">Descripción</h6>
-                        <p id="detalle-descripcion"></p>
+                        <h6 class="descripcion-titulo">
+                            <strong>Descripción:</strong>
+                            <span id="detalle-descripcion"> </span>
+                        </h6>
+                        
                     </div>
 
                     <div id="detalle-destinatarios">
@@ -161,7 +166,7 @@
 
     <!--Editar-->
     <div class="modal fade modal-custom" id="modalEditarEvento" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
 
             <div class="modal-content modal-content-custom">
 

@@ -225,53 +225,53 @@ function activarLogicaEditar() {
 var _formEditarEvento = document.getElementById("formEditarEvento");
 if (_formEditarEvento) {
     _formEditarEvento.addEventListener("submit", async e => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const confirm = await Swal.fire({
-        title: "¿Editar este evento?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Sí, editar"
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    const modelo = {
-        EventoId: parseInt(document.getElementById("editar-evento-id").value),
-        Titulo: document.getElementById("editar-titulo").value,
-        Descripcion: document.getElementById("editar-descripcion").value,
-        Color: document.getElementById("editar-color").value,
-        FechaInicio: document.getElementById("editar-fecha-inicio").value,
-        FechaFinal: document.getElementById("editar-fecha-final").value,
-        GruposSeleccionados: [],
-        MateriasSeleccionadas: []
-    };
-
-    document.querySelectorAll(".editar-chk-grupo:checked")
-        .forEach(chk => modelo.GruposSeleccionados.push(+chk.dataset.grupo));
-
-    document.querySelectorAll(".editar-chk-materia:checked, .editar-chk-materia-suelta:checked")
-        .forEach(chk => modelo.MateriasSeleccionadas.push(+chk.dataset.materia));
-
-    try {
-        const resp = await fetch("/EventosAgenda/EditarEvento", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(modelo)
+        const confirm = await Swal.fire({
+            title: "¿Editar este evento?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Sí, editar"
         });
 
-        if (!resp.ok) throw new Error();
+        if (!confirm.isConfirmed) return;
 
-        Swal.fire("Editado", "Evento actualizado correctamente", "success");
+        const modelo = {
+            EventoId: parseInt(document.getElementById("editar-evento-id").value),
+            Titulo: document.getElementById("editar-titulo").value,
+            Descripcion: document.getElementById("editar-descripcion").value,
+            Color: document.getElementById("editar-color").value,
+            FechaInicio: document.getElementById("editar-fecha-inicio").value,
+            FechaFinal: document.getElementById("editar-fecha-final").value,
+            GruposSeleccionados: [],
+            MateriasSeleccionadas: []
+        };
 
-        modalEditar.hide();
+        document.querySelectorAll(".editar-chk-grupo:checked")
+            .forEach(chk => modelo.GruposSeleccionados.push(+chk.dataset.grupo));
 
-        // Notificar al sistema
-        document.dispatchEvent(new CustomEvent("eventoEditado"));
+        document.querySelectorAll(".editar-chk-materia:checked, .editar-chk-materia-suelta:checked")
+            .forEach(chk => modelo.MateriasSeleccionadas.push(+chk.dataset.materia));
 
-    } catch (err) {
-        console.error(err);
-        Swal.fire("Error", "No se pudo editar el evento", "error");
-    }
-});
+        try {
+            const resp = await fetch("/EventosAgenda/EditarEvento", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(modelo)
+            });
 
+            if (!resp.ok) throw new Error();
+
+            Swal.fire("Editado", "Evento actualizado correctamente", "success");
+
+            modalEditar.hide();
+
+            // Notificar al sistema
+            document.dispatchEvent(new CustomEvent("eventoEditado"));
+
+        } catch (err) {
+            console.error(err);
+            Swal.fire("Error", "No se pudo editar el evento", "error");
+        }
+    });
+}
