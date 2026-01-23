@@ -88,28 +88,49 @@ namespace ControlActividades
                         "~/Scripts/Agenda/calendario-detalles.js",
                         "~/Scripts/Agenda/calendario-editar.js"
             ));
-            
+            /*
             bundles.Add(new Bundle("~/bundles/docente")
                 .Include("~/Scripts/Docente/*.js")
                 );
+            */
+            bundles.Add(new Bundle("~/bundles/ia").Include(
+                "~/Scripts/Docente/Grupos/ActividadIA.js",
+                "~/Scripts/Docente/IA.js",
+                "~/Scripts/Docente/IAChat.js"
+                )
+            );
+
+            bundles.Add(new Bundle("~/bundles/materias").Include(
+                "~/Scripts/Docente/Grupos/docente.js",
+                "~/Scripts/Docente/Grupos/DetalleActividad.js",
+                // Ensure docente utilities (defines docenteIdGlobal) load before DetalleMateria
+                "~/Scripts/Docente/Grupos/DetalleMateria.js",
+                "~/Scripts/Docente/Grupos/DetalleMaterialIconos.js",
+                "~/Scripts/Docente/Grupos/docenteMaterias.js",
+                "~/Scripts/Docente/Grupos/VistaMateriasD.js",
+                "~/Scripts/Docente/Grupos/scriptsActividades.js",
+                "~/Scripts/Docente/Grupos/scriptsAlumnos.js"
+                )
+            );
+
+            bundles.Add(new Bundle("~/bundles/avisos").Include(
+                "~/Scripts/Docente/Grupos/scriptsAvisos.js",
+                "~/Scripts/Avisos/avisos.js"
+                )
+            );
+
+            bundles.Add(new Bundle("~/bundles/grupos").Include(
+                "~/Scripts/Docente/Grupos/docenteGrupos.js"
+                )
+            );
+
 
             // Use a plain Bundle here to avoid the default Microsoft Ajax minifier parsing ES6+ syntax which can throw NullReferenceException
             var docenteGruposBundle = new Bundle("~/bundles/docentegrupos").Include(
-                "~/Scripts/Docente/Grupos/ActividadIA.js",
-                "~/Scripts/Docente/Grupos/DetalleActividad.js",
-                // Ensure docente utilities (defines docenteIdGlobal) load before DetalleMateria
                 "~/Scripts/Docente/Grupos/docente.js",
-                "~/Scripts/Docente/Grupos/DetalleMateria.js",
-                "~/Scripts/Docente/Grupos/DetalleMaterialIconos.js",
-                "~/Scripts/Docente/Grupos/docenteErrores.js",
-                "~/Scripts/Docente/Grupos/docenteGrupos.js",
-                "~/Scripts/Docente/Grupos/docenteMaterias.js",
-                "~/Scripts/Docente/Grupos/Notificaciones.js",
-                "~/Scripts/Docente/Grupos/PrincipalMG.js",
-                "~/Scripts/Docente/Grupos/scriptsActividades.js",
-                "~/Scripts/Docente/Grupos/scriptsAlumnos.js",
-                "~/Scripts/Docente/Grupos/scriptsAvisos.js",
-                "~/Scripts/Docente/Grupos/VistaMateriasD.js"
+                "~/Scripts/Docente/Grupos/docenteErrores.js",                
+                "~/Scripts/Docente/Grupos/PrincipalMG.js"
+                
             );
 
             bundles.Add(docenteGruposBundle);
@@ -134,13 +155,10 @@ namespace ControlActividades
                  "~/Scripts/Alumno/UnirseClase.js",
                  "~/Scripts/Alumno/VentanasDi.js",
                  "~/Scripts/Alumno/Vistamaterias.js",
-                 "~/Scripts/Componentes/componenteAvisos.js"
+                 "~/Scripts/Componentes/componenteAvisos.js")
             );
-            bundles.Add(alumnoBundle);
 
             
-
-
             bundles.Add(new StyleBundle("~/Content/Materia-Detalles/css").Include(
                 "~/Content/Materias/*.css"));
 

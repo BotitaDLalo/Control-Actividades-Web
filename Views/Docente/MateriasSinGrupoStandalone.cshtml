@@ -27,14 +27,15 @@
 @section Scripts{
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/docente")
-    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
+    @Scripts.Render("~/bundles/materias")
+    @Scripts.Render("~/bundles/grupos")
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function(){
+        document.addEventListener('DOMContentLoaded', function () {
             if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
 
             const input = document.getElementById('buscarMateria');
-            input.addEventListener('input', function(){
+            input.addEventListener('input', function () {
                 const q = this.value.trim().toLowerCase();
                 document.querySelectorAll('#listaMateriasSinGrupo .card-layout').forEach(card => {
                     const title = (card.textContent || '').toLowerCase();

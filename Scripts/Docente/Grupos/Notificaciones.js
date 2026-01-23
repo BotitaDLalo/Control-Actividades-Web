@@ -1,4 +1,4 @@
-﻿function initNotificacionesDocente() {
+﻿/*function initNotificacionesDocente() {
     const icono = document.getElementById("notificaciones-icono");
     const panel = document.getElementById("notificaciones-panel");
     if (!icono || !panel) return;
@@ -21,4 +21,4 @@
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initNotificacionesDocente); else initNotificacionesDocente();
 
-
+*/
