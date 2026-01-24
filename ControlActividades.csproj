@@ -426,6 +426,7 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MateriasApiController.cs" />
     <Compile Include="Controllers\MateriasController.cs" />
+    <Compile Include="Controllers\MigracionTestController.cs" />
     <Compile Include="Controllers\MigracionUsuariosController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
     <Compile Include="Filters\NoCacheAttribute.cs" />
@@ -434,6 +435,7 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Migracion\BulkIdentityMigrator.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
@@ -787,6 +789,7 @@
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Eventos\" />
+    <Folder Include="Views\MigracionTest\" />
     <Folder Include="Views\MigracionUsuarios\" />
     <Folder Include="Views\Migracion\" />
   </ItemGroup>
