@@ -5,10 +5,12 @@
     const calendarEl = document.getElementById("calendar");
 
     const modal = document.getElementById("modalEvento");
-    const btnCerrar = document.querySelector(".close-modal12");
+    const modalEl = bootstrap.Modal.getOrCreateInstance(modal);
     const listaEventos = document.getElementById("listaEventos");
     const textoFecha = document.getElementById("fechaSeleccionadaTexto");
-
+    modal.addEventListener("hidden.bs.modal", () => {
+        listaEventos.innerHTML = "";
+    });
     // Inicializar FullCalendar
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
@@ -28,25 +30,19 @@
     // ---- MODAL ----
 
     function abrirModal(fecha) {
-        textoFecha.textContent = fecha;
-        modal.style.display = "flex";
+        textoFecha.textContent = new Date(fecha).toLocaleDateString("es-MX", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
 
         listaEventos.innerHTML =
             `<p style="color:#777;">(Cargando eventos...)</p>`;
+        modalEl.show();
         cargarEventosAlumno(fecha);
     }
 
-    btnCerrar.addEventListener("click", () => {
-        modal.style.display = "none";
-        listaEventos.innerHTML = "";
-    });
-
-    window.addEventListener("click", e => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-            listaEventos.innerHTML = "";
-        }
-    });
 });
 
 
@@ -71,22 +67,23 @@ async function cargarEventosAlumno(fecha) {
 
         data.eventos.forEach(ev => {
             const div = document.createElement("div");
+            const h3 = document.createElement("h3");
+            h3.classList.add("evento-titulo");
+            h3.dataset.id = ev.EventoId;
+            h3.textContent = ev.Titulo;
+            div.appendChild(h3);
+
             div.classList.add("evento-item");
-            div.innerHTML = `
-                <h3 class="evento-titulo" data-id="${ev.EventoId}">${ev.Titulo}</h3>
-                <p>${ev.Descripcion}</p>
-            `;
+            
             lista.appendChild(div);
         });
 
-        lista.querySelectorAll(".evento-titulo").forEach(titulo => {
-            titulo.addEventListener("click", function () {
-                const id = this.dataset.id;
-                if (id) {
-                    console.log("Abriste detalle: " + id);
-                    abrirModalDetalle(id, alumnoIdGlobal);
-                }
-            });
+        lista.addEventListener("click", e => {
+            const titulo = e.target.closest(".evento-titulo");
+            if (!titulo) return;
+
+            const id = titulo.dataset.id;
+            abrirModalDetalle(id, alumnoIdGlobal);
         });
 
     } catch (error) {
@@ -119,12 +116,11 @@ async function abrirModalDetalle(eventoId, alumnoId) {
         document.getElementById("detalle-titulo").textContent = ev.Titulo;
         document.getElementById("detalle-fecha-inicio").textContent = formatearFecha(ev.FechaInicio);
         document.getElementById("detalle-fecha-final").textContent = formatearFecha(ev.FechaFinal);
-        document.getElementById("detalle-descripcion").textContent = ev.Descripcion || "Sin descripción";
-        document.getElementById("detalle-color").textContent = ev.Color;
         document.getElementById("detalle-docente").textContent = ev.Docente;
+        document.getElementById("detalle-descripcion").textContent = ev.Descripcion || "Sin descripción";
 
         //Materias y Grupo
-        const contenedorDescripcion = document.querySelector(".detalle-descripcion");
+        const contenedorDescripcion = document.querySelector("#detalle-descripcion");
 
         // Eliminar anteriores (si se abre varias veces)
         const viejoBloque = document.getElementById("detalle-extra");
@@ -151,7 +147,10 @@ async function abrirModalDetalle(eventoId, alumnoId) {
 
         contenedorDescripcion.appendChild(extra);
 
-        document.getElementById("modalDetalleEvento").style.display = "block";
+        const modalDetalle = bootstrap.Modal.getOrCreateInstance(
+            document.getElementById("modalDetalleEvento")
+        );
+        modalDetalle.show();
 
     } catch (err) {
         console.error("Error JS detalle evento:", err);
@@ -166,20 +165,3 @@ function formatearFecha(fechaStr) {
         timeStyle: "short"
     });
 }
-function convertirFechaNetAInput(fechaNet) {
-    const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
-    const fechaUTC = new Date(timestamp);
-
-    // Convertir a hora local sin que el navegador lo cambie
-    const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
-
-    return fechaLocal.toISOString().slice(0, 16);
-}
-
-document.querySelector(".close-detalle").addEventListener("click", () => {
-    document.getElementById("modalDetalleEvento").style.display = "none";
-});
-
-document.getElementById("btnCerrarDetalle").addEventListener("click", () => {
-    document.getElementById("modalDetalleEvento").style.display = "none";
-});

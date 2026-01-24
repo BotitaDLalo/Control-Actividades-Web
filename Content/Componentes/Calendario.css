@@ -190,7 +190,7 @@ textarea {
     color: var(--txt-principal);
 }
 
-descripcion-titulo {
+.descripcion-titulo {
     font-size: 2rem; 
     color: var(--txt-principal-light);
     line-height: 1.4;

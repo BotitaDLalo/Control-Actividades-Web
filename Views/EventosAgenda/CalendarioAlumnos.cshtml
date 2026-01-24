@@ -8,47 +8,65 @@
     <div id="calendar" style="max-width: 1200px; margin: 0 auto;"></div>
 
     <!-- MODAL DE EVENTOS -->
-    <div id="modalEvento" class="modal-evento">
-        <div class="modal-content">
-            <span class="close-modal12">&times;</span>
-            <h2>Eventos del <span id="fechaSeleccionadaTexto"></span></h2>
+    <div class="modal fade" id="modalEvento" tabindex="-1">  
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-custom">
 
-            <div id="listaEventos"></div>
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title modal-title-custom">
+                        Eventos del <span id="fechaSeleccionadaTexto"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
 
+                <div class="modal-body modal-body-custom">
+                    <div id="listaEventos"></div>
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
 
 
-<!--Detalle-->
-<div id="modalDetalleEvento" class="modal-evento" style="display:none;">
-    <div class="modal-detalle-content">
-        <span class="close-detalle">&times;</span>
-        <h3 id="detalle-titulo">Título del evento</h3>
+    <!--Detalle-->
+    <div class="modal fade modal-custom" id="modalDetalleEvento">
+        <div class="modal-dialog modal-md modal-dialog-centered">
 
-        <div class="detalle-meta">
-            <p><strong>Inicio:</strong> <span id="detalle-fecha-inicio"></span></p>
-            <p><strong>Fin:</strong> <span id="detalle-fecha-final"></span></p>
-            <p><strong>Docente:</strong> <span id="detalle-docente"></span></p>
-        </div>
+            <div class="modal-content modal-content-custom">
 
-        <div class="detalle-descripcion">
-            <h4 id="descripcion-titulo">Descripción</h4>
-            <p id="detalle-descripcion"></p>
-        </div>
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title modal-title-custom" id="detalle-titulo">
+                        Título del evento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
 
-        <div class="detalle-acciones" style="margin-top:15px;">
-            <button id="btnCerrarDetalle" class="btn btn-secondary">Cerrar</button>
+                <div class="modal-body modal-body-custom">
+                    <div class="detalle-meta">
+                        <p><strong>Inicio:</strong> <span id="detalle-fecha-inicio"></span></p>
+                        <p><strong>Fin:</strong> <span id="detalle-fecha-final"></span></p>
+                        <p><strong>Docente:</strong> <span id="detalle-docente"></span></p>
+                    </div>
+
+                    <div class="detalle-descripcion">
+                        <h6>
+                            <strong>Descripción:</strong>
+                        </h6>
+                        <div id="detalle-descripcion"></div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
 
+</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
     <script>
-        var alumnoIdGlobal = @alumnoId;
+        var alumnoIdGlobal = @Html.Raw(alumnoId);
     </script>
     <script src="~/Scripts/Alumno/AgendaFullCalendar.js"></script>
 }
