@@ -22,7 +22,8 @@ namespace ControlActividades.Migracion
                 .ConnectionStrings["DefaultConnection"]
                 .ConnectionString;
         }
-
+        
+        /* Usar solo si no hay ningún usuario en la bdd
         private bool YaHayUsuarios()
         {
             using (var cn = new SqlConnection(_connectionString))
@@ -32,7 +33,9 @@ namespace ControlActividades.Migracion
                 return (int)cmd.ExecuteScalar() > 0;
             }
         }
+        */
 
+        // Tabla de usuarios
         private DataTable CrearTablaAspNetUsers()
         {
             var table = new DataTable();
@@ -51,6 +54,24 @@ namespace ControlActividades.Migracion
             return table;
         }
 
+        // Tabla de alumnso
+        private DataTable CrearTablaAlumnos()
+        {
+            var table = new DataTable();
+
+            table.Columns.Add("ApellidoPaterno", typeof(string));
+            table.Columns.Add("ApellidoMaterno", typeof(string));
+            table.Columns.Add("Nombre", typeof(string));
+            table.Columns.Add("UserId", typeof(string));
+
+            var estatusCol = table.Columns.Add("Estatus", typeof(bool));
+            estatusCol.AllowDBNull = true;
+            
+            table.Columns.Add("Matricula", typeof(string));
+
+            return table;
+        }
+
         //Generar ids válidos.
         public void MigrarUsuarios(List<UsuarioMigracionDto> usuarios)
         {
@@ -65,6 +86,7 @@ namespace ControlActividades.Migracion
             int totalUsuarios = usuarios.Count;
 
             var tablaUsuarios = CrearTablaAspNetUsers();
+            var tablaAlumnos = CrearTablaAlumnos();
 
             var duplicados = usuarios
                 .GroupBy(x => x.Correo)
@@ -112,13 +134,32 @@ namespace ControlActividades.Migracion
                     false,
                     0
                 );
+
+                if(dto.Rol == "Alumno")
+                {
+                    tablaAlumnos.Rows.Add(
+                        dto.ApellidoPaterno,
+                        dto.ApellidoMaterno,
+                        dto.Nombre,
+                        userId,
+                        DBNull.Value,
+                        dto.Matricula
+                    );
+                }
             }
+
+            InsertarUsuariosBulk(tablaUsuarios);
+            InsertarBulk(tablaAlumnos, "tbAlumnos");
+
             var fin = DateTime.Now;
+            var segundos = (fin - inicio).TotalSeconds;
+            var userxsec = totalUsuarios / segundos;
 
             System.Diagnostics.Debug.WriteLine(
-                $"(Usuarios migrados: {totalUsuarios} en {(fin-inicio).TotalSeconds:N2} segundos"
+                $"Usuarios migrados: {totalUsuarios} en " +
+                $"{segundos:N2} segundos " +
+                $" velocidad: {userxsec:N2} usuarios x segundo"
             );
-            InsertarUsuariosBulk(tablaUsuarios);
         }
 
         //Método de migración
@@ -147,6 +188,30 @@ namespace ControlActividades.Migracion
                     bulk.ColumnMappings.Add("AccessFailedCount", "AccessFailedCount");
 
                     bulk.WriteToServer(tablaUsuarios);
+                }
+            }
+        }
+
+        // Método de migración por rol
+        private void InsertarBulk(DataTable tabla, string nombreTabla)
+        {
+            if (tabla.Rows.Count == 0)
+                return;
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (var bulk = new SqlBulkCopy(connection))
+                {
+                    bulk.DestinationTableName = nombreTabla;
+                    bulk.BatchSize = 1000;
+                    bulk.BulkCopyTimeout = 600;
+
+                    foreach (DataColumn col in tabla.Columns)
+                        bulk.ColumnMappings.Add(col.ColumnName, col.ColumnName);
+
+                    bulk.WriteToServer(tabla);
                 }
             }
         }
