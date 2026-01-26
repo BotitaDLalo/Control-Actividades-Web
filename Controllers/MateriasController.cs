@@ -1115,7 +1115,9 @@ namespace ControlMaterias.Controllers
 
             // La vista física está en Views/Docente/MateriasDetalles.cshtml
             // Aseguramos que se cargue la vista correcta especificando la ruta completa
-            return View("~/Views/Docente/MateriasDetalles.cshtml");
+
+            //return View("~/Views/Docente/MateriasDetalles.cshtml");
+            return View("MateriaDetalles");
         }
 
 
