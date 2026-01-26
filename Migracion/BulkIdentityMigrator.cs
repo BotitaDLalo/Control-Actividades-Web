@@ -93,6 +93,34 @@ namespace ControlActividades.Migracion
             return table;
         }
 
+        // Relacionar usuarios con sus roles
+        private DataTable CrearTablaUserRoles()
+        {
+            var table = new DataTable();
+
+            table.Columns.Add("UserId", typeof(string));
+            table.Columns.Add("RoleId", typeof(string));
+            
+            return table;
+        }
+
+        private Dictionary<string, string> ObtenerRoles()
+        {
+            var roles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            using (var cn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("SELECT Id, Name FROM AspNetRoles", cn))
+            {
+                cn.Open();
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                        roles[rd.GetString(1)] = rd.GetString(0);
+                }
+            }
+
+            return roles;
+        }
 
         //Generar ids válidos.
         public void MigrarUsuarios(List<UsuarioMigracionDto> usuarios)
@@ -110,6 +138,8 @@ namespace ControlActividades.Migracion
             var tablaUsuarios = CrearTablaAspNetUsers();
             var tablaAlumnos = CrearTablaAlumnos();
             var tablaDocentes = CrearTablaDocentes();
+            var tablaUserRoles = CrearTablaUserRoles();
+            var roles = ObtenerRoles();
 
             var duplicados = usuarios
                 .GroupBy(x => x.Correo)
@@ -144,6 +174,8 @@ namespace ControlActividades.Migracion
             foreach (var dto in usuarios)
             {
                 var userId = Guid.NewGuid().ToString();
+                if(!roles.ContainsKey(dto.Rol))
+                    throw new Exception($"Rol inválido: {dto.Rol}");
 
                 tablaUsuarios.Rows.Add(
                     userId,
@@ -158,7 +190,12 @@ namespace ControlActividades.Migracion
                     0
                 );
 
-                if(dto.Rol == "Alumno")
+                tablaUserRoles.Rows.Add(
+                    userId,
+                    roles[dto.Rol]
+                );
+
+                if (dto.Rol == "Alumno")
                 {
                     tablaAlumnos.Rows.Add(
                         dto.ApellidoPaterno,
@@ -183,12 +220,14 @@ namespace ControlActividades.Migracion
                         userId
                     );
                 }
+
             }
             
             var sw = Stopwatch.StartNew();
             InsertarUsuariosBulk(tablaUsuarios);
             InsertarBulk(tablaAlumnos, "tbAlumnos");
             InsertarBulk(tablaDocentes, "tbDocentes");
+            InsertarBulk(tablaUserRoles, "AspNetUserRoles");
             sw.Stop();
 
             var segundos = sw.Elapsed.TotalSeconds;
