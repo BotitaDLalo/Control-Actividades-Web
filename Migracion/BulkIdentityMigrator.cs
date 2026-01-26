@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
 
@@ -72,6 +73,27 @@ namespace ControlActividades.Migracion
             return table;
         }
 
+        //Tabla de docentes
+        private DataTable CrearTablaDocentes()
+        {
+            var table = new DataTable();
+
+            table.Columns.Add("ApellidoPaterno", typeof(string));
+            table.Columns.Add("ApellidoMaterno", typeof(string));
+            table.Columns.Add("Nombre", typeof(string));
+            table.Columns.Add("estaAutorizado", typeof(bool));
+            table.Columns.Add("seEnvioCorreo", typeof(bool));
+
+            var fechaCol = table.Columns.Add("FechaExpiracionCodigo", typeof(DateTime));
+            fechaCol.AllowDBNull = true;
+
+            table.Columns.Add("CodigoAutorizacion", typeof(string));
+            table.Columns.Add("UserId", typeof(string));
+
+            return table;
+        }
+
+
         //Generar ids válidos.
         public void MigrarUsuarios(List<UsuarioMigracionDto> usuarios)
         {
@@ -87,6 +109,7 @@ namespace ControlActividades.Migracion
 
             var tablaUsuarios = CrearTablaAspNetUsers();
             var tablaAlumnos = CrearTablaAlumnos();
+            var tablaDocentes = CrearTablaDocentes();
 
             var duplicados = usuarios
                 .GroupBy(x => x.Correo)
@@ -117,7 +140,7 @@ namespace ControlActividades.Migracion
             //Valida duplicados en la base de datos
             if (repetidosEnBd.Any())
                 throw new Exception("Existen correos ya registrados en la base de datos");
-            var inicio = DateTime.Now;
+            
             foreach (var dto in usuarios)
             {
                 var userId = Guid.NewGuid().ToString();
@@ -146,20 +169,37 @@ namespace ControlActividades.Migracion
                         dto.Matricula
                     );
                 }
-            }
 
+                if(dto.Rol == "Docente")
+                {
+                    tablaDocentes.Rows.Add(
+                        dto.ApellidoPaterno,
+                        dto.ApellidoMaterno,
+                        dto.Nombre,
+                        false, //estaAutorizado
+                        false, //seEnvioCorreo
+                        DBNull.Value, //FechaExpiracionCodigo
+                        DBNull.Value, //codigoAutorizacion
+                        userId
+                    );
+                }
+            }
+            
+            var sw = Stopwatch.StartNew();
             InsertarUsuariosBulk(tablaUsuarios);
             InsertarBulk(tablaAlumnos, "tbAlumnos");
+            InsertarBulk(tablaDocentes, "tbDocentes");
+            sw.Stop();
 
-            var fin = DateTime.Now;
-            var segundos = (fin - inicio).TotalSeconds;
-            var userxsec = totalUsuarios / segundos;
+            var segundos = sw.Elapsed.TotalSeconds;
+            var velocidad = totalUsuarios/ segundos;
 
-            System.Diagnostics.Debug.WriteLine(
-                $"Usuarios migrados: {totalUsuarios} en " +
-                $"{segundos:N2} segundos " +
-                $" velocidad: {userxsec:N2} usuarios x segundo"
-            );
+            Debug.WriteLine(
+                $"TIEMPO REAL DE INSERCIÓN: {segundos:N2} s");
+           
+            Debug.WriteLine(
+                $"VELOCIDAD: {velocidad:N2} usuarios/s");
+
         }
 
         //Método de migración
