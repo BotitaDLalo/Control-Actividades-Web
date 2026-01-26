@@ -251,7 +251,7 @@ namespace ControlActividades.Migracion
                 using (var bulk = new SqlBulkCopy(connection))
                 {
                     bulk.DestinationTableName = "AspNetUsers";
-                    bulk.BatchSize = 1000;
+                    bulk.BatchSize = 5000;
                     bulk.BulkCopyTimeout = 600;
 
                     //Mapeo
