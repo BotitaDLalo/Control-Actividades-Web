@@ -143,7 +143,15 @@ namespace ControlActividades
 
             /*************** - STYLES ALUMNO - **************************/
             bundles.Add(new StyleBundle("~/Content/Alumno").Include(
-                "~/Content/Alumno/*.css")
+                "~/Content/Alumno/avisosSeccion.css",
+                "~/Content/Alumno/Cards.css",
+                "~/Content/Alumno/Clases.css",
+                "~/Content/Alumno/Layout.css",
+                "~/Content/Alumno/materias.css",
+                "~/Content/Alumno/PaginasDi.css",
+                "~/Content/Alumno/Vistamaterias.css",
+                "~/Content/Alumno/DetalleActividadesEstilos.css",
+                "~/Content/Materias/actividadesSeccion.css")
             );
 
             /*************** - SCRIPTS ALUMNO - **************************/
