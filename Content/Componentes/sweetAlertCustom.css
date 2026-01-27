@@ -1,0 +1,11 @@
+﻿.sweetAlertBgCustom {
+    background: var(--bg-principal);
+}
+
+.sweetAlertTxtCustom {
+    color: var(--txt-principal);
+}
+
+.sweetAlertBgCustom .swal2-html-container {
+    color: var(--txt-principal);
+}

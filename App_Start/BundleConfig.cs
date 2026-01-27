@@ -27,21 +27,22 @@ namespace ControlActividades
             // Keep only global site CSS in the main bundle. Dashboard-specific CSS should not be bundled globally to avoid layout conflicts (e.g. ".layout" rule).
             /*************** - STYLES - ***************************/
             //ESTILOS GENERALES - USAR EN TODOS LOS LAYOUTS
-            
+
             bundles.Add(new StyleBundle("~/Content/Variables").Include(
                     "~/Content/Variables/colors.css",
                     "~/Content/Variables/fuentes.css",
                     "~/Content/Variables/modo-claro.css"
             ));
-            
+
             bundles.Add(new StyleBundle("~/Content/Moleculas").Include(
                     "~/Content/Moleculas/botones.css",
                     "~/Content/Moleculas/inputs.css"
             ));
-            
+
             bundles.Add(new StyleBundle("~/Content/Componentes").Include(
                     "~/Content/Componentes/cards.css",
                     "~/Content/Componentes/modal.css",
+                    "~/Content/Componentes/sweetAlertCustom.css",
                     "~/Content/Componentes/carga.css"
             ));
             //Content/site
@@ -128,9 +129,9 @@ namespace ControlActividades
             // Use a plain Bundle here to avoid the default Microsoft Ajax minifier parsing ES6+ syntax which can throw NullReferenceException
             var docenteGruposBundle = new Bundle("~/bundles/docentegrupos").Include(
                 "~/Scripts/Docente/Grupos/docente.js",
-                "~/Scripts/Docente/Grupos/docenteErrores.js",                
+                "~/Scripts/Docente/Grupos/docenteErrores.js",
                 "~/Scripts/Docente/Grupos/PrincipalMG.js"
-                
+
             );
 
             bundles.Add(docenteGruposBundle);
@@ -142,7 +143,15 @@ namespace ControlActividades
 
             /*************** - STYLES ALUMNO - **************************/
             bundles.Add(new StyleBundle("~/Content/Alumno").Include(
-                "~/Content/Alumno/*.css")
+                "~/Content/Alumno/avisosSeccion.css",
+                "~/Content/Alumno/Cards.css",
+                "~/Content/Alumno/Clases.css",
+                "~/Content/Alumno/Layout.css",
+                "~/Content/Alumno/materias.css",
+                "~/Content/Alumno/PaginasDi.css",
+                "~/Content/Alumno/Vistamaterias.css",
+                "~/Content/Alumno/DetalleActividadesEstilos.css",
+                "~/Content/Materias/actividadesSeccion.css")
             );
 
             /*************** - SCRIPTS ALUMNO - **************************/
@@ -156,6 +165,12 @@ namespace ControlActividades
                  "~/Scripts/Alumno/VentanasDi.js",
                  "~/Scripts/Alumno/Vistamaterias.js",
                  "~/Scripts/Componentes/componenteAvisos.js")
+            );
+
+            bundles.Add(new Bundle("~/bundles/alumno").Include(
+                "~/Scripts/Alumno/materias.js"
+
+                )
             );
 
             
