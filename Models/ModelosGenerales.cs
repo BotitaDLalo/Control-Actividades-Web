@@ -612,4 +612,23 @@ namespace ControlActividades.Models
     }*/
 
 
+    public class AlumnoEliminarRequest
+    {
+        public int AlumnoMateriaId { get; set; }
+    }
+
+
+    public class AlumnoEliminarGrupoRequest
+    {
+        public int GrupoId { get; set; }
+        public int AlumnoId { get; set; }
+    }
+    public class AvisoDto
+    {
+        public int AvisoId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+    }
+
+
 }

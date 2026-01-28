@@ -1,4 +1,4 @@
-﻿using FirebaseAdmin.Messaging;
+using FirebaseAdmin.Messaging;
 using NPOI.XWPF.UserModel;
 using System;
 using System.Collections.Generic;
@@ -180,46 +180,53 @@ namespace ControlActividades.Services
 
 
         //NOTIFICACIÓN GENERAL PARA TODAS LAS ACCIONES
-        public async Task ProcesarNotificacion(List<string> destinatariosUserId,
-                                               List<UsuarioFcmToken> tokens, string titulo, string cuerpo, TiposNotificaciones tipo,
-                                               int? materiaId = null, int? grupoId = null
-                                               )
+        public async Task ProcesarNotificacion(
+            List<string> destinatariosUserId,
+            List<UsuarioFcmToken> tokens,
+            string titulo,
+            string cuerpo,
+            TiposNotificaciones tipo,
+            int? materiaId = null,
+            int? grupoId = null
+        )
         {
-
-            //Enviar tokens FCM
-            await FCM.SendBatchNotificationsAsync(tokens.Select(t => t.FcmToken).ToList(),
-                                                  titulo,
-                                                  cuerpo
-            );
-
             var messageId = Guid.NewGuid().ToString();
 
-            //Guardar una notificación por usuario
+            // 1️ Guardar en BD
             foreach (var userId in destinatariosUserId)
             {
-                await GuardarNotificacionAsync(userId, messageId, titulo, cuerpo, tipo, materiaId);
+                await GuardarNotificacionAsync(
+                    userId, messageId, titulo, cuerpo, tipo, materiaId, grupoId
+                );
             }
 
+            // 2️ Enviar FCM
+            await FCM.SendBatchNotificationsAsync(
+                tokens.Select(t => t.FcmToken).ToList(),
+                titulo,
+                cuerpo
+            );
         }
- 
+
         //TIPOS DE NOTIFICACIONES
-        
+
         //SECCIÓN DE NOTIFICACIONES PARA -ALUMNOS- CUANDO EL DOCENTE HACE UNA ACCIÓN
 
         // Notificación cuando el docente crea una actividad
-        public async Task NotificacionCrearActividad(tbActividades actividad, int materiaId)
+        public async Task NotificacionCrearActividad(tbActividades actividad)
         {
-            var (usuariosIds, tokens) = await ObtenerDestinatarios(null, materiaId);
+            var (usuariosIds, tokens) = await ObtenerDestinatarios(null, actividad.MateriaId);
 
             await ProcesarNotificacion(
                 usuariosIds,
                 tokens,
+                "Nueva actividad",
                 actividad.NombreActividad,
-                actividad.Descripcion,
                 TiposNotificaciones.ActividadCreada,
-                materiaId
+                actividad.MateriaId
             );
         }
+
 
         // Notificación cuando el docente crea un aviso
         public async Task NotificacionCrearAviso(tbAvisos aviso, int? grupoId, int? materiaId)
@@ -240,74 +247,87 @@ namespace ControlActividades.Services
 
         
         // Notificación cuando el docente registra un alumno(s)
-        public async Task NotificacionRegistrarAlumnoClase(List<int> lsAlumnosId, int docenteId, int grupoId = -1, int materiaId = -1)
+        public async Task NotificacionRegistrarAlumnoClase(
+            List<int> lsAlumnosId,
+            int docenteId,
+            int grupoId = -1,
+            int materiaId = -1)
         {
-            if(lsAlumnosId == null || !lsAlumnosId.Any()) {
+            if (!lsAlumnosId.Any())
                 return;
-            }
 
-            // Obtener UserIds y tokens de los alumnos
-            var usuariosIds = await _db.tbAlumnos
-               .Where(a => lsAlumnosId.Contains(a.AlumnoId))
-               .Select(a => a.UserId)
-               .ToListAsync();
+            var usuariosIds = await Db.tbAlumnos
+                .Where(a => lsAlumnosId.Contains(a.AlumnoId))
+                .Select(a => a.UserId)
+                .Where(u => u != null)
+                .Distinct()
+                .ToListAsync();
 
-                    if (!usuariosIds.Any())
-                        return;
+            if (!usuariosIds.Any())
+                return;
 
-            // Obtener tokens FCM
-            var tokens = await _db.tbUsuariosFcmTokens
-                .Where(t => usuariosIds.Contains(t.UserId))
-                .Select(t => new UsuarioFcmToken
+            var tokens = await Db.tbUsuariosFcmTokens
+                .Where(a => usuariosIds.Contains(a.UserId))
+                .Select(a => new UsuarioFcmToken
                 {
-                    UserId = t.UserId,
-                    FcmToken = t.Token
+                    UserId = a.UserId,
+                    FcmToken = a.Token
                 })
                 .ToListAsync();
 
-            //Texto
-            string titulo;
-            string cuerpo;
-            TiposNotificaciones tipo;
+            string nombreClase = "";
+            string mensaje = "";
+            TiposNotificaciones tipoNotificacion;
+            int? materiaRef = null;
+            int? grupoRef = null;
 
             if (materiaId > 0)
             {
-                var materia = await _db.tbMaterias
-                    .Where(m => m.MateriaId == materiaId)
-                    .Select(m => m.NombreMateria)
-                    .FirstOrDefaultAsync();
+                nombreClase = await Db.tbGrupos
+                    .Where(g => g.GrupoId == grupoId)
+                    .Select(g => g.NombreGrupo)
+                    .FirstOrDefaultAsync() ?? "";
 
-                titulo = "Nueva materia asignada";
-                cuerpo = $"Has sido asignado a la materia {materia}";
-                tipo = TiposNotificaciones.MateriaAsignada;
+                tipoNotificacion = TiposNotificaciones.GrupoAsignado;
+                grupoRef = grupoId;
+                mensaje = $"al grupo {nombreClase}";
             }
             else
             {
-                var grupo = await _db.tbGrupos
-                    .Where(g => g.GrupoId == grupoId)
-                    .Select(g => g.NombreGrupo)
-                    .FirstOrDefaultAsync();
+                nombreClase = await Db.tbMaterias
+                    .Where(m => m.MateriaId == materiaId)
+                    .Select(m => m.NombreMateria)
+                    .FirstOrDefaultAsync() ?? "";
 
-                titulo = "Nuevo grupo asignado";
-                cuerpo = $"Has sido asignado al grupo {grupo}";
-                tipo = TiposNotificaciones.GrupoAsignado;
+                tipoNotificacion = TiposNotificaciones.MateriaAsignada;
+                materiaRef = materiaId;
+                mensaje = $"a la materia {nombreClase}";
+            }
+            else
+            {
+                // Nada que notificar
+                return;
             }
 
-            int? materiaIdNullable = materiaId > 0 ? materiaId : (int?)null;
-            int? grupoIdNullable = grupoId > 0 ? grupoId : (int?)null;
+            string nombreDocente = await Db.tbDocentes
+                .Where(d => d.DocenteId == docenteId)
+                .Select(d =>
+                    (d.Nombre ?? "") + " " +
+                    (d.ApellidoPaterno ?? "") + " " +
+                    (d.ApellidoMaterno ?? ""))
+                .FirstOrDefaultAsync() ?? "";
 
             await ProcesarNotificacion(
                 usuariosIds,
                 tokens,
-                titulo,
-                cuerpo,
-                tipo,
-                materiaIdNullable,
-                grupoIdNullable
+                "Asignación de clase",
+                $"El docente {nombreDocente} te asignó {mensaje}",
+                tipoNotificacion,
+                materiaRef,
+                grupoRef
             );
-
-
         }
+
 
         // Notificación cuando el docente crea un evento
         public async Task NotificacionCrearEvento(tbEventosAgenda evento, int? grupoId, int? materiaId)

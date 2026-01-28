@@ -402,6 +402,52 @@ namespace ControlActividades.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("ActualizarAviso")]
+        public async Task<IHttpActionResult> ActualizarAviso(AvisoDto avisoActualizado)
+        {
+            try
+            {
+                if (avisoActualizado.AvisoId <= 0)
+                {
+                    return BadRequest("ID de aviso no válido.");
+                }
+
+                var dbAviso = await Db.tbAvisos.FindAsync(avisoActualizado.AvisoId);
+
+                if (dbAviso == null)
+                {
+                    return Content(HttpStatusCode.NotFound, "Aviso no encontrado");
+                }
+
+                dbAviso.Titulo = avisoActualizado.Titulo;
+                dbAviso.Descripcion = avisoActualizado.Descripcion;
+
+
+                await Db.SaveChangesAsync();
+
+
+                var respuestaLimpia = new
+                {
+                    AvisoId = dbAviso.AvisoId,
+                    Titulo = dbAviso.Titulo,
+                    Descripcion = dbAviso.Descripcion,
+                    DocenteId = dbAviso.DocenteId,
+                    GrupoId = dbAviso.GrupoId,
+                    MateriaId = dbAviso.MateriaId,
+                    FechaCreacion = dbAviso.FechaCreacion,
+
+                };
+
+                return Ok(respuestaLimpia);
+            }
+            catch (Exception e)
+            {
+                return BadRequest("Error al actualizar: " + e.Message);
+            }
+        }
+
+
 
         [HttpPost]
         [Route("EliminarAviso")]
