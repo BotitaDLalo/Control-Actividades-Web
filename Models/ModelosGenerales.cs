@@ -611,5 +611,8 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
     }*/
 
-
+    /*public class AlumnoEliminarRequest
+    {
+        public int AlumnoMateriaId { get; set; }
+    }*/
 }

@@ -402,7 +402,7 @@ namespace ControlActividades.Controllers
             }
         }
 
-        [HttpPost]
+        /*[HttpPost]
         [Route("ActualizarAviso")]
         public async Task<IHttpActionResult> ActualizarAviso(AvisoDto avisoActualizado)
         {
@@ -445,7 +445,7 @@ namespace ControlActividades.Controllers
             {
                 return BadRequest("Error al actualizar: " + e.Message);
             }
-        }
+        }*/
 
 
 

@@ -1215,7 +1215,7 @@ namespace ControlActividades.Controllers
         }
 
 
-        [HttpPost]
+       /* [HttpPost]
         [Route("EliminarAlumnoMateria")]
         public async Task<IHttpActionResult> EliminarAlumnoDeMateria(
             [FromBody] AlumnoEliminarRequest request)
@@ -1298,7 +1298,7 @@ namespace ControlActividades.Controllers
             {
                 return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno del grupo: " + e.Message });
             }
-        }
+        }*/
 
 
         [HttpPost]
