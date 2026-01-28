@@ -9,6 +9,13 @@ using System.Web.Mvc;
 
 namespace ControlActividades
 {
+
+    public static class FuenteDatos
+    {
+        public static string DB => "DB";
+        public static string API => "API";
+    }
+
     public static class Roles
     {
         public static string DOCENTE => "Docente";

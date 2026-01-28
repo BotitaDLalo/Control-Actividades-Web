@@ -434,6 +434,9 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\IFuenteDatos.cs" />
+    <Compile Include="Interfaces\Grupos\IGruposService.cs" />
+    <Compile Include="Interfaces\Materias\IMateriasService.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
@@ -499,8 +502,16 @@
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Recursos\StringExtensions.cs" />
+    <Compile Include="Services\ActividadesService.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
+    <Compile Include="Services\FuenteDatosService.cs" />
+    <Compile Include="Services\Grupos\GruposCAService.cs" />
+    <Compile Include="Services\Grupos\GruposService.cs" />
+    <Compile Include="Services\Grupos\GruposSTService.cs" />
+    <Compile Include="Services\Materias\MateriasCAService.cs" />
+    <Compile Include="Services\Materias\MateriasService.cs" />
+    <Compile Include="Services\Materias\MateriasSTService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
     <Compile Include="Services\ScheduledPublishingService.cs" />
     <Compile Include="Startup.cs" />
@@ -806,6 +817,7 @@
     <Folder Include="Content\Grupos\" />
     <Folder Include="Content\Images\" />
     <Folder Include="Dashboard\" />
+    <Folder Include="Interfaces\Alumnos\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Base\" />

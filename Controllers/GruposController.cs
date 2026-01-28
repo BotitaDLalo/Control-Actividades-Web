@@ -8,9 +8,11 @@ using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Security;
+using ControlActividades.Interfaces;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -27,18 +29,20 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private GruposService _gruposService;
 
         public GruposController()
         {
         }
 
-        public GruposController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
+        public GruposController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, GruposService gruposService)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+            GruposService = gruposService;
         }
 
 
@@ -102,30 +106,28 @@ namespace ControlActividades.Controllers
             }
         }
 
+        public GruposService GruposService
+        {
+            get
+            {
+                return _gruposService ?? (_gruposService = new GruposService());
+            }
+            private set
+            {
+                _gruposService = value;
+            }
+        }
+
         public ActionResult Index()
         {
-            var tieneGrupos = true;
-            var tieneMaterias = true;
             var usuarioId = Fg.ObtenerUsuarioId(User);
+            var rol = Fg.ObtenerRolUsuario(User);
 
-            if (User.IsInRole(Roles.DOCENTE))
-            {
-                var docenteTieneGrupos = Db.tbGrupos.Where(a => a.DocenteId == usuarioId).Any();
-                tieneGrupos = docenteTieneGrupos;
+            var tieneGrupos = GruposService.TieneGrupos(rol, usuarioId);
 
-                var docenteTieneMaterias = Db.tbMaterias.Where(a => a.DocenteId == usuarioId).Any();
-                tieneMaterias = docenteTieneMaterias;
-            }
-            else if (User.IsInRole(Roles.ALUMNO))
-            {
-                var alumnoTieneGrupos = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId).Any();
-                tieneGrupos = alumnoTieneGrupos;
+            var tieneMaterias = GruposService.TieneMaterias(rol, usuarioId);
 
-                var alumnoTieneMaterias = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Any();
-                tieneMaterias = alumnoTieneMaterias;
-            }
-
-            List<GrupoViewModel> lsGrupos = ObtenerGruposPorUsuario();
+            List<GrupoViewModel> lsGrupos = GruposService.ObtenerGruposPorUsuario(rol, usuarioId);
 
             if (!tieneGrupos && tieneMaterias)
             {
@@ -133,8 +135,7 @@ namespace ControlActividades.Controllers
             }
             else if (!tieneGrupos)
             {
-                //return View("~/Views/Materias/Index.cshtml");
-                return RedirectToAction("Index","Materias");
+                return RedirectToAction("Index", "Materias");
             }
 
             return View(lsGrupos);
@@ -221,54 +222,54 @@ namespace ControlActividades.Controllers
         //}
 
 
-        public List<GrupoViewModel> ObtenerGruposPorUsuario()
-        {
-            List<GrupoViewModel> grupos = new List<GrupoViewModel>();
-            var usuarioId = Fg.ObtenerUsuarioId(User);
+        //public List<GrupoViewModel> ObtenerGruposPorUsuario()
+        //{
+        //    List<GrupoViewModel> grupos = new List<GrupoViewModel>();
+        //    var usuarioId = Fg.ObtenerUsuarioId(User);
 
-            if (User.IsInRole(Roles.DOCENTE))
-            {
-                grupos = Db.tbGrupos.Where(g => g.DocenteId == usuarioId)
-                        .Select(g => new GrupoViewModel
-                        {
-                            GrupoId = g.GrupoId,
-                            NombreGrupo = g.NombreGrupo,
-                            Descripcion = g.Descripcion,
-                            CodigoColor = g.CodigoColor,
-                            CodigoAcceso = g.CodigoAcceso,
-                            ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
-                            ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
-                            NombresDocente = g.Docentes.Nombre,
-                        })
-                        .ToList();
-            }
-            else if (User.IsInRole(Roles.ALUMNO))
-            {
-                var lsAlumnoGruposId = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId).Select(a => a.GrupoId).ToList();
+        //    if (User.IsInRole(Roles.DOCENTE))
+        //    {
+        //        grupos = Db.tbGrupos.Where(g => g.DocenteId == usuarioId)
+        //                .Select(g => new GrupoViewModel
+        //                {
+        //                    GrupoId = g.GrupoId,
+        //                    NombreGrupo = g.NombreGrupo,
+        //                    Descripcion = g.Descripcion,
+        //                    CodigoColor = g.CodigoColor,
+        //                    CodigoAcceso = g.CodigoAcceso,
+        //                    ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
+        //                    ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
+        //                    NombresDocente = g.Docentes.Nombre,
+        //                })
+        //                .ToList();
+        //    }
+        //    else if (User.IsInRole(Roles.ALUMNO))
+        //    {
+        //        var lsAlumnoGruposId = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId).Select(a => a.GrupoId).ToList();
 
-                var lsAlumnoMateriasId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Select(a => a.MateriaId).ToList();
+        //        var lsAlumnoMateriasId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Select(a => a.MateriaId).ToList();
 
-                var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => lsAlumnoMateriasId.Contains(a.MateriaId)).Select(a => a.GrupoId).Distinct().ToList();
+        //        var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => lsAlumnoMateriasId.Contains(a.MateriaId)).Select(a => a.GrupoId).Distinct().ToList();
 
-                lsAlumnoGruposId.AddRange(lsMateriasGrupoId);
+        //        lsAlumnoGruposId.AddRange(lsMateriasGrupoId);
 
-                grupos = Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
-                        .Select(g => new GrupoViewModel
-                        {
-                            GrupoId = g.GrupoId,
-                            NombreGrupo = g.NombreGrupo,
-                            Descripcion = g.Descripcion,
-                            CodigoColor = g.CodigoColor,
-                            CodigoAcceso = g.CodigoAcceso,
-                            ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
-                            ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
-                            NombresDocente = g.Docentes.Nombre
-                        })
-                        .ToList();
-            }
+        //        grupos = Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
+        //                .Select(g => new GrupoViewModel
+        //                {
+        //                    GrupoId = g.GrupoId,
+        //                    NombreGrupo = g.NombreGrupo,
+        //                    Descripcion = g.Descripcion,
+        //                    CodigoColor = g.CodigoColor,
+        //                    CodigoAcceso = g.CodigoAcceso,
+        //                    ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
+        //                    ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
+        //                    NombresDocente = g.Docentes.Nombre
+        //                })
+        //                .ToList();
+        //    }
 
-            return grupos;
-        }
+        //    return grupos;
+        //}
 
         [HttpGet]
         public ActionResult GrupoMaterias(int? grupoId)
@@ -278,7 +279,17 @@ namespace ControlActividades.Controllers
                 return RedirectToAction("Index", "Grupos");
             }
 
-            var lsMateriasDeGrupo = ObtenerMateriasPorGrupo(grupoId.Value); 
+            int usuarioId = -1;
+            string role = string.Empty;
+            //var lsMateriasDeGrupo = ObtenerMateriasPorGrupo(grupoId.Value);
+
+            if (User.IsInRole(Roles.ALUMNO))
+            {
+                usuarioId = Fg.ObtenerUsuarioId(User);
+                role = Fg.ObtenerRolUsuario(User);
+            }
+
+            List<MateriaViewModel> lsMateriasDeGrupo = GruposService.ObtenerMateriasPorGrupo(grupoId.Value, usuarioId, role);
 
             return View(lsMateriasDeGrupo);
         }
@@ -366,44 +377,46 @@ namespace ControlActividades.Controllers
         //    return Json(materiasConActividades, JsonRequestBehavior.AllowGet);
         //}
 
-        public List<MateriaViewModel> ObtenerMateriasPorGrupo(int grupoId)
-        {
-            var materiasIds = Db.tbGruposMaterias
-                .Where(gm => gm.GrupoId == grupoId)
-                .Select(gm => gm.MateriaId)
-                .ToList();
+        //public List<MateriaViewModel> ObtenerMateriasPorGrupo(int grupoId)
+        //{
+        //    var materiasIds = Db.tbGruposMaterias
+        //        .Where(gm => gm.GrupoId == grupoId)
+        //        .Select(gm => gm.MateriaId)
+        //        .ToList();
 
-            var docenteGrupo = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => new { a.Docentes.ApellidoPaterno, a.Docentes.ApellidoMaterno, a.Docentes.Nombre }).FirstOrDefault();
+        //    var docenteGrupo = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => new { a.Docentes.ApellidoPaterno, a.Docentes.ApellidoMaterno, a.Docentes.Nombre }).FirstOrDefault();
 
-            if (User.IsInRole(Roles.ALUMNO))
-            {
-                var usuarioId = Fg.ObtenerUsuarioId(User);
-                var alumnoPerteneceGrupo = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId && a.GrupoId == grupoId).Any();
+        //    if (User.IsInRole(Roles.ALUMNO))
+        //    {
+        //        var usuarioId = Fg.ObtenerUsuarioId(User);
+        //        var alumnoPerteneceGrupo = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == usuarioId && a.GrupoId == grupoId).Any();
 
-                if (!alumnoPerteneceGrupo)
-                {
-                    materiasIds = materiasIds.Where(a => Db.tbAlumnosMaterias.Any(am => am.AlumnoId == usuarioId && am.MateriaId == a)).ToList();
-                }
+        //        if (!alumnoPerteneceGrupo)
+        //        {
+        //            materiasIds = materiasIds.Where(a => Db.tbAlumnosMaterias.Any(am => am.AlumnoId == usuarioId && am.MateriaId == a)).ToList();
+        //        }
 
-            }
+        //    }
 
-            var lsMaterias = Db.tbMaterias
-                .Where(m => materiasIds.Contains(m.MateriaId))
-                .Select(m => new MateriaViewModel
-                {
-                    MateriaId = m.MateriaId,
-                    GrupoId = grupoId,
-                    NombreMateria =  m.NombreMateria,
-                    Descripcion = m.Descripcion,
-                    CodigoColor = m.CodigoColor,
-                    ApellidoPaternoDocente = docenteGrupo.ApellidoPaterno,
-                    ApellidoMaternoDocente = docenteGrupo.ApellidoMaterno,
-                    NombresDocente = docenteGrupo.Nombre
-                })
-                .ToList();
+        //    var lsMaterias = Db.tbMaterias
+        //        .Where(m => materiasIds.Contains(m.MateriaId))
+        //        .Select(m => new MateriaViewModel
+        //        {
+        //            MateriaId = m.MateriaId,
+        //            GrupoId = grupoId,
+        //            NombreMateria = m.NombreMateria,
+        //            Descripcion = m.Descripcion,
+        //            CodigoColor = m.CodigoColor,
+        //            ApellidoPaternoDocente = docenteGrupo.ApellidoPaterno,
+        //            ApellidoMaternoDocente = docenteGrupo.ApellidoMaterno,
+        //            NombresDocente = docenteGrupo.Nombre
+        //        })
+        //        .ToList();
 
-            return lsMaterias;
-        }
+        //    return lsMaterias;
+        //}
+        
+        
         [HttpDelete]
         public JsonResult EliminarGrupo(int grupoId)
         {

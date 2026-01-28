@@ -502,6 +502,7 @@ namespace ControlActividades.Models
     {
         public int MateriaId { get; set; }
         public int AlumnoId { get; set; }
+        public int AlumnoMateriaId { get; set; }
     }
 
 
@@ -554,9 +555,12 @@ namespace ControlActividades.Models
         public int MateriaId { get; set; }
 
         public int? GrupoId { get; set; }
+
         public string NombreMateria { get; set; }
 
         public string CodigoColor { get; set; }
+
+        public string CodigoAcceso { get; set; }
 
         public string Descripcion { get; set; }
 
@@ -565,6 +569,8 @@ namespace ControlActividades.Models
         public string ApellidoMaternoDocente { get; set; }
 
         public string NombresDocente { get; set; }
+
+        public int? DocenteId { get; set; }
     }
 
     public class CrearAvisoRequest
@@ -599,28 +605,11 @@ namespace ControlActividades.Models
         public int? GrupoId { get; set; }
         public int? MateriaId { get; set; }
     }
+
     public class AlumnoEliminarGrupoRequest
     {
         public int GrupoId { get; set; }
-        public int AlumnoId { get; set; }
-    }
-    /*public class AvisoDto
-    {
-        public int AvisoId { get; set; }
-        public string Titulo { get; set; }
-        public string Descripcion { get; set; }
-    }*/
-
-
-    public class AlumnoEliminarRequest
-    {
         public int AlumnoMateriaId { get; set; }
-    }
-
-
-    public class AlumnoEliminarGrupoRequest
-    {
-        public int GrupoId { get; set; }
         public int AlumnoId { get; set; }
     }
     public class AvisoDto

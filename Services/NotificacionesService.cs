@@ -302,13 +302,9 @@ namespace ControlActividades.Services
                 tipoNotificacion = TiposNotificaciones.MateriaAsignada;
                 materiaRef = materiaId;
                 mensaje = $"a la materia {nombreClase}";
-            }
-            else
-            {
-                // Nada que notificar
-                return;
-            }
 
+            }
+            
             string nombreDocente = await Db.tbDocentes
                 .Where(d => d.DocenteId == docenteId)
                 .Select(d =>
