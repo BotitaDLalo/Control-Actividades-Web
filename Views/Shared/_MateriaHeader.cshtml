@@ -1,0 +1,42 @@
+@{
+    // Partial header for materia used by Docente and Alumno views.
+    var nombre = ViewBag.MateriaNombre ?? ViewData["NombreMateria"] ?? "Cargando...";
+    var codigo = ViewBag.CodigoAcceso ?? ViewData["CodigoAcceso"] ?? "Cargando...";
+    var color = ViewBag.CodigoColor ?? ViewData["CodigoColor"] ?? "linear-gradient(90deg,#42c1ff 0%,#1e88e5 100%)";
+    var materiaId = ViewBag.MateriaId ?? ViewData["MateriaId"] ?? 0;
+}
+<div class="materia-header-compact materia-header d-flex align-items-center justify-content-between" id="materia-header-partial" data-materiaid="@materiaId" style="padding:12px 20px; border-radius:8px; margin-bottom:12px; background:@color; color:#fff;">
+    <div style="display:flex;flex-direction:column;min-width:0;">
+        <h2 id="materiaNombre" style="margin:0; font-size:1.4rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@nombre</h2>
+        <small style="opacity:0.95; margin-top:6px;">Código: <strong id="codigoAcceso">@codigo</strong>
+            <button type="button" class="btn btn-sm btn-light" style="margin-left:8px; padding:2px 8px; font-size:0.85rem;" onclick="copiarCodigoAcceso()" title="Copiar código">Copiar</button>
+        </small>
+    </div>
+    <div class="ico-card" style="font-size:28px; opacity:0.95;"><i class="fas fa-book"></i></div>
+</div>
+
+<script src="~/Scripts/Shared/common-helpers.js"></script>
+<script>
+    // Copiar código de acceso al portapapeles — reutilizable por varias vistas
+    if (typeof window.copiarCodigoAcceso !== 'function') {
+        window.copiarCodigoAcceso = function () {
+            try {
+                var el = document.getElementById('codigoAcceso');
+                if (!el) return;
+                var text = el.innerText || el.textContent || '';
+                if (window.CommonHelpers && typeof CommonHelpers.copyText === 'function') {
+                    CommonHelpers.copyText(text);
+                } else if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).catch(function () { /* ignore */ });
+                } else {
+                    var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) { } ta.remove();
+                }
+                if (window.Swal) {
+                    Swal.fire({ position: 'top-end', icon: 'success', title: 'Código copiado', showConfirmButton: false, timer: 1200 });
+                } else {
+                    console.debug('Código copiado:', text);
+                }
+            } catch (e) { console.warn('Error copiando código', e); }
+        };
+    }
+</script>

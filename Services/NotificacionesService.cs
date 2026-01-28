@@ -281,7 +281,7 @@ namespace ControlActividades.Services
             int? materiaRef = null;
             int? grupoRef = null;
 
-            if (grupoId != -1)
+            if (materiaId > 0)
             {
                 nombreClase = await Db.tbGrupos
                     .Where(g => g.GrupoId == grupoId)
@@ -292,7 +292,7 @@ namespace ControlActividades.Services
                 grupoRef = grupoId;
                 mensaje = $"al grupo {nombreClase}";
             }
-            else if (materiaId != -1)
+            else
             {
                 nombreClase = await Db.tbMaterias
                     .Where(m => m.MateriaId == materiaId)
@@ -302,13 +302,9 @@ namespace ControlActividades.Services
                 tipoNotificacion = TiposNotificaciones.MateriaAsignada;
                 materiaRef = materiaId;
                 mensaje = $"a la materia {nombreClase}";
-            }
-            else
-            {
-                // Nada que notificar
-                return;
-            }
 
+            }
+            
             string nombreDocente = await Db.tbDocentes
                 .Where(d => d.DocenteId == docenteId)
                 .Select(d =>

@@ -1,7 +1,11 @@
 var div = document.getElementById("docente-datos");
 var docenteIdGlobal = div && div.dataset ? div.dataset.docenteid : null;
 var materiasPorCrear = []; // Lista de materias a crear
-let intentosAcceder = 0;
+// Evitar doble declaración si el script se carga dos veces
+if (typeof window.intentosAcceder === 'undefined') {
+    window.intentosAcceder = 0;
+}
+var intentosAcceder = window.intentosAcceder;
 
 
 //Funcion que obtiene informacion del docente.

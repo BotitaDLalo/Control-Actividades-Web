@@ -10,14 +10,94 @@
 
     int grupoId = ViewBag.GrupoId != null ? (int)ViewBag.GrupoId : 0;
 }
-<div id="docente-datos" data-docenteid="@docenteId"></div>
+<div id="docente-datos" data-docenteid="@docenteId" data-materiaid="@materiaId" data-grupoid="@grupoId" style="display:none"></div>
+<script>
+    // Exponer materia/grupo a scripts cliente mediante atributos data-*
+    (function(){
+        var docenteDiv = document.getElementById('docente-datos');
+        try {
+            window.materiaIdGlobal = (docenteDiv && docenteDiv.dataset && docenteDiv.dataset.materiaid) ? parseInt(docenteDiv.dataset.materiaid,10) : null;
+        } catch(e){ window.materiaIdGlobal = null; }
+        try {
+            window.grupoIdGlobal = (docenteDiv && docenteDiv.dataset && docenteDiv.dataset.grupoid) ? parseInt(docenteDiv.dataset.grupoid,10) : null;
+        } catch(e){ window.grupoIdGlobal = null; }
+    })();
+</script>
 <div class="materia-container">
-    <div class="materia-header" id="materiaHeader" style="background-color: #d63384;">
-        <h1><span id="materiaNombre">Cargando...</span></h1>
-        <div class="materia-info">
-            <span>Código de clase: <strong id="codigoAcceso">Cargando...</strong></span>
-            <i class="fas fa-copy copiar-icono" onclick="copiarCodigoAcceso()" title="Copiar código"></i>
-        </div>
+    <style>
+        /* Mejorar distribución de columnas en la tabla de entregables */
+        .table-entregables {
+            table-layout: fixed;
+            width: 100%;
+            min-width: 900px;
+        }
+
+            .table-entregables th:nth-child(1) {
+                width: 25%;
+            }
+
+            .table-entregables th:nth-child(2) {
+                width: 50%;
+            }
+
+            .table-entregables th:nth-child(3) {
+                width: 15%;
+            }
+
+            .table-entregables th:nth-child(4) {
+                width: 6%;
+            }
+
+            .table-entregables th:nth-child(5) {
+                width: 4%;
+            }
+
+            .table-entregables th, .table-entregables td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                vertical-align: middle;
+                padding: .85rem;
+            }
+                /* permitir que el contenido de la respuesta haga wrap y no desborde la celda */
+                .table-entregables td pre {
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    margin: 0;
+                }
+
+            .table-entregables .cal-cell {
+                text-align: center;
+            }
+
+        @@media (max-width: 992px) {
+            .table-entregables {
+                min-width: 700px;
+            }
+
+                .table-entregables th:nth-child(1) {
+                    width: 30%;
+                }
+
+                .table-entregables th:nth-child(2) {
+                    width: 42%;
+                }
+
+                .table-entregables th:nth-child(3) {
+                    width: 18%;
+                }
+
+                .table-entregables th:nth-child(4) {
+                    width: 6%;
+                }
+
+                .table-entregables th:nth-child(5) {
+                    width: 4%;
+                }
+        }
+    </style>
+    @Html.Partial("~/Views/Shared/_MateriaHeader.cshtml")
+
     <script>
         // Cargar y mostrar actividades como accordion; dentro cargar entregables ordenados por alumno
         // Asegurar que el HTML generado no rompa el diseño: envolvemos en contenedores y usamos clases de bootstrap
@@ -119,7 +199,9 @@
                     var respTxt = it.Respuesta ? (it.Respuesta.length > 200 ? it.Respuesta.substring(0, 200) + '...' : it.Respuesta) : '-';
                     var fecha = it.FechaEntrega ? new Date(it.FechaEntrega).toLocaleString() : '-';
                     var cal = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? '<em>Pendiente</em>' : it.Calificacion;
-                    html += `<tr data-entrega-id="${it.EntregaId}" data-alumno-id="${it.AlumnoId}"><td>${escapeHtml(nombre)}</td><td><pre style="white-space:pre-wrap;margin:0">${escapeHtml(respTxt)}</pre></td><td>${fecha}</td><td class="cal-cell">${cal}</td><td><button class="btn btn-sm btn-primary btn-evaluar" data-entrega-id="${it.EntregaId}" data-respuesta="${encodeURIComponent(it.Respuesta || '')}">Evaluar</button></td></tr>`;
+                    var btnText = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'Evaluar' : 'Editar';
+                    var btnClass = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'btn btn-sm btn-success btn-evaluar' : 'btn btn-sm btn-warning btn-evaluar';
+                    html += `<tr data-entrega-id="${it.EntregaId}" data-alumno-id="${it.AlumnoId}"><td>${escapeHtml(nombre)}</td><td><pre style="white-space:pre-wrap;margin:0">${escapeHtml(respTxt)}</pre></td><td>${fecha}</td><td class="cal-cell">${cal}</td><td><button class="${btnClass}" data-entrega-id="${it.EntregaId}" data-respuesta="${encodeURIComponent(it.Respuesta || '')}">${btnText}</button></td></tr>`;
                 });
                 html += '</tbody></table></div>';
                 cont.innerHTML = html;
@@ -153,16 +235,18 @@
             } catch (e) { console.error(e); cont.innerHTML = '<div class="text-danger p-3">Error al cargar entregables.</div>'; }
         }
 
-        function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
+        function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>\"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
     </script>
-    </div>
 
     <nav class="materia-nav">
         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
         <button class="tab-button" onclick="cambiarSeccion('entregables')">Entregables</button>
-        <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
-        <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
+        @if (User != null && User.IsInRole("Docente"))
+        {
+            <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
+            <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
+        }
     </nav>
 
     <div id="contenedor-dinamico" class="materia-content">
@@ -174,6 +258,13 @@
                         Crear Aviso
                     </button>
                 </div>
+            </div>
+            <!-- Filtros para avisos: buscar por título y filtrar por rango de fechas -->
+            <div class="avisos-filters mb-3" style="display:flex;gap:8px;align-items:center;">
+                <input id="buscarAvisoTitulo" class="form-control" placeholder="Buscar por título..." style="max-width:360px;" />
+                <input id="fechaDesdeAviso" type="date" class="form-control" style="max-width:170px;" />
+                <input id="fechaHastaAviso" type="date" class="form-control" style="max-width:170px;" />
+                <button id="btnLimpiarFiltrosAvisos" class="btn btn-secondary" type="button">Limpiar</button>
             </div>
             <div class="divider"></div>
             <div id="listaDeAvisosDeMateria"></div>
@@ -190,7 +281,11 @@
             </div>
             <!-- Filter control will be injected dynamically by scriptsActividades.js -->
             <div class="divider"></div>
-            <div id="listaActividadesDeMateria"></div>
+            @{
+                ViewData["ContainerId"] = "listaActividadesDeMateria";
+                ViewData["Title"] = "Lista de Actividades";
+            }
+            @Html.Partial("~/Views/Shared/_ActividadesList.cshtml")
         </div>
 
         <div id="seccion-entregables" class="seccion" style="display: none;">
@@ -210,7 +305,10 @@
 
             <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
             <div id="listaEntregables" class="mt-2">
-                <p class="text-muted">Selecciona una actividad para ver los entregables.</p>
+                @{
+                    ViewData["TableId"] = "tablaEntregablesActividad";
+                }
+                @Html.Partial("~/Views/Shared/_EntregablesTable.cshtml")
             </div>
         </div>
 
@@ -234,10 +332,13 @@
                     </div>
                 </div>
             </div>
-            <div id="listaAlumnosAsignados" class="mt-3"></div>
+            @{
+                ViewData["AlumnosListId"] = "listaAlumnosAsignados";
+            }
+            @Html.Partial("~/Views/Shared/_AlumnosList.cshtml")
         </div>
 
-        <div id="seccion-configuracion" class="seccion" style="display: none;">
+        <div id="seccion-configuracion" class="seccion form-custom" style="display: none;">
             <h4>Configuración de la materia</h4>
 
             <div class="mb-3">
@@ -272,18 +373,29 @@
 
 @section Scripts {
     <script>
+        // Poblar select de entregables (opcional)
         async function poblarSelectActividadesEntregables() {
             try {
                 var sel = document.getElementById('selectActividadEntregables');
                 if (!sel) return;
                 const resp = await fetch('/api/Actividades/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(materiaIdGlobal));
                 if (!resp.ok) return;
-                const lista = await resp.json();
+                const payload = await resp.json().catch(() => null);
+                var lista = [];
+                if (!payload) return;
+                if (Array.isArray(payload)) lista = payload;
+                else if (payload.Actividades && Array.isArray(payload.Actividades)) lista = payload.Actividades;
+                else {
+                    // try find first array property
+                    const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
+                    if (arr) lista = arr;
+                }
+
                 sel.innerHTML = '<option value="0">-- Seleccione una actividad --</option>';
                 lista.forEach(function (a) {
                     var opt = document.createElement('option');
                     opt.value = a.ActividadId || a.Id || a.actividadId || 0;
-                    opt.text = a.NombreActividad || a.Nombre || a.NombreActividad || a.NombreActividad;
+                    opt.text = a.NombreActividad || a.Nombre || a.nombreActividad || '';
                     sel.appendChild(opt);
                 });
                 sel.addEventListener('change', function () {
@@ -292,43 +404,60 @@
                         document.getElementById('listaEntregables').innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
                         return;
                     }
-                    // Cargar entregables en línea para la actividad seleccionada
                     localStorage.setItem('actividadSeleccionada', id);
                     cargarEntregablesPorActividad(id);
                 });
             } catch (e) { console.error(e); }
         }
-        // expose as globals so other scripts can read them
+
+        // Exponer ids y base path para los scripts compartidos
         window.materiaIdGlobal = '@materiaId';
         window.grupoIdGlobal = '@grupoId';
-        // base path to support applications hosted in virtual directories
         window.appBasePath = '@Url.Content("~")';
-        // also expose local variables expected by existing scripts
         var materiaIdGlobal = window.materiaIdGlobal;
         var grupoIdGlobal = window.grupoIdGlobal;
-        // Fallback: intentar poblar encabezado inmediatamente usando el id proporcionado por el servidor
-        try {
-            if (materiaIdGlobal) {
-                fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
-                    .then(r => { if (!r.ok) throw r; return r.json(); })
-                    .then(d => {
-                        if (d && d.NombreMateria) {
-                            var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
-                            var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
-                            try { document.querySelector('.materia-header').style.backgroundColor = (d.CodigoColor || '#d63384'); } catch (e) { }
-                        }
-                    }).catch(() => { /* no-op */ });
-            }
-        } catch (e) { }
-        // Persist current materia/grupo selection so alumnos list can be restored
-        try {
-            if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }
-            if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
-        } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
-    
-    </script>
-    @Scripts.Render("~/bundles/jqueryval")
 
+        // Intento inicial de poblar encabezado si se dispone de materiaId
+        (function () {
+            try {
+                if (materiaIdGlobal) {
+                    fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
+                        .then(r => { if (!r.ok) throw r; return r.json(); })
+                        .then(d => {
+                if (d && d.NombreMateria) {
+                                // update compact header
+                                var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
+                                var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
+                                try { var hdr = document.querySelector('.materia-header-compact'); if (hdr && d.CodigoColor) hdr.style.background = d.CodigoColor; } catch (e) { }
+                            }
+                        }).catch(() => { /* no-op */ });
+                }
+            } catch (e) { }
+            try {
+                if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }
+                if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
+            } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
+        })();
+
+        // Ensure actividades are loaded when this view is rendered. If the actividades script
+        // hasn't run yet, retry shortly. This avoids timing issues between bundles and inline scripts.
+        setTimeout(function () {
+            try {
+                if (typeof cargarActividadesDeMateria === 'function') {
+                    cargarActividadesDeMateria(materiaIdGlobal, true);
+                } else {
+                    console.debug('cargarActividadesDeMateria not yet available');
+                }
+            } catch (e) { console.error('Error invoking cargarActividadesDeMateria:', e); }
+        }, 150);
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/docentegrupos")
+    <script src="~/Scripts/Shared/common-helpers.js"></script>
+    <script src="~/Scripts/Materias/materia-detalles.js"></script>
+    <script src="~/Scripts/Avisos/avisos.js"></script>
+    <script src="~/Scripts/Materias/configuracion.js"></script>
 }
 
 <div class="modal fade" id="entregablesModal" tabindex="-1" aria-hidden="true">
@@ -454,4 +583,5 @@
 
 @section Styles{
     @Styles.Render("~/Content/Docente/css")
+    @Styles.Render("~/Content/Materia-Detalles/css")
 }

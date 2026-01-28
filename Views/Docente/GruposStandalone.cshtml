@@ -9,7 +9,8 @@
 
 <link href="~/Content/cards.css" rel="stylesheet" />
 
-@using (Html.BeginForm()) { @Html.AntiForgeryToken() }
+@using (Html.BeginForm())
+{@Html.AntiForgeryToken()}
 
 <div class="container mt-4">
     <div class="d-flex justify-content-end align-items-center mb-3">
@@ -28,12 +29,11 @@
 @section Scripts{
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/docente")
-    @Scripts.Render("~/bundles/docentegrupos")
-    <script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
+    @Scripts.Render("~/bundles/grupos")
+    @Scripts.Render("~/bundles/materias")
 
     <script>
-        document.addEventListener('DOMContentLoaded', function(){
+        document.addEventListener('DOMContentLoaded', function () {
             if (typeof cargarGrupos === 'function') cargarGrupos();
 
             // Cuando se abra el modal de crear grupo, cargar las materias disponibles en el modal

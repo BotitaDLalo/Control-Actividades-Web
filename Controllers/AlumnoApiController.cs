@@ -1123,94 +1123,161 @@ namespace ControlActividades.Controllers
             }
         }
 
+        /// <summary>
+        /// Elimina la inscripción de un alumno a una materia
+        /// Recibe: MateriaId y AlumnoId
+        /// </summary>
         [HttpPost] 
         [Route("EliminarAlumnoMateria")]
-        public async Task<IHttpActionResult> EliminarAlumnoDeMateria([FromBody] AlumnoEliminarRequest request)
+        public async Task<IHttpActionResult> EliminarAlumnoDeMateria([FromBody] dynamic request)
         {
             try
             {
-                int materiaId = request.MateriaId;
-                int alumnoId = request.AlumnoId;
+                if (request == null)
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "El cuerpo de la solicitud está vacío.",
+                        Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                        Detalles = "Se esperaba un objeto JSON con MateriaId y AlumnoId."
+                    });
+                }
+
+                // Extraer MateriaId y AlumnoId
+                int materiaId = Convert.ToInt32(request.MateriaId ?? request.materiaId ?? 0);
+                int alumnoId = Convert.ToInt32(request.AlumnoId ?? request.alumnoId ?? 0);
 
                 if (materiaId <= 0 || alumnoId <= 0)
                 {
-                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Materia y Alumno son obligatorios." });
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Los datos enviados son inválidos.",
+                        Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                        Detalles = $"MateriaId y AlumnoId deben ser mayores a 0. Recibido - MateriaId: {materiaId}, AlumnoId: {alumnoId}"
+                    });
                 }
 
-                var actividadesMateria = Db.tbActividades.Where(a => a.MateriaId == materiaId).Select(a => a.ActividadId).ToList();
-
-                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => a.AlumnoId == alumnoId && actividadesMateria.Contains(a.ActividadId)).Any();
-                if (alumnoTieneEntregas)
-                    return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + "El alumno ha realizado entregas en las actividades asignadas." });
-
+                // Buscar la relación alumno-materia
                 var relacionAEliminar = await Db.tbAlumnosMaterias
                     .FirstOrDefaultAsync(am => am.MateriaId == materiaId && am.AlumnoId == alumnoId);
 
                 if (relacionAEliminar == null)
                 {
-                    // Si la relación no existe, podría significar que ya fue eliminado o que los datos son incorrectos.
-                    return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en la materia especificada." });
+                    return Content(HttpStatusCode.NotFound, new ErrorResponse
+                    {
+                        Mensaje = "El alumno no está inscrito en esta materia.",
+                        Codigo = AlumnoErrorCodes.ALUMNO_NO_ENCONTRADO,
+                        Detalles = $"No se encontró una inscripción del alumno {alumnoId} en la materia {materiaId}."
+                    });
                 }
 
+                // Eliminar la inscripción
                 Db.tbAlumnosMaterias.Remove(relacionAEliminar);
-
                 await Db.SaveChangesAsync();
 
-                return Ok(new { mensaje = "Alumno eliminado de la materia correctamente." });
+                // Limpiar caché
+                Db.ChangeTracker.Entries()
+                    .Where(e => e.Entity is tbAlumnosMaterias)
+                    .ToList()
+                    .ForEach(e => e.State = System.Data.Entity.EntityState.Detached);
+
+                Console.WriteLine($"[LOG] Alumno {alumnoId} desinscrito de materia {materiaId}.");
+
+                return Ok(new SuccessResponse
+                {
+                    Mensaje = "El alumno ha sido desinscrito de la materia correctamente.",
+                    Codigo = "EXITO",
+                    Datos = new { AlumnoId = alumnoId, MateriaId = materiaId }
+                });
             }
             catch (Exception e)
             {
-                // Manejo de excepciones
-                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + e.Message });
+                Console.WriteLine($"[ERROR] EliminarAlumnoDeMateria: {e.Message}\n{e.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                {
+                    Mensaje = "Ocurrió un error interno al intentar desincribir al alumno.",
+                    Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                    Detalles = e.Message
+                });
             }
         }
 
+        /// <summary>
+        /// Elimina la inscripción de un alumno a un grupo
+        /// Recibe: GrupoId y AlumnoId
+        /// </summary>
         [HttpPost]
         [Route("EliminarAlumnoGrupo")]
-        public async Task<IHttpActionResult> EliminarAlumnoDeGrupo([FromBody] AlumnoEliminarGrupoRequest request)
+        public async Task<IHttpActionResult> EliminarAlumnoDeGrupo([FromBody] dynamic request)
         {
             try
             {
-                int grupoId = request.GrupoId;
-                int alumnoId = request.AlumnoId;
+                if (request == null)
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "El cuerpo de la solicitud está vacío.",
+                        Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                        Detalles = "Se esperaba un objeto JSON con GrupoId y AlumnoId."
+                    });
+                }
+
+                // Extraer GrupoId y AlumnoId
+                int grupoId = Convert.ToInt32(request.GrupoId ?? request.grupoId ?? 0);
+                int alumnoId = Convert.ToInt32(request.AlumnoId ?? request.alumnoId ?? 0);
 
                 if (grupoId <= 0 || alumnoId <= 0)
                 {
-                    return Content(HttpStatusCode.BadRequest, new { mensaje = "Los IDs de Grupo y Alumno son obligatorios." });
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Los datos enviados son inválidos.",
+                        Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                        Detalles = $"GrupoId y AlumnoId deben ser mayores a 0. Recibido - GrupoId: {grupoId}, AlumnoId: {alumnoId}"
+                    });
                 }
 
-
-                var lsMateriasGrupo = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
-
-                var actividadesMaterias = Db.tbActividades.Where(a => lsMateriasGrupo.Contains(a.MateriaId)).Select(a=>a.ActividadId).ToList();
-
-                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => a.AlumnoId == alumnoId && actividadesMaterias.Contains(a.ActividadId)).Any();
-                if (alumnoTieneEntregas)
-                    return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno: " + "El alumno ha realizado entregas en las actividades asignadas." });
-
-
-
-                // 1. Buscar la relación en la tabla tbAlumnosGrupos
+                // Buscar la relación alumno-grupo
                 var relacionAEliminar = await Db.tbAlumnosGrupos
                     .FirstOrDefaultAsync(ag => ag.GrupoId == grupoId && ag.AlumnoId == alumnoId);
 
                 if (relacionAEliminar == null)
                 {
-                    return Content(HttpStatusCode.NotFound, new { mensaje = "El alumno no está inscrito en el grupo especificado." });
+                    return Content(HttpStatusCode.NotFound, new ErrorResponse
+                    {
+                        Mensaje = "El alumno no está inscrito en este grupo.",
+                        Codigo = AlumnoErrorCodes.ALUMNO_NO_ENCONTRADO,
+                        Detalles = $"No se encontró una inscripción del alumno {alumnoId} en el grupo {grupoId}."
+                    });
                 }
 
-                // 2. Eliminar la relación
+                // Eliminar la inscripción
                 Db.tbAlumnosGrupos.Remove(relacionAEliminar);
-
-                // 3. Guardar cambios en la base de datos
                 await Db.SaveChangesAsync();
 
-                // 4. Retornar éxito
-                return Ok(new { mensaje = "Alumno eliminado del grupo correctamente." });
+                // Limpiar caché
+                Db.ChangeTracker.Entries()
+                    .Where(e => e.Entity is tbAlumnosGrupos)
+                    .ToList()
+                    .ForEach(e => e.State = System.Data.Entity.EntityState.Detached);
+
+                Console.WriteLine($"[LOG] Alumno {alumnoId} desinscrito del grupo {grupoId}.");
+
+                return Ok(new SuccessResponse
+                {
+                    Mensaje = "El alumno ha sido desinscrito del grupo correctamente.",
+                    Codigo = "EXITO",
+                    Datos = new { AlumnoId = alumnoId, GrupoId = grupoId }
+                });
             }
             catch (Exception e)
             {
-                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Ocurrió un error al intentar eliminar el alumno del grupo: " + e.Message });
+                Console.WriteLine($"[ERROR] EliminarAlumnoDeGrupo: {e.Message}\n{e.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                {
+                    Mensaje = "Ocurrió un error interno al intentar desincribir al alumno del grupo.",
+                    Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                    Detalles = e.Message
+                });
             }
         }
 
@@ -1733,51 +1800,82 @@ namespace ControlActividades.Controllers
             }
         }
 
+        /// <summary>
+        /// Elimina un alumno de un grupo
+        /// Recibe: GrupoId y AlumnoId
+        /// </summary>
         [HttpPost]
-        [Route("EliminarAlumnoGrupo")]
-        public async Task<IHttpActionResult> EliminarAlumnoGrupo([FromBody] EliminarAlumnoClase eliminarAlumnoClase)
+        [Route("EliminarAlumnoDelGrupo")]
+        public async Task<IHttpActionResult> EliminarAlumnoGrupo([FromBody] dynamic request)
         {
             try
             {
-                var alumnoId = eliminarAlumnoClase.AlumnoId;
-                var grupoId = eliminarAlumnoClase.GrupoId;
-
-
-                var lsMateriasGrupoId = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
-
-                var lsActividadesMateria = Db.tbActividades.Where(a => lsMateriasGrupoId.Contains(a.MateriaId)).Select(a => a.ActividadId).Distinct().ToList();
-
-                var alumnoTieneEntregas = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 1).Any();
-
-                if(alumnoTieneEntregas)
-                    return BadRequest();
-
-
-                var lsAlumnoBorradores = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateria.Contains(a.ActividadId) && a.AlumnoId == alumnoId && a.EstadoEntregaId == 2).ToList();
-
-                if (lsAlumnoBorradores.Count > 0)
+                if (request == null)
                 {
-                    var lsAlumnoBorradoresId = lsAlumnoBorradores.Select(a => a.EntregaActividadAlumnoId).ToList();
-                    var lsEntregables = Db.tbEntregables.Where(a => lsAlumnoBorradoresId.Contains(a.EntregaActividadAlumnoId)).ToList();
-
-                    Db.tbEntregables.RemoveRange(lsEntregables);
-
-                    Db.tbEntregaActividadAlumno.RemoveRange(lsAlumnoBorradores);
-
-                    await Db.SaveChangesAsync();
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "El cuerpo de la solicitud está vacío.",
+                        Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                        Detalles = "Se esperaba un objeto JSON con GrupoId y AlumnoId."
+                    });
                 }
 
+                // Extraer GrupoId y AlumnoId
+                int grupoId = Convert.ToInt32(request.GrupoId ?? request.grupoId ?? 0);
+                int alumnoId = Convert.ToInt32(request.AlumnoId ?? request.alumnoId ?? 0);
 
-                var alumnoGrupo = await Db.tbAlumnosGrupos.FirstOrDefaultAsync(a => a.AlumnoId == alumnoId && a.GrupoId == grupoId);
+                if (grupoId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Los datos enviados son inválidos.",
+                        Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                        Detalles = $"GrupoId y AlumnoId deben ser mayores a 0. Recibido - GrupoId: {grupoId}, AlumnoId: {alumnoId}"
+                    });
+                }
 
+                // Buscar la relación alumno-grupo
+                var alumnoGrupo = await Db.tbAlumnosGrupos
+                    .FirstOrDefaultAsync(a => a.AlumnoId == alumnoId && a.GrupoId == grupoId);
+
+                if (alumnoGrupo == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new ErrorResponse
+                    {
+                        Mensaje = "El alumno no está inscrito en este grupo.",
+                        Codigo = AlumnoErrorCodes.ALUMNO_NO_ENCONTRADO,
+                        Detalles = $"No se encontró una inscripción del alumno {alumnoId} en el grupo {grupoId}."
+                    });
+                }
+
+                // Eliminar la inscripción
                 Db.tbAlumnosGrupos.Remove(alumnoGrupo);
                 await Db.SaveChangesAsync();
 
-                return Ok();
+                // Limpiar caché
+                Db.ChangeTracker.Entries()
+                    .Where(e => e.Entity is tbAlumnosGrupos)
+                    .ToList()
+                    .ForEach(e => e.State = System.Data.Entity.EntityState.Detached);
+
+                Console.WriteLine($"[LOG] Alumno {alumnoId} eliminado del grupo {grupoId}.");
+
+                return Ok(new SuccessResponse
+                {
+                    Mensaje = "El alumno ha sido eliminado del grupo correctamente.",
+                    Codigo = "EXITO",
+                    Datos = new { AlumnoId = alumnoId, GrupoId = grupoId }
+                });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest();
+                Console.WriteLine($"[ERROR] EliminarAlumnoGrupo: {ex.Message}\n{ex.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                {
+                    Mensaje = "Ocurrió un error interno al eliminar el alumno del grupo.",
+                    Codigo = AlumnoErrorCodes.ERROR_INTERNO,
+                    Detalles = ex.Message
+                });
             }
         }
 

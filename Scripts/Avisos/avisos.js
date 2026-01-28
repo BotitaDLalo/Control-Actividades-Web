@@ -1,167 +1,307 @@
 ﻿// Funcion que carga los avisos a la vista.
+let _avisosCache = null; // cache local de avisos para filtrar en cliente
+let _rolUsuarioCache = null;
 async function cargarAvisosDeMateria() {
-  const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
-  try {
-    const params = new URLSearchParams(window.location.search);
+    const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
+    try {
+        const params = new URLSearchParams(window.location.search);
 
-    const materiaId = params.get("materiaId");
-    if (!materiaId) return;
+        const materiaId = params.get("materiaId");
+        if (!materiaId) return;
 
-    const response = await fetch(
-      `/Materias/ObtenerAvisos?IdMateria=${materiaId}`
-    );
-    if (!response.ok) throw new Error("No se encontraron avisos.");
-    const responseJson = await response.json();
+        const response = await fetch(
+            `/Materias/ObtenerAvisos?IdMateria=${materiaId}`
+        );
+        if (!response.ok) throw new Error("No se encontraron avisos.");
+        const responseJson = await response.json();
 
-    const avisos = responseJson.avisos;
-    const rolUsuario = responseJson.RolUsuario;
-    renderizarAvisos(avisos, rolUsuario);
-  } catch (error) {
-    listaAvisos.innerHTML = `<p class="aviso-error">${error.message}</p>`;
-  }
+        const avisos = responseJson.avisos || [];
+        const rolUsuario = responseJson.RolUsuario || '';
+        // guardar en cache y renderizar
+        _avisosCache = avisos.slice();
+        _rolUsuarioCache = rolUsuario;
+        aplicarFiltrosYRender();
+        // inicializar listeners de filtros (solo una vez)
+        inicializarFiltrosAvisos();
+    }
+    catch (error) {
+        listaAvisos.innerHTML = `<p class="aviso-error">${error.message}</p>`;
+    }
+
+    // intentar cargar avisos al cargar el documento
+    if (typeof document !== 'undefined'){
+        document.addEventListener('DOMContentLoaded', function(){
+        try {
+            cargarAvisosDeMateria();
+        }
+        catch (e) {
+            console.warn('Error cargando avisos iniciales', e);
+        }
+        });
+    }
+}
+
+function inicializarFiltrosAvisos() {
+    if (window._filtrosAvisosInicializados) return;
+    window._filtrosAvisosInicializados = true;
+    const inputTitulo = document.getElementById('buscarAvisoTitulo');
+    const fechaDesde = document.getElementById('fechaDesdeAviso');
+    const fechaHasta = document.getElementById('fechaHastaAviso');
+    const btnLimpiar = document.getElementById('btnLimpiarFiltrosAvisos');
+    if (inputTitulo) inputTitulo.addEventListener('input', aplicarFiltrosYRender);
+    if (fechaDesde) fechaDesde.addEventListener('change', aplicarFiltrosYRender);
+    if (fechaHasta) fechaHasta.addEventListener('change', aplicarFiltrosYRender);
+    if (btnLimpiar) btnLimpiar.addEventListener('click', function(){
+        if (inputTitulo) inputTitulo.value = '';
+        if (fechaDesde) fechaDesde.value = '';
+        if (fechaHasta) fechaHasta.value = '';
+        aplicarFiltrosYRender();
+    });
+}
+
+function aplicarFiltrosYRender(){
+  if (!_avisosCache) return;
+  const inputTitulo = document.getElementById('buscarAvisoTitulo');
+  const fechaDesde = document.getElementById('fechaDesdeAviso');
+  const fechaHasta = document.getElementById('fechaHastaAviso');
+  const term = inputTitulo && inputTitulo.value ? inputTitulo.value.trim().toLowerCase() : '';
+  const desde = fechaDesde && fechaDesde.value ? new Date(fechaDesde.value) : null;
+  const hasta = fechaHasta && fechaHasta.value ? new Date(fechaHasta.value) : null;
+  const filtrados = _avisosCache.filter(function(a){
+    try{
+      // filtro por título
+      if (term){
+        const titulo = (a.Titulo || '').toString().toLowerCase();
+        if (titulo.indexOf(term) === -1) return false;
+      }
+      // filtro por fecha (asume Campo FechaCreacionIso, FechaCreacion o Fecha)
+      if (desde || hasta){
+        const rawFecha = a.FechaCreacionIso || a.FechaCreacion || a.Fecha || a.fecha || null;
+        if (!rawFecha) return false;
+
+        // función para parsear fechas retornadas por el servidor de forma robusta
+        function parseServerFecha(s){
+          if (!s) return null;
+          // si es ISO directo
+          const dIso = new Date(s);
+          if (!isNaN(dIso.getTime())) return dIso;
+
+          // intentar parsear formato en español como "6 de diciembre de 2025 14:23:00"
+          try{
+            const txt = s.toString().toLowerCase().replace(/[.,]/g,'');
+            // buscar año (4 dígitos)
+            const yearMatch = txt.match(/(20\d{2}|19\d{2})/);
+            const year = yearMatch ? parseInt(yearMatch[0],10) : null;
+            // buscar día (1-2 dígitos) antes de 'de'
+            const dayMatch = txt.match(/(\b\d{1,2})\s+de\s+/);
+            const day = dayMatch ? parseInt(dayMatch[1],10) : null;
+            // mapa de meses en español
+            const meses = { 'enero':0,'ene':0,'febrero':1,'feb':1,'marzo':2,'mar':2,'abril':3,'abr':3,'mayo':4,'may':4,'junio':5,'jun':5,'julio':6,'jul':6,'agosto':7,'ago':7,'septiembre':8,'sep':8,'setiembre':8,'octubre':9,'oct':9,'noviembre':10,'nov':10,'diciembre':11,'dic':11 };
+            // buscar mes por nombre
+            let mes = null;
+            for (const m in meses){ if (txt.indexOf(' ' + m + ' ') !== -1) { mes = meses[m]; break; } }
+            if (year != null && day != null && mes != null){
+              // intentar extraer hora si existe
+              const timeMatch = txt.match(/(\d{1,2}:\d{2}:?\d{0,2})/);
+              let hh=0, mm=0, ss=0;
+              if (timeMatch){
+                const parts = timeMatch[1].split(':'); hh = parseInt(parts[0]||0,10); mm = parseInt(parts[1]||0,10); ss = parseInt(parts[2]||0,10);
+              }
+              return new Date(year, mes, day, hh, mm, ss);
+            }
+          }catch(e){ /* fallthrough */ }
+          return null;
+        }
+
+        const f = parseServerFecha(rawFecha);
+        if (!f || isNaN(f.getTime())) return false;
+        // comparar sin hora: normalizar horas a 0
+        const fN = new Date(f.getFullYear(), f.getMonth(), f.getDate());
+        if (desde){ const dN = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate()); if (fN < dN) return false; }
+        if (hasta){ const hN = new Date(hasta.getFullYear(), hasta.getMonth(), hasta.getDate()); if (fN > hN) return false; }
+      }
+      return true;
+    }catch(e){ return false; }
+  });
+  renderizarAvisos(filtrados, _rolUsuarioCache);
 }
 
 //Funcion para publicar un aviso
 async function publicarAviso() {
-  // Obtener valores de los inputs
-  let titulo = document.getElementById("titulo").value.trim();
-  let descripcion = document.getElementById("descripcionAviso").value.trim();
+    // Obtener valores de los inputs
+    let titulo = document.getElementById("titulo").value.trim();
+    let descripcion = document.getElementById("descripcionAviso").value.trim();
 
-  // Validar que los campos no estén vacíos
-  if (!titulo || !descripcion) {
-    Swal.fire({
-      position: "top-end",
-      title: "Campos vacíos",
-      text: "Por favor, completa todos los campos.",
-      icon: "warning",
-      timer: 2500,
-      showConfirmButton: false,
-    });
-    return;
-  }
+    // Validar que los campos no estén vacíos
+    if (!titulo || !descripcion) {
+        Swal.fire({
+            position: "top-end",
+            title: "Campos vacíos",
+            text: "Por favor, completa todos los campos.",
+            icon: "warning",
+            timer: 2500,
+            showConfirmButton: false,
+            customClass: {
+                title: 'sweetAlertTitleCustom',
+                popup: 'sweetAlertBgCustom'
+            }
 
-  const params = new URLSearchParams(window.location.search);
-
-  let grupoId = params.get("grupoId");
-  if (!grupoId) {
-    grupoId = 0;
-  }
-
-  const materiaId = params.get("materiaId");
-  if (!materiaId) return;
-
-  // Crear objeto con los datos a enviar
-  let avisoData = {
-    //DocenteId: docenteId,
-    Titulo: titulo,
-    Descripcion: descripcion,
-    GrupoId: grupoId,
-    MateriaId: materiaId,
-  };
-
-  try {
-    // Enviar datos al controlador
-    let response = await fetch("/Materias/CrearAviso", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(avisoData),
-    });
-
-    let result = await response.json();
-
-    if (response.ok) {
-      Swal.fire({
-        position: "top-end",
-        title: "Aviso creado",
-        text: "El aviso ha sido publicado correctamente.",
-        icon: "success",
-        timer: 3000,
-        showConfirmButton: false,
-      });
-
-      setTimeout(() => {
-        document.getElementById("avisosForm").reset(); //Resetear  formulario
-        cargarAvisosDeMateria();
-      }, 3000);
-    } else {
-      Swal.fire({
-        position: "top-end",
-        title: "Error",
-        text: result.mensaje || "Error al crear el aviso.",
-        icon: "error",
-        timer: 3000,
-        showConfirmButton: false,
-      });
+        });
+        return;
     }
-  } catch (error) {
-    console.error("Error:", error);
-    Swal.fire({
-      position: "top-end",
-      title: "Error",
-      text: "Hubo un problema al enviar el aviso.",
-      icon: "error",
-      timer: 3000,
-      showConfirmButton: false,
-    });
-  }
+
+    const params = new URLSearchParams(window.location.search);
+
+    let grupoId = params.get("grupoId");
+    if (!grupoId) {
+        grupoId = 0;
+    }
+
+    const materiaId = params.get("materiaId");
+    if (!materiaId) return;
+
+    // Crear objeto con los datos a enviar
+    let avisoData = {
+        //DocenteId: docenteId,
+        Titulo: titulo,
+        Descripcion: descripcion,
+        GrupoId: grupoId,
+        MateriaId: materiaId,
+    };
+
+    try {
+        // Enviar datos al controlador
+        let response = await fetch("/Materias/CrearAviso", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(avisoData),
+        });
+
+        let result = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                position: "top-end",
+                title: "Aviso creado",
+                text: "El aviso ha sido publicado correctamente.",
+                icon: "success",
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: {
+                    title: 'sweetAlertTitleCustom',
+                    popup: 'sweetAlertBgCustom'
+                },
+            });
+
+            setTimeout(() => {
+                document.getElementById("avisosForm").reset(); //Resetear  formulario
+                cargarAvisosDeMateria();
+            }, 3000);
+        }
+        else {
+            Swal.fire({
+                position: "top-end",
+                title: "Error",
+                text: result.mensaje || "Error al crear el aviso.",
+                icon: "error",
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: {
+                    title: 'sweetAlertTitleCustom',
+                    popup: 'sweetAlertBgCustom'
+                },
+            });
+        }
+    }
+    catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+            position: "top-end",
+            title: "Error",
+            text: "Hubo un problema al enviar el aviso.",
+            icon: "error",
+            timer: 3000,
+            showConfirmButton: false,
+            customClass: {
+                title: 'sweetAlertTitleCustom',
+                popup: 'sweetAlertBgCustom'
+            }
+        });
+    }
 }
 
 async function eliminarAviso(avisoId) {
-  // Mostrar una confirmación antes de proceder con la eliminación
-  const confirmacion = await Swal.fire({
-    title: "¿Estás seguro de eliminar este aviso?",
-    text: "¡Esta acción no se puede deshacer!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-  });
-
-  // Si el usuario confirma la eliminación, proceder con la solicitud DELETE
-  if (confirmacion.isConfirmed) {
-    try {
-      // Hacer la solicitud DELETE para eliminar el aviso
-      const response = await fetch(`/Materias/EliminarAviso?id=${avisoId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
+    // Mostrar una confirmación antes de proceder con la eliminación
+    const confirmacion = await Swal.fire({
+        title: "¿Estás seguro de eliminar este aviso?",
+        text: "¡Esta acción no se puede deshacer!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        customClass: {
+            title: 'sweetAlertTxtCustom',
+            popup: 'sweetAlertBgCustom'
         },
-      });
+    });
 
-      // Verificar si la respuesta fue exitosa
-      if (response.ok) {
-        // Mostrar mensaje de éxito
-        Swal.fire({
-          icon: "success",
-          title: "Aviso eliminado con éxito",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        cargarAvisosDeMateria(); // Recargar los avisos después de eliminar
-      } else {
-        // Si la respuesta no es exitosa, mostrar un error
-        const errorData = await response.json();
-        Swal.fire({
-          icon: "error",
-          title: "Error al eliminar el aviso",
-          text: errorData.mensaje,
-          showConfirmButton: true,
-        });
-      }
-    } catch (error) {
-      // En caso de error en la solicitud
-      Swal.fire({
-        icon: "error",
-        title: "Error al conectar con el servidor",
-        text: "Por favor, intente nuevamente.",
-        showConfirmButton: true,
-      });
+    // Si el usuario confirma la eliminación, proceder con la solicitud DELETE
+    if (confirmacion.isConfirmed) {
+        try {
+            // Hacer la solicitud DELETE para eliminar el aviso
+            const response = await fetch(`/Materias/EliminarAviso?id=${avisoId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            // Verificar si la respuesta fue exitosa
+            if (response.ok) {
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: "success",
+                    title: "Aviso eliminado con éxito",
+                    showConfirmButton: false,
+                    customClass: {
+                        title: 'sweetAlertTxtCustom',
+                        popup: 'sweetAlertBgCustom'
+                    },
+                    timer: 1500,
+                });
+                cargarAvisosDeMateria(); // Recargar los avisos después de eliminar
+            } else {
+                // Si la respuesta no es exitosa, mostrar un error
+                const errorData = await response.json();
+                Swal.fire({
+                    icon: "error",
+                    title: "Error al eliminar el aviso",
+                    text: errorData.mensaje,
+                    showConfirmButton: true,
+                    customClass: {
+                        title: 'sweetAlertTitleCustom',
+                        popup: 'sweetAlertBgCustom'
+                    },
+                });
+            }
+        } catch (error) {
+                // En caso de error en la solicitud
+                Swal.fire({
+                icon: "error",
+                title: "Error al conectar con el servidor",
+                text: "Por favor, intente nuevamente.",
+                showConfirmButton: true,
+                customClass: {
+                    title: 'sweetAlertTitleCustom',
+                    popup: 'sweetAlertBgCustom'
+                },
+            });
+        }
     }
-  }
 }
 
 //Edita un aviso desde su id
@@ -179,13 +319,17 @@ async function editarAviso(avisoId) {
     const { value: formValues } = await Swal.fire({
       title: "Editar Aviso",
       html: `
-                <input id="swal-titulo" class="swal2-input" placeholder="Título" value="${aviso.Titulo}">
-                <textarea id="swal-descripcion" class="swal2-textarea" placeholder="Descripción">${aviso.Descripcion}</textarea>
+                <input id="swal-titulo" class="swal2-input sweetAlertTxtCustom" placeholder="Título" value="${aviso.Titulo}">
+                <textarea id="swal-descripcion" class="swal2-textarea sweetAlertTxtCustom" placeholder="Descripción">${aviso.Descripcion}</textarea>
             `,
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: "Guardar Cambios",
       cancelButtonText: "Cancelar",
+      customClass: {
+          popup: 'sweetAlertBgCustom',
+          title: 'sweetAlertTxtCustom'
+      },
       preConfirm: () => {
         return {
           titulo: document.getElementById("swal-titulo").value.trim(),
@@ -211,11 +355,16 @@ async function editarAviso(avisoId) {
 
     if (!updateResponse.ok) throw new Error("No se pudo actualizar el aviso.");
 
-    Swal.fire(
-      "Actualizado",
-      "El aviso ha sido editado correctamente.",
-      "success"
-    );
+    Swal.fire({
+      title: "Actualizado",
+      text: "El aviso ha sido editado correctamente.",
+      icon: "success",
+      customClass: {
+          popup: 'sweetAlertBgCustom',
+          title: 'sweetAlertTxtCustom',
+      }
+
+    });
 
     // Recargar avisos para reflejar los cambios
     cargarAvisosDeMateria();
@@ -225,17 +374,17 @@ async function editarAviso(avisoId) {
 }
 
 function renderizarAvisos(avisos, rolUsuario) {
-  const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
-  listaAvisos.innerHTML = ""; // Limpiar el contenedor
+    const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
+    listaAvisos.innerHTML = ""; // Limpiar el contenedor
 
-  if (avisos.length === 0) {
+    if (avisos.length === 0) {
     listaAvisos.innerHTML =
-      "<p>No hay avisos registrados para esta materia.</p>";
+        "<p>No hay avisos registrados para esta materia.</p>";
     return;
-  }
-  avisos.reverse();
+    }
+    avisos.reverse();
 
-  avisos.forEach((aviso) => {
+    avisos.forEach((aviso) => {
     const avisoItem = document.createElement("div");
     avisoItem.classList.add("aviso-item");
     //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);

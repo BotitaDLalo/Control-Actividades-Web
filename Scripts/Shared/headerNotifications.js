@@ -131,9 +131,9 @@ function renderizarNotificaciones(notificaciones) {
                 </div>
 
                 <div class="noti-contenido">
-                    <div><strong>${encabezado}</strong></div>
-                    <div class="small text-muted">${n.Title}</div>
-                    <div class="small text-secondary">${new Date(n.FechaRecibido).toLocaleString()}</div>
+                    <div class="noti-titulo"><strong>${encabezado}</strong></div>
+                    <div class="noti-descripcion">${n.Title}</div>
+                    <div class="noti-fecha">${new Date(n.FechaRecibido).toLocaleString()}</div>
                 </div>    
 
                 <div class="noti-opciones">

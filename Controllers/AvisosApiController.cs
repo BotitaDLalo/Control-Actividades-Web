@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -353,56 +353,6 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        [Route("ActualizarAviso")]
-        public async Task<IHttpActionResult> ActualizarAviso(AvisoDto avisoActualizado)
-        {
-            try
-            {
-                if (avisoActualizado.AvisoId <= 0)
-                {
-                    return BadRequest("ID de aviso no válido.");
-                }
-
-                // 1. Usamos FindAsync igual que en tu método ActualizarActividad
-                var dbAviso = await Db.tbAvisos.FindAsync(avisoActualizado.AvisoId);
-
-                if (dbAviso == null)
-                {
-                    return Content(HttpStatusCode.NotFound, "Aviso no encontrado");
-                }
-
-                // 2. Actualización de campos
-                dbAviso.Titulo = avisoActualizado.Titulo;
-                dbAviso.Descripcion = avisoActualizado.Descripcion;
-
-                // 3. Guardar cambios
-                await Db.SaveChangesAsync();
-
-                // 4. Proyección Limpia (Igual que en ActualizarActividad)
-                // Esto evita el Error 500 por referencias circulares.
-                var respuestaLimpia = new
-                {
-                    AvisoId = dbAviso.AvisoId,
-                    Titulo = dbAviso.Titulo,
-                    Descripcion = dbAviso.Descripcion,
-                    DocenteId = dbAviso.DocenteId,
-                    GrupoId = dbAviso.GrupoId,
-                    MateriaId = dbAviso.MateriaId,
-                    FechaCreacion = dbAviso.FechaCreacion,
-                    // Si tienes el nombre del docente disponible en el objeto cargado (por caché de EF), lo enviamos.
-                    // Si no, enviamos un string genérico o nulo, ya que Flutter probablemente ya tiene el nombre.
-               
-                };
-
-                return Ok(respuestaLimpia);
-            }
-            catch (Exception e)
-            {
-                return BadRequest("Error al actualizar: " + e.Message);
-            }
-        }
-
-        /*[HttpPost]
         [Route("ActualizarAviso")]
         public async Task<IHttpActionResult> ActualizarAviso(AvisoDto avisoActualizado)
         {
