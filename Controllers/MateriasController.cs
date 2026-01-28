@@ -36,6 +36,7 @@ namespace ControlMaterias.Controllers
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
         private NotificacionesService _notifServ;
+        private MateriasService _materiasService;
 
         public MateriasController()
         {
@@ -50,6 +51,7 @@ namespace ControlMaterias.Controllers
             Ns = notificacionesService;
         }
 
+        #region Propiedades
         public ApplicationSignInManager SignInManager
         {
             get
@@ -122,43 +124,59 @@ namespace ControlMaterias.Controllers
             }
         }
 
-        #endregion
+        public MateriasService MateriasService
+        {
+            get
+            {
+                return _materiasService ?? (_materiasService = new MateriasService());
+            }
+            private set
+            {
+                _materiasService = value;
+            }
+        }
 
+        #endregion
+        #endregion
 
         public ActionResult Index()
         {
-            var lsMaterias = ObtenerMateriasSinGrupoPorUsuario();
+            //var lsMaterias = ObtenerMateriasSinGrupoPorUsuario();
+            int usuarioId = Fg.ObtenerUsuarioId(User);
+            string role = Fg.ObtenerRolUsuario(User);
+
+            List<MateriaViewModel> lsMaterias = MateriasService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, role);
 
             return View(lsMaterias);
         }
 
-        [HttpGet]
-        public ActionResult GrupoMaterias(int? grupoId)
-        {
-            if (!grupoId.HasValue)
-            {
-                return RedirectToAction("Grupos");
-            }
+        //[HttpGet]
+        //public ActionResult GrupoMaterias(int? grupoId)
+        //{
+        //    if (!grupoId.HasValue)
+        //    {
+        //        return RedirectToAction("Grupos");
+        //    }
 
-            string userId = User.Identity.GetUserId();
-            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+        //    string userId = User.Identity.GetUserId();
+        //    var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
-            ViewBag.DocenteId = docenteId;
-            ViewBag.GrupoId = grupoId.Value;
+        //    ViewBag.DocenteId = docenteId;
+        //    ViewBag.GrupoId = grupoId.Value;
 
-            //return View("Grupos/GrupoMaterias");
-            return View("~/Views/Materias/GrupoMaterias.cshtml");
-        }
+        //    //return View("Grupos/GrupoMaterias");
+        //    return View("~/Views/Materias/GrupoMaterias.cshtml");
+        //}
 
-        [HttpGet]
-        public ActionResult MateriasSinGrupo()
-        {
-            string userId = User.Identity.GetUserId();
-            var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
+        //[HttpGet]
+        //public ActionResult MateriasSinGrupo()
+        //{
+        //    string userId = User.Identity.GetUserId();
+        //    var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
-            ViewBag.DocenteId = docenteId;
-            return View("MateriasSinGrupoStandalone");
-        }
+        //    ViewBag.DocenteId = docenteId;
+        //    return View("MateriasSinGrupoStandalone");
+        //}
 
         [HttpPost]
         public async Task<ActionResult> AsociarMateriasAGrupo(AsociarMateriasRequest request)
@@ -205,19 +223,19 @@ namespace ControlMaterias.Controllers
         {
             try
             {
-                // Consulta la base de datos usando Entity Framework para obtener los detalles de la materia
-                var materiaDetalles = await Db.tbMaterias
-                    .Where(m => m.MateriaId == materiaId && m.DocenteId == docenteId)
-                    .Select(m => new
-                    {
-                        NombreMateria = m.NombreMateria,
-                        CodigoAcceso = m.CodigoAcceso,
-                        CodigoColor = m.CodigoColor,
-                        DocenteId = m.DocenteId
-                    })
-                    .FirstOrDefaultAsync();
+                //var materiaDetalles = await Db.tbMaterias
+                //    .Where(m => m.MateriaId == materiaId && m.DocenteId == docenteId)
+                //    .Select(m => new MateriaViewModel
+                //    {
+                //        NombreMateria = m.NombreMateria,
+                //        CodigoAcceso = m.CodigoAcceso,
+                //        CodigoColor = m.CodigoColor,
+                //        DocenteId = m.DocenteId
+                //    })
+                //    .FirstOrDefaultAsync();
 
-                // Verifica si no se encontraron detalles de la materia
+                MateriaViewModel materiaDetalles = await MateriasService.ObtenerMateriaDetalles(materiaId, docenteId);
+
                 if (materiaDetalles == null)
                 {
                     Response.StatusCode = 404; // Not Found
@@ -503,10 +521,10 @@ namespace ControlMaterias.Controllers
                 await Db.SaveChangesAsync();
 
                 //Envío de notificación a los alumnos dentro de la materia
-                await Ns.NotificacionCrearActividad(
+                /*await Ns.NotificacionCrearActividad(
                     nuevaActividad,
                     nuevaActividad.MateriaId
-                    );
+                    );*/
 
                 return Json(new { mensaje = "Actividad creada y asignada a los alumnos con éxito", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
             }
@@ -1115,7 +1133,9 @@ namespace ControlMaterias.Controllers
 
             // La vista física está en Views/Docente/MateriasDetalles.cshtml
             // Aseguramos que se cargue la vista correcta especificando la ruta completa
-            return View("~/Views/Docente/MateriasDetalles.cshtml");
+
+            //return View("~/Views/Docente/MateriasDetalles.cshtml");
+            return View("MateriaDetalles");
         }
 
 

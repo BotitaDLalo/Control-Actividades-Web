@@ -1,0 +1,580 @@
+﻿@using Rol = ControlActividades.Roles;
+@{
+    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    ViewBag.Title = "MateriasDetalles";
+    Html.RenderPartial("~/Views/Docente/CrearActividadModal.cshtml");
+    Html.RenderPartial("~/Views/Docente/crearAvisoMateriaModal.cshtml");
+
+    int docenteId = ViewBag.DocenteId != null ? (int)ViewBag.DocenteId : 0;
+
+    int materiaId = ViewBag.MateriaId != null ? (int)ViewBag.MateriaId : 0;
+
+    int grupoId = ViewBag.GrupoId != null ? (int)ViewBag.GrupoId : 0;
+}
+<div id="docente-datos" data-docenteid="@docenteId"></div>
+<div class="materia-container">
+    <style>
+        /* Mejorar distribución de columnas en la tabla de entregables */
+        .table-entregables {
+            table-layout: fixed;
+            width: 100%;
+            min-width: 900px;
+        }
+
+            .table-entregables th:nth-child(1) {
+                width: 25%;
+            }
+
+            .table-entregables th:nth-child(2) {
+                width: 50%;
+            }
+
+            .table-entregables th:nth-child(3) {
+                width: 15%;
+            }
+
+            .table-entregables th:nth-child(4) {
+                width: 6%;
+            }
+
+            .table-entregables th:nth-child(5) {
+                width: 4%;
+            }
+
+            .table-entregables th, .table-entregables td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                vertical-align: middle;
+                padding: .85rem;
+            }
+                /* permitir que el contenido de la respuesta haga wrap y no desborde la celda */
+                .table-entregables td pre {
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    margin: 0;
+                }
+
+            .table-entregables .cal-cell {
+                text-align: center;
+            }
+
+        @@media (max-width: 992px) {
+            .table-entregables {
+                min-width: 700px;
+            }
+
+                .table-entregables th:nth-child(1) {
+                    width: 30%;
+                }
+
+                .table-entregables th:nth-child(2) {
+                    width: 42%;
+                }
+
+                .table-entregables th:nth-child(3) {
+                    width: 18%;
+                }
+
+                .table-entregables th:nth-child(4) {
+                    width: 6%;
+                }
+
+                .table-entregables th:nth-child(5) {
+                    width: 4%;
+                }
+        }
+    </style>
+    <!-- Compact header: shows materia name and access code without large decorative card -->
+    <div class="materia-header-compact materia-header d-flex align-items-center justify-content-between" style="padding:12px 20px; border-radius:8px; margin-bottom:12px; background: linear-gradient(90deg,#42c1ff 0%,#1e88e5 100%); color:#fff;">
+        <div style="display:flex;flex-direction:column;">
+            <h2 id="materiaNombre" style="margin:0; font-size:1.4rem; font-weight:600;">Cargando...</h2>
+            <small style="opacity:0.95; margin-top:6px;">
+                Código: <strong id="codigoAcceso">Cargando...</strong>
+                <button type="button" class="btn btn-sm btn-light" style="margin-left:8px; padding:2px 8px; font-size:0.85rem;" onclick="copiarCodigoAcceso()" title="Copiar código">Copiar</button>
+            </small>
+        </div>
+        <div class="ico-card" style="font-size:28px; opacity:0.95;"><i class="fas fa-book"></i></div>
+    </div>
+
+    <script>
+        // Cargar y mostrar actividades como accordion; dentro cargar entregables ordenados por alumno
+        // Asegurar que el HTML generado no rompa el diseño: envolvemos en contenedores y usamos clases de bootstrap
+        async function cargarActividadesParaEntregables() {
+            try {
+                var cont = document.getElementById('listaEntregables');
+                if (!cont) return;
+                cont.innerHTML = '<div class="text-muted p-3">Cargando actividades...</div>';
+                const resp = await fetch('/api/Actividades/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(materiaIdGlobal));
+                if (!resp.ok) { cont.innerHTML = '<div class="text-danger p-3">No se pudieron cargar actividades.</div>'; return; }
+                const payload = await resp.json();
+                const lista = payload && payload.Actividades ? payload.Actividades : (Array.isArray(payload) ? payload : []);
+                if (!lista || lista.length === 0) { cont.innerHTML = '<p class="text-muted p-3">No hay actividades para esta materia.</p>'; return; }
+                // Build accordion inside a card for better layout
+                var html = '<div class="card"><div class="card-body p-0"><div class="accordion" id="accordionActividades">';
+                lista.forEach(function (a, idx) {
+                    var id = a.ActividadId || a.actividadId || a.Id || ('act_' + idx);
+                    var nombre = a.NombreActividad || a.nombreActividad || a.Nombre || ('Actividad ' + id);
+                    var descripcion = a.Descripcion || '';
+                    html += `<div class="accordion-item">\n                        <h2 class="accordion-header" id="heading${id}">\n                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="false" aria-controls="collapse${id}">\n                            ${escapeHtml(nombre)}\n                          </button>\n                        </h2>\n                        <div id="collapse${id}" class="accordion-collapse collapse" aria-labelledby="heading${id}" data-bs-parent="#accordionActividades">\n                          <div class="accordion-body" data-actividad-id="${id}">\n                            <p class="text-muted mb-2">${escapeHtml(descripcion)}</p>\n                            <div class="entregables-contenedor" id="cont_entregables_${id}"><small class="text-muted">Presiona el encabezado para cargar entregables.</small></div>\n                          </div>\n                        </div>\n                      </div>`;
+                });
+                html += '</div></div></div>';
+                cont.innerHTML = html;
+                // Para cada actividad, consultar rápidamente si tiene entregables pendientes (sin calificar)
+                lista.forEach(async function (a, idx) {
+                    try {
+                        var id = a.ActividadId || a.actividadId || a.Id || ('act_' + idx);
+                        var badgeEl = document.querySelector(`#heading${id} .badge-pendientes`);
+                        // fetch entregables for this activity and count pendientes
+                        const r = await fetch(`/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(id)}`);
+                        if (!r.ok) return;
+                        const d = await r.json();
+                        const items = d && d.AlumnosEntregables ? d.AlumnosEntregables : [];
+                        const pendientes = items.filter(it => it.Calificacion === null || typeof it.Calificacion === 'undefined').length;
+                        if (pendientes > 0) {
+                            var btn = document.querySelector(`#heading${id} .accordion-button`);
+                            if (btn) {
+                                // append small badge if not present (styled to not break layout)
+                                if (!btn.querySelector('.badge-pendientes')) {
+                                    var span = document.createElement('span');
+                                    span.className = 'badge bg-danger ms-2 badge-pendientes';
+                                    span.style.fontSize = '0.8rem';
+                                    span.style.verticalAlign = 'middle';
+                                    span.innerText = pendientes;
+                                    btn.appendChild(span);
+                                } else {
+                                    badgeEl.innerText = pendientes;
+                                }
+                            }
+                        }
+                    } catch (e) { /* ignore per-activity errors */ }
+                });
+
+                lista.forEach(function (a, idx) {
+                    var id = a.ActividadId || a.actividadId || a.Id || ('act_' + idx);
+                    var collapseEl = document.getElementById('collapse' + id);
+                    if (!collapseEl) return;
+                    collapseEl.addEventListener('show.bs.collapse', function () {
+                        var target = document.getElementById('cont_entregables_' + id);
+                        if (target && !target.dataset.loaded) {
+                            cargarEntregablesPorActividad(id, target);
+                        }
+                    });
+                });
+
+                var busc = document.getElementById('buscarActividadEntregables');
+                if (busc) {
+                    busc.addEventListener('input', function () {
+                        var term = (this.value || '').toLowerCase();
+                        document.querySelectorAll('#accordionActividades .accordion-item').forEach(function (item) {
+                            var btn = item.querySelector('.accordion-button');
+                            var visible = !term || (btn && btn.innerText.toLowerCase().indexOf(term) !== -1);
+                            item.style.display = visible ? '' : 'none';
+                        });
+                    });
+                }
+            } catch (e) { console.error(e); document.getElementById('listaEntregables').innerHTML = '<div class="text-danger p-3">Error al cargar actividades.</div>'; }
+        }
+
+        async function cargarEntregablesPorActividad(actividadId, cont) {
+            try {
+                if (!cont) cont = document.getElementById('listaEntregables');
+                cont.innerHTML = '<div class="text-muted p-3">Cargando entregables...</div>';
+                const resp = await fetch(`/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`);
+                if (!resp.ok) { cont.innerHTML = '<div class="text-danger p-3">No se pudo cargar entregables.</div>'; return; }
+                const data = await resp.json();
+                const list = data && data.AlumnosEntregables ? data.AlumnosEntregables : [];
+                if (!list || list.length === 0) { cont.innerHTML = '<p class="text-muted p-3">No hay entregables para esta actividad.</p>'; cont.dataset.loaded = 'true'; return; }
+
+                list.sort(function (x, y) {
+                    var a = (x.NombreUsuario || (x.Nombres || '') + ' ' + (x.ApellidoPaterno || '')).toLowerCase();
+                    var b = (y.NombreUsuario || (y.Nombres || '') + ' ' + (y.ApellidoPaterno || '')).toLowerCase();
+                    return a < b ? -1 : (a > b ? 1 : 0);
+                });
+
+                var html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Alumno</th><th>Respuesta</th><th>Fecha</th><th>Calificación</th><th>Acciones</th></tr></thead><tbody>';
+                list.forEach(function (it) {
+                    var nombre = (it.NombreUsuario && it.NombreUsuario.trim()) ? it.NombreUsuario : ((it.Nombres || '') + ' ' + (it.ApellidoPaterno || '') + ' ' + (it.ApellidoMaterno || '')).trim();
+                    var respTxt = it.Respuesta ? (it.Respuesta.length > 200 ? it.Respuesta.substring(0, 200) + '...' : it.Respuesta) : '-';
+                    var fecha = it.FechaEntrega ? new Date(it.FechaEntrega).toLocaleString() : '-';
+                    var cal = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? '<em>Pendiente</em>' : it.Calificacion;
+                    var btnText = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'Evaluar' : 'Editar';
+                    var btnClass = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'btn btn-sm btn-success btn-evaluar' : 'btn btn-sm btn-warning btn-evaluar';
+                    html += `<tr data-entrega-id="${it.EntregaId}" data-alumno-id="${it.AlumnoId}"><td>${escapeHtml(nombre)}</td><td><pre style="white-space:pre-wrap;margin:0">${escapeHtml(respTxt)}</pre></td><td>${fecha}</td><td class="cal-cell">${cal}</td><td><button class="${btnClass}" data-entrega-id="${it.EntregaId}" data-respuesta="${encodeURIComponent(it.Respuesta || '')}">${btnText}</button></td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                cont.innerHTML = html;
+                cont.dataset.loaded = 'true';
+
+                cont.querySelectorAll('.btn-evaluar').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        var entregaId = this.getAttribute('data-entrega-id');
+                        var respuesta = decodeURIComponent(this.getAttribute('data-respuesta') || '');
+                        var modal = new bootstrap.Modal(document.getElementById('entregablesModal'));
+                        var modalBody = document.querySelector('#entregablesModal .modal-body');
+                        modalBody.innerHTML = `<div><strong>Respuesta completa:</strong><pre style="white-space:pre-wrap">${escapeHtml(respuesta)}</pre></div><div class="mt-3"><label>Calificación</label><input id="modalCalificacion" type="number" min="0" max="${data.Puntaje || 100}" class="form-control"/></div><div class="mt-2"><label>Comentario</label><textarea id="modalComentario" class="form-control"></textarea></div><div class="mt-3 text-end"><button id="modalGuardarCalificacion" class="btn btn-success">Guardar</button></div>`;
+                        modal.show();
+                        document.getElementById('modalGuardarCalificacion').addEventListener('click', async function () {
+                            var calVal = parseInt(document.getElementById('modalCalificacion').value || '0', 10);
+                            var coment = document.getElementById('modalComentario').value || '';
+                            try {
+                                const payload = { EntregaId: 0, EntregableId: parseInt(entregaId, 10), Calificacion: calVal, Comentario: coment };
+                                const r = await fetch('/api/Actividades/AsignarCalificacion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                                if (!r.ok) { alert('No se pudo guardar la calificación'); return; }
+                                var row = cont.querySelector(`tr[data-entrega-id="${entregaId}"]`);
+                                if (row) { var cell = row.querySelector('.cal-cell'); if (cell) cell.innerHTML = String(calVal); }
+                                modal.hide();
+                                window.dispatchEvent(new CustomEvent('entregableCalificado', { detail: { entregaId: entregaId, calificacion: calVal } }));
+                                try { localStorage.setItem('entregableCalificado', JSON.stringify({ entregaId: entregaId, calificacion: calVal, ts: Date.now() })); } catch (e) { }
+                            } catch (e) { console.error(e); alert('Error al guardar calificación'); }
+                        });
+                    });
+                });
+
+            } catch (e) { console.error(e); cont.innerHTML = '<div class="text-danger p-3">Error al cargar entregables.</div>'; }
+        }
+
+        function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>\"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
+    </script>
+
+    <nav class="materia-nav">
+        <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
+        <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
+        <button class="tab-button" onclick="cambiarSeccion('entregables')">Entregables</button>
+
+        @if (User.IsInRole(Rol.DOCENTE))
+        {
+            <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
+            <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
+        }
+    </nav>
+
+    <div id="contenedor-dinamico" class="materia-content">
+        <div id="seccion-avisos" class="seccion">
+            <div class="dropdown">
+                <button class="btn-crear">Crear ▼</button>
+                <div class="dropdown-content">
+                    <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearAvisoMateriaModal">
+                        Crear Aviso
+                    </button>
+                </div>
+            </div>
+            <!-- Filtros para avisos: buscar por título y filtrar por rango de fechas -->
+            <div class="avisos-filters mb-3" style="display:flex;gap:8px;align-items:center;">
+                <input id="buscarAvisoTitulo" class="form-control" placeholder="Buscar por título..." style="max-width:360px;" />
+                <input id="fechaDesdeAviso" type="date" class="form-control" style="max-width:170px;" />
+                <input id="fechaHastaAviso" type="date" class="form-control" style="max-width:170px;" />
+                <button id="btnLimpiarFiltrosAvisos" class="btn btn-secondary" type="button">Limpiar</button>
+            </div>
+            <div class="divider"></div>
+            <div id="listaDeAvisosDeMateria"></div>
+        </div>
+
+        <div id="seccion-actividades" class="seccion" style="display: none;">
+            <div class="dropdown">
+                <button class="btn-crear">Crear ▼</button>
+                @if (User.IsInRole(Rol.DOCENTE))
+                {
+                    <div class="dropdown-content">
+                        <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearActividadModal">
+                            📋Crear Tarea
+                        </button>
+                    </div>
+                }
+            </div>
+            <!-- Filter control will be injected dynamically by scriptsActividades.js -->
+            <div class="divider"></div>
+            <div id="listaActividadesDeMateria"></div>
+        </div>
+
+        <div id="seccion-entregables" class="seccion" style="display: none;">
+            <div class="divider"></div>
+            <!-- Filtro por actividad -->
+            <div class="mb-3 entregables-filters">
+                <label for="buscarActividadEntregables" class="col-form-label">Buscar actividad:</label>
+                <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
+
+                <label for="selectActividadEntregables" class="mb-0">Filtrar por actividad:</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <select id="selectActividadEntregables" class="form-select form-select-sm">
+                        <option value="0">-- Seleccione una actividad --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
+            <div id="listaEntregables" class="mt-2">
+                <p class="text-muted">Selecciona una actividad para ver los entregables.</p>
+            </div>
+        </div>
+
+        <div id="seccion-alumnos" class="seccion" style="display: none;">
+            <div class="container mt-3">
+                <div class="row" style="align-items:center;">
+                    <div class="col-md-6">
+                        <label for="buscarAlumno" class="form-label">Buscar alumno por correo:</label>
+                        <div class="input-group" style="position:relative;">
+                            <input type="text" id="buscarAlumno" class="form-control" placeholder="Escribe correo o nombre..." autocomplete="off" aria-autocomplete="list" aria-controls="sugerenciasAlumnos" />
+                            <button id="btnAsignarAlumno" class="btn btn-primary" type="button">Asignar Alumno</button>
+                            <ul id="sugerenciasAlumnos" class="list-group" style="position:absolute; top:100%; left:0; right:0; width:100%; z-index:2000; display:none; max-height:220px; overflow:auto; margin-top:4px;"></ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-end">
+                        @if (User != null && User.IsInRole("Docente"))
+                        {
+                            <button type="button" id="btnImportarAlumnos" class="btn btn-success" title="Importar desde Excel"><i class="fas fa-file-excel" style="margin-right:8px"></i>Importar Alumnos</button>
+                            <input type="file" id="fileImportarAlumnos" accept=".xlsx,.xls" style="display:none" />
+                        }
+                    </div>
+                </div>
+            </div>
+            <div id="listaAlumnosAsignados" class="mt-3"></div>
+        </div>
+
+        <div id="seccion-configuracion" class="seccion" style="display: none;">
+            <h4>Configuración de la materia</h4>
+
+            <div class="mb-3">
+                <label class="form-label">Editar Nombre</label>
+                <div class="input-group">
+                    <input id="configNombre" class="form-control" />
+                    <button id="btnGuardarNombre" class="btn btn-primary" type="button" style="margin-left:2cm;">Guardar</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Editar Descripción</label>
+                <div class="d-flex" style="gap:10px; align-items:flex-start;">
+                    <textarea id="configDescripcion" class="form-control" style="min-height:120px; flex:1;"></textarea>
+                    <button id="btnGuardarDescripcion" class="btn btn-primary" type="button" style="height:40px; align-self:flex-start; margin-left:2cm;">Guardar</button>
+                </div>
+            </div>
+
+            <div class="d-flex" style="gap:10px;">
+                <button id="btnCopiarMateria" class="btn btn-secondary">Copiar Materia</button>
+                <button id="btnCambiarCodigo" class="btn btn-warning">Cambiar código de clase</button>
+                <button id="btnEliminarMateria" class="btn btn-danger">Eliminar Materia</button>
+            </div>
+        </div>
+
+        <div id="seccion-calificaciones" class="seccion" style="display: none;">
+            <h2>Calificaciones</h2>
+            <p>Notas de los estudiantes...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Poblar select de entregables (opcional)
+        async function poblarSelectActividadesEntregables() {
+            try {
+                var sel = document.getElementById('selectActividadEntregables');
+                if (!sel) return;
+                const resp = await fetch('/api/Actividades/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(materiaIdGlobal));
+                if (!resp.ok) return;
+                const payload = await resp.json().catch(() => null);
+                var lista = [];
+                if (!payload) return;
+                if (Array.isArray(payload)) lista = payload;
+                else if (payload.Actividades && Array.isArray(payload.Actividades)) lista = payload.Actividades;
+                else {
+                    // try find first array property
+                    const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
+                    if (arr) lista = arr;
+                }
+
+                sel.innerHTML = '<option value="0">-- Seleccione una actividad --</option>';
+                lista.forEach(function (a) {
+                    var opt = document.createElement('option');
+                    opt.value = a.ActividadId || a.Id || a.actividadId || 0;
+                    opt.text = a.NombreActividad || a.Nombre || a.nombreActividad || '';
+                    sel.appendChild(opt);
+                });
+                sel.addEventListener('change', function () {
+                    var id = sel.value;
+                    if (!id || id === '0') {
+                        document.getElementById('listaEntregables').innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
+                        return;
+                    }
+                    localStorage.setItem('actividadSeleccionada', id);
+                    cargarEntregablesPorActividad(id);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // Exponer ids y base path para los scripts compartidos
+        window.materiaIdGlobal = '@materiaId';
+        window.grupoIdGlobal = '@grupoId';
+        window.appBasePath = '@Url.Content("~")';
+        var materiaIdGlobal = window.materiaIdGlobal;
+        var grupoIdGlobal = window.grupoIdGlobal;
+
+        // Intento inicial de poblar encabezado si se dispone de materiaId
+        (function () {
+            try {
+                if (materiaIdGlobal) {
+                    fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
+                        .then(r => { if (!r.ok) throw r; return r.json(); })
+                        .then(d => {
+                if (d && d.NombreMateria) {
+                                // update compact header
+                                var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
+                                var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
+                                try { var hdr = document.querySelector('.materia-header-compact'); if (hdr && d.CodigoColor) hdr.style.background = d.CodigoColor; } catch (e) { }
+                            }
+                        }).catch(() => { /* no-op */ });
+                }
+            } catch (e) { }
+            try {
+                if (materiaIdGlobal) { localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); localStorage.removeItem('grupoIdSeleccionado'); }
+                if (grupoIdGlobal && grupoIdGlobal !== '0') { localStorage.setItem('grupoIdSeleccionado', String(grupoIdGlobal)); }
+            } catch (e) { console.warn('No se pudo guardar materia/grupo en storage', e); }
+        })();
+
+        // Ensure actividades are loaded when this view is rendered. If the actividades script
+        // hasn't run yet, retry shortly. This avoids timing issues between bundles and inline scripts.
+        setTimeout(function () {
+            try {
+                if (typeof cargarActividadesDeMateria === 'function') {
+                    cargarActividadesDeMateria(materiaIdGlobal, true);
+                } else {
+                    console.debug('cargarActividadesDeMateria not yet available');
+                }
+            } catch (e) { console.error('Error invoking cargarActividadesDeMateria:', e); }
+        }, 150);
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/materias")
+    @Scripts.Render("~/bundles/grupos")
+    @Scripts.Render("~/bundles/avisos")
+
+    <script src="~/Scripts/Materias/configuracion.js"></script>
+}
+
+<div class="modal fade" id="entregablesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Entregables</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Aún no hay entregables configurados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // abrir modal de entregables
+    function abrirEntregables() {
+        var modalEl = document.getElementById('entregablesModal');
+        if (!modalEl) return;
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Guardar nombre y descripcion con botones individuales
+        const btnGuardarNombre = document.getElementById('btnGuardarNombre');
+        const btnGuardarDescripcion = document.getElementById('btnGuardarDescripcion');
+
+        async function guardarConfig() {
+            const nombre = document.getElementById('configNombre').value.trim();
+            const descripcion = document.getElementById('configDescripcion').value.trim();
+            if (!nombre) { Swal.fire('Error', 'El nombre es requerido', 'error'); return false; }
+            try {
+                const resp = await fetch(`/Materias/ActualizarMateria?materiaId=${materiaIdGlobal}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ NombreMateria: nombre, Descripcion: descripcion })
+                });
+                // Actualizar lista de actividades en la sección Entregables
+                cargarActividadesParaEntregables();
+                if (resp.ok) { Swal.fire({ position: 'top-end', icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 }); return true; }
+                else { Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
+            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); return false; }
+        }
+
+        if (btnGuardarNombre) btnGuardarNombre.addEventListener('click', function () { guardarConfig(); });
+        if (btnGuardarDescripcion) btnGuardarDescripcion.addEventListener('click', function () { guardarConfig(); });
+
+        // rellenar inputs de configuracion con datos actuales
+        fetch(`/api/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`).then(r => r.json()).then(data => {
+            if (data && data.NombreMateria) {
+                document.getElementById('configNombre').value = data.NombreMateria || '';
+                document.getElementById('configDescripcion').value = data.Descripcion || '';
+            }
+        }).catch(()=>{});
+        // Configuración actions
+        const btnEliminar = document.getElementById('btnEliminarMateria');
+        const btnCopiar = document.getElementById('btnCopiarMateria');
+        const btnEditar = document.getElementById('btnEditarMateria');
+
+        if (btnEliminar) btnEliminar.addEventListener('click', async function () {
+            if (!confirm('¿Eliminar esta materia? Esta acción no se puede deshacer.')) return;
+            try {
+                const resp = await fetch(`/Materias/EliminarMateria?id=${materiaIdGlobal}`, { method: 'DELETE' });
+                if (resp.ok) {
+                    Swal.fire({ icon: 'success', title: 'Materia eliminada', showConfirmButton: false, timer: 1500 });
+                    // redirect to grupos overview
+                    window.location.href = '/Docente/Index';
+                } else {
+                    const txt = await resp.text();
+                    Swal.fire('Error', txt || 'No se pudo eliminar la materia', 'error');
+                }
+            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo eliminar', 'error'); }
+        });
+
+        if (btnCopiar) btnCopiar.addEventListener('click', async function () {
+            try {
+                // get current materia details
+                const respMat = await fetch(`/api/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`);
+                if (!respMat.ok) throw new Error('No se pudo obtener materia');
+                const mat = await respMat.json();
+
+                // create new materia (sin grupo) copying fields
+                const nuevo = { NombreMateria: mat.NombreMateria + ' (Copia)', Descripcion: mat.Descripcion, CodigoColor: mat.CodigoColor || '#2196F3', DocenteId: @docenteId };
+                const crear = await fetch('/Materias/CrearMateria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevo) });
+                if (!crear.ok) { const t = await crear.text(); throw new Error(t || 'Error al crear copia'); }
+                const res = await crear.json();
+                const nuevoId = res.materiaId || res.MateriaId || 0;
+
+                // intentar copiar actividades de la materia original a la nueva
+                try {
+                    await fetch('/Materias/CopiarActividades', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ origenMateriaId: materiaIdGlobal, nuevoMateriaId: nuevoId })
+                    });
+                } catch (err) {
+                    console.warn('No se pudieron copiar actividades automáticamente', err);
+                }
+
+                // Inform using native alert and then redirect to Materias sin grupo
+                alert("Materia copiada con éxito. Se encuentra en 'Materias sin Grupo'.");
+                window.location.href = '/Docente/MateriasSinGrupo';
+            } catch (e) { console.error(e); Swal.fire('Error', e.message || 'No se pudo copiar'); }
+        });
+
+        if (btnEditar) btnEditar.addEventListener('click', async function () {
+            try {
+                const nombre = document.getElementById('configNombre').value.trim();
+                const descripcion = document.getElementById('configDescripcion').value.trim();
+                if (!nombre) { Swal.fire('Error', 'Nombre requerido', 'error'); return; }
+                const payload = { MateriaId: materiaIdGlobal, NombreMateria: nombre, Descripcion: descripcion };
+                const resp = await fetch(`/Materias/ActualizarMateria?materiaId=${materiaIdGlobal}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (resp.ok) { Swal.fire({ icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1200 }); }
+                else { const txt = await resp.text(); Swal.fire('Error', txt || 'No se pudo guardar', 'error'); }
+            } catch (e) { console.error(e); Swal.fire('Error', 'No se pudo guardar', 'error'); }
+        });
+    });
+</script>
+
+@section Styles{
+    @Styles.Render("~/Content/Docente/css")
+    @Styles.Render("~/Content/Materia-Detalles/css")
+}

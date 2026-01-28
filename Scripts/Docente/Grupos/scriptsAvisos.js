@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     //Cargar los avisos asinados a la materia
     // inyectar controles de filtro (nombre + fechas)
     try {
@@ -200,7 +200,7 @@ function renderizarAvisos(avisos) {
     const items = avisos.slice().reverse();
 
     items.forEach(aviso => {
-<<<<<<< Updated upstream
+ 
         const avisoItem = document.createElement("div");
         avisoItem.classList.add("aviso-item");
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
@@ -217,7 +217,8 @@ function renderizarAvisos(avisos) {
                     <button class="aviso-editar-btn" data-id="${aviso.AvisoId}">Editar</button>
                     <button class="aviso-eliminar-btn" data-id="${aviso.AvisoId}">Eliminar</button>
                 </div>
-=======
+        `;
+
         const avisoItem = document.createElement('div');
         avisoItem.className = 'aviso-item';
         // Crear card
@@ -228,7 +229,6 @@ function renderizarAvisos(avisos) {
                 <div class="aviso-descripcion oculto">${escapeHtml(aviso.Descripcion)}</div>
                 <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</div>
                 <div class="ver-completo">Ver completo</div>
->>>>>>> Stashed changes
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;margin-left:12px">
                 <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${aviso.AvisoId}">Editar</button>

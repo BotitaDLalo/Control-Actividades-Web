@@ -26,23 +26,74 @@
 <div class="materia-container">
     <style>
         /* Mejorar distribución de columnas en la tabla de entregables */
-        .table-entregables{ table-layout: fixed; width: 100%; min-width: 900px; }
-        .table-entregables th:nth-child(1){ width:25%; }
-        .table-entregables th:nth-child(2){ width:50%; }
-        .table-entregables th:nth-child(3){ width:15%; }
-        .table-entregables th:nth-child(4){ width:6%; }
-        .table-entregables th:nth-child(5){ width:4%; }
-        .table-entregables th, .table-entregables td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; padding: .85rem; }
-        /* permitir que el contenido de la respuesta haga wrap y no desborde la celda */
-        .table-entregables td pre { white-space: pre-wrap; word-break: break-word; margin:0; }
-        .table-entregables .cal-cell { text-align: center; }
+        .table-entregables {
+            table-layout: fixed;
+            width: 100%;
+            min-width: 900px;
+        }
+
+            .table-entregables th:nth-child(1) {
+                width: 25%;
+            }
+
+            .table-entregables th:nth-child(2) {
+                width: 50%;
+            }
+
+            .table-entregables th:nth-child(3) {
+                width: 15%;
+            }
+
+            .table-entregables th:nth-child(4) {
+                width: 6%;
+            }
+
+            .table-entregables th:nth-child(5) {
+                width: 4%;
+            }
+
+            .table-entregables th, .table-entregables td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                vertical-align: middle;
+                padding: .85rem;
+            }
+                /* permitir que el contenido de la respuesta haga wrap y no desborde la celda */
+                .table-entregables td pre {
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    margin: 0;
+                }
+
+            .table-entregables .cal-cell {
+                text-align: center;
+            }
+
         @@media (max-width: 992px) {
-            .table-entregables{ min-width:700px; }
-            .table-entregables th:nth-child(1){ width:30%; }
-            .table-entregables th:nth-child(2){ width:42%; }
-            .table-entregables th:nth-child(3){ width:18%; }
-            .table-entregables th:nth-child(4){ width:6%; }
-            .table-entregables th:nth-child(5){ width:4%; }
+            .table-entregables {
+                min-width: 700px;
+            }
+
+                .table-entregables th:nth-child(1) {
+                    width: 30%;
+                }
+
+                .table-entregables th:nth-child(2) {
+                    width: 42%;
+                }
+
+                .table-entregables th:nth-child(3) {
+                    width: 18%;
+                }
+
+                .table-entregables th:nth-child(4) {
+                    width: 6%;
+                }
+
+                .table-entregables th:nth-child(5) {
+                    width: 4%;
+                }
         }
     </style>
     @Html.Partial("~/Views/Shared/_MateriaHeader.cshtml")
@@ -287,7 +338,7 @@
             @Html.Partial("~/Views/Shared/_AlumnosList.cshtml")
         </div>
 
-        <div id="seccion-configuracion" class="seccion" style="display: none;">
+        <div id="seccion-configuracion" class="seccion form-custom" style="display: none;">
             <h4>Configuración de la materia</h4>
 
             <div class="mb-3">

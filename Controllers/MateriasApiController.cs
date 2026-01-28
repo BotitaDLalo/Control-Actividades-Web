@@ -563,7 +563,12 @@ namespace ControlActividades.Controllers
         }
         */
 
-        // Nueva funcion para eliminar materias, primero elimina actividadaes asociadas
+        /// <summary>
+        /// Elimina una materia si no tiene dependencias (alumnos inscritos directamente, actividades o avisos).
+        /// Si está en un grupo, elimina la relación en tbGruposMaterias antes de eliminar la materia.
+        /// </summary>
+        /// <param name="id">ID de la materia a eliminar</param>
+        /// <returns>Respuesta con resultado de la operación</returns>
         [HttpDelete]
         [Route("DeleteSubject/{id}")]
         public async Task<IHttpActionResult> DeleteSubject(int id)
@@ -571,49 +576,86 @@ namespace ControlActividades.Controllers
             try
             {
                 var dbSubject = await Db.tbMaterias.FindAsync(id);
-                if (dbSubject == null) return Content(HttpStatusCode.NotFound, "Materia no encontrada");
+                if (dbSubject == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new ErrorResponse
+                    {
+                        Mensaje = "La materia no existe en el sistema.",
+                        Codigo = MateriaErrorCodes.MATERIA_NO_ENCONTRADA,
+                        Detalles = $"No se encontró una materia con ID {id}."
+                    });
+                }
 
-                //// 1. Eliminar entregables relacionados con las actividades de esta materia
-                //var activities = Db.tbActividades.Where(a => a.MateriaId == id).Select(a => a.ActividadId);
-                //var submissions = Db.tbEntregablesAlumno.Where(e => activities.Contains(e.AlumnoActividadId));
-                //Db.tbEntregablesAlumno.RemoveRange(submissions);
-
-                //// 2. Eliminar actividades
-                //var subjectActivities = Db.tbActividades.Where(a => a.MateriaId == id);
-                //Db.tbActividades.RemoveRange(subjectActivities);
-
-                //// 3. Eliminar registros de alumnos-materias
-                //var alumnosMaterias = Db.tbAlumnosMaterias.Where(am => am.MateriaId == id);
-                //Db.tbAlumnosMaterias.RemoveRange(alumnosMaterias);
-
-                //// 4. Eliminar relaciones con grupos (esto removerá la materia de todos los grupos)
-                //var gruposMaterias = Db.tbGruposMaterias.Where(gm => gm.MateriaId == id);
-                //Db.tbGruposMaterias.RemoveRange(gruposMaterias);
-
-
+                // Validar que no tenga alumnos inscritos directamente en la materia
                 var tieneAlumnos = Db.tbAlumnosMaterias.Where(a => a.MateriaId == id).Any();
                 if (tieneAlumnos)
-                    return BadRequest();
+                {
+                    var countAlumnos = Db.tbAlumnosMaterias.Where(a => a.MateriaId == id).Count();
+                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    {
+                        Mensaje = "No se puede eliminar la materia porque tiene alumnos inscritos.",
+                        Codigo = MateriaErrorCodes.MATERIA_CON_ALUMNOS,
+                        Detalles = $"Hay {countAlumnos} alumno(s) inscrito(s) que debes eliminar antes en esta materia."
+                    });
+                }
 
+                // Validar que no tenga actividades
                 var tieneActividades = Db.tbActividades.Where(a => a.MateriaId == id).Any();
                 if (tieneActividades)
-                    return BadRequest();
+                {
+                    var countActividades = Db.tbActividades.Where(a => a.MateriaId == id).Count();
+                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    {
+                        Mensaje = "No se puede eliminar la materia porque tiene actividades creadas.",
+                        Codigo = MateriaErrorCodes.MATERIA_CON_ACTIVIDADES,
+                        Detalles = $"Hay {countActividades} actividad(es) que debes eliminar antes en esta materia."
+                    });
+                }
 
+                // Validar que no tenga avisos
                 var tieneAvisos = Db.tbAvisos.Where(a => a.MateriaId == id).Any();
                 if (tieneAvisos)
-                    return BadRequest();
+                {
+                    var countAvisos = Db.tbAvisos.Where(a => a.MateriaId == id).Count();
+                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    {
+                        Mensaje = "No se puede eliminar la materia porque tiene avisos asociados.",
+                        Codigo = MateriaErrorCodes.MATERIA_CON_AVISOS,
+                        Detalles = $"Hay {countAvisos} aviso(s) que debes eliminar antes en esta materia."
+                    });
+                }
 
+                // Eliminar las relaciones con grupos (si existen)
+                var gruposMaterias = Db.tbGruposMaterias.Where(gm => gm.MateriaId == id).ToList();
+                if (gruposMaterias.Any())
+                {
+                    Console.WriteLine($"[LOG] Eliminando {gruposMaterias.Count} relación(es) de grupo-materia para materia {id}");
+                    Db.tbGruposMaterias.RemoveRange(gruposMaterias);
+                    await Db.SaveChangesAsync();
+                }
 
-
-
+                // Si llegamos aquí, la materia puede ser eliminada
                 Db.tbMaterias.Remove(dbSubject);
                 await Db.SaveChangesAsync();
-                return Ok();
+
+                Console.WriteLine($"[LOG] Materia {id} eliminada exitosamente.");
+
+                return Ok(new SuccessResponse
+                {
+                    Mensaje = "La materia ha sido eliminada exitosamente.",
+                    Codigo = "EXITO",
+                    Datos = new { MateriaId = id }
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar materia: {ex.Message}");
-                return BadRequest();
+                Console.WriteLine($"[ERROR] DeleteSubject: {ex.Message}\n{ex.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                {
+                    Mensaje = "Ocurrió un error interno al intentar eliminar la materia.",
+                    Codigo = MateriaErrorCodes.ERROR_INTERNO,
+                    Detalles = ex.Message
+                });
             }
         }
 

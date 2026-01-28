@@ -17,12 +17,19 @@
     max-height: 3em;
 }
 
+.card-body {
+    background: var(--bg-principal);
+    color: var(--txt-principal);
+}
+
 .card-bottom {
+    background: var(--bg-principal);
+    color: var(--txt-principal-light);
     padding: 12px;
     text-align: end;
 }
 
 .custom-button-settings {
-    background-color: white;
+    background-color: var(--bg-principal);
     border: none;
 }

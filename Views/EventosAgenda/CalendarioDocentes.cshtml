@@ -116,7 +116,9 @@
             <div class="modal-content modal-content-custom">
 
                 <div class="modal-header modal-header-custom">
-                    <h5 class="modal-title modal-title-custom" id="detalle-titulo">Título del evento</h5>
+                    <h5 class="modal-title modal-title-custom" id="detalle-titulo">
+                        Título del evento
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
@@ -129,8 +131,10 @@
                     </div>
 
                     <div class="detalle-descripcion">
-                        <h6 id="descripcion-titulo">Descripción</h6>
-                        <p id="detalle-descripcion"></p>
+                        <h6 class="descripcion-titulo">
+                            <strong>Descripción:</strong>
+                            <span id="detalle-descripcion"> </span>
+                        </h6>
                     </div>
 
                     <div id="detalle-destinatarios">
@@ -161,7 +165,7 @@
 
     <!--Editar-->
     <div class="modal fade modal-custom" id="modalEditarEvento" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
 
             <div class="modal-content modal-content-custom">
 
@@ -201,7 +205,29 @@
 
                         <h3>Destinatarios</h3>
 
-                        <div class="grupos-materias-container" id="editar-contenedorGruposMaterias"></div>
+                        <div class="tab-style-4 card-style mb-30">
+                            <nav class="nav nav-tabs">
+                                <button type="button" class="nav-link-custom active" data-tab="tabGruposEditar">
+                                    Grupos
+                                </button>
+
+                                <button type="button" class="nav-link-custom" data-tab="tabMateriasSueltasEditar">
+                                    Materias sin grupo
+                                </button>
+                            </nav>
+
+                            <div class="tab-content">
+                                <!--Contenedor de grupos-->
+                                <div id="tabGruposEditar" class="tab-pane fade active show">
+                                    <div id="contenedorGruposEditar"></div>
+                                </div>
+
+                                <!--Contenedor de materias sueltas-->
+                                <div id="tabMateriasSueltasEditar" class="tab-pane fade">
+                                    <div id="contenedorMateriasSueltasEditar"></div>
+                                </div>
+                            </div>
+                        </div>
 
                         <button type="submit" class="btn btn-primary-custom">Guardar cambios</button>
                     </form>
@@ -219,9 +245,7 @@
     <script>
         var docenteIdGlobal = @docenteId;
     </script>
-    <script src="~/Scripts/Agenda/calendario.js"></script>
-    <script src="~/Scripts/Agenda/calendario-crear.js"></script>
-    <!--/*<script src="~/Scripts/Docente/AgendaFullCalendar.js"></script>-->
+    @Scripts.Render("~/bundles/calendario")
 
 }
 
@@ -229,5 +253,4 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
     <link href="~/Content/Componentes/Calendario.css" rel="stylesheet" />
     <link href="~/Content/Docente/calendarioDocente.css" rel="stylesheet" />
-    <link href="~/Content/Componentes/modal.css" rel="stylesheet" />
 }

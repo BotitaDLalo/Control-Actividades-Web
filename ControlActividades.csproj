@@ -19,7 +19,7 @@
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
-    <IISExpressSSLPort>44344</IISExpressSSLPort>
+    <IISExpressSSLPort>44391</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
@@ -434,6 +434,9 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\IFuenteDatos.cs" />
+    <Compile Include="Interfaces\Grupos\IGruposService.cs" />
+    <Compile Include="Interfaces\Materias\IMateriasService.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
       <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
@@ -464,6 +467,7 @@
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\ApiResponse.cs" />
     <Compile Include="Models\db\cEstadoEntrega.cs" />
     <Compile Include="Models\db\cTipoEntrega.cs" />
     <Compile Include="Models\db\cTipoNotificacion.cs" />
@@ -498,8 +502,16 @@
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Recursos\StringExtensions.cs" />
+    <Compile Include="Services\ActividadesService.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
+    <Compile Include="Services\FuenteDatosService.cs" />
+    <Compile Include="Services\Grupos\GruposCAService.cs" />
+    <Compile Include="Services\Grupos\GruposService.cs" />
+    <Compile Include="Services\Grupos\GruposSTService.cs" />
+    <Compile Include="Services\Materias\MateriasCAService.cs" />
+    <Compile Include="Services\Materias\MateriasService.cs" />
+    <Compile Include="Services\Materias\MateriasSTService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
     <Compile Include="Services\ScheduledPublishingService.cs" />
     <Compile Include="Startup.cs" />
@@ -533,19 +545,26 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\cards.css" />
     <Content Include="Content\Componentes\modal.css" />
+    <Content Include="Content\Componentes\sweetAlertCustom.css" />
     <Content Include="Content\Dashboard\cards-grupos-materias.css" />
     <Content Include="Content\Dashboard\header.css" />
     <Content Include="Content\dataTables.dataTables.css" />
     <Content Include="Content\dataTables.dataTables.min.css" />
     <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\notiGrupoAsignado.svg" />
+    <Content Include="Content\Iconos\notiActividadCalificada.svg" />
+    <Content Include="Content\Iconos\notiActividadEntregada.svg" />
     <Content Include="Content\Iconos\grupo_2.svg" />
     <Content Include="Content\Iconos\materia_2.svg" />
+    <Content Include="Content\Iconos\icono-modo-oscuro.svg" />
     <Content Include="Content\Iconos\ojo-azul.svg" />
     <Content Include="Content\Iconos\notiAviso-Azul.svg" />
     <Content Include="Content\Iconos\notiEvento.svg" />
     <Content Include="Content\Iconos\notiAviso.svg" />
     <Content Include="Content\Iconos\notiActividadCreada.svg" />
     <Content Include="Content\Iconos\notiActividadCreada-Azul.svg" />
+    <Content Include="Content\Iconos\icono-modo-claro.svg" />
+    <Content Include="Content\Iconos\notiMateriaAsignada.svg" />
     <Content Include="Content\Moleculas\inputs.css" />
     <Content Include="Content\Moleculas\botones.css" />
     <Content Include="Content\Variables\modo-claro.css" />
@@ -617,7 +636,6 @@
     <Content Include="Scripts\Agenda\calendario-detalles.js" />
     <Content Include="Scripts\Agenda\calendario-crear.js" />
     <Content Include="Scripts\Agenda\calendario-editar.js" />
-    <Content Include="Scripts\Agenda\calendario-form.js" />
     <Content Include="Scripts\Agenda\calendario.js" />
     <Content Include="Scripts\Alumnos\alumnos.js" />
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
@@ -675,6 +693,16 @@
     <Content Include="firebase-messaging-sw.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="FLUTTER_API_REQUESTS.md" />
+    <Content Include="FLUTTER_API_DESVINCULACION_ALUMNOS.md" />
+    <Content Include="FLUTTER_CORRECCION_IDS_ELIMINACION.md" />
+    <Content Include="CAMBIOS_RESUMEN.md" />
+    <Content Include="PLAN_PRUEBAS_VALIDACION.md" />
+    <Content Include="INDICE_SOLUCION_COMPLETA.md" />
+    <Content Include="GUIA_FLUTTER_ENDPOINTS_SIMPLIFICADOS.md" />
+    <Content Include="RESUMEN_EJECUTIVO_SIMPLIFICACION.md" />
+    <Content Include="COMPARACION_ANTES_DESPUES.md" />
+    <Content Include="00_INDICE_FINAL.md" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\Grupos\configuracion.js" />
     <Content Include="Scripts\Grupos\grupos.js" />
@@ -759,7 +787,10 @@
     <Content Include="Views\Materias\MateriasModal.cshtml" />
     <Content Include="Views\Materias\CrearActividadModal.cshtml" />
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
+    <Content Include="SOLUCION_PROBLEMA_ALUMNO_REAPARECE.md" />
+    <Content Include="SIMPLIFICACION_METODOS_ELIMINACION.md" />
     <Content Include="Views\Administrador\VerDocentes.cshtml" />
+    <Content Include="Views\Materias\MateriaDetalles.cshtml" />
     <Content Include="Views\Shared\_MateriaHeader.cshtml" />
     <Content Include="Views\Shared\_ActividadesList.cshtml" />
     <Content Include="Views\Shared\_EntregablesTable.cshtml" />
@@ -786,6 +817,7 @@
     <Folder Include="Content\Grupos\" />
     <Folder Include="Content\Images\" />
     <Folder Include="Dashboard\" />
+    <Folder Include="Interfaces\Alumnos\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Base\" />

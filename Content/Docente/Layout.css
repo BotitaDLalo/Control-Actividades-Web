@@ -117,3 +117,10 @@ p, body {
     pointer-events: auto;
 }
 
+.tablaAlumnos tr {
+    color: var(--txt-principal);
+}
+
+.form-custom {
+    color: var(--txt-principal);
+}
