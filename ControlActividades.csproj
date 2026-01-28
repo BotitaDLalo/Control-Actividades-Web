@@ -19,7 +19,7 @@
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
-    <IISExpressSSLPort>44344</IISExpressSSLPort>
+    <IISExpressSSLPort>44391</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
@@ -464,6 +464,7 @@
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\ApiResponse.cs" />
     <Compile Include="Models\db\cEstadoEntrega.cs" />
     <Compile Include="Models\db\cTipoEntrega.cs" />
     <Compile Include="Models\db\cTipoNotificacion.cs" />
@@ -681,6 +682,16 @@
     <Content Include="firebase-messaging-sw.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="FLUTTER_API_REQUESTS.md" />
+    <Content Include="FLUTTER_API_DESVINCULACION_ALUMNOS.md" />
+    <Content Include="FLUTTER_CORRECCION_IDS_ELIMINACION.md" />
+    <Content Include="CAMBIOS_RESUMEN.md" />
+    <Content Include="PLAN_PRUEBAS_VALIDACION.md" />
+    <Content Include="INDICE_SOLUCION_COMPLETA.md" />
+    <Content Include="GUIA_FLUTTER_ENDPOINTS_SIMPLIFICADOS.md" />
+    <Content Include="RESUMEN_EJECUTIVO_SIMPLIFICACION.md" />
+    <Content Include="COMPARACION_ANTES_DESPUES.md" />
+    <Content Include="00_INDICE_FINAL.md" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\Grupos\configuracion.js" />
     <Content Include="Scripts\Grupos\grupos.js" />
@@ -765,6 +776,8 @@
     <Content Include="Views\Materias\MateriasModal.cshtml" />
     <Content Include="Views\Materias\CrearActividadModal.cshtml" />
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
+    <Content Include="SOLUCION_PROBLEMA_ALUMNO_REAPARECE.md" />
+    <Content Include="SIMPLIFICACION_METODOS_ELIMINACION.md" />
     <Content Include="Views\Administrador\VerDocentes.cshtml" />
     <Content Include="Views\Materias\MateriaDetalles.cshtml" />
     <Content Include="Views\Shared\_MateriaHeader.cshtml" />
