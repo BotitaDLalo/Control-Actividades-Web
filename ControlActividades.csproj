@@ -487,14 +487,17 @@
     <Compile Include="Models\db\tbMaterias.cs" />
     <Compile Include="Models\db\tbNotificaciones.cs" />
     <Compile Include="Models\db\tbUsuariosFcmTokens.cs" />
+    <Compile Include="Models\Enums\TipoActividadEnum.cs" />
     <Compile Include="Models\FormsViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\ModelosGenerales.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recursos\CustomUserIdProvider.cs" />
+    <Compile Include="Recursos\EnumHelpers.cs" />
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
     <Compile Include="Recursos\RecursosGenerales.cs" />
+    <Compile Include="Recursos\StringExtensions.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
@@ -699,6 +702,7 @@
     <Content Include="Scripts\Materias\materias-grupo.js" />
     <Content Include="Scripts\Materias\materias-sin-grupo.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Shared\common-helpers.js" />
     <Content Include="Scripts\Shared\modoColor.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
     <Content Include="Templates\Emails\ResetPassword.html" />
@@ -763,6 +767,10 @@
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
     <Content Include="Views\Administrador\VerDocentes.cshtml" />
     <Content Include="Views\Materias\MateriaDetalles.cshtml" />
+    <Content Include="Views\Shared\_MateriaHeader.cshtml" />
+    <Content Include="Views\Shared\_ActividadesList.cshtml" />
+    <Content Include="Views\Shared\_EntregablesTable.cshtml" />
+    <Content Include="Views\Shared\_AlumnosList.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />

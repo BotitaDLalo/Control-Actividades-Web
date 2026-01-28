@@ -68,9 +68,15 @@
 </div>
 
 @section Scripts {
+    <div id="alumno-datos" data-alumnoid="@alumnoId" style="display:none"></div>
     <script>
-        // Exponer alumnoId a scripts cliente
-        var alumnoIdGlobal = @alumnoId;
+        // Exponer alumnoId a scripts cliente de forma segura mediante atributo data-
+        (function(){
+            var alumnoDiv = document.getElementById('alumno-datos');
+            try {
+                window.alumnoIdGlobal = (alumnoDiv && alumnoDiv.dataset && alumnoDiv.dataset.alumnoid) ? parseInt(alumnoDiv.dataset.alumnoid, 10) : null;
+            } catch (e) { window.alumnoIdGlobal = null; }
+        })();
     </script>
     <script src="~/Scripts/Alumno/Clases.js"></script>
     <script src="~/Scripts/Alumno/UnirseClase.js"></script>

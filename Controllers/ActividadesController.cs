@@ -472,38 +472,22 @@ namespace ControlActividades.Controllers
         //}
 
         // Endpoint to return tipos de actividades for populating select in modal
-        //[HttpGet]
-        //public async Task<ActionResult> ObtenerTiposActividades()
-        //{
-        //    try
-        //    {
-        //        var existe = await Db.cTiposActividades.AnyAsync();
-        //        if (!existe)
-        //        {
-        //            // Insertar tipos por defecto
-        //            var porDefecto = new List<cTiposActividades>
-        //            {
-        //                new cTiposActividades { Nombre = "Tarea" },
-        //                new cTiposActividades { Nombre = "Examen" },
-        //                new cTiposActividades { Nombre = "Cuestionario" }
-        //            };
-
-        //            Db.cTiposActividades.AddRange(porDefecto);
-        //            await Db.SaveChangesAsync();
-        //        }
-
-        //        var tipos = await Db.cTiposActividades
-        //            .Select(t => new { t.TipoActividadId, t.Nombre })
-        //            .ToListAsync();
-
-        //        return Json(tipos, JsonRequestBehavior.AllowGet);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Response.StatusCode = 500;
-        //        return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-        //    }
-        //}
+        [HttpGet]
+        public ActionResult ObtenerTiposActividades()
+        {
+            try
+            {
+                // Utilizar helper para devolver los tipos disponibles en BD o los valores por defecto del enum
+                var tiposDict = EnumHelpers.ObtenerTiposActividad(Db);
+                var tipos = tiposDict.Select(kv => new { TipoActividadId = kv.Key, Nombre = kv.Value }).ToList();
+                return Json(tipos, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         // Nuevo: actualizar actividad (compatible con fetch PUT desde JS)
         [HttpPut]
