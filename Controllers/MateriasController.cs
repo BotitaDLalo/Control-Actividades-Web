@@ -1301,6 +1301,82 @@ namespace ControlMaterias.Controllers
             }
         }
 
+
+        [HttpPost]
+        public async Task<ActionResult> AsociarMateriasAGrupo(AsociarMateriasRequest request)
+        {
+
+            if (request == null || request.MateriaIds == null || !request.MateriaIds.Any())
+            {
+                return new HttpStatusCodeResult(400, "No se enviaron materias para asociar.");
+            }
+
+            try
+            {
+                foreach (var materiaId in request.MateriaIds)
+                {
+                    // Evita duplicados en la tabla intermedia
+                    var existeAsociacion = await Db.tbGruposMaterias
+                        .AnyAsync(gm => gm.GrupoId == request.GrupoId && gm.MateriaId == materiaId);
+
+                    if (!existeAsociacion)
+                    {
+                        Db.tbGruposMaterias.Add(new tbGruposMaterias
+                        {
+                            GrupoId = request.GrupoId,
+                            MateriaId = materiaId
+                        });
+                    }
+                }
+
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Materias asociadas correctamente al grupo." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al asociar materias: {ex.Message}");
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error interno al asociar materias al grupo." });
+            }
+        }
+
+        #endregion
+
+
+
+        #region PartialViews
+        public ActionResult AvisosPartialView()
+        {
+            return PartialView("_Avisos");
+        }
+
+        public ActionResult ActividadesPartialView()
+        {
+            return PartialView("_Actividades");
+        }
+
+        public ActionResult EntregablesPartialView()
+        {
+            return PartialView("_Entregables");
+        }
+
+        public ActionResult AlumnosPartialView()
+        {
+            return PartialView("_Alumnos");
+        }
+
+        public ActionResult ConfiguracionPartialView()
+        {
+
+            ViewBag.NombreMateria = "";
+            ViewBag.Descripcion = "";
+            return PartialView("_Configuracion");
+        }
+        #endregion
+
+
+
         [HttpPost]
         public async Task<ActionResult> ActualizarEstatusAlumno(int AlumnoId, int MateriaId, string Estatus)
         {

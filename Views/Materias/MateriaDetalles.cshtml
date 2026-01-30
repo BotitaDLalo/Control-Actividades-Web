@@ -1,4 +1,4 @@
-﻿@using Rol = ControlActividades.Roles;
+@using Rol = ControlActividades.Roles;
 @{
     Layout = "~/Views/Shared/_LayoutDocente.cshtml";
     ViewBag.Title = "MateriasDetalles";
@@ -247,6 +247,38 @@
             <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
             <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
         }
+            <button class="tab-button active"
+                    data-panel="Avisos"
+                    onclick="cambiarPanel(this)">
+                Avisos
+            </button>
+
+            <button class="tab-button"
+                    data-panel="Actividades"
+                    onclick="cambiarPanel(this)">
+                Actividades
+            </button>
+
+            <button class="tab-button"
+                    data-panel="Entregables"
+                    onclick="cambiarPanel(this)">
+                Entregables
+            </button>
+
+            @if (User.IsInRole(Rol.DOCENTE))
+            {
+                <button class="tab-button"
+                        data-panel="Alumnos"
+                        onclick="cambiarPanel(this)">
+                    Alumnos
+                </button>
+
+                <button class="tab-button"
+                        data-panel="Configuracion"
+                        onclick="cambiarPanel(this)">
+                    Configuración
+                </button>
+            }
     </nav>
 
     <div id="contenedor-dinamico" class="materia-content">

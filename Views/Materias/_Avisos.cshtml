@@ -1,0 +1,16 @@
+﻿
+@using Rol = ControlActividades.Roles;
+<div id="seccion-avisos" class="seccion">
+    <div class="dropdown">
+        <button class="btn-crear">Crear ▼</button>
+        <div class="dropdown-content">
+            @if (User.IsInRole(Rol.DOCENTE))
+            {
+                <button class="misCursos-dropdown-item" data-bs-toggle="modal"
+                        data-bs-target="#crearAvisoMateriaModal">
+                    Crear Aviso
+                </button>
+            }
+        </div>
+    </div>
+</div>
