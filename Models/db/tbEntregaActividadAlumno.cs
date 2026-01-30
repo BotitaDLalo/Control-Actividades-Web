@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace ControlActividades.Models.db
 {
-    // Nombre correcto de la tabla en la base de datos
+    // Mapear al nombre efectivo de la tabla en la base de datos
+    // Nombre real en la base (sin pluralización extra)
     [Table("tbEntregaActividadAlumno")]
     public class tbEntregaActividadAlumno
     {
@@ -22,6 +23,7 @@ namespace ControlActividades.Models.db
         //public bool EstatusEntregada { get; set; }
 
         public int EstadoEntregaId { get; set; }
+        [NotMapped]
         public DateTime? FechaCalificado { get; set; }
     
         public tbActividades tbActividades { get; set; }    

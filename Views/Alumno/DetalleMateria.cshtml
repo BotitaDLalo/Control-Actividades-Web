@@ -17,13 +17,14 @@ else
 {
     <div id="alumno-datos" data-alumnoid="@alumnoId"></div>
     <div class="materia-container">
-        <div class="materia-header" id="materiaHeader">
-            <h2>@Model.NombreMateria</h2>
-            <div class="materia-info">
-                <span>Código de clase: <strong id="codigoAcceso">@Model.CodigoAcceso</strong></span>
-                <i class="fas fa-cog"></i>
-            </div>
-        </div>
+        @{
+            // Pass model data to partial via ViewData for consistent behavior
+            ViewData["NombreMateria"] = Model.NombreMateria;
+            ViewData["CodigoAcceso"] = Model.CodigoAcceso;
+            ViewData["CodigoColor"] = Model.CodigoColor;
+            ViewData["MateriaId"] = Model.MateriaId;
+        }
+        @Html.Partial("~/Views/Shared/_MateriaHeader.cshtml")
 
         <ul class="nav nav-tabs" id="grupoTabs">
             <li class="nav-item"><a class="nav-link active" id="avisos-tab" data-bs-toggle="tab" href="#avisos">Avisos</a></li>
@@ -39,7 +40,11 @@ else
             <div class="tab-pane fade" id="actividades">
                 <h3>Actividades</h3>
                 <div id="contenidoActividades">
-                    <div id="listaActividadesAlumno"></div>
+                    @{
+                        ViewData["ContainerId"] = "listaActividadesAlumno";
+                        ViewData["Title"] = "Actividades";
+                    }
+                    @Html.Partial("~/Views/Shared/_ActividadesList.cshtml")
                 </div>
             </div>
             <div class="tab-pane fade" id="alumnos">
@@ -63,6 +68,8 @@ else
     <script>
         var alumnoIdGlobal = @alumnoId;
         var materiaIdGlobal = @(hasModel ? Model.MateriaId : 0);
+        // clear any stale group selection when opening a specific materia to avoid showing group-scoped avisos
+        try { if (materiaIdGlobal && materiaIdGlobal !== 0) { localStorage.removeItem('grupoIdSeleccionado'); localStorage.setItem('materiaIdSeleccionada', String(materiaIdGlobal)); } } catch(e){}
     </script>
     <script src="~/Scripts/Alumno/actividades.js"></script>
     <script src="~/Scripts/Alumno/actividadDetalle.js"></script>    

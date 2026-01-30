@@ -1,0 +1,19 @@
+@{
+    var tableId = ViewData["TableId"] ?? "tablaEntregables";
+}
+<div class="table-responsive">
+    <table id="@tableId" class="table table-sm table-entregables">
+        <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Respuesta</th>
+                <th>Fecha</th>
+                <th>Calificación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="5"><small class="text-muted">Seleccione una actividad para cargar entregables.</small></td></tr>
+        </tbody>
+    </table>
+</div>

@@ -7,25 +7,28 @@
         return;
     }
 
-    $.get("/Alumno/ObtenerAvisos?alumnoId=" + alumnoIdGlobal, function (data) {
+<<<<<<< Updated upstream
+    // include materiaId/grupoId if present so server returns scoped avisos
+    var qs = 'alumnoId=' + encodeURIComponent(alumnoIdGlobal);
+    try { if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) qs += '&materiaId=' + encodeURIComponent(materiaIdGlobal); } catch(e){}
+    try { if (typeof grupoIdGlobal !== 'undefined' && grupoIdGlobal) qs += '&grupoId=' + encodeURIComponent(grupoIdGlobal); } catch(e){}
+
+=======
+>>>>>>> Stashed changes
+    $.get('/Alumno/ObtenerAvisos?' + qs, function (data) {
         var avisosHtml = "";
-        data.reverse();
+        if (Array.isArray(data)) data = data.slice().reverse();
         if (data.length > 0) {
             data.forEach(function (aviso) {
                 avisosHtml += `
-                    <li class="list-group-item">
-                    <div class="aviso-header">
+                    <div class="aviso-item">
                         <div class="aviso-icono">📢</div>
                         <div class="aviso-info">
                             <strong>${aviso.Titulo}</strong>
-                            <p>${aviso.Descripcion}</p>
-                            <p class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion}</p>
+                            <div class="aviso-descripcion">${aviso.Descripcion}</div>
+                            <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion}</div>
                         </div>
-                    </div>
-                    </li>`;
-
-
-               
+                    </div>`;
             });
         } else {
             avisosHtml = "<p>No hay avisos disponibles.</p>";

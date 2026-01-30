@@ -250,7 +250,28 @@ namespace ControlActividades.Controllers
         }
 
 
+        //Este metodo es de Scholatek
+        [HttpPost]
+        public ActionResult MandarDatosScholatek()
+        {
+            //Mandar json ficticio
 
+            //Lotes de 100
+
+
+            return null;
+        }
+
+
+        //Este es de Ca
+
+        [HttpPost]
+        public ActionResult RecibirDatosScholatek()
+        {
+            //Registrar los usuario provenientes de scholatek
+
+            return null;
+        }
 
 
         //

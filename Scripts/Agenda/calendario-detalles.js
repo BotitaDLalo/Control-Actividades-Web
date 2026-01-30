@@ -5,8 +5,15 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
-        modalDetalleEl = document.getElementById("modalDetalleEvento");
-        modalDetalle = bootstrap.Modal.getOrCreateInstance(modalDetalleEl);
+    modalDetalleEl = document.getElementById("modalDetalleEvento");
+    if (modalDetalleEl && typeof bootstrap !== 'undefined' && bootstrap.Modal && typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+        try {
+            modalDetalle = bootstrap.Modal.getOrCreateInstance(modalDetalleEl);
+        } catch (e) {
+            console.warn('No se pudo inicializar modalDetalle:', e);
+            modalDetalle = null;
+        }
+    }
 
     });
 

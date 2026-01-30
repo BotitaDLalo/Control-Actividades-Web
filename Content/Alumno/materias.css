@@ -9,6 +9,56 @@
     font-family: Arial, sans-serif;
 }
 
+/* Cards para avisos y actividades */
+.cards-panel {
+    background: #e6f7fb; /* very light blue */
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.aviso-item, .actividad-item {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+
+.aviso-item .aviso-icono, .actividad-item .icono {
+    width:48px; height:48px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px; background:#fff6f6; color:#e74c3c; flex-shrink:0; border:1px solid rgba(0,0,0,0.03);
+}
+
+.aviso-item .aviso-info, .actividad-item .info {
+    flex:1;
+}
+
+.aviso-item strong, .actividad-item strong { font-size:1.15rem; display:block; margin-bottom:6px; }
+.aviso-fecha-publicado, .fecha-publicado { color:#777; font-size:0.9rem; margin-top:6px; }
+.actividad-descripcion { margin-top:8px; color:#333; }
+.ver-completo { color:#007bff; cursor:pointer; margin-top:8px; font-weight:600; }
+
+.actividad-item .fecha-entrega { text-align:right; margin-left:12px; font-size:0.95rem; color:#333; }
+.actividad-item .botones-container { margin-left:12px; display:flex; flex-direction:column; gap:8px; }
+.actividad-item .botones-container button { padding:6px 8px; border-radius:6px; border:none; cursor:pointer; }
+.actividad-item .botones-container .btn-ir-actividades { background:#0d6efd; color:#fff; }
+.actividad-item .botones-container .editar-btn { background:#ffc107; color:#111; }
+.actividad-item .botones-container .eliminar-btn { background:#dc3545; color:#fff; }
+
+/* small responsive tweaks */
+@media (max-width:767px) {
+    .actividad-item { flex-direction:column; }
+    .actividad-item .fecha-entrega, .actividad-item .botones-container { text-align:left; margin-left:0; }
+}
+
 /* Nombre de la materia */
 .materia-titulo-unique {
     font-size: 18px;
@@ -129,4 +179,34 @@
         flex-direction: row;
         gap: 8px;
     }
+}
+
+/* Contenedor de actividades en la vista de alumno: permitir scroll vertical
+   si hay muchas actividades (evita que sólo se vean 3 y el resto quede fuera)
+*/
+#listaActividadesAlumno,
+#listaActividadesDeMateria {
+    max-height: 520px; /* ajustable según diseño */
+    overflow-y: auto;
+    padding-right: 8px; /* espacio para la scrollbar en algunos navegadores */
+}
+
+/* Espacio entre items y mejora de ergonomía en pantallas pequeñas */
+.actividad-item {
+    margin-bottom: 12px;
+}
+
+/* Scrollbar thin styling (soporta WebKit / Blink y Firefox modernos) */
+#listaActividadesAlumno::-webkit-scrollbar,
+#listaActividadesDeMateria::-webkit-scrollbar {
+    width: 10px;
+}
+#listaActividadesAlumno::-webkit-scrollbar-thumb,
+#listaActividadesDeMateria::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.15);
+    border-radius: 6px;
+}
+#listaActividadesAlumno {
+    -ms-overflow-style: auto; /* IE/Edge */
+    scrollbar-width: thin; /* Firefox */
 }

@@ -1,4 +1,5 @@
 ﻿using ControlActividades.Models;
+using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
@@ -219,26 +220,52 @@ namespace ControlActividades.Controllers
         #endregion
 
         #region avisos
-        public async Task<ActionResult> Avisos(int alumnoId)
+        public async Task<ActionResult> Avisos(int alumnoId, int? materiaId, int? grupoId)
         {
             ViewBag.AlumnoId = alumnoId;
-            var avisos = await Db.tbAvisos
-                .Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
-                         || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId))
-                .ToListAsync();
+            IQueryable<tbAvisos> query = Db.tbAvisos;
+
+            // If a specific materia or grupo is provided, prefer scoping to it
+            if (materiaId.HasValue && materiaId.Value > 0)
+            {
+                query = query.Where(a => a.MateriaId == materiaId.Value);
+            }
+            else if (grupoId.HasValue && grupoId.Value > 0)
+            {
+                query = query.Where(a => a.GrupoId == grupoId.Value);
+            }
+            else
+            {
+                query = query.Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
+                             || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId));
+            }
+
+            var avisos = await query.ToListAsync();
             return PartialView("_Avisos", avisos);
         }
 
 
         [HttpGet]
-        public async Task<ActionResult> ObtenerAvisos(int alumnoId)
+        public async Task<ActionResult> ObtenerAvisos(int alumnoId, int? materiaId, int? grupoId)
         {
             try
             {
-                var avisosDb = await Db.tbAvisos
-                    .Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
-                             || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId))
-                    .ToListAsync();
+                IQueryable<tbAvisos> query = Db.tbAvisos;
+                if (materiaId.HasValue && materiaId.Value > 0)
+                {
+                    query = query.Where(a => a.MateriaId == materiaId.Value);
+                }
+                else if (grupoId.HasValue && grupoId.Value > 0)
+                {
+                    query = query.Where(a => a.GrupoId == grupoId.Value);
+                }
+                else
+                {
+                    query = query.Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
+                                 || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId));
+                }
+
+                var avisosDb = await query.ToListAsync();
 
                 var avisos = avisosDb.Select(a => new
                 {

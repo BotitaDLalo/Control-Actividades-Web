@@ -1,4 +1,4 @@
-﻿function mostrarLoader() {
+function mostrarLoader() {
     $("#loader").addClass("visible");
 }
 

@@ -1,0 +1,35 @@
+﻿.card-title {
+    font-weight: 600;
+}
+
+.custom-card {
+    cursor: pointer;
+}
+
+.card-text.limit-lines {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5em;
+    max-height: 3em;
+}
+
+.card-body {
+    background: var(--bg-principal);
+    color: var(--txt-principal);
+}
+
+.card-bottom {
+    background: var(--bg-principal);
+    color: var(--txt-principal-light);
+    padding: 12px;
+    text-align: end;
+}
+
+.custom-button-settings {
+    background-color: var(--bg-principal);
+    border: none;
+}

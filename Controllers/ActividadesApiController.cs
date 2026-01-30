@@ -1,3 +1,12 @@
+using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Microsoft.Ajax.Utilities;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -11,14 +20,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using Microsoft.Ajax.Utilities;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.IdentityModel.Tokens;
 
 
 
@@ -32,6 +33,7 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private NotificacionesService _notifServ;
         public ActividadesApiController()
         {
         }
@@ -50,13 +52,14 @@ namespace ControlActividades.Controllers
                 var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
                 var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
 
+                // Evitar seleccionar columnas que pueden no existir en instalaciones antiguas de la BD
                 var lsEntregas = await Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaActividadId)
                     .Select(e => new
                     {
                         e.EntregableId,
                         e.TipoEntregaId,
                         e.Contenido,
-                        e.FechaCalificado,
+                        // FechaCalificado puede no existir en la BD en algunas instalaciones; omitimos su lectura aquí
                         Calificacion = e.Calificacion ?? 0,
                         Comentario = e.Comentario
                     }).ToListAsync();
@@ -77,12 +80,13 @@ namespace ControlActividades.Controllers
             }
         }
 
-        public ActividadesApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
+        public ActividadesApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, NotificacionesService notifServ)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
+            Ns = notifServ;
         }
 
         public ApplicationSignInManager SignInManager
@@ -144,6 +148,17 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
+        public NotificacionesService Ns
+        {
+            get
+            {
+                return _notifServ ?? (_notifServ = new NotificacionesService(Db, new FCMService()));
+            }
+            private set
+            {
+                _notifServ = value;
+            }
+        }
 
 
 
@@ -197,16 +212,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                // Use RequestContext principal (works in WebApi) to determine roles
-                var principal = RequestContext?.Principal;
-                bool esDocente = principal != null && (principal.IsInRole("Docente") || principal.IsInRole("Administrador"));
-
                 var q = Db.tbActividades.Where(a => a.MateriaId == materiaId);
-                if (!esDocente)
-                {
-                    // Para alumnos: mostrar únicamente actividades públicas o programadas cuya fecha ya llegó
-                    q = q.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
-                }
 
                 var actividades = await q.ToListAsync();
 
@@ -214,19 +220,17 @@ namespace ControlActividades.Controllers
                 {
                     ActividadId = a.ActividadId,
                     NombreActividad = a.NombreActividad,
-                    Descripcion = a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    DescripcionActividad = a.Descripcion,
+                    FechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                     Puntaje = a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,
                     MateriaId = a.MateriaId
                 }).ToList();
 
-                // Determine rolUsuario using the helper
-                var rolUsuario = Fg.ObtenerRolUsuario(principal);
 
-                return Ok(new { Actividades = listaActividades, RolUsuario = rolUsuario });
+                return Ok(listaActividades);
             }
             catch (Exception ex)
             {
@@ -314,6 +318,9 @@ namespace ControlActividades.Controllers
                 nuevaActividad.FechaCreacion = DateTime.Now;
 
 
+                nuevaActividad.Enviado = true;
+
+
                 //nuevaActividad.TipoActividadId = 1;
 
                 // Guardar la actividad en la base de datos
@@ -335,7 +342,7 @@ namespace ControlActividades.Controllers
 
             finally
             {
-                //await _ns.NotificacionCrearActividad(nuevaActividad);
+                await Ns.NotificacionCrearActividad(nuevaActividad);
             }
         }
 
@@ -575,7 +582,7 @@ namespace ControlActividades.Controllers
                         alumnoEntregable.Respuesta = entregable.Contenido;
 
 
-                        alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                        alumnoEntregable.Calificacion = entregable.Calificacion;
 
 
                         lsEntregables.Add(alumnoEntregable);
@@ -600,73 +607,20 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var entregaId = asignarCalificacion.EntregaId;
-                var fechaNuevaCalificacion = DateTime.Now;
-                var nuevaCalificacion = asignarCalificacion.Calificacion;
-                // Intentar actualizar el registro en la tabla tbEntregables (modelo actual)
-                int idBuscado = asignarCalificacion.EntregableId != 0 ? asignarCalificacion.EntregableId : entregaId;
+                var entregableId = asignarCalificacion.EntregableId;
+                var calificacion = asignarCalificacion.Calificacion;
 
-                var entregable = await Db.tbEntregables.FindAsync(idBuscado);
-                if (entregable != null)
-                {
-                    entregable.Calificacion = nuevaCalificacion;
-                    entregable.FechaCalificado = fechaNuevaCalificacion;
-                    // Si se envió comentario (legacy: CalificacionDto), asignarlo
-                    try
-                    {
-                        // intentar obtener comentario desde asignarCalificacion (si existe)
-                        var comentarioProp = asignarCalificacion.GetType().GetProperty("Comentario");
-                        if (comentarioProp != null)
-                        {
-                            var comentarioVal = comentarioProp.GetValue(asignarCalificacion) as string;
-                            if (!string.IsNullOrEmpty(comentarioVal)) entregable.Comentario = comentarioVal;
-                        }
-                    }
-                    catch { }
 
-                    await Db.SaveChangesAsync();
+                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == entregableId);
 
-                    // Enviar notificación al alumno
-                    try
-                    {
-                        // obtener alumno propietario de la entrega
-                        var entregaActividad = await Db.tbEntregaActividadAlumno.Where(ea => ea.tbEntregables.Any(t => t.EntregableId == entregable.EntregableId)).FirstOrDefaultAsync();
-                        if (entregaActividad != null)
-                        {
-                            var alumnoUserId = await Db.tbAlumnos.Where(a => a.AlumnoId == entregaActividad.AlumnoId).Select(a => a.UserId).FirstOrDefaultAsync();
-                            if (!string.IsNullOrEmpty(alumnoUserId))
-                            {
-                                var ns = new Services.NotificacionesService(Db, new Services.FCMService());
-                                string titulo = "Tu actividad fue calificada";
-                                string cuerpo = $"Tu entrega fue calificada con: {nuevaCalificacion}" + (entregable.Comentario != null ? ". Comentario: " + entregable.Comentario : "");
-                                var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == alumnoUserId).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
-                                //await ns.ProcesarNotificacion(new List<string> { alumnoUserId }, tokens, titulo, cuerpo, "Calificacion");
-                            }
-                        }
-                    }
-                    catch (Exception) { }
+                if (entregable == null) return BadRequest();
 
-                    return Ok();
-                }
+                entregable.Calificacion = calificacion;
+                entregable.FechaCalificado = DateTime.Now;
 
-                // Fallback: si no existe en tbEntregables, intentar en tbCalificaciones (legacy)
-                var calificacion = await Db.tbCalificaciones.FirstOrDefaultAsync(a => a.EntregaId == entregaId);
-                if (calificacion == null)
-                {
-                    tbCalificaciones cal = new tbCalificaciones()
-                    {
-                        Calificacion = nuevaCalificacion,
-                        EntregaId = entregaId,
-                        FechaCalificacionAsignada = fechaNuevaCalificacion
-                    };
-                    Db.tbCalificaciones.Add(cal);
-                }
-                else
-                {
-                    calificacion.Calificacion = nuevaCalificacion;
-                    calificacion.FechaCalificacionAsignada = fechaNuevaCalificacion;
-                }
+                Db.Entry(entregable).State = EntityState.Modified;
                 await Db.SaveChangesAsync();
+
                 return Ok();
 
             }

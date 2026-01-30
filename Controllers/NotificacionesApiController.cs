@@ -186,25 +186,51 @@ namespace ControlActividades.Controllers
             {
                 return BadRequest("Usuario no encontrado");
             }
-            
-            var notificaciones = Db.tbNotificaciones
-                .Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.FechaRecibido)
-                .Select(n => new Notificacion
+            try
+            {
+                // Primero traer las notificaciones sin navegar relaciones que puedan faltar
+                var rawNotis = Db.tbNotificaciones
+                    .Where(n => n.UserId == userId)
+                    .OrderByDescending(n => n.FechaRecibido)
+                    .ToList();
+
+                // Intentar cargar los nombres de tipos si la tabla existe
+                Dictionary<int, string> tipos = null;
+                try
                 {
-                    NotificacionId = n.NotificacionId,
-                    UserId = n.UserId,
-                    MessageId = n.MessageId,
-                    Title = n.Title,
-                    Body = n.Body,
-                    TipoId = n.TipoId,
-                    TipoNotificacion = n.cTipoNotificacion.Nombre,
-                    FechaRecibido = n.FechaRecibido,
-                    MateriaId = n.MateriaId,
-                    GrupoId = n.GrupoId
-                })
-                .ToList();
-            return Ok(notificaciones);
+                    tipos = Db.cTipoNotificacion
+                        .ToDictionary(t => t.TipoNotificacionId, t => t.Nombre);
+                }
+                catch
+                {
+                    // Si la tabla cTipoNotificacion no existe o falla la consulta, continuamos sin los nombres
+                    tipos = null;
+                }
+
+                var notificaciones = rawNotis
+                    .Select(n => new Notificacion
+                    {
+                        NotificacionId = n.NotificacionId,
+                        UserId = n.UserId,
+                        MessageId = n.MessageId,
+                        Title = n.Title,
+                        Body = n.Body,
+                        TipoId = n.TipoId,
+                        TipoNotificacion = (tipos != null && tipos.ContainsKey(n.TipoId)) ? tipos[n.TipoId] : null,
+                        FechaRecibido = n.FechaRecibido,
+                        MateriaId = n.MateriaId,
+                        GrupoId = n.GrupoId
+                    })
+                    .ToList();
+
+                return Ok(notificaciones);
+            }
+            catch (Exception ex)
+            {
+                // Devolver error claro para facilitar diagnóstico (posible falta de tablas/migraciones)
+                var msg = "Error al consultar notificaciones. Verifique que las migraciones se aplicaron y que existen las tablas relacionadas (tbNotificaciones, cTipoNotificacion). Mensaje: " + ex.Message;
+                return InternalServerError(new Exception(msg));
+            }
         }
 
 

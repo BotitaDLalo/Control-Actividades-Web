@@ -80,6 +80,51 @@ namespace ControlActividades.Recursos
         #endregion
 
         #region Usuario
+        //public int ObtenerUsuarioId(IPrincipal User)
+        //{
+        //    // Determinar el id del usuario consultando la BD en lugar de confiar en las claims/roles
+        //    if (User == null || User.Identity == null || string.IsNullOrEmpty(User.Identity.GetUserId()))
+        //        return 0;
+
+        //    var userId = User.Identity.GetUserId();
+
+        //    // Preferir registro en tbDocentes
+        //    var docente = Db.tbDocentes.FirstOrDefault(a => a.UserId == userId);
+        //    if (docente != null)
+        //        return docente.DocenteId;
+
+        //    // Luego buscar en tbAlumnos
+        //    var alumno = Db.tbAlumnos.FirstOrDefault(a => a.UserId == userId);
+        //    if (alumno != null)
+        //        return alumno.AlumnoId;
+
+        //    return 0;
+        //}
+
+        //public string ObtenerRolUsuario(IPrincipal User)
+        //{
+        //    if (User == null || User.Identity == null || string.IsNullOrEmpty(User.Identity.GetUserId()))
+        //    {
+        //        // fallback a claims si no hay userId
+        //        var identityFallback = User?.Identity as ClaimsIdentity;
+        //        return identityFallback?.FindFirst(ClaimTypes.Role)?.Value;
+        //    }
+
+        //    var userId = User.Identity.GetUserId();
+
+        //    // Verificar en la base de datos para evitar roles inconsistentes en las claims
+        //    if (Db.tbDocentes.Any(d => d.UserId == userId))
+        //        return Roles.DOCENTE;
+
+        //    if (Db.tbAlumnos.Any(a => a.UserId == userId))
+        //        return Roles.ALUMNO;
+
+        //    // Fallback a claim si no hay registro en tablas específicas
+        //    var identity = User.Identity as ClaimsIdentity;
+        //    return identity?.FindFirst(ClaimTypes.Role)?.Value;
+        //}
+
+
         public int ObtenerUsuarioId(IPrincipal User)
         {
             int usuarioId = 0;
@@ -95,7 +140,7 @@ namespace ControlActividades.Recursos
             }
             return usuarioId;
         }
-        
+
         public string ObtenerRolUsuario(IPrincipal User)
         {
             var identity = User.Identity as ClaimsIdentity;

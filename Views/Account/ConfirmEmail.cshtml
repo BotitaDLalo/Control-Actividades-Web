@@ -20,7 +20,7 @@
         @using (Html.BeginForm("ConfirmEmail", "Account", FormMethod.Post, new { @class = "form-signin" }))
         {
             @Html.AntiForgeryToken()
-            <form class="verificarCodigo-form">
+            <div class="verificarCodigo-form">
                 <div class="input-box-code">
                     <label for="email"></label>
                     <input type="number" class="input-field" id="Code1" name="Code1" autocomplete="off" required>
@@ -32,7 +32,7 @@
                 <div class="input-box">
                     <input type="submit" class="input-submit" value="Verificar">
                 </div>
-            </form>
+            </div>
         }
     </div>
 </body>
