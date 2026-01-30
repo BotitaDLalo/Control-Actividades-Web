@@ -1,320 +1,70 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
-using ControlActividades.Services;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
 using System;
-using System.Data.Entity;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
 
 namespace ControlActividades.Controllers
 {
-    [Authorize]
     public class AlumnoController : Controller
     {
-        #region inicializaciones
-        private ApplicationSignInManager _signInManager;
-        private ApplicationUserManager _userManager;
-        private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
-        private FuncionalidadesGenerales _fg;
-        private FCMService _fCMService;
+        public ApplicationDbContext Db => _db ?? (_db = new ApplicationDbContext());
 
-        public AlumnoController()
-        {
-        }
-
-        public AlumnoController(
-            ApplicationUserManager userManager,
-            ApplicationSignInManager signInManager,
-            RoleManager<IdentityRole> roleManager,
-            ApplicationDbContext DbContext,
-            FuncionalidadesGenerales fg,
-            FCMService fCMService
-            )
-        {
-            UserManager = userManager;
-            SignInManager = signInManager;
-            RoleManager = roleManager;
-            Db = DbContext;
-            Fg = fg;
-            _fCMService = fCMService;
-        }
-
-        public ApplicationSignInManager SignInManager
-        {
-            get
-            {
-                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
-            }
-            private set
-            {
-                _signInManager = value;
-            }
-        }
-
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
-        }
-
-        public RoleManager<IdentityRole> RoleManager
-        {
-            get
-            {
-                return _roleManager ?? HttpContext.GetOwinContext().Get<RoleManager<IdentityRole>>();
-            }
-            private set
-            {
-                _roleManager = value;
-            }
-        }
-
-        public ApplicationDbContext Db
-        {
-            get
-            {
-                return _db ?? (_db = new ApplicationDbContext());
-            }
-            private set
-            {
-                _db = value;
-            }
-        }
-
-
-        public FuncionalidadesGenerales Fg
-        {
-            get
-            {
-                return _fg ?? (_fg = new FuncionalidadesGenerales());
-            }
-            set
-            {
-                _fg = value;
-            }
-        }
-
-        #endregion
-
-        public ActionResult Index()
-        {
-            string userId = User.Identity.GetUserId();
-
-            var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
-
-            ViewBag.AlumnoId = alumnoId;
-
-            return View();
-        }
-
-        #region grupos y materias
-
-        [HttpGet]
-        public async Task<ActionResult> ObtenerClases(int alumnoId)
-        {
-            var grupos = await Db.tbAlumnosGrupos
-                .Where(ag => ag.AlumnoId == alumnoId)
-                .Select(ag => new
-                {
-                    Id = ag.Grupos.GrupoId,
-                    Nombre = ag.Grupos.NombreGrupo,
-                    esGrupo = true,
-                    Materias = Db.tbGruposMaterias
-                        .Where(gm => gm.GrupoId == ag.Grupos.GrupoId)
-                        .Select(gm => new
-                        {
-                            Id = gm.MateriaId,
-                            Nombre = gm.Materias.NombreMateria
-                        })
-                })
-                .ToListAsync();
-
-            var gruposConMaterias = grupos.Select(g => new
-            {
-                g.Id,
-                g.Nombre,
-                g.esGrupo,
-                Materias = g.Materias.ToList()
-            }).ToList();
-
-            var materias = Db.tbAlumnosMaterias
-                .Where(am => am.AlumnoId == alumnoId)
-                .Select(am => new
-                {
-                    Id = am.Materias.MateriaId,
-                    Nombre = am.Materias.NombreMateria,
-                    esGrupo = false
-                })
-                .ToList();
-
-            var clases = gruposConMaterias.Cast<object>().Concat(materias.Cast<object>()).ToList();
-
-            return Json(clases, JsonRequestBehavior.AllowGet);
-        }
-
-
-        public async Task<ActionResult> Clase(string tipo, string id)
-        {
-
-            int Id = int.Parse(id);
-            if (string.IsNullOrEmpty(tipo) || string.IsNullOrEmpty(id))
-            {
-                return new HttpStatusCodeResult(400, "Parámetros inválidos.");
-            }
-
-            if (tipo.ToLower() == "grupo")
-            {
-                var grupo = await Db.tbGrupos.FirstOrDefaultAsync(g => g.GrupoId == Id);
-                if (grupo == null) return HttpNotFound("Grupo no encontrado.");
-                string userId = User.Identity.GetUserId();
-
-                var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
-
-                ViewBag.AlumnoId = alumnoId;
-
-
-                return View("DetalleGrupo", grupo);
-            }
-            else if (tipo.ToLower() == "materia")
-            {
-                var materia = await Db.tbMaterias.FirstOrDefaultAsync(m => m.MateriaId == Id);
-                if (materia == null) return HttpNotFound("Materia no encontrada.");
-                string userId = User.Identity.GetUserId();
-
-                var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
-
-                ViewBag.AlumnoId = alumnoId;
-                return View("DetalleMateria", materia);
-            }
-
-            return new HttpStatusCodeResult(400, "Tipo de clase no válido.");
-        }
-
-
-        public ActionResult DetalleMateria()
-        {
-            // Evitar renderizar la vista sin un modelo válido.
-            // Esta vista debe cargarse desde la acción Clase(tipo="materia", id=...).
-            return RedirectToAction("Index");
-        }
-
-        public ActionResult DetalleGrupo()
-        {
-            // Evitar renderizar la vista sin un modelo válido.
-            return RedirectToAction("Index");
-        }
-
-        #endregion
-
-        #region avisos
-        public async Task<ActionResult> Avisos(int alumnoId, int? materiaId, int? grupoId)
-        {
-            ViewBag.AlumnoId = alumnoId;
-            IQueryable<tbAvisos> query = Db.tbAvisos;
-
-            // If a specific materia or grupo is provided, prefer scoping to it
-            if (materiaId.HasValue && materiaId.Value > 0)
-            {
-                query = query.Where(a => a.MateriaId == materiaId.Value);
-            }
-            else if (grupoId.HasValue && grupoId.Value > 0)
-            {
-                query = query.Where(a => a.GrupoId == grupoId.Value);
-            }
-            else
-            {
-                query = query.Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
-                             || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId));
-            }
-
-            var avisos = await query.ToListAsync();
-            return PartialView("_Avisos", avisos);
-        }
-
-
-        [HttpGet]
-        public async Task<ActionResult> ObtenerAvisos(int alumnoId, int? materiaId, int? grupoId)
+        // GET: /Alumno/Clase or /Alumno/Clase/{id}
+        public ActionResult Clase(int? id, string tipo, string nombre)
         {
             try
             {
-                IQueryable<tbAvisos> query = Db.tbAvisos;
-                if (materiaId.HasValue && materiaId.Value > 0)
+                // If tipo provided, use it
+                if (!string.IsNullOrWhiteSpace(tipo))
                 {
-                    query = query.Where(a => a.MateriaId == materiaId.Value);
+                    tipo = tipo.ToLowerInvariant();
+                    if (tipo == "materia")
+                    {
+                        if (!id.HasValue) return RedirectToAction("Index");
+                        int mid = id.Value;
+                        ViewBag.MateriaId = mid;
+                        var materia = Db.tbMaterias.Find(mid);
+                        return View("DetalleMateria", materia);
+                    }
+
+                    if (tipo == "grupo")
+                    {
+                        if (!id.HasValue) return RedirectToAction("Index");
+                        int gid = id.Value;
+                        ViewBag.GrupoId = gid;
+                        var grupo = Db.tbGrupos.Find(gid);
+                        return View("DetalleGrupo", grupo);
+                    }
                 }
-                else if (grupoId.HasValue && grupoId.Value > 0)
+
+                // If no tipo but id provided, try to detect whether it's a Grupo or Materia
+                if (id.HasValue)
                 {
-                    query = query.Where(a => a.GrupoId == grupoId.Value);
+                    var gid = id.Value;
+                    var existeGrupo = Db.tbGrupos.Any(g => g.GrupoId == gid);
+                    if (existeGrupo)
+                    {
+                        ViewBag.GrupoId = gid;
+                        var grupo = Db.tbGrupos.Find(gid);
+                        return View("DetalleGrupo", grupo);
+                    }
+
+                    var existeMateria = Db.tbMaterias.Any(m => m.MateriaId == gid);
+                    if (existeMateria)
+                    {
+                        ViewBag.MateriaId = gid;
+                        var materia = Db.tbMaterias.Find(gid);
+                        return View("DetalleMateria", materia);
+                    }
                 }
-                else
-                {
-                    query = query.Where(a => Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId)
-                                 || Db.tbAlumnosMaterias.Any(am => am.AlumnoId == alumnoId && am.MateriaId == a.MateriaId));
-                }
 
-                var avisosDb = await query.ToListAsync();
-
-                var avisos = avisosDb.Select(a => new
-                {
-                    a.AvisoId,
-                    a.Titulo,
-                    a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss")
-                }).ToList();
-
-                return Json(avisos, JsonRequestBehavior.AllowGet);
-
-                /*
-                if (!avisos.Any())
-                {
-                    return HttpNotFound("No hay avisos para este alumno.");
-                }
-                */
-
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500;
-                return Json(new
-                {
-                    mensaje = "Error al obtener avisos",
-                    detalle = ex.Message,
-                    stack = ex.StackTrace
-                }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-        #endregion
-
-
-        public ActionResult Actividades()
-        {
-            return PartialView("_Actividades");
-        }
-
-        [HttpGet]
-        public ActionResult ActividadDetalle(int actividadId)
-        {
-            try
-            {
-                string userId = User.Identity.GetUserId();
-                var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
-                ViewBag.AlumnoId = alumnoId;
-                ViewBag.ActividadId = actividadId;
-                return View();
+                // Fallback: show alumno index
+                return RedirectToAction("Index");
             }
             catch (Exception)
             {
@@ -322,99 +72,81 @@ namespace ControlActividades.Controllers
             }
         }
 
-        public ActionResult Alumnos()
-        {
-            return PartialView("_Alumnos");
-        }
-
-        public ActionResult Calificaciones()
-        {
-            return PartialView("_Calificaciones");
-        }
-
-
-
-        public ActionResult Perfil()
+        public ActionResult Index()
         {
             return View();
         }
 
-
-
-        public ActionResult Materia()
-        {
-            return View();
-        }
-
-        // GET: /Alumno/Grupos
         [HttpGet]
-        public ActionResult Grupos()
+        public ActionResult ActividadDetalle(int? actividadId)
         {
-            string userId = User.Identity.GetUserId();
-            var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
-            ViewBag.AlumnoId = alumnoId;
-
-            if (Request.IsAjaxRequest() || (Request.Headers["X-Requested-With"] == "XMLHttpRequest"))
+            try
             {
-                return PartialView("_GruposPartial");
-            }
+                int alumnoId = 0;
+                try
+                {
+                    var userId = User?.Identity?.GetUserId();
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        var alumno = Db.tbAlumnos.FirstOrDefault(a => a.UserId == userId);
+                        if (alumno != null) alumnoId = alumno.AlumnoId;
+                    }
+                }
+                catch { }
 
-            return View();
+                ViewBag.AlumnoId = alumnoId;
+                // pass actividadId via ViewBag as well for convenience
+                ViewBag.ActividadId = actividadId ?? 0;
+                return View("ActividadDetalle");
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("Index");
+            }
         }
 
-        // GET: /Alumno/MateriasSinGrupo
         [HttpGet]
-        public ActionResult MateriasSinGrupo()
+        public ActionResult Avisos(int alumnoId, int? materiaId, int? grupoId)
         {
-            string userId = User.Identity.GetUserId();
-            var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
-            ViewBag.AlumnoId = alumnoId;
-
-            if (Request.IsAjaxRequest() || (Request.Headers["X-Requested-With"] == "XMLHttpRequest"))
+            try
             {
-                return PartialView("_MateriasSinGrupoPartial");
+                ViewBag.AlumnoId = alumnoId;
+
+                List<tbAvisos> avisos = new List<tbAvisos>();
+
+                if (grupoId.HasValue && grupoId.Value > 0)
+                {
+                    avisos = Db.tbAvisos.Where(a => a.GrupoId == grupoId.Value).OrderByDescending(a => a.FechaCreacion).ToList();
+                }
+                else if (materiaId.HasValue && materiaId.Value > 0)
+                {
+                    avisos = Db.tbAvisos.Where(a => a.MateriaId == materiaId.Value).OrderByDescending(a => a.FechaCreacion).ToList();
+                }
+                else
+                {
+                    // Obtener materias del alumno y sus avisos
+                    var materiasAlumno = Db.tbAlumnosMaterias.Where(am => am.AlumnoId == alumnoId).Select(am => am.MateriaId).ToList();
+                    avisos = Db.tbAvisos.Where(a => (a.MateriaId != null && materiasAlumno.Contains(a.MateriaId.Value)) || (a.GrupoId != null && Db.tbAlumnosGrupos.Any(ag => ag.AlumnoId == alumnoId && ag.GrupoId == a.GrupoId))).OrderByDescending(a => a.FechaCreacion).ToList();
+                }
+
+                return PartialView("_Avisos", avisos);
             }
-
-            return View();
+            catch (Exception)
+            {
+                return PartialView("_Avisos", new List<tbAvisos>());
+            }
         }
-
-        public class ModeloNotif
-        {
-            public string targetToken { get; set; }
-            public string title { get; set; }
-            public string body { get; set; }
-        }
-
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                if (_userManager != null)
-                {
-                    _userManager.Dispose();
-                    _userManager = null;
-                }
-
-                if (_signInManager != null)
-                {
-                    _signInManager.Dispose();
-                    _signInManager = null;
-                }
-
-                if (_roleManager != null)
-                {
-                    _roleManager.Dispose();
-                    _roleManager = null;
-                }
-
                 if (_db != null)
                 {
                     _db.Dispose();
                     _db = null;
                 }
             }
-
             base.Dispose(disposing);
         }
     }

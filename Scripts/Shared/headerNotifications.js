@@ -46,10 +46,12 @@ function initHeaderNotifications() {
     });
 
     //cerrar cuando se haga clic fuera
-    document.getElementById("userDropdown")
-        .addEventListener("click", function () {
+    const userDropdownEl = document.getElementById("userDropdown");
+    if (userDropdownEl) {
+        userDropdownEl.addEventListener("click", function () {
             cerrarNotificaciones();
         });
+    }
 
 }
 
@@ -65,16 +67,17 @@ document.addEventListener("click", function (event) {
     const userDropdown = document.getElementById("userDropdown");
     const dropdownMenu = document.querySelector(".dropdown-menu");
 
-    if (!panel.classList.contains("mostrar")) return;
+    if (!panel || !panel.classList.contains("mostrar")) return;
 
     // Click fuera de notificaciones
-    if (!icono.contains(event.target) && !panel.contains(event.target)) {
+    if (icono && !icono.contains(event.target) && !panel.contains(event.target)) {
         cerrarNotificaciones();
     }
 
     // Click fuera de dropdown usuario
     if (
         dropdownMenu?.classList.contains("show") &&
+        userDropdown &&
         !userDropdown.contains(event.target) &&
         !dropdownMenu.contains(event.target)
     ) {
@@ -86,33 +89,35 @@ function cerrarNotificaciones() {
     const panel = document.getElementById("notificaciones-panel");
     const icono = document.getElementById("notificaciones-icono");
 
-    panel.classList.remove("mostrar");
-    panel.setAttribute("aria-hidden", "true");
-    icono.classList.remove("selected");
+    if (panel) panel.classList.remove("mostrar");
+    if (panel) panel.setAttribute("aria-hidden", "true");
+    if (icono) icono.classList.remove("selected");
 }
 function cerrarDropdownUsuario() {
     const dropdownBtn = document.getElementById("userDropdown");
-    const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
-
-    if (dropdown) dropdown.hide();
+    if (!dropdownBtn) return;
+    try {
+        const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
+        if (dropdown) dropdown.hide();
+    } catch (e) { }
 }
 
 //renderiza las notificaciones en el mini panel
 function renderizarNotificaciones(notificaciones) {
     const panel = document.getElementById("notificaciones-panel");
-    const lista = panel.querySelector(".lista-notificaciones");
-    const mensajeVacio = panel.querySelector(".text-muted");
+    const lista = panel ? panel.querySelector(".lista-notificaciones") : null;
+    const mensajeVacio = panel ? panel.querySelector(".text-muted") : null;
 
     if (!panel || !lista) return;
 
     // Si no hay notificaciones
     if (!notificaciones || notificaciones.length === 0) {
         lista.innerHTML = "";
-        mensajeVacio.style.display = "block";
+        if (mensajeVacio) mensajeVacio.style.display = "block";
         return;
     }
 
-    mensajeVacio.style.display = "none";
+    if (mensajeVacio) mensajeVacio.style.display = "none";
 
     let html = "";
 
@@ -168,12 +173,14 @@ document.addEventListener("mouseout", function (e) {
 
 
 // Asegurar que se ejecute cuando la página cargue
-document.addEventListener("DOMContentLoaded", initSignalRNotifications);
+if (typeof initSignalRNotifications === 'undefined') document.addEventListener('DOMContentLoaded', initSignalRNotifications);
 
 //Inicializar signalr 
 function initSignalRNotifications() {
+    if (typeof $ === 'undefined' || !$.connection) return; // SignalR no disponible
     
     const hub = $.connection.notificacionesHub;
+    if (!hub) return;
     
     // Método que se ejecuta cuando el servidor envía una nueva notificación
     hub.client.nuevaNotificacion = function (notificacion) {

@@ -12,21 +12,25 @@ const savedTheme = localStorage.getItem(THEME_KEY);
 
 if (savedTheme === 'dark') {
     root.setAttribute('data-theme', 'dark');
-    icono.src = ICONO_OSCURO;
+    if (icono) icono.src = ICONO_OSCURO;
 } else {
-    icono.src = ICONO_CLARO;
+    if (icono) icono.src = ICONO_CLARO;
 }
 
-toggleBtn.addEventListener('click', () => {
-    const isDark = root.getAttribute('data-theme') === 'dark';
+if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+        const isDark = root.getAttribute('data-theme') === 'dark';
 
-    if (isDark) {
-        root.removeAttribute('data-theme');
-        localStorage.setItem(THEME_KEY, 'light');
-        icono.src = ICONO_CLARO;
-    } else {
-        root.setAttribute('data-theme', 'dark');
-        localStorage.setItem(THEME_KEY, 'dark');
-        icono.src = ICONO_OSCURO;
-    }
-});
+        if (isDark) {
+            root.removeAttribute('data-theme');
+            localStorage.setItem(THEME_KEY, 'light');
+            if (icono) icono.src = ICONO_CLARO;
+        } else {
+            root.setAttribute('data-theme', 'dark');
+            localStorage.setItem(THEME_KEY, 'dark');
+            if (icono) icono.src = ICONO_OSCURO;
+        }
+    });
+} else {
+    // elemento no presente en esta vista: no-op
+}

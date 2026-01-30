@@ -23,7 +23,7 @@ using System.Web.Http;
 
 
 
-namespace ControlActividades.Controllers
+namespace ControlActividades.Controllers.Actividades
 {
     [RoutePrefix("api/Actividades")]
     public class ActividadesApiController : ApiController
@@ -38,7 +38,7 @@ namespace ControlActividades.Controllers
         {
         }
 
-        // Compatibilidad: permitir que clientes pidan envÃ­os por alumno usando la ruta /api/Actividades/ObtenerEnviosActividadesAlumno
+        // Compatibilidad: permitir que clientes pidan envíos por alumno usando la ruta /api/Actividades/ObtenerEnviosActividadesAlumno
         [HttpGet]
         [Route("ObtenerEnviosActividadesAlumno")]
         public async Task<IHttpActionResult> ObtenerEnviosActividadesAlumno(int ActividadId, int AlumnoId)
@@ -47,7 +47,7 @@ namespace ControlActividades.Controllers
             {
                 var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId);
                 if (datosAlumnoActividad == null)
-                    return Content(HttpStatusCode.NotFound, new { mensaje = "No se encontrÃ³ registro de entrega para el alumno y la actividad." });
+                    return Content(HttpStatusCode.NotFound, new { mensaje = "No se encontró registro de entrega para el alumno y la actividad." });
 
                 var entregaActividadId = datosAlumnoActividad.EntregaActividadAlumnoId;
                 var fechaEntrega = datosAlumnoActividad?.FechaEntrega;
@@ -59,7 +59,7 @@ namespace ControlActividades.Controllers
                         e.EntregableId,
                         e.TipoEntregaId,
                         e.Contenido,
-                        // FechaCalificado puede no existir en la BD en algunas instalaciones; omitimos su lectura aquÃ­
+                        // FechaCalificado puede no existir en la BD en algunas instalaciones; omitimos su lectura aquí
                         Calificacion = e.Calificacion ?? 0,
                         Comentario = e.Comentario
                     }).ToListAsync();
@@ -162,6 +162,7 @@ namespace ControlActividades.Controllers
 
 
 
+
         public async Task<List<object>> ConsultaActividades()
         {
             try
@@ -204,7 +205,7 @@ namespace ControlActividades.Controllers
             }
             catch (Exception)
             {
-                return BadRequest("OcurriÃ³ un error al obtener las actividades creadas.");
+                return BadRequest("Ocurrió un error al obtener las actividades creadas.");
             }
         }
 
@@ -240,6 +241,7 @@ namespace ControlActividades.Controllers
         }
 
 
+
         [HttpGet]
         [Route("ObtenerActividadesPorMateria")]
         public async Task<IHttpActionResult> ObtenerActividadesPorMateria(int materiaId)
@@ -272,21 +274,45 @@ namespace ControlActividades.Controllers
             }
             catch (Exception e)
             {
-                return Content(HttpStatusCode.BadRequest, new { e.Message }); // En caso de error, retornamos el mensaje de la excepciÃ³n
+                return Content(HttpStatusCode.BadRequest, new { e.Message }); // En caso de error, retornamos el mensaje de la excepción
             }
         }
 
 
 
-        // Obtener una actividad especÃ­fica
+        // Obtener una actividad específica
         [HttpGet]
         [Route("ObtenerActividad")]
         public async Task<IHttpActionResult> ObtenerActividad(int id)
         {
-            var activity = await Db.tbActividades.FindAsync(id);
-            if (activity == null) return Content(HttpStatusCode.NotFound, "Actividad no encontrada"); // Retorna un mensaje adecuado si no se encuentra la actividad
+            try
+            {
+                var activity = await Db.tbActividades
+                    .Where(a => a.ActividadId == id)
+                    .Select(a => new
+                    {
+                        a.ActividadId,
+                        a.NombreActividad,
+                        a.Descripcion,
+                        FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        a.Puntaje,
+                        a.MateriaId,
+                        Enviado = a.Enviado,
+                        FechaProgramada = a.FechaProgramada,
+                        // PermitirEntregasTarde is [NotMapped] on the entity; return false by default
+                        PermitirEntregasTarde = false
+                    })
+                    .FirstOrDefaultAsync();
 
-            return Ok(activity); // Si la actividad se encuentra, la retornamos
+                if (activity == null) return Content(HttpStatusCode.NotFound, "Actividad no encontrada");
+
+                return Ok(activity);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Error al obtener la actividad", detalle = ex.Message });
+            }
         }
 
         [HttpPost]
@@ -311,10 +337,10 @@ namespace ControlActividades.Controllers
 
                 if (nuevaActividad.FechaLimite == default(DateTime))
                 {
-                    return BadRequest("La fecha lÃ­mite de la actividad es invÃ¡lida.");
+                    return BadRequest("La fecha límite de la actividad es inválida.");
                 }
 
-                // Generar automÃ¡ticamente la fecha de creaciÃ³n
+                // Generar automáticamente la fecha de creación
                 nuevaActividad.FechaCreacion = DateTime.Now;
 
 
@@ -327,7 +353,7 @@ namespace ControlActividades.Controllers
                 Db.tbActividades.Add(nuevaActividad);
                 await Db.SaveChangesAsync();
 
-                return Ok(new { mensaje = "Actividad creada con Ã©xito", actividadId = nuevaActividad.ActividadId });
+                return Ok(new { mensaje = "Actividad creada con éxito", actividadId = nuevaActividad.ActividadId });
             }
             catch (DbUpdateException dbEx)
             {
@@ -345,6 +371,7 @@ namespace ControlActividades.Controllers
                 await Ns.NotificacionCrearActividad(nuevaActividad);
             }
         }
+
 
 
 
@@ -367,7 +394,7 @@ namespace ControlActividades.Controllers
 
             await Db.SaveChangesAsync();
 
-            // si cambiÃ³ a publicado ahora -> asignar alumnos
+            // si cambió a publicado ahora -> asignar alumnos
             bool ahoraPublicado = (prevEnviado != true) && (dbActivity.Enviado == true || (dbActivity.Enviado == null && dbActivity.FechaProgramada.HasValue && dbActivity.FechaProgramada.Value <= DateTime.Now));
             if (ahoraPublicado)
             {
@@ -455,7 +482,6 @@ namespace ControlActividades.Controllers
                 //}
 
 
-
                 var existeEntrega = Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == activity.ActividadId).Any();
                 if (existeEntrega)
                     return BadRequest();
@@ -477,6 +503,7 @@ namespace ControlActividades.Controllers
                 return Content(HttpStatusCode.InternalServerError, mensaje);
             }
         }
+
 
 
 
@@ -558,7 +585,6 @@ namespace ControlActividades.Controllers
                     var apellidoPaterno = alumno.ApellidoPaterno;
                     var apellidoMaterno = alumno.ApellidoMaterno;
                     var user = await UserManager.FindByIdAsync(userId ?? "");
-
 
 
 
