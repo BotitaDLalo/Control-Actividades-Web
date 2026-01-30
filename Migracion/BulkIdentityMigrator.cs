@@ -181,7 +181,7 @@ namespace ControlActividades.Migracion
                     userId,
                     dto.Correo,
                     dto.Correo,
-                    true,
+                    false,   //email confirmed
                     HASH_RESET,
                     Guid.NewGuid().ToString(),
                     false,
