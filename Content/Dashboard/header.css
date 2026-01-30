@@ -5,7 +5,6 @@
     justify-content: flex-end;
     height: 60px;
     padding-right: 16px;
-    border: solid 1px green;
     background-color: var(--bg-principal);
 }
 
@@ -218,4 +217,5 @@
 
 .modo-color-icono {
     max-width: 20px;
+    fill: currentColor;
 }
