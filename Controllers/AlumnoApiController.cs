@@ -706,6 +706,593 @@ namespace ControlActividades.Controllers
             }
         }
 
+        /// <summary>
+        /// ✅ NUEVO: Registra entrega con TEXTO, ENLACES y ARCHIVOS
+        /// Recibe: ActividadId, AlumnoId, Respuesta, Enlaces (JSON), FechaEntrega, TipoEntregaId, files (multipart)
+        /// </summary>
+        [HttpPost]
+        [Route("RegistrarEnvioActividadAlumnoConEnlaces")]
+        public async Task<IHttpActionResult> RegistrarEnvioActividadAlumnoConEnlaces()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Current.Request;
+                if (httpRequest == null)
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Solicitud vacía",
+                        Codigo = "SOLICITUD_VACIA",
+                        Detalles = "El servidor no recibió ninguna solicitud HTTP válida."
+                    });
+                }
+
+                // 1. EXTRAER PARÁMETROS
+                int actividadId = 0;
+                int alumnoId = 0;
+                string textoRespuesta = httpRequest.Form["Respuesta"] ?? string.Empty;
+                string enlacesJson = httpRequest.Form["Enlaces"] ?? "[]";
+                string fechaEntrega = httpRequest.Form["FechaEntrega"] ?? DateTime.Now.ToString("O");
+                int tipoEntregaId = 0;
+
+                int.TryParse(httpRequest.Form["ActividadId"], out actividadId);
+                int.TryParse(httpRequest.Form["AlumnoId"], out alumnoId);
+                int.TryParse(httpRequest.Form["TipoEntregaId"], out tipoEntregaId);
+
+                Console.WriteLine($"[LOG] Registrando entrega - ActividadId: {actividadId}, AlumnoId: {alumnoId}");
+
+                // 2. VALIDAR PARÁMETROS
+                if (actividadId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Faltan parámetros obligatorios",
+                        Codigo = "PARAMETROS_INVALIDOS",
+                        Detalles = $"ActividadId: {actividadId}, AlumnoId: {alumnoId}"
+                    });
+                }
+
+                DateTime fechaEntregaParsed;
+                try
+                {
+                    fechaEntregaParsed = DateTime.Parse(fechaEntrega);
+                }
+                catch
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Formato de fecha inválido",
+                        Codigo = "FECHA_INVALIDA",
+                        Detalles = $"Recibido: {fechaEntrega}"
+                    });
+                }
+
+                // 3. VALIDAR ENLACES
+                List<string> enlacesValidos = new List<string>();
+                try
+                {
+                    var enlaces = JsonConvert.DeserializeObject<List<string>>(enlacesJson) ?? new List<string>();
+                    foreach (var enlace in enlaces)
+                    {
+                        if (_validarURL(enlace))
+                        {
+                            enlacesValidos.Add(enlace);
+                            Console.WriteLine($"[LOG] Enlace válido: {enlace}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[WARN] Error parseando enlaces JSON: {enlacesJson} - {ex.Message}");
+                }
+
+                // 4. VERIFICAR SI YA EXISTE ENTREGA
+                var entregaExistente = await Db.tbEntregaActividadAlumno
+                    .FirstOrDefaultAsync(e => e.ActividadId == actividadId && e.AlumnoId == alumnoId);
+
+                tbEntregaActividadAlumno entregaActividad;
+                int entregaActividadAlumnoId;
+
+                if (entregaExistente != null)
+                {
+                    // ✅ LA ENTREGA YA EXISTE - ACTUALIZAR
+                    entregaActividad = entregaExistente;
+                    entregaActividad.FechaEntrega = fechaEntregaParsed;
+                    entregaActividad.EstadoEntregaId = 1;
+                    
+                    Db.tbEntregaActividadAlumno.Attach(entregaActividad);
+                    Db.Entry(entregaActividad).State = System.Data.Entity.EntityState.Modified;
+                    await Db.SaveChangesAsync();
+                    
+                    entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
+                    Console.WriteLine($"[LOG] Entrega actualizada con ID: {entregaActividadAlumnoId}");
+                }
+                else
+                {
+                    // ✅ NUEVA ENTREGA - CREAR
+                    entregaActividad = new tbEntregaActividadAlumno()
+                    {
+                        ActividadId = actividadId,
+                        AlumnoId = alumnoId,
+                        FechaEntrega = fechaEntregaParsed,
+                        EstadoEntregaId = 1
+                    };
+
+                    Db.tbEntregaActividadAlumno.Add(entregaActividad);
+                    await Db.SaveChangesAsync();
+
+                    entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
+                    Console.WriteLine($"[LOG] Entrega creada con ID: {entregaActividadAlumnoId}");
+                }
+
+                // 5. PROCESAR ARCHIVOS
+                var archivosMetadata = new List<object>();
+                var files = httpRequest.Files;
+                var uploadRoot = HttpContext.Current.Server.MapPath("~/Uploads/Entregas/");
+                var destFolder = Path.Combine(uploadRoot, actividadId.ToString(), alumnoId.ToString());
+
+                if (!Directory.Exists(destFolder))
+                    Directory.CreateDirectory(destFolder);
+
+                // ✅ SI LA ENTREGA YA EXISTÍA, ELIMINAR ENTREGABLES ANTIGUOS
+                if (entregaExistente != null)
+                {
+                    var entregablesAntiguos = Db.tbEntregables
+                        .Where(e => e.EntregaActividadAlumnoId == entregaActividadAlumnoId)
+                        .ToList();
+                    
+                    foreach (var entregableAntiguo in entregablesAntiguos)
+                    {
+                        Db.tbEntregables.Remove(entregableAntiguo);
+                    }
+                    await Db.SaveChangesAsync();
+                    Console.WriteLine($"[LOG] Entregables antiguos eliminados");
+                }
+
+                var extensionesPermitidas = new[] 
+                { 
+                    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+                    ".jpg", ".jpeg", ".png", ".gif", ".txt", ".zip", ".rar", ".7z",
+                    ".odt", ".ods", ".odp", ".rtf"
+                };
+
+                const long maxPorArchivo = 50 * 1024 * 1024;
+                const long maxTotal = 200 * 1024 * 1024;
+                long tamanoTotal = 0;
+
+                Console.WriteLine($"[LOG] Procesando {files.Count} archivo(s)");
+
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var file = files[i];
+                    if (file == null || file.ContentLength == 0)
+                    {
+                        Console.WriteLine($"[LOG] Archivo {i} vacío, se omite");
+                        continue;
+                    }
+
+                    var extension = Path.GetExtension(file.FileName).ToLower();
+
+                    // Validar extensión
+                    if (!extensionesPermitidas.Contains(extension))
+                    {
+                        Console.WriteLine($"[ERROR] Extensión no permitida: {extension}");
+                        return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                        {
+                            Mensaje = $"Extensión no permitida: {extension}",
+                            Codigo = "ARCHIVO_NO_PERMITIDO",
+                            Detalles = $"Extensiones válidas: {string.Join(", ", extensionesPermitidas)}"
+                        });
+                    }
+
+                    // Validar tamaño individual
+                    if (file.ContentLength > maxPorArchivo)
+                    {
+                        Console.WriteLine($"[ERROR] Archivo demasiado grande: {file.FileName}");
+                        return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                        {
+                            Mensaje = "Archivo excede 50MB",
+                            Codigo = "ARCHIVO_MUY_GRANDE",
+                            Detalles = $"Archivo: {file.FileName} ({file.ContentLength / (1024 * 1024)}MB)"
+                        });
+                    }
+
+                    tamanoTotal += file.ContentLength;
+
+                    // Validar tamaño total
+                    if (tamanoTotal > maxTotal)
+                    {
+                        Console.WriteLine($"[ERROR] Tamaño total excedido");
+                        return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                        {
+                            Mensaje = "Tamaño total excede 200MB",
+                            Codigo = "ESPACIO_INSUFICIENTE",
+                            Detalles = $"Total actual: {tamanoTotal / (1024 * 1024)}MB"
+                        });
+                    }
+
+                    // Guardar archivo
+                    var safeName = Path.GetFileName(file.FileName);
+                    var destPath = Path.Combine(destFolder, safeName);
+
+                    if (File.Exists(destPath))
+                    {
+                        var ts = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        safeName = $"{ts}_{safeName}";
+                        destPath = Path.Combine(destFolder, safeName);
+                    }
+
+                    file.SaveAs(destPath);
+                    var ruta = $"/Uploads/Entregas/{actividadId}/{alumnoId}/{safeName}";
+
+                    archivosMetadata.Add(new
+                    {
+                        nombre = file.FileName,
+                        nombreGuardado = safeName,
+                        size = file.ContentLength,
+                        ruta = ruta,
+                        fechaGuardado = DateTime.Now
+                    });
+
+                    Console.WriteLine($"[LOG] Archivo guardado: {ruta}");
+                }
+
+                // 6. DETERMINAR TIPO DE ENTREGA
+                int tipoEntregaDeterminado = _determinarTipoEntrega(textoRespuesta, enlacesValidos, archivosMetadata);
+
+                // 7. CREAR ENTREGABLE CON TODO ESTRUCTURADO
+                var contenidoEstructurado = new
+                {
+                    texto = textoRespuesta,
+                    enlaces = enlacesValidos,
+                    archivos = archivosMetadata,
+                    fechaEntrega = DateTime.Now,
+                    totalArchivos = archivosMetadata.Count,
+                    totalEnlaces = enlacesValidos.Count
+                };
+
+                var entregable = new tbEntregables()
+                {
+                    EntregaActividadAlumnoId = entregaActividadAlumnoId,
+                    TipoEntregaId = tipoEntregaDeterminado,
+                    Contenido = JsonConvert.SerializeObject(contenidoEstructurado),
+                    Calificacion = null
+                };
+
+                Db.tbEntregables.Add(entregable);
+                await Db.SaveChangesAsync();
+
+                Console.WriteLine($"[LOG] Entregable creado: {entregable.EntregableId}");
+
+                // 8. LIMPIAR CACHÉ
+                Db.ChangeTracker.Entries()
+                    .Where(e => e.Entity is tbEntregables || e.Entity is tbEntregaActividadAlumno)
+                    .ToList()
+                    .ForEach(e => e.State = System.Data.Entity.EntityState.Detached);
+
+                // 9. RETORNAR RESPUESTA
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno
+                    .FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+
+                var lsDatosEntregables = Db.tbEntregables
+                    .Where(a => a.EntregaActividadAlumnoId == datosAlumnoActividad.EntregaActividadAlumnoId)
+                    .ToList();
+
+                var lsEnvios = new List<object>();
+
+                foreach (var datoEntregable in lsDatosEntregables)
+                {
+                    lsEnvios.Add(new
+                    {
+                        AlumnoId = alumnoId,
+                        EntregaActividadAlumnoId = datoEntregable.EntregaActividadAlumnoId,
+                        EntregableId = datoEntregable.EntregableId,
+                        ActividadId = datosAlumnoActividad.ActividadId,
+                        FechaEntrega = datosAlumnoActividad.FechaEntrega,
+                        Contenido = datoEntregable.Contenido,
+                        Calificacion = datoEntregable.Calificacion ?? 0,
+                        EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+                        TipoEntrega = tipoEntregaDeterminado
+                    });
+                }
+
+                return Ok(new SuccessResponse
+                {
+                    Mensaje = $"Entrega registrada correctamente ({archivosMetadata.Count} archivo(s), {enlacesValidos.Count} enlace(s))",
+                    Codigo = "EXITO",
+                    Datos = lsEnvios
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] RegistrarEnvioActividadAlumnoConEnlaces: {ex.Message}\n{ex.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                {
+                    Mensaje = "Error al registrar la entrega",
+                    Codigo = "ERROR_INTERNO",
+                    Detalles = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Helper: Valida que una URL sea válida
+        /// </summary>
+        private bool _validarURL(string url)
+        {
+            try
+            {
+                Uri result;
+                bool esValida = Uri.TryCreate(url, UriKind.Absolute, out result) && 
+                    (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps);
+                return esValida;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Helper: Determina el tipo de entrega según el contenido
+        /// </summary>
+        private int _determinarTipoEntrega(string texto, List<string> enlaces, List<object> archivos)
+        {
+            bool tieneTexto = !string.IsNullOrEmpty(texto);
+            bool tieneEnlaces = enlaces != null && enlaces.Any();
+            bool tieneArchivos = archivos != null && archivos.Any();
+
+            if (tieneTexto && tieneEnlaces && tieneArchivos) return 4;      // Mixto
+            if (tieneArchivos) return 3;                                     // Archivo
+            if (tieneEnlaces) return 2;                                      // Enlace
+            if (tieneTexto) return 1;                                        // Texto
+            return 1;                                                         // Default: Texto
+        }
+
+        /// <summary>
+        /// Registra el envío de una actividad del alumno con soporte para archivos y texto
+        /// Recibe: ActividadId, AlumnoId, Respuesta (opcional), FechaEntrega, TipoEntregaId, y archivos
+        /// </summary>
+        [HttpPost]
+        [Route("RegistrarEnvioActividadAlumnoConArchivos")]
+        public async Task<IHttpActionResult> RegistrarEnvioActividadAlumnoConArchivos()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Current.Request;
+                if (httpRequest == null)
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "No se recibió la solicitud.",
+                        Codigo = "SOLICITUD_VACIA",
+                        Detalles = "El servidor no recibió ninguna solicitud HTTP válida."
+                    });
+
+                // 1. EXTRAER PARÁMETROS
+                int actividadId = 0;
+                int alumnoId = 0;
+                string respuesta = httpRequest.Form["Respuesta"] ?? string.Empty;
+                string fechaEntrega = httpRequest.Form["FechaEntrega"] ?? DateTime.Now.ToString("O");
+                int tipoEntregaId = 0;
+
+                int.TryParse(httpRequest.Form["ActividadId"], out actividadId);
+                int.TryParse(httpRequest.Form["AlumnoId"], out alumnoId);
+                int.TryParse(httpRequest.Form["TipoEntregaId"], out tipoEntregaId);
+
+                // 2. VALIDAR PARÁMETROS OBLIGATORIOS
+                if (actividadId <= 0 || alumnoId <= 0)
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Faltan datos obligatorios.",
+                        Codigo = "DATOS_INCOMPLETOS",
+                        Detalles = $"ActividadId y AlumnoId deben ser mayores a 0. Recibido - ActividadId: {actividadId}, AlumnoId: {alumnoId}"
+                    });
+                }
+
+                // 3. VALIDAR FECHA
+                DateTime fechaEntregaParsed;
+                try
+                {
+                    fechaEntregaParsed = DateTime.Parse(fechaEntrega);
+                }
+                catch
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "Formato de fecha inválido.",
+                        Codigo = "FECHA_INVALIDA",
+                        Detalles = $"La fecha debe estar en formato ISO 8601. Recibido: {fechaEntrega}"
+                    });
+                }
+
+                // 4. CREAR REGISTRO EN tbEntregaActividadAlumno
+                var entregaActividad = new tbEntregaActividadAlumno()
+                {
+                    ActividadId = actividadId,
+                    AlumnoId = alumnoId,
+                    FechaEntrega = fechaEntregaParsed,
+                    EstadoEntregaId = 1
+                };
+
+                Db.tbEntregaActividadAlumno.Add(entregaActividad);
+                await Db.SaveChangesAsync();
+
+                int entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
+                Console.WriteLine($"[LOG] Creada entrega para Actividad {actividadId}, Alumno {alumnoId}. EntregaId: {entregaActividadAlumnoId}");
+
+                // 5. PROCESAR ARCHIVOS
+                var savedUrls = new List<string>();
+                var files = httpRequest.Files;
+                var uploadRoot = HttpContext.Current.Server.MapPath("~/Uploads/Entregas/");
+                var destFolder = Path.Combine(uploadRoot, actividadId.ToString(), alumnoId.ToString());
+
+                if (!Directory.Exists(destFolder))
+                    Directory.CreateDirectory(destFolder);
+
+                // Extensiones permitidas
+                var extensionesPermitidas = new[] 
+                { 
+                    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", 
+                    ".jpg", ".jpeg", ".png", ".gif", ".txt", ".zip", ".rar", ".7z",
+                    ".odt", ".ods", ".odp", ".rtf"
+                };
+
+                // Límites
+                const long maxTamanoPorArchivo = 50 * 1024 * 1024; // 50MB
+                const long maxTamanoTotal = 200 * 1024 * 1024; // 200MB total
+                long tamanoTotalArchivos = 0;
+
+                Console.WriteLine($"[LOG] Procesando {files.Count} archivo(s)...");
+
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var file = files[i];
+                    if (file == null || file.ContentLength == 0)
+                    {
+                        Console.WriteLine($"[LOG] Archivo {i} está vacío, se omite.");
+                        continue;
+                    }
+
+                    var extension = Path.GetExtension(file.FileName).ToLower();
+
+                    // Validar extensión
+                    if (!extensionesPermitidas.Contains(extension))
+                    {
+                        Console.WriteLine($"[ERROR] Extensión no permitida: {extension}");
+                        return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                        {
+                            Mensaje = "Tipo de archivo no permitido.",
+                            Codigo = "ARCHIVO_NO_PERMITIDO",
+                            Detalles = $"La extensión '{extension}' no es permitida. Extensiones válidas: {string.Join(", ", extensionesPermitidas)}"
+                        });
+                    }
+
+                    // Validar tamaño individual
+                    if (file.ContentLength > maxTamanoPorArchivo)
+                    {
+                        Console.WriteLine($"[ERROR] Archivo demasiado grande: {file.FileName}");
+                        return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                        {
+                            Mensaje = "Archivo demasiado grande.",
+                            Codigo = "ARCHIVO_MUY_GRANDE",
+                            Detalles = $"El archivo '{file.FileName}' excede el límite de 50MB. Tamaño: {file.ContentLength / (1024 * 1024)}MB"
+                        });
+                    }
+
+                    tamanoTotalArchivos += file.ContentLength;
+
+                    // Validar tamaño total
+                    if (tamanoTotalArchivos > maxTamanoTotal)
+                    {
+                        Console.WriteLine($"[ERROR] Tamaño total de archivos excedido");
+                        return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                        {
+                            Mensaje = "Tamaño total de archivos excedido.",
+                            Codigo = "ESPACIO_INSUFICIENTE",
+                            Detalles = $"El tamaño total de los archivos no debe exceder 200MB. Actual: {tamanoTotalArchivos / (1024 * 1024)}MB"
+                        });
+                    }
+
+                    // Generar nombre seguro
+                    var safeName = Path.GetFileName(file.FileName);
+                    var destPath = Path.Combine(destFolder, safeName);
+
+                    // Evitar sobreescribir: agregar timestamp
+                    if (File.Exists(destPath))
+                    {
+                        var ts = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        safeName = $"{ts}_{safeName}";
+                        destPath = Path.Combine(destFolder, safeName);
+                    }
+
+                    // Guardar archivo
+                    file.SaveAs(destPath);
+                    var relativeUrl = $"/Uploads/Entregas/{actividadId}/{alumnoId}/{safeName}";
+                    savedUrls.Add(relativeUrl);
+
+                    Console.WriteLine($"[LOG] Archivo guardado: {relativeUrl}");
+                }
+
+                // 6. CREAR OBJETO CON CONTENIDO + ARCHIVOS
+                var contenidoEntregable = new
+                {
+                    Respuesta = respuesta ?? string.Empty,
+                    Archivos = savedUrls,
+                    FechaGuardado = DateTime.Now,
+                    TotalArchivos = savedUrls.Count,
+                    TamanoTotal = FormatearTamano(tamanoTotalArchivos)
+                };
+
+                string contenidoJson = JsonConvert.SerializeObject(contenidoEntregable);
+                Console.WriteLine($"[LOG] Contenido JSON: {contenidoJson}");
+
+                // 7. CREAR REGISTRO EN tbEntregables
+                var entregable = new tbEntregables()
+                {
+                    EntregaActividadAlumnoId = entregaActividadAlumnoId,
+                    TipoEntregaId = tipoEntregaId > 0 ? tipoEntregaId : 1,
+                    Contenido = contenidoJson,
+                    Calificacion = null
+                };
+
+                Db.tbEntregables.Add(entregable);
+                await Db.SaveChangesAsync();
+
+                Console.WriteLine($"[LOG] Entregable guardado con ID: {entregable.EntregableId}");
+
+                // 8. OBTENER Y RETORNAR RESPUESTA
+                var entregables = Db.tbEntregables
+                    .Where(a => a.EntregaActividadAlumnoId == entregaActividadAlumnoId)
+                    .ToList();
+
+                var lsEnvios = entregables.Select(datoEntregable => new
+                {
+                    AlumnoId = alumnoId,
+                    EntregaActividadAlumnoId = datoEntregable.EntregaActividadAlumnoId,
+                    EntregableId = datoEntregable.EntregableId,
+                    ActividadId = actividadId,
+                    FechaEntrega = entregaActividad.FechaEntrega,
+                    Contenido = datoEntregable.Contenido,
+                    Calificacion = datoEntregable.Calificacion ?? 0,
+                    EstadoEntregaId = entregaActividad.EstadoEntregaId
+                }).ToList();
+
+                return Ok(new SuccessResponse
+                {
+                    Mensaje = $"Entrega registrada correctamente. {savedUrls.Count} archivo(s) guardado(s).",
+                    Codigo = "EXITO",
+                    Datos = lsEnvios
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] RegistrarEnvioActividadAlumnoConArchivos: {ex.Message}\n{ex.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                {
+                    Mensaje = "Error al registrar la entrega con archivos.",
+                    Codigo = "ERROR_INTERNO",
+                    Detalles = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Método auxiliar para formatear tamaños de archivo
+        /// </summary>
+        private string FormatearTamano(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len = len / 1024;
+            }
+            return $"{len:0.##} {sizes[order]}";
+        }
+
         [HttpGet]
         [Route("ObtenerEnviosActividadesAlumno")]
         public async Task<IHttpActionResult> ObtenerEnviosActividadesAlumno(int ActividadId, int AlumnoId)

@@ -462,6 +462,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApiResponse.cs" />
     <Compile Include="Models\db\cEstadoEntrega.cs" />
+    <Compile Include="Models\db\cEstadoEntregas.cs" />
     <Compile Include="Models\db\cTipoEntrega.cs" />
     <Compile Include="Models\db\cTipoNotificacion.cs" />
     <Compile Include="Models\db\cTiposActividades.cs" />
@@ -669,6 +670,17 @@
     <Content Include="RESUMEN_EJECUTIVO_SIMPLIFICACION.md" />
     <Content Include="COMPARACION_ANTES_DESPUES.md" />
     <Content Include="00_INDICE_FINAL.md" />
+    <Content Include="ENDPOINT_ARCHIVOS_COMPLETO.md" />
+    <Content Include="RESUMEN_IMPLEMENTACION.md" />
+    <Content Include="GUIA_PRACTICA_PASO_A_PASO.md" />
+    <Content Include="RESUMEN_FINAL_EJECUTIVO.md" />
+    <Content Include="00_INDICE_DOCUMENTACION_COMPLETA.md" />
+    <Content Include="QUICK_REFERENCE.md" />
+    <Content Include="IMPLEMENTACION_LISTA.md" />
+    <Content Include="ADAPTACION_BACKEND_COMPLETADA.md" />
+    <Content Include="INTEGRACION_COMPLETADA.md" />
+    <Content Include="RESUMEN_FINAL_BACKEND.md" />
+    <Content Include="BACKEND_ADAPTADO_VISUAL.md" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\Grupos\configuracion.js" />
     <Content Include="Scripts\Grupos\grupos.js" />
@@ -754,6 +766,8 @@
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
     <Content Include="SOLUCION_PROBLEMA_ALUMNO_REAPARECE.md" />
     <Content Include="SIMPLIFICACION_METODOS_ELIMINACION.md" />
+    <Content Include="SIGUIENTE_PASO_FLUTTER.md" />
+    <Content Include="SOLUCION_ERROR_FOREIGN_KEY.md" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
