@@ -551,7 +551,12 @@ namespace ControlActividades.Controllers
         }
         */
 
-        // Funcion modificada para eliminiar primero materias y despues el grupo
+        /// <summary>
+        /// Elimina un grupo si no tiene dependencias (materias, alumnos o avisos asociados).
+        /// Solo elimina el grupo, NO elimina las materias (quedan sin grupo).
+        /// </summary>
+        /// <param name="id">ID del grupo a eliminar</param>
+        /// <returns>Respuesta con resultado de la operación</returns>
         [HttpDelete]
         [Route("DeleteGroup/{id}")]
         public async Task<IHttpActionResult> DeleteGroup(int id)
@@ -559,70 +564,77 @@ namespace ControlActividades.Controllers
             try
             {
                 var dbGroup = await Db.tbGrupos.FindAsync(id);
-                if (dbGroup == null) return Content(HttpStatusCode.NotFound, "Grupo no encontrado");
+                if (dbGroup == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new ErrorResponse
+                    {
+                        Mensaje = "El grupo no existe en el sistema.",
+                        Codigo = GrupoErrorCodes.GRUPO_NO_ENCONTRADO,
+                        Detalles = $"No se encontró un grupo con ID {id}."
+                    });
+                }
 
-                // Obtener IDs de las materias asignadas a este grupo
-                var subjectIds = Db.tbGruposMaterias
-                    .Where(gs => gs.GrupoId == id)
-                    .Select(gs => gs.MateriaId)
-                    .ToList();
+                // Validar que el grupo no tenga materias asociadas
+                var tieneMateriasAsociadas = Db.tbGruposMaterias.Where(gm => gm.GrupoId == id).Any();
+                if (tieneMateriasAsociadas)
+                {
+                    var countMaterias = Db.tbGruposMaterias.Where(gm => gm.GrupoId == id).Count();
+                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    {
+                        Mensaje = "No se puede eliminar el grupo porque tiene materias asociadas.",
+                        Codigo = GrupoErrorCodes.GRUPO_CON_ACTIVIDADES,
+                        Detalles = $"Hay {countMaterias} materia(s) que tienes que eliminar antes."
+                    });
+                }
 
-                //// Para cada materia, eliminar todas sus dependencias
-                //foreach (var subjectId in subjectIds)
-                //{
-                //    // Eliminar entregables de las actividades de esta materia
-                //    var activities = Db.tbActividades.Where(a => a.MateriaId == subjectId).Select(a => a.ActividadId);
-                //    var submissions = Db.tbEntregablesAlumno.Where(e => activities.Contains(e.AlumnoActividadId));
-                //    Db.tbEntregablesAlumno.RemoveRange(submissions);
-
-                //    // Eliminar actividades
-                //    var subjectActivities = Db.tbActividades.Where(a => a.MateriaId == subjectId);
-                //    Db.tbActividades.RemoveRange(subjectActivities);
-
-                //    // Eliminar registros de alumnos-materias
-                //    var alumnosMaterias = Db.tbAlumnosMaterias.Where(am => am.MateriaId == subjectId);
-                //    Db.tbAlumnosMaterias.RemoveRange(alumnosMaterias);
-
-                //    // Eliminar todas las relaciones con grupos (incluyendo otros grupos)
-                //    var gruposMaterias = Db.tbGruposMaterias.Where(gm => gm.MateriaId == subjectId);
-                //    Db.tbGruposMaterias.RemoveRange(gruposMaterias);
-
-                //    // Eliminar la materia
-                //    var dbSubject = await Db.tbMaterias.FindAsync(subjectId);
-                //    if (dbSubject != null)
-                //    {
-                //        Db.tbMaterias.Remove(dbSubject);
-                //    }
-                //}
-
+                // Validar que no tenga alumnos inscritos
                 var tieneAlumnos = Db.tbAlumnosGrupos.Where(a => a.GrupoId == id).Any();
                 if (tieneAlumnos)
-                    return BadRequest();
+                {
+                    var countAlumnos = Db.tbAlumnosGrupos.Where(a => a.GrupoId == id).Count();
+                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    {
+                        Mensaje = "No se puede eliminar el grupo porque tiene alumnos inscritos.",
+                        Codigo = GrupoErrorCodes.GRUPO_CON_ALUMNOS,
+                        Detalles = $"Hay {countAlumnos} alumno(s) inscrito(s) que tienes que eliminar antes."
+                    });
+                }
 
-                var tieneActividades = Db.tbActividades.Where(a => subjectIds.Contains(a.MateriaId)).Any();
-                if (tieneActividades)
-                    return BadRequest();
-
-                var materiasTienenAvisos = Db.tbAvisos.Where(a => subjectIds.Contains(a.MateriaId ?? -1)).Any();
-                if (materiasTienenAvisos)
-                    return BadRequest();
-
+                // Validar que el grupo no tenga avisos propios
                 var grupoTieneAvisos = Db.tbAvisos.Where(a => a.GrupoId == id).Any();
-                if(grupoTieneAvisos)
-                    return BadRequest();
+                if (grupoTieneAvisos)
+                {
+                    var countAvisos = Db.tbAvisos.Where(a => a.GrupoId == id).Count();
+                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    {
+                        Mensaje = "No se puede eliminar el grupo porque tiene avisos asociados.",
+                        Codigo = GrupoErrorCodes.GRUPO_CON_AVISOS,
+                        Detalles = $"Hay {countAvisos} aviso(s) que debes eliminar antes."
+                    });
+                }
 
-
-                var lsMaterias = Db.tbMaterias.Where(a => subjectIds.Contains(a.MateriaId)).ToList();
-
-                Db.tbMaterias.RemoveRange(lsMaterias);
+                // Si llegamos aquí, el grupo puede ser eliminado sin tocar las materias
                 Db.tbGrupos.Remove(dbGroup);
-                
                 await Db.SaveChangesAsync();
-                return Ok();
+
+                Console.WriteLine($"[LOG] Grupo {id} eliminado exitosamente.");
+
+                return Ok(new SuccessResponse
+                {
+                    Mensaje = "El grupo ha sido eliminado exitosamente.",
+                    Codigo = "EXITO",
+                    Datos = new { GrupoId = id }
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                Console.WriteLine($"[ERROR] DeleteGroup: {ex.Message}\n{ex.StackTrace}");
+                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                {
+                    Mensaje = "Ocurrió un error interno en el servidor al intentar eliminar el grupo.",
+                    Codigo = GrupoErrorCodes.ERROR_INTERNO,
+                    Detalles = ex.Message
+                });
             }
         }
 

@@ -1,0 +1,13 @@
+@{
+    // Partial para renderizar el contenedor de actividades.
+    var containerId = ViewData["ContainerId"] ?? ViewData["ActividadesContainerId"] ?? "listaActividadesDeMateria";
+    var title = ViewData["Title"] ?? "";
+}
+<div class="actividades-list-container">
+    @if(!String.IsNullOrEmpty(title as string)){
+        <div class="mb-2"><strong>@title</strong></div>
+    }
+    <div id="@(containerId)" class="lista-actividades">
+        <p class="text-muted">Cargando actividades...</p>
+    </div>
+</div>

@@ -1,3 +1,12 @@
+using ControlActividades.Models;
+using ControlActividades.Models.db;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Microsoft.Ajax.Utilities;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -11,14 +20,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using ControlActividades.Models;
-using ControlActividades.Models.db;
-using ControlActividades.Recursos;
-using Microsoft.Ajax.Utilities;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.IdentityModel.Tokens;
 
 
 
@@ -32,6 +33,7 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private NotificacionesService _notifServ;
         public ActividadesApiController()
         {
         }
@@ -78,12 +80,13 @@ namespace ControlActividades.Controllers
             }
         }
 
-        public ActividadesApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
+        public ActividadesApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, NotificacionesService notifServ)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
+            Ns = notifServ;
         }
 
         public ApplicationSignInManager SignInManager
@@ -145,6 +148,17 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
+        public NotificacionesService Ns
+        {
+            get
+            {
+                return _notifServ ?? (_notifServ = new NotificacionesService(Db, new FCMService()));
+            }
+            private set
+            {
+                _notifServ = value;
+            }
+        }
 
 
 
@@ -198,16 +212,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                // Use RequestContext principal (works in WebApi) to determine roles
-                var principal = RequestContext?.Principal;
-                bool esDocente = principal != null && (principal.IsInRole("Docente") || principal.IsInRole("Administrador"));
-
                 var q = Db.tbActividades.Where(a => a.MateriaId == materiaId);
-                if (!esDocente)
-                {
-                    // Para alumnos: mostrar únicamente actividades públicas o programadas cuya fecha ya llegó
-                    q = q.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
-                }
 
                 var actividades = await q.ToListAsync();
 
@@ -215,19 +220,17 @@ namespace ControlActividades.Controllers
                 {
                     ActividadId = a.ActividadId,
                     NombreActividad = a.NombreActividad,
-                    Descripcion = a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    DescripcionActividad = a.Descripcion,
+                    FechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
                     Puntaje = a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,
                     MateriaId = a.MateriaId
                 }).ToList();
 
-                // Determine rolUsuario using the helper
-                var rolUsuario = Fg.ObtenerRolUsuario(principal);
 
-                return Ok(new { Actividades = listaActividades, RolUsuario = rolUsuario });
+                return Ok(listaActividades);
             }
             catch (Exception ex)
             {
@@ -339,7 +342,7 @@ namespace ControlActividades.Controllers
 
             finally
             {
-                //await _ns.NotificacionCrearActividad(nuevaActividad);
+                await Ns.NotificacionCrearActividad(nuevaActividad);
             }
         }
 

@@ -1,3 +1,4 @@
+﻿@using Rol = ControlActividades.Roles;
 @{
     Layout = "~/Views/Shared/_LayoutDocente.cshtml";
     ViewBag.Title = "MateriasDetalles";
@@ -10,19 +11,7 @@
 
     int grupoId = ViewBag.GrupoId != null ? (int)ViewBag.GrupoId : 0;
 }
-<div id="docente-datos" data-docenteid="@docenteId" data-materiaid="@materiaId" data-grupoid="@grupoId" style="display:none"></div>
-<script>
-    // Exponer materia/grupo a scripts cliente mediante atributos data-*
-    (function(){
-        var docenteDiv = document.getElementById('docente-datos');
-        try {
-            window.materiaIdGlobal = (docenteDiv && docenteDiv.dataset && docenteDiv.dataset.materiaid) ? parseInt(docenteDiv.dataset.materiaid,10) : null;
-        } catch(e){ window.materiaIdGlobal = null; }
-        try {
-            window.grupoIdGlobal = (docenteDiv && docenteDiv.dataset && docenteDiv.dataset.grupoid) ? parseInt(docenteDiv.dataset.grupoid,10) : null;
-        } catch(e){ window.grupoIdGlobal = null; }
-    })();
-</script>
+<div id="docente-datos" data-docenteid="@docenteId"></div>
 <div class="materia-container">
     <style>
         /* Mejorar distribución de columnas en la tabla de entregables */
@@ -96,7 +85,17 @@
                 }
         }
     </style>
-    @Html.Partial("~/Views/Shared/_MateriaHeader.cshtml")
+    <!-- Compact header: shows materia name and access code without large decorative card -->
+    <div class="materia-header-compact materia-header d-flex align-items-center justify-content-between" style="padding:12px 20px; border-radius:8px; margin-bottom:12px; background: linear-gradient(90deg,#42c1ff 0%,#1e88e5 100%); color:#fff;">
+        <div style="display:flex;flex-direction:column;">
+            <h2 id="materiaNombre" style="margin:0; font-size:1.4rem; font-weight:600;">Cargando...</h2>
+            <small style="opacity:0.95; margin-top:6px;">
+                Código: <strong id="codigoAcceso">Cargando...</strong>
+                <button type="button" class="btn btn-sm btn-light" style="margin-left:8px; padding:2px 8px; font-size:0.85rem;" onclick="copiarCodigoAcceso()" title="Copiar código">Copiar</button>
+            </small>
+        </div>
+        <div class="ico-card" style="font-size:28px; opacity:0.95;"><i class="fas fa-book"></i></div>
+    </div>
 
     <script>
         // Cargar y mostrar actividades como accordion; dentro cargar entregables ordenados por alumno
@@ -242,7 +241,8 @@
         <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
         <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
         <button class="tab-button" onclick="cambiarSeccion('entregables')">Entregables</button>
-        @if (User != null && User.IsInRole("Docente"))
+
+        @if (User.IsInRole(Rol.DOCENTE))
         {
             <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
             <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
@@ -273,19 +273,18 @@
         <div id="seccion-actividades" class="seccion" style="display: none;">
             <div class="dropdown">
                 <button class="btn-crear">Crear ▼</button>
-                <div class="dropdown-content">
-                    <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearActividadModal">
-                        📋Crear Tarea
-                    </button>
-                </div>
+                @if (User.IsInRole(Rol.DOCENTE))
+                {
+                    <div class="dropdown-content">
+                        <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearActividadModal">
+                            📋Crear Tarea
+                        </button>
+                    </div>
+                }
             </div>
             <!-- Filter control will be injected dynamically by scriptsActividades.js -->
             <div class="divider"></div>
-            @{
-                ViewData["ContainerId"] = "listaActividadesDeMateria";
-                ViewData["Title"] = "Lista de Actividades";
-            }
-            @Html.Partial("~/Views/Shared/_ActividadesList.cshtml")
+            <div id="listaActividadesDeMateria"></div>
         </div>
 
         <div id="seccion-entregables" class="seccion" style="display: none;">
@@ -305,10 +304,7 @@
 
             <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
             <div id="listaEntregables" class="mt-2">
-                @{
-                    ViewData["TableId"] = "tablaEntregablesActividad";
-                }
-                @Html.Partial("~/Views/Shared/_EntregablesTable.cshtml")
+                <p class="text-muted">Selecciona una actividad para ver los entregables.</p>
             </div>
         </div>
 
@@ -332,13 +328,10 @@
                     </div>
                 </div>
             </div>
-            @{
-                ViewData["AlumnosListId"] = "listaAlumnosAsignados";
-            }
-            @Html.Partial("~/Views/Shared/_AlumnosList.cshtml")
+            <div id="listaAlumnosAsignados" class="mt-3"></div>
         </div>
 
-        <div id="seccion-configuracion" class="seccion form-custom" style="display: none;">
+        <div id="seccion-configuracion" class="seccion" style="display: none;">
             <h4>Configuración de la materia</h4>
 
             <div class="mb-3">
@@ -453,10 +446,10 @@
     </script>
 
     @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/bundles/docentegrupos")
-    <script src="~/Scripts/Shared/common-helpers.js"></script>
-    <script src="~/Scripts/Materias/materia-detalles.js"></script>
-    <script src="~/Scripts/Avisos/avisos.js"></script>
+    @Scripts.Render("~/bundles/materias")
+    @Scripts.Render("~/bundles/grupos")
+    @Scripts.Render("~/bundles/avisos")
+
     <script src="~/Scripts/Materias/configuracion.js"></script>
 }
 
