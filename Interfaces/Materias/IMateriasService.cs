@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ControlActividades.Models;
+using ControlActividades.Models.db;
 
 namespace ControlActividades.Interfaces.Materias
 {
@@ -12,5 +13,7 @@ namespace ControlActividades.Interfaces.Materias
         List<MateriaViewModel> ObtenerMateriasSinGrupoPorUsuario(int usuarioId, string role);
 
         Task<MateriaViewModel> ObtenerMateriaDetalles(int materiaId, int docenteId);
+
+        Task<ActividadRes> CrearActividadAsync(CrearActividad actividad);
     }
 }

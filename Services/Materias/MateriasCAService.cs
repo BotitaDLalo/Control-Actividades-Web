@@ -89,5 +89,10 @@ namespace ControlActividades.Services.Materias
             }
         }
 
+        public Task<ActividadRes> CrearActividadAsync(CrearActividad actividad)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

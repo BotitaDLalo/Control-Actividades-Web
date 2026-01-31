@@ -51,7 +51,15 @@ namespace ControlActividades.Services
             return await MateriasCAService.ObtenerMateriaDetalles(materiaId, docenteId);
         }
 
-
+        public async Task<ActividadRes> CrearActividadAsync(CrearActividad actividad)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await MateriasSTService.CrearActividadAsync(actividad);
+            }
+            return await MateriasCAService.CrearActividadAsync(actividad);
+        }
         #region Propiedades
         public FuenteDatosService FuenteDatosService
         {
