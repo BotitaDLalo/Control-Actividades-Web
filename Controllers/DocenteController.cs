@@ -146,6 +146,7 @@ namespace ControlActividades.Controllers
             return View();
         }
         */
+        /*
         // GET: /Docente/GrupoMaterias -> vista que muestra materias de un grupo
         [HttpGet]
         public ActionResult GrupoMaterias(int? grupoId)
@@ -163,7 +164,7 @@ namespace ControlActividades.Controllers
 
             return View();
         }
-
+        */
         public ActionResult EvaluarActividades()
         {
             string userId = User.Identity.GetUserId();
@@ -172,7 +173,7 @@ namespace ControlActividades.Controllers
             ViewBag.DocenteId = docenteId;
             return View();
         }
-
+        /*
         // GET: /Docente/Grupos -> mostrar vista independiente GruposStandalone
         [HttpGet]
         public ActionResult Grupos()
@@ -183,8 +184,8 @@ namespace ControlActividades.Controllers
             ViewBag.DocenteId = docenteId;
             // Devolver la vista independiente que no choque con otros archivos Grupos.cshtml
             return View("GruposStandalone");
-        }
-
+        }*/
+        /*
         // GET: /Docente/MateriasSinGrupo -> mostrar vista independiente MateriasSinGrupoStandalone
         [HttpGet]
         public ActionResult MateriasSinGrupo()
@@ -194,7 +195,7 @@ namespace ControlActividades.Controllers
 
             ViewBag.DocenteId = docenteId;
             return View("MateriasSinGrupoStandalone");
-        }
+        }*/
 
         [HttpGet]
         public ActionResult ChatIA()
