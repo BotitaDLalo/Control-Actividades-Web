@@ -127,7 +127,7 @@ namespace ControlActividades.Controllers
             return View(aviso);
         }
 
-
+        /*
         public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
         {
             if (!materiaId.HasValue)
@@ -145,7 +145,7 @@ namespace ControlActividades.Controllers
 
             return View();
         }
-
+        */
         // GET: /Docente/GrupoMaterias -> vista que muestra materias de un grupo
         [HttpGet]
         public ActionResult GrupoMaterias(int? grupoId)
