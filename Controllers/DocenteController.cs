@@ -225,7 +225,7 @@ namespace ControlActividades.Controllers
             var random = new Random();
             return new string(Enumerable.Range(0, 8).Select(_ => (char)random.Next('A', 'Z' + 1)).ToArray());
         }
-
+        /*
         [HttpGet]
         public JsonResult ObtenerGrupos(int docenteId)
         {
@@ -235,7 +235,7 @@ namespace ControlActividades.Controllers
 
             return Json(grupos, JsonRequestBehavior.AllowGet);
         }
-
+        */
         [HttpPost]
         public JsonResult AsociarMaterias(AsociarMateriasRequest request)
         {
