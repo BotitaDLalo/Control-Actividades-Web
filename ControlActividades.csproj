@@ -435,6 +435,7 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\Docente\IDocentesService.cs" />
     <Compile Include="Migracion\BulkIdentityMigrator.cs" />
     <Compile Include="Migracion\MigradorUsuariosRunner.cs" />
     <Compile Include="Interfaces\IFuenteDatos.cs" />
@@ -827,6 +828,7 @@
     <Folder Include="Content\Images\" />
     <Folder Include="Dashboard\" />
     <Folder Include="Interfaces\Alumnos\" />
+    <Folder Include="Services\Docente\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Base\" />
