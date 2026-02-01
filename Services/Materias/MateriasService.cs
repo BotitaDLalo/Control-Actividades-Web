@@ -51,7 +51,7 @@ namespace ControlActividades.Services
             return await MateriasCAService.ObtenerMateriaDetalles(materiaId, docenteId);
         }
 
-        public async Task<ActividadRes> CrearActividadAsync(CrearActividad actividad)
+        public async Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
             if (fuenteDatos == FuenteDatos.API)

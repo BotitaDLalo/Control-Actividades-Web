@@ -89,7 +89,7 @@ namespace ControlActividades.Services.Materias
             }
         }
 
-        public Task<ActividadRes> CrearActividadAsync(CrearActividad actividad)
+        public Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad)
         {
             throw new NotImplementedException();
         }

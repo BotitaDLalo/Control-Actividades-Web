@@ -12,7 +12,7 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
     }
 
-    public class CrearActividad
+    public class ActividadDTO
     {
         public string NombreActividad { get; set; }
         public string Descripcion { get; set; }
