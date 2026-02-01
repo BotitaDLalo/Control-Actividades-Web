@@ -167,7 +167,7 @@ namespace ControlActividades.Services.Materias
             }
             catch (Exception ex)
             {
-                var detalle = ex.InnerException?.InnerException?.Message
+               var detalle = ex.InnerException?.InnerException?.Message
                ?? ex.InnerException?.Message
                ?? ex.Message;
 

@@ -513,7 +513,9 @@
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Recursos\StringExtensions.cs" />
-    <Compile Include="Services\ActividadesService.cs" />
+    <Compile Include="Services\Actividades\ActividadesService.cs" />
+    <Compile Include="Services\Actividades\ActividadesSTService.cs" />
+    <Compile Include="Services\Actividades\ActividadesCAService.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\FuenteDatosService.cs" />

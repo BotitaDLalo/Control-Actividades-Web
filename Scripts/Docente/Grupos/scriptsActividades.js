@@ -336,14 +336,21 @@ function renderizarActividades(actividades) {
     const filteredActividades = actividadesToRender.filter(actividad => {
         // Normalize 'Enviado' value (may come as boolean, string or number)
         let enviadoVal = actividad.Enviado;
+
         if (typeof enviadoVal === 'undefined' && actividad.enviado !== undefined) enviadoVal = actividad.enviado;
+
         const enviadoBool = (enviadoVal === true) || (String(enviadoVal).toLowerCase() === 'true') || (String(enviadoVal) === '1') || (enviadoVal === 1);
         const fechaProgVal = actividad.FechaProgramada || actividad.fechaProgramada || actividad.FechaProgramada;
         const estadoKey = enviadoBool ? 'publicada' : (fechaProgVal ? 'programada' : 'borrador');
-        if (filtroNorm === 'all') return true;
-        if (filtroNorm === 'borrador') return estadoKey === 'borrador';
-        if (filtroNorm === 'publicada') return estadoKey === 'publicada';
-        if (filtroNorm === 'programada') return estadoKey === 'programada';
+
+        if (filtroNorm === 'all')
+            return true;
+        if (filtroNorm === 'borrador')
+            return estadoKey === 'borrador';
+        if (filtroNorm === 'publicada')
+            return estadoKey === 'publicada';
+        if (filtroNorm === 'programada')
+            return estadoKey === 'programada';
         return true;
     });
 
@@ -473,6 +480,7 @@ async function eliminarActividad(id) {
         `/api/Actividades/EliminarActividad?id=${id}`,
         `/api/Actividades/EliminarActividad/${id}`,
         `/Materias/EliminarActividad?id=${id}`,
+        `/Actividades/EliminarActividad?id=${id}`,
         `/Materias/EliminarActividad/${id}`
     ];
 

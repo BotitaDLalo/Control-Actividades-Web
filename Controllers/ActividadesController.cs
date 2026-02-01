@@ -13,6 +13,7 @@ using System.Web.Security;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlActividades.Services;
 using ControlMaterias.Controllers;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -29,6 +30,7 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private ActividadesService _actividadesService;
 
         public ActividadesController()
         {
@@ -148,6 +150,17 @@ namespace ControlActividades.Controllers
             }
         }
 
+        public ActividadesService ActividadesService
+        {
+            get
+            {
+                return _actividadesService ?? (_actividadesService = new ActividadesService());
+            }
+            private set
+            {
+                _actividadesService = value;
+            }
+        }
 
 
         //Controlador para obtener los datos de una actividad
@@ -530,33 +543,29 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
-                if (activity == null)
-                {
-                    Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return Json(new { mensaje = "Actividad no encontrada." }, JsonRequestBehavior.AllowGet);
-                }
-
-                //var alumnoActividad = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == activity.ActividadId);
-                var existenEntregas = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == activity.ActividadId).AnyAsync();
-                
-                
-                if (existenEntregas)
-                {
-                    Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    return Json(new { mensaje = "Error al eliminar la actividad." }, JsonRequestBehavior.AllowGet);
-                }
-
-
-                Db.tbActividades.Remove(activity);
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Actividad eliminada correctamente." }, JsonRequestBehavior.AllowGet);
+                await ActividadesService.EliminarActividadAsync(id);
+            
+                return Json(new 
+                { 
+                    mensaje = "Actividad eliminada correctamente." 
+                }, JsonRequestBehavior.AllowGet);
+            
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
                 Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message },
+                    JsonRequestBehavior.AllowGet);
             }
         }
 
