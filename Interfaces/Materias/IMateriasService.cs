@@ -14,6 +14,6 @@ namespace ControlActividades.Interfaces.Materias
 
         Task<MateriaViewModel> ObtenerMateriaDetalles(int materiaId, int docenteId);
 
-        Task<ActividadRes> CrearActividadAsync(CrearActividad actividad);
+        Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad);
     }
 }

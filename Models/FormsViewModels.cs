@@ -16,9 +16,10 @@ namespace ControlActividades.Models
     {
         public string NombreActividad { get; set; }
         public string Descripcion { get; set; }
-        public DateTime FechaCreacion { get; set; }
         public DateTime FechaLimite { get; set; }
         public int Puntaje { get; set; }
         public int MateriaId { get; set; }
+        public bool? Enviado { get; set; }
+        public DateTime? FechaProgramada { get; set; }
     }
 }

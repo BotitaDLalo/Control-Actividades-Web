@@ -1,15 +1,17 @@
-﻿using System;
+﻿using ControlActividades.Interfaces.Materias;
+using ControlActividades.Models;
+using ControlActividades.Models.db;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using ControlActividades.Interfaces.Materias;
-using ControlActividades.Models;
+using System.Web.Mvc;
 
 namespace ControlActividades.Services.Materias
 {
-    public class MateriasCAService : IMateriasService
+    public class MateriasCAService
     {
         private ApplicationDbContext _db;
 
@@ -89,9 +91,90 @@ namespace ControlActividades.Services.Materias
             }
         }
 
-        public Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad)
+        public async Task<ActividadRes> CrearActividadAsync(ActividadDTO actividadDto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Verificar que la materia exista en la base de datos
+                var materiaExiste = await Db.tbMaterias.AnyAsync(m => m.MateriaId == actividadDto.MateriaId);
+                if (!materiaExiste)
+                {
+                    throw new Exception("La materia especificada no existe.");
+                }
+
+                // Crear la nueva actividad
+                var nuevaActividad = new tbActividades
+                {
+                    NombreActividad = actividadDto.NombreActividad,
+                    Descripcion = actividadDto.Descripcion,
+                    FechaCreacion = DateTime.Now,
+                    FechaLimite = actividadDto.FechaLimite,
+                    Puntaje = actividadDto.Puntaje,
+                    MateriaId = actividadDto.MateriaId,
+                    Enviado = actividadDto.Enviado,
+                    FechaProgramada = actividadDto.FechaProgramada
+                };
+
+                Db.tbActividades.Add(nuevaActividad);
+                await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID
+
+                // Solo asignar a alumnos si la actividad está publicada inmediatamente
+                // o si está programada y la fecha programada ya pasó
+                bool publicarAhora = nuevaActividad.Enviado == true;
+                bool programadaYA = nuevaActividad.Enviado == null &&
+                                    nuevaActividad.FechaProgramada.HasValue &&
+                                    nuevaActividad.FechaProgramada.Value <= DateTime.Now;
+
+                if (publicarAhora || programadaYA)
+                {
+                    // Obtener los alumnos que pertenecen a la materia
+                    var alumnosMateria = await Db.tbAlumnosMaterias
+                        .Where(am => am.MateriaId == actividadDto.MateriaId)
+                        .Select(am => am.AlumnoId)
+                        .ToListAsync();
+
+                    // Crear registros en la tabla AlumnoActividad para cada alumno
+                    foreach (var alumnoId in alumnosMateria)
+                    { /*
+                        var alumnoActividad = new tbAlumnosActividades
+                        {
+                            ActividadId = nuevaActividad.ActividadId,
+                            AlumnoId = alumnoId,
+                            FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
+                            EstatusEntrega = false
+                        };
+                        */
+                        //Db.tbAlumnosActividades.Add(alumnoActividad);
+                    }
+
+                    // Guardar los cambios en la tabla AlumnoActividad
+                    //await Db.SaveChangesAsync();
+                }
+
+                // Guardar los cambios en la tabla AlumnoActividad
+                await Db.SaveChangesAsync();
+
+                //Retorna el dto
+                return new ActividadRes
+                {
+                    ActividadId = nuevaActividad.ActividadId,
+                    NombreActividad = nuevaActividad.NombreActividad,
+                    Descripcion = nuevaActividad.Descripcion,
+                    FechaCreacion = nuevaActividad.FechaCreacion,
+                    FechaLimite = nuevaActividad.FechaLimite,
+                    Puntaje = nuevaActividad.Puntaje
+                };
+            }
+            catch (Exception ex)
+            {
+                var detalle = ex.InnerException?.InnerException?.Message
+               ?? ex.InnerException?.Message
+               ?? ex.Message;
+
+                throw new Exception(detalle, ex);
+            }
+           
+
         }
 
     }

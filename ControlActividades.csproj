@@ -435,6 +435,7 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\Actividades\IActividadesService.cs" />
     <Compile Include="Interfaces\Docente\IDocentesService.cs" />
     <Compile Include="Migracion\BulkIdentityMigrator.cs" />
     <Compile Include="Migracion\MigradorUsuariosRunner.cs" />

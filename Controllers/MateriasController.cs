@@ -436,7 +436,7 @@ namespace ControlMaterias.Controllers
 
         // Controlador api que crea actividades y asigna a los alumnos
         [HttpPost]
-        public async Task<ActionResult> CrearActividad(tbActividades actividadDto)
+        public async Task<ActionResult> CrearActividad(ActividadDTO actividadDto)
         {
             if (actividadDto == null)
             {
@@ -451,87 +451,24 @@ namespace ControlMaterias.Controllers
                 return Json(new { mensaje = "La fecha límite debe ser en el futuro." }, JsonRequestBehavior.AllowGet);
             }
 
-            // Verificar que la materia exista en la base de datos
-            var materiaExiste = await Db.tbMaterias.AnyAsync(m => m.MateriaId == actividadDto.MateriaId);
-            if (!materiaExiste)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "La materia especificada no existe." }, JsonRequestBehavior.AllowGet);
-            }
-
-            // Verificar que el tipo de actividad exista en la base de datos
-            //var tipoActividadExiste = await Db.cTiposActividades.AnyAsync(t => t.TipoActividadId == actividadDto.TipoActividadId);
-            //if (!tipoActividadExiste)
-            //{
-            //    Response.StatusCode = 400; // Bad Request
-            //    return Json(new { mensaje = "El tipo de actividad especificado no existe." }, JsonRequestBehavior.AllowGet);
-            //}
-
             try
             {
-                // Crear la nueva actividad
-                var nuevaActividad = new tbActividades
-                {
-                    NombreActividad = actividadDto.NombreActividad,
-                    Descripcion = actividadDto.Descripcion,
-                    FechaCreacion = DateTime.Now,
-                    FechaLimite = actividadDto.FechaLimite,
-                    //TipoActividadId = actividadDto.TipoActividadId,
-                    Puntaje = actividadDto.Puntaje,
-                    MateriaId = actividadDto.MateriaId,
-                    Enviado = actividadDto.Enviado,
-                    FechaProgramada = actividadDto.FechaProgramada
-                };
 
-                Db.tbActividades.Add(nuevaActividad);
-                await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID
-
-                // Solo asignar a alumnos si la actividad está publicada inmediatamente
-                // o si está programada y la fecha programada ya pasó
-                bool publicarAhora = nuevaActividad.Enviado == true;
-                bool programadaYA = nuevaActividad.Enviado == null && nuevaActividad.FechaProgramada.HasValue && nuevaActividad.FechaProgramada.Value <= DateTime.Now;
-
-                if (publicarAhora || programadaYA)
-                {
-                    // Obtener los alumnos que pertenecen a la materia
-                    var alumnosMateria = await Db.tbAlumnosMaterias
-                        .Where(am => am.MateriaId == actividadDto.MateriaId)
-                        .Select(am => am.AlumnoId)
-                        .ToListAsync();
-
-                    // Crear registros en la tabla AlumnoActividad para cada alumno
-                    foreach (var alumnoId in alumnosMateria)
-                    {
-                        //var alumnoActividad = new tbAlumnosActividades
-                        //{
-                        //    ActividadId = nuevaActividad.ActividadId,
-                        //    AlumnoId = alumnoId,
-                        //    FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
-                        //    EstatusEntrega = false
-                        //};
-
-                        //Db.tbAlumnosActividades.Add(alumnoActividad);
-                    }
-
-                    // Guardar los cambios en la tabla AlumnoActividad
-                    //await Db.SaveChangesAsync();
-                }
-
-                // Guardar los cambios en la tabla AlumnoActividad
-                await Db.SaveChangesAsync();
-
+                var actividad = await MateriasService.CrearActividadAsync(actividadDto);
                 //Envío de notificación a los alumnos dentro de la materia
                 /*await Ns.NotificacionCrearActividad(
                     nuevaActividad,
                     nuevaActividad.MateriaId
                     );*/
 
-                return Json(new { mensaje = "Actividad creada y asignada a los alumnos con éxito", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
+                return Json(new
+                {   mensaje = "Actividad creada y asignada a los alumnos con éxito",
+                    actividadId = actividad.ActividadId
+                }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al crear la actividad", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return new HttpStatusCodeResult(500, ex.Message);
             }
         }
 
