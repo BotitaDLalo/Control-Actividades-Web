@@ -477,24 +477,37 @@ async function eliminarActividad(id) {
     Swal.fire({ title: 'Eliminando...', text: `Eliminando actividad ${id}`, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
     const endpoints = [
-        `/api/Actividades/EliminarActividad?id=${id}`,
-        `/api/Actividades/EliminarActividad/${id}`,
-        `/Materias/EliminarActividad?id=${id}`,
         `/Actividades/EliminarActividad?id=${id}`,
-        `/Materias/EliminarActividad/${id}`
+    //        `/api/Actividades/EliminarActividad?id=${id}`,
+    //      `/api/Actividades/EliminarActividad/${id}`,
+    //    `/Materias/EliminarActividad?id=${id}`,
+    //  `/Materias/EliminarActividad/${id}`
     ];
 
     try {
-        const resp = await tryEndpoints(endpoints, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
+        const resp = await tryEndpoints(endpoints,
+            {
+                method: 'DELETE', headers:
+                {
+                    'Content-Type': 'application/json'
+                }
+            });
         const text = await resp.text();
         let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
         Swal.close();
-        Swal.fire('Eliminado!', data && data.mensaje ? data.mensaje : `La actividad ${id} fue eliminada.`, 'success');
+        Swal.fire('Eliminado!',
+            data &&
+                data.mensaje ?
+                data.mensaje : `La actividad ${id} fue eliminada.`, 'success'
+        );
         cargarActividadesDeMateria();
     } catch (error) {
         console.error('Error al eliminar la actividad:', error);
         Swal.close();
-        Swal.fire('Error', 'No se pudo eliminar la actividad. Revisa la consola para más detalles.', 'error');
+        Swal.fire('Error',
+            'No se pudo eliminar la actividad.',
+            'error'
+        );
     }
 }
 

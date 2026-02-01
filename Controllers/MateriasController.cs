@@ -566,36 +566,6 @@ namespace ControlMaterias.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("api/Actividades/EliminarActividad/{id}")]
-        public async Task<ActionResult> EliminarActividad(int id)
-        {
-            try
-            {
-                // Buscar el registro en la tabla tbActividades
-                var actividad = await Db.tbActividades
-                    .FirstOrDefaultAsync(a => a.ActividadId == id);
-
-                if (actividad == null)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontró el registro en Actividades." }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Eliminar el registro
-                Db.tbActividades.Remove(actividad);
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Actividad eliminada correctamente." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-
         #region Avisos
         //Controlador para crear un aviso funciona desde dentro de la materia
         [HttpPost]
