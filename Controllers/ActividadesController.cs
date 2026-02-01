@@ -42,37 +42,17 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
+                bool esDocente = User != null && (User.IsInRole("Docente") ||
+                                                  User.IsInRole("Administrador"));
 
-                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
-                if (!esDocente)
-                {
-                    // Para alumnos: mostrar solo publicadas o programadas cuya fecha ya llegó
-                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
-                }
+                var actividades = await ActividadesService.ObtenerActividadesPorMateria(materiaId, esDocente);
 
-                // Ordenar por fecha de creación descendente para que lo más reciente aparezca primero
-                var actividadesEntities = await query
-                    .OrderByDescending(a => a.FechaCreacion)
-                    .ToListAsync();
-
-                if (actividadesEntities == null || actividadesEntities.Count == 0)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
-                }
-
-                var resultado = actividadesEntities.Select(a => new
-                {
-                    a.ActividadId,
-                    a.NombreActividad,
-                    a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    a.Puntaje
-                }).ToList();
-
-                return Json(resultado, JsonRequestBehavior.AllowGet);
+                return Json(actividades, JsonRequestBehavior.AllowGet);
+            }
+            catch (KeyNotFoundException)
+            {
+                Response.StatusCode = 404; // Not Found
+                return Json(new { mensaje = "No se encontraron actividades para la materia especificada." }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

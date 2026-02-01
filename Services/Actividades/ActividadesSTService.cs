@@ -23,6 +23,11 @@ namespace ControlActividades.Services.Actividades
             }
         }
         
+        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, bool esDocente)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task EliminarActividadAsync (int id)
         {
             throw new NotImplementedException();

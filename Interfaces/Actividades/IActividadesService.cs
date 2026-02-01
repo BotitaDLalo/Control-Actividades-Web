@@ -6,9 +6,9 @@ namespace ControlActividades.Interfaces.Actividades
 {
     public interface IActividadesService
     {
-        /*
-        Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId);
+        Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, bool esDocente);
 
+        /*
         Task<ActividadRes>ObtenerActividadesPorId(int actividadId);
 
         Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividad);
