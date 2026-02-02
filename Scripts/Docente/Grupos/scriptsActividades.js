@@ -607,7 +607,7 @@ async function actualizarActividad(id) {
     // leer campos
     let nombre = document.getElementById('nombre').value.trim();
     let descripcion = document.getElementById('descripcion').value.trim();
-    let fechaHoraLimite = document.getElementById('fechaHoraLimite').value;
+    let fechaHoraLimite = document.getElementById('horaLimite').value;
     let puntajeInput = document.getElementById("puntaje");
     let sinPuntajeCheckbox = document.getElementById("sinPuntaje");
     let puntaje = null;

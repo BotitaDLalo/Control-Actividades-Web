@@ -61,6 +61,7 @@ namespace ControlActividades.Controllers
             }
         }
 
+        #region Constructores con dependencias
         public ActividadesController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
         {
             UserManager = userManager;
@@ -141,7 +142,7 @@ namespace ControlActividades.Controllers
                 _actividadesService = value;
             }
         }
-
+        #endregion
 
         //Controlador para obtener los datos de una actividad
         [HttpGet]
@@ -149,30 +150,14 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                // Cargar la entidad y mapear a DTO en memoria para evitar errores de traducción de EF
-                var entidad = await Db.tbActividades.FindAsync(actividadId);
-                if (entidad == null)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontró la actividad con el ID especificado." }, JsonRequestBehavior.AllowGet);
-                }
-
-                var actividad = new
-                {
-                    entidad.ActividadId,
-                    entidad.NombreActividad,
-                    entidad.Descripcion,
-                    entidad.MateriaId,
-                    FechaCreacion = entidad.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = entidad.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    entidad.Puntaje,
-                    entidad.Enviado,
-                    // PermitirEntregasTarde no está mapeado en la BD (NotMapped); devolver valor por defecto
-                    PermitirEntregasTarde = entidad.PermitirEntregasTarde,
-                    FechaProgramada = entidad.FechaProgramada
-                };
-
+                var actividad = await ActividadesService.ObtenerActividadPorId(actividadId);
+                
                 return Json(actividad, JsonRequestBehavior.AllowGet);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Response.StatusCode = 404; // Not Found
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

@@ -376,6 +376,20 @@ namespace ControlActividades.Models
         public int Puntaje { get; set; }
     }
 
+    public class ActividadDetallesRes
+    {
+        public int ActividadId { get; set; }
+        public string NombreActividad { get; set; }
+        public string Descripcion { get; set; }
+        public int MateriaId { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public DateTime FechaLimite { get; set; }
+        public int Puntaje { get; set; }
+        public bool? Enviado { get; set; }
+        public bool PermitirEntregasTarde { get; set; }
+        public DateTime? FechaProgramada { get; set; }
+    }
+
     public class MateriaRes
     {
         public int MateriaId { get; set; }

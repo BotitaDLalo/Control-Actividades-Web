@@ -28,6 +28,11 @@ namespace ControlActividades.Services.Actividades
             throw new NotImplementedException();
         }
 
+        public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task EliminarActividadAsync (int id)
         {
             throw new NotImplementedException();

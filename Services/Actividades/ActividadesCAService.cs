@@ -69,6 +69,40 @@ namespace ControlActividades.Services.Actividades
             }
         }
 
+        public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)
+        {
+            
+            try
+            {
+                // Cargar la entidad y mapear a DTO en memoria para evitar errores de traducción de EF
+                var entidad = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == actividadId);
+                if (entidad == null)
+                {
+                    throw new KeyNotFoundException("No se encontró la actividad con el id especificado");
+                }
+
+                return new ActividadDetallesRes
+                {
+                    ActividadId = entidad.ActividadId,
+                    NombreActividad = entidad.NombreActividad,
+                    Descripcion = entidad.Descripcion,
+                    MateriaId = entidad.MateriaId,
+                    FechaCreacion = entidad.FechaCreacion,
+                    FechaLimite = entidad.FechaLimite,
+                    Puntaje = entidad.Puntaje,
+                    Enviado = entidad.Enviado,
+                    // PermitirEntregasTarde no está mapeado en la BD (NotMapped); devolver valor por defecto
+                    PermitirEntregasTarde = entidad.PermitirEntregasTarde,
+                    FechaProgramada = entidad.FechaProgramada
+                };
+
+            } 
+            catch(Exception ex)
+            {
+                throw new Exception("Error al obtener la actividad: " + ex.Message);
+            }
+        }
+
         public async Task EliminarActividadAsync(int id)
         {
             try
