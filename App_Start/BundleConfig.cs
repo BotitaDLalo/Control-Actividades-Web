@@ -62,8 +62,11 @@ namespace ControlActividades
             /*************** - SCRIPTS - ***************************/
             //SCRIPTS GENERALES - USAR EN TODOS LOS LAYOUTS
             bundles.Add(new ScriptBundle("~/bundles/carga")
-                .Include("~/Scripts/Componentes/PantallaCarga.js",
-                        "~/Scripts/Shared/modoColor.js")
+                .Include("~/Scripts/Componentes/PantallaCarga.js")
+            );
+
+            bundles.Add(new ScriptBundle("~/bundles/color")
+                .Include("~/Scripts/Shared/modoColor.js")
             );
 
             bundles.Add(new Bundle("~/bundles/header")
