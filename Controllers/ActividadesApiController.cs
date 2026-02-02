@@ -491,31 +491,60 @@ namespace ControlActividades.Controllers
 
 
 
-                    foreach (var entregable in entregableAlumno.ToList())
-                    {
+                        foreach (var entregable in entregableAlumno.ToList())
+                        {
+                            var userName = user.UserName;
+                            alumnoEntregable.AlumnoId = alumnoId;
+                            alumnoEntregable.NombreUsuario = userName ?? "";
+                            alumnoEntregable.Nombres = nombres ?? "";
+                            alumnoEntregable.ApellidoPaterno = apellidoPaterno ?? "";
+                            alumnoEntregable.ApellidoMaterno = apellidoMaterno ?? "";
+                            alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
+                            alumnoEntregable.EntregaId = entregable.EntregableId;
+                            alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
 
-                        var userName = user.UserName;
-                        alumnoEntregable.AlumnoId = alumnoId;
-                        alumnoEntregable.NombreUsuario = userName ?? "";
-                        alumnoEntregable.Nombres = nombres ?? "";
-                        alumnoEntregable.ApellidoPaterno = apellidoPaterno ?? "";
-                        alumnoEntregable.ApellidoMaterno = apellidoMaterno ?? "";
+                            string contenidoRaw = entregable.Contenido ?? "";
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(contenidoRaw))
+                                {
+                                    contenidoRaw = contenidoRaw.Replace("\\\"", "\"");
+                                    var contenidoObj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(contenidoRaw);
 
+                                    string texto = contenidoObj?.texto ?? "";
+                                    var enlaces = contenidoObj?.enlaces != null ? Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(contenidoObj.enlaces.ToString()) : new List<string>();
+                                    var archivos = contenidoObj?.archivos != null ? Newtonsoft.Json.JsonConvert.DeserializeObject<List<object>>(contenidoObj.archivos.ToString()) : new List<object>();
 
-                        alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
+                                    alumnoEntregable.Texto = texto;
+                                    alumnoEntregable.Enlaces = enlaces;
+                                    alumnoEntregable.Archivos = archivos;
+                                    alumnoEntregable.FechaEntregaContenido = contenidoObj?.fechaEntrega != null ? DateTime.Parse(contenidoObj.fechaEntrega.ToString()) : (DateTime?)null;
+                                    alumnoEntregable.TotalArchivos = contenidoObj?.totalArchivos ?? 0;
+                                    alumnoEntregable.TotalEnlaces = contenidoObj?.totalEnlaces ?? 0;
+                                    alumnoEntregable.Respuesta = contenidoRaw;
+                                }
+                                else
+                                {
+                                    alumnoEntregable.Respuesta = "";
+                                    alumnoEntregable.Texto = "";
+                                    alumnoEntregable.Enlaces = new List<string>();
+                                    alumnoEntregable.Archivos = new List<object>();
+                                    alumnoEntregable.TotalArchivos = 0;
+                                    alumnoEntregable.TotalEnlaces = 0;
+                                }
+                            }
+                            catch
+                            {
+                                alumnoEntregable.Respuesta = contenidoRaw;
+                                alumnoEntregable.Texto = "";
+                                alumnoEntregable.Enlaces = new List<string>();
+                                alumnoEntregable.Archivos = new List<object>();
+                                alumnoEntregable.TotalArchivos = 0;
+                                alumnoEntregable.TotalEnlaces = 0;
+                            }
 
-
-                        alumnoEntregable.EntregaId = entregable.EntregableId;
-
-
-                        alumnoEntregable.Respuesta = entregable.Contenido;
-
-
-                        alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
-
-
-                        lsEntregables.Add(alumnoEntregable);
-                    }
+                            lsEntregables.Add(alumnoEntregable);
+                        }
 
                 }
 

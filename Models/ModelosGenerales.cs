@@ -267,6 +267,12 @@ namespace ControlActividades.Models
         public DateTime FechaEntrega { get; set; }
         public string Respuesta { get; set; }
         public int Calificacion { get; set; }
+        public string Texto { get; set; }
+        public List<string> Enlaces { get; set; }
+        public List<object> Archivos { get; set; }
+        public DateTime? FechaEntregaContenido { get; set; }
+        public int TotalArchivos { get; set; }
+        public int TotalEnlaces { get; set; }
     }
 
 

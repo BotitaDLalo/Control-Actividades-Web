@@ -730,7 +730,7 @@ namespace ControlActividades.Controllers
                 // 1. EXTRAER PARÁMETROS
                 int actividadId = 0;
                 int alumnoId = 0;
-                string textoRespuesta = httpRequest.Form["Respuesta"] ?? string.Empty;
+                string respuestaRaw = httpRequest.Form["Respuesta"] ?? string.Empty;
                 string enlacesJson = httpRequest.Form["Enlaces"] ?? "[]";
                 string fechaEntrega = httpRequest.Form["FechaEntrega"] ?? DateTime.Now.ToString("O");
                 int tipoEntregaId = 0;
@@ -740,6 +740,34 @@ namespace ControlActividades.Controllers
                 int.TryParse(httpRequest.Form["TipoEntregaId"], out tipoEntregaId);
 
                 Console.WriteLine($"[LOG] Registrando entrega - ActividadId: {actividadId}, AlumnoId: {alumnoId}");
+
+                // PROCESAR RESPUESTA: detectar si viene JSON stringifyado
+                string textoRespuesta = respuestaRaw;
+                List<string> enlacesValidos = new List<string>();
+                
+                try
+                {
+                    if (!string.IsNullOrEmpty(respuestaRaw) && respuestaRaw.TrimStart().StartsWith("{"))
+                    {
+                        var respuestaObj = JsonConvert.DeserializeObject<dynamic>(respuestaRaw);
+                        textoRespuesta = respuestaObj.texto ?? respuestaObj.Respuesta ?? "";
+                        if (respuestaObj.enlaces != null)
+                        {
+                            var enlacesTemp = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(respuestaObj.enlaces));
+                            foreach (var enlace in enlacesTemp)
+                            {
+                                if (_validarURL(enlace))
+                                    enlacesValidos.Add(enlace);
+                            }
+                        }
+                        Console.WriteLine($"[LOG] Respuesta parseada - texto: {textoRespuesta}, enlaces: {enlacesValidos.Count}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[WARN] Error parseando respuesta JSON: {ex.Message}. Usando texto plano.");
+                    textoRespuesta = respuestaRaw;
+                }
 
                 // 2. VALIDAR PARÁMETROS
                 if (actividadId <= 0 || alumnoId <= 0)
@@ -767,8 +795,7 @@ namespace ControlActividades.Controllers
                     });
                 }
 
-                // 3. VALIDAR ENLACES
-                List<string> enlacesValidos = new List<string>();
+                // 3. AGREGAR ENLACES ADICIONALES (si vienen en el campo separado)
                 try
                 {
                     var enlaces = JsonConvert.DeserializeObject<List<string>>(enlacesJson) ?? new List<string>();
@@ -776,8 +803,11 @@ namespace ControlActividades.Controllers
                     {
                         if (_validarURL(enlace))
                         {
-                            enlacesValidos.Add(enlace);
-                            Console.WriteLine($"[LOG] Enlace válido: {enlace}");
+                            if (!enlacesValidos.Contains(enlace))
+                            {
+                                enlacesValidos.Add(enlace);
+                                Console.WriteLine($"[LOG] Enlace válido: {enlace}");
+                            }
                         }
                     }
                 }
