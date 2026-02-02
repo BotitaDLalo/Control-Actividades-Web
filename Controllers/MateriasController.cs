@@ -8,6 +8,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
+using NPOI.SS.Formula.Eval;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -456,10 +457,11 @@ namespace ControlMaterias.Controllers
 
                 var actividad = await MateriasService.CrearActividadAsync(actividadDto);
                 //Envío de notificación a los alumnos dentro de la materia
-                await Ns.NotificacionCrearActividad(
-                    nuevaActividad
-                );
-
+                /*
+                await Ns.NotificacionCreaActividad(
+                    actividadDto
+                );*/
+                
                 return Json(new
                 {   mensaje = "Actividad creada y asignada a los alumnos con éxito",
                     actividadId = actividad.ActividadId
