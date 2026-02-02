@@ -437,6 +437,7 @@
     <Compile Include="Interfaces\Grupos\IGruposApiService.cs" />
     <Compile Include="Interfaces\IFuenteDatos.cs" />
     <Compile Include="Interfaces\Grupos\IGruposService.cs" />
+    <Compile Include="Interfaces\Materias\IMateriasApiService.cs" />
     <Compile Include="Interfaces\Materias\IMateriasService.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.cs" />
     <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
@@ -519,6 +520,9 @@
     <Compile Include="Services\Grupos\GruposCAService.cs" />
     <Compile Include="Services\Grupos\GruposService.cs" />
     <Compile Include="Services\Grupos\GruposSTService.cs" />
+    <Compile Include="Services\Materias\MateriasApiCAService.cs" />
+    <Compile Include="Services\Materias\MateriasApiService.cs" />
+    <Compile Include="Services\Materias\MateriasApiSTService.cs" />
     <Compile Include="Services\Materias\MateriasCAService.cs" />
     <Compile Include="Services\Materias\MateriasService.cs" />
     <Compile Include="Services\Materias\MateriasSTService.cs" />

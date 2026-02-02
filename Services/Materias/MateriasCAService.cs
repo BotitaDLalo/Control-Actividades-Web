@@ -25,32 +25,58 @@ namespace ControlActividades.Services.Materias
             }
         }
 
-        public async Task<MateriaViewModel> ObtenerMateriaDetalles(int materiaId, int docenteId)
+        public async Task<List<AlumnoCorreo>> BuscarAlumnosPorCorreo(string query)
         {
-            var materiaDetalles = await Db.tbMaterias
-                .Where(m => m.MateriaId == materiaId && m.DocenteId == docenteId)
-                .Select(m => new MateriaViewModel
-                {
-                    NombreMateria = m.NombreMateria,
-                    CodigoAcceso = m.CodigoAcceso,
-                    CodigoColor = m.CodigoColor,
-                    DocenteId = m.DocenteId
-                }).FirstOrDefaultAsync();
-
-            return materiaDetalles;
+            var alumnosConCorreo = await (from a in Db.tbAlumnos
+                                         join u in Db.Users on a.UserId equals u.Id
+                                         where a.Nombre.Contains(query)
+                                               || a.ApellidoPaterno.Contains(query)
+                                               || a.ApellidoMaterno.Contains(query)
+                                               || u.Email.Contains(query)
+                                         orderby a.ApellidoPaterno, a.ApellidoMaterno, a.Nombre
+                                         select new AlumnoCorreo
+                                         {
+                                             Email = u.Email,
+                                             Nombre = a.Nombre,
+                                             ApellidoPaterno = a.ApellidoPaterno,
+                                             ApellidoMaterno = a.ApellidoMaterno
+                                         }).Take(25).ToListAsync();
+            return alumnosConCorreo;
         }
 
-        public List<MateriaViewModel> ObtenerMateriasSinGrupoPorUsuario(int usuarioId, string role)
+        public async Task< MateriaCARes> ObtenerMateriaDetalles(int materiaId, int grupoId, string role, int ca_usuarioId, int st_usuarioId)
         {
             try
             {
-                List<MateriaViewModel> materiasSinGrupo = new List<MateriaViewModel>();
+                var materiaDetalles = await Db.tbMaterias
+                    .Where(m => m.MateriaId == materiaId)
+                    .Select(m => new MateriaCARes
+                    {
+                        NombreMateria = m.NombreMateria,
+                        CodigoAcceso = m.CodigoAcceso,
+                        CodigoColor = m.CodigoColor,
+                        DocenteId = m.DocenteId
+                    }).FirstOrDefaultAsync();
+
+                return materiaDetalles;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<MateriaCARes>> ObtenerMateriasSinGrupoPorUsuario(int usuarioId, int st_usuarioId, string role)
+        {
+            try
+            {
+                List< MateriaCARes> materiasSinGrupo = new List< MateriaCARes>();
 
                 if (role == Roles.DOCENTE)
                 {
-                    materiasSinGrupo = Db.tbMaterias
+                    materiasSinGrupo = await Db.tbMaterias
                     .Where(m => m.DocenteId == usuarioId && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
-                    .Select(a => new MateriaViewModel
+                    .Select(a => new  MateriaCARes
                     {
                         MateriaId = a.MateriaId,
                         GrupoId = a.GruposMaterias.Where(gm => gm.MateriaId == a.MateriaId).Select(gm => gm.GrupoId).FirstOrDefault(),
@@ -60,7 +86,7 @@ namespace ControlActividades.Services.Materias
                         ApellidoMaternoDocente = a.Docentes.ApellidoMaterno,
                         NombresDocente = a.Docentes.Nombre
                     })
-                    .ToList();
+                    .ToListAsync();
 
                 }
                 else if (role == Roles.ALUMNO)
@@ -69,7 +95,7 @@ namespace ControlActividades.Services.Materias
 
                     lsMateriasAlumno = lsMateriasAlumno.Where(a => !Db.tbGruposMaterias.Any(gm => gm.MateriaId == a)).ToList();
 
-                    materiasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).Select(a => new MateriaViewModel
+                    materiasSinGrupo =  Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).Select(a => new  MateriaCARes
                     {
                         MateriaId = a.MateriaId,
                         GrupoId = a.GruposMaterias.Where(gm => gm.MateriaId == a.MateriaId).Select(gm => gm.GrupoId).FirstOrDefault(),
@@ -85,7 +111,7 @@ namespace ControlActividades.Services.Materias
             }
             catch (Exception)
             {
-                return new List<MateriaViewModel>();
+                return new List< MateriaCARes>();
             }
         }
 

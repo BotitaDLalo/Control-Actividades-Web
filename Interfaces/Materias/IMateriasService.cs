@@ -9,8 +9,10 @@ namespace ControlActividades.Interfaces.Materias
 {
     public interface IMateriasService
     {
-        List<MateriaViewModel> ObtenerMateriasSinGrupoPorUsuario(int usuarioId, string role);
+        Task<List<MateriaCARes>> ObtenerMateriasSinGrupoPorUsuario(int ca_usuarioId, int st_usuarioId, string role);
 
-        Task<MateriaViewModel> ObtenerMateriaDetalles(int materiaId, int docenteId);
+        Task< MateriaCARes> ObtenerMateriaDetalles(int materiaId, int grupoId, string role, int ca_usuarioId, int st_usuarioId);
+
+        Task<List<AlumnoCorreo>> BuscarAlumnosPorCorreo(string query);
     }
 }
