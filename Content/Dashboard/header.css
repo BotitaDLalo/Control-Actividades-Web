@@ -67,17 +67,22 @@
 }
 
 /*NOTIFICACIONES*/
+#notificaciones-icono {
+    position: relative;
+}
+
 /*Punto rojo indicador de nueva notificación*/
 .notiIndicador {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    top: 2px;
+    right: 2px;
     width: 10px;
     height: 10px;
     background: red;
     border-radius: 50%;
-    display: none; /* Oculto por defecto */
     z-index: 10;
+    pointer-events: none;
+    display: none; /* Oculto por defecto */
 }
 
 /* Estilos para el panel de notificaciones */
