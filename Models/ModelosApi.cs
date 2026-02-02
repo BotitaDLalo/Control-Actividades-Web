@@ -49,11 +49,23 @@ namespace ControlActividades.Models
     {
         public int MateriaId { get; set; }
 
+        public int? GrupoId { get; set; }
+
         public string NombreMateria { get; set; }
 
         public string Descripcion { get; set; }
 
+        public string CodigoColor { get; set; }
+
         public string CodigoAcceso { get; set; }
+
+        public string ApellidoPaternoDocente { get; set; }
+
+        public string ApellidoMaternoDocente { get; set; }
+
+        public string NombresDocente { get; set; }
+
+        public int? DocenteId { get; set; }
 
         public List<ActividadCARes> Actividades { get; set; }
     }
@@ -73,5 +85,7 @@ namespace ControlActividades.Models
         public int Puntaje { get; set; }
 
         public int MateriaId { get; set; }
+
+        public int? GrupoId {  get; set; }
     }
 }
