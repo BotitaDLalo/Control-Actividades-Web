@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using ControlActividades.Interfaces;
 using ControlActividades.Models;
@@ -12,7 +13,7 @@ namespace ControlActividades.Services
         private FuenteDatosService _fuenteDatos;
         private GruposCAService _gruposCAService;
         private GruposSTService _gruposSTService;
-        
+
         public GruposService()
         {
         }
@@ -64,48 +65,48 @@ namespace ControlActividades.Services
 
         #endregion
 
-        public List<GrupoViewModel> ObtenerGruposPorUsuario(string rol, int usuarioId)
+        public async Task<List<GruposCARes>> ObtenerGruposPorUsuario(string role, int ca_usuarioId, int st_usuarioId)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                return GruposSTService.ObtenerGruposPorUsuario(rol, usuarioId);
+                return await GruposSTService.ObtenerGruposPorUsuario(role, ca_usuarioId, st_usuarioId);
             }
-            return GruposCAService.ObtenerGruposPorUsuario(rol,usuarioId);
+            return await GruposCAService.ObtenerGruposPorUsuario(role, ca_usuarioId, st_usuarioId);
         }
 
-        public List<MateriaViewModel> ObtenerMateriasPorGrupo(int grupoId, int usuarioId, string role)
+        public async Task<List<MateriaCARes>> ObtenerMateriasPorGrupo(int grupoId, int ca_usuarioId, int st_usuarioId, string role)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                return GruposSTService.ObtenerMateriasPorGrupo(grupoId, usuarioId, role);
+                return await GruposSTService.ObtenerMateriasPorGrupo(grupoId, ca_usuarioId, st_usuarioId, role);
             }
-            return GruposCAService.ObtenerMateriasPorGrupo(grupoId, usuarioId, role);
+            return await GruposCAService.ObtenerMateriasPorGrupo(grupoId, ca_usuarioId, st_usuarioId, role);
         }
 
-        public bool TieneGrupos(string role, int usuarioId)
+        public async Task<bool> TieneGrupos(string role, int ca_usuarioId, int st_usuarioId)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                return GruposSTService.TieneGrupos(role,usuarioId);
+                return await GruposSTService.TieneGrupos(role, ca_usuarioId, st_usuarioId);
             }
-            return GruposCAService.TieneGrupos(role, usuarioId);
+            return await GruposCAService.TieneGrupos(role, ca_usuarioId, st_usuarioId);
         }
 
-        public bool TieneMaterias(string role, int usuarioId)
+        public async Task<bool> TieneMaterias(string role, int ca_usuarioId, int st_usuarioId)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                return GruposSTService.TieneMaterias(role,usuarioId);
+                return await GruposSTService.TieneMaterias(role, ca_usuarioId, st_usuarioId);
             }
-            return GruposCAService.TieneMaterias(role, usuarioId);
+            return await GruposCAService.TieneMaterias(role, ca_usuarioId, st_usuarioId);
         }
     }
 }

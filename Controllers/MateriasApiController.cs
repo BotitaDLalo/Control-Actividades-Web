@@ -12,6 +12,7 @@ using System.Web.Http;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlActividades.Services.Materias;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -26,17 +27,31 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private MateriasApiService _materiasApiService;
         public MateriasApiController()
         {
         }
 
-        public MateriasApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
+        public MateriasApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, MateriasApiService materiasApiService)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+            MateriasApiService = materiasApiService;
+        }
+
+        public MateriasApiService MateriasApiService
+        {
+            get
+            {
+                return _materiasApiService ?? (_materiasApiService = new MateriasApiService());
+            }
+            private set
+            {
+                _materiasApiService = value;
+            }
         }
 
         public ApplicationSignInManager SignInManager
@@ -97,6 +112,8 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
+
+
 
 
         #region Docente
@@ -204,36 +221,39 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                List<int> lsMateriasId = await Db.tbMaterias.Where(a => a.DocenteId == docenteId).Select(a => a.MateriaId).ToListAsync();
+                //List<int> lsMateriasId = await Db.tbMaterias.Where(a => a.DocenteId == docenteId).Select(a => a.MateriaId).ToListAsync();
 
-                List<int> lsGruposMateriasId = await Db.tbGruposMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(a => a.MateriaId).ToListAsync();
+                //List<int> lsGruposMateriasId = await Db.tbGruposMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(a => a.MateriaId).ToListAsync();
 
-                lsMateriasId = lsMateriasId.Where(a => !lsGruposMateriasId.Contains(a)).ToList();
+                //lsMateriasId = lsMateriasId.Where(a => !lsGruposMateriasId.Contains(a)).ToList();
 
-                var lsMaterias = Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(a => new
-                {
-                    a.MateriaId,
-                    a.NombreMateria,
-                    a.Descripcion,
-                    a.CodigoAcceso,
-                    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b=> new
-                    {
-                        b.ActividadId,
-                        b.NombreActividad,
-                        b.Descripcion,
-                        b.FechaCreacion,
-                        b.FechaLimite,
-                        //b.TipoActividadId,
-                        b.Puntaje,
-                        b.MateriaId,
-                    }).ToList()
-                }).ToList();
+                //var lsMaterias = Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(a => new
+                //{
+                //    a.MateriaId,
+                //    a.NombreMateria,
+                //    a.Descripcion,
+                //    a.CodigoAcceso,
+                //    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b=> new
+                //    {
+                //        b.ActividadId,
+                //        b.NombreActividad,
+                //        b.Descripcion,
+                //        b.FechaCreacion,
+                //        b.FechaLimite,
+                //        //b.TipoActividadId,
+                //        b.Puntaje,
+                //        b.MateriaId,
+                //    }).ToList()
+                //}).ToList();
+                string role = Roles.DOCENTE;
+                int st_usuarioId = Fg.ObtenerSTUsuarioId(User);
 
+                var lsMaterias = await MateriasApiService.ObtenerMaterias(docenteId, st_usuarioId, role);
                 return Ok(lsMaterias);
             }
             catch (Exception e)
             {
-                return Content(HttpStatusCode.BadRequest,new
+                return Content(HttpStatusCode.BadRequest, new
                 {
                     e.Message
                 });
@@ -311,7 +331,7 @@ namespace ControlActividades.Controllers
                 var lsMateriasDocente = await Db.tbMaterias.Where(a => a.DocenteId == docenteId
                 && !Db.tbGruposMaterias.Any(b => b.MateriaId == a.MateriaId)).Select(a => new
                 {
-                    a.MateriaId, 
+                    a.MateriaId,
                     a.NombreMateria,
                     a.Descripcion,
                     a.CodigoColor,
@@ -323,7 +343,7 @@ namespace ControlActividades.Controllers
             }
             catch (Exception)
             {
-                return Content(HttpStatusCode.BadRequest,new { mensaje = "No se registro la materia" });
+                return Content(HttpStatusCode.BadRequest, new { mensaje = "No se registro la materia" });
             }
         }
 
@@ -672,44 +692,35 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var lsMateriasAlumnoId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == alumnoId).Select(a => a.MateriaId);
+                //var lsMateriasAlumnoId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == alumnoId).Select(a => a.MateriaId);
 
-                var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
-                {
-                    a.MateriaId,
-                    a.NombreMateria,
-                    a.Descripcion,
-                    a.CodigoAcceso,
-                    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new
-                    {
-                        b.ActividadId,
-                        b.NombreActividad,
-                        b.Descripcion,
-                        b.FechaCreacion,
-                        b.FechaLimite,
-                        b.Puntaje,
-                        b.MateriaId
-                    }).ToList()
-                }).ToList();
-
-                //foreach (var materia in lsMateriasSinGrupo)
+                //var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
                 //{
-                //    var laMaterias = lsMateriasSinGrupo.Select(a => new
+                //    a.MateriaId,
+                //    a.NombreMateria,
+                //    a.Descripcion,
+                //    a.CodigoAcceso,
+                //    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new
                 //    {
-                //        a.MateriaId,
-                //        a.NombreMateria,
-                //        a.Descripcion,
-                //        actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).ToList()
-                //    });
+                //        b.ActividadId,
+                //        b.NombreActividad,
+                //        b.Descripcion,
+                //        b.FechaCreacion,
+                //        b.FechaLimite,
+                //        b.Puntaje,
+                //        b.MateriaId
+                //    }).ToList()
+                //}).ToList();
+                string role = Roles.ALUMNO;
+                int st_usuarioId = Fg.ObtenerSTUsuarioId(User);
 
-                //    lsMateriasActividades.Add(laMaterias);
-                //}
+                var lsMateriasSinGrupo = await MateriasApiService.ObtenerMaterias(alumnoId, st_usuarioId, role);
 
                 return Ok(lsMateriasSinGrupo);
             }
             catch (Exception e)
             {
-                return Content(HttpStatusCode.BadRequest,new
+                return Content(HttpStatusCode.BadRequest, new
                 {
                     e.Message
                 });

@@ -32,6 +32,8 @@ namespace ControlActividades.Models.db
         [ForeignKey("IdentityUser")]
         [Required]
         public  string UserId { get; set; }
+        public int? ST_UsuarioId { get; set; }
+
         public virtual ICollection<tbGrupos> Grupos { get; set; }
         public virtual ICollection<tbMaterias> Materias { get; set; }
         public virtual ICollection<tbEventosAgenda> EventosAgendas { get; set; }

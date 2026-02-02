@@ -16,10 +16,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ControlActividades.Recursos
 {
-    public class FuncionalidadesGenerales
+    public class FuncionalidadesGenerales : IDisposable
     {
+        private bool _disposed = false;
         private ApplicationDbContext _db;
-
+        #region Propiedades
         public ApplicationDbContext Db
         {
             get
@@ -31,6 +32,32 @@ namespace ControlActividades.Recursos
                 _db = value;
             }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    if (_db != null)
+                    {
+                        _db.Dispose();
+                        _db = null;
+                    }
+                }
+                _disposed = true;
+            }
+        }
+
+        #endregion
+
+
         public string GenerarCodigoAleatorio()
         {
             int length = 5;
@@ -79,6 +106,25 @@ namespace ControlActividades.Recursos
 
         #endregion
 
+
+        #region ST
+        public string ObtenerUrlST()
+        {
+            string url = @"";
+            return url;
+        }
+
+        public string ObtenerFuenteDeDatos()
+        {
+            return "";
+        }
+
+        public string ObtenerXApiKey()
+        {
+            return "";
+        }
+        #endregion
+
         #region Usuario
         //public int ObtenerUsuarioId(IPrincipal User)
         //{
@@ -125,7 +171,7 @@ namespace ControlActividades.Recursos
         //}
 
 
-        public int ObtenerUsuarioId(IPrincipal User)
+        public int ObtenerCAUsuarioId(IPrincipal User)
         {
             int usuarioId = 0;
             string userId = User.Identity.GetUserId();
@@ -141,6 +187,23 @@ namespace ControlActividades.Recursos
             return usuarioId;
         }
 
+        public int ObtenerSTUsuarioId(IPrincipal User)
+        {
+
+            int usuarioId = 0;
+            string userId = User.Identity.GetUserId();
+
+            if (User.IsInRole(Roles.DOCENTE))
+            {
+                usuarioId = (Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.ST_UsuarioId).FirstOrDefault()) ?? 0;
+            }
+            else if (User.IsInRole(Roles.ALUMNO))
+            {
+                usuarioId = (Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.ST_UsuarioId).FirstOrDefault()) ?? 0;
+            }
+            return usuarioId;
+        }
+
         public string ObtenerRolUsuario(IPrincipal User)
         {
             var identity = User.Identity as ClaimsIdentity;
@@ -149,6 +212,7 @@ namespace ControlActividades.Recursos
 
             return rolClaim?.Value;
         }
+
         #endregion
     }
 }

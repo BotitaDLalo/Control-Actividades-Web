@@ -27,27 +27,38 @@ namespace ControlActividades.Services
             MateriasCAService = materiasCAService;
         }
 
-        public List<MateriaViewModel> ObtenerMateriasSinGrupoPorUsuario(int usuarioId, string role)
+        public async Task<List<MateriaCARes>> ObtenerMateriasSinGrupoPorUsuario(int usuarioId, int st_usuarioId, string role)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                return MateriasSTService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, role);
+                return await MateriasSTService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, st_usuarioId, role);
             }
-            return MateriasCAService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, role);
+            return await MateriasCAService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, st_usuarioId, role);
         }
 
 
-        public async Task<MateriaViewModel> ObtenerMateriaDetalles(int materiaId, int docenteId)
+        public async Task<MateriaCARes> ObtenerMateriaDetalles(int materiaId, int grupoId, string role, int ca_usuarioId, int st_usuarioId)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                return await MateriasSTService.ObtenerMateriaDetalles(materiaId, docenteId);
+                return await MateriasSTService.ObtenerMateriaDetalles(materiaId,  grupoId,  role,  ca_usuarioId,  st_usuarioId);
             }
-            return await MateriasCAService.ObtenerMateriaDetalles(materiaId, docenteId);
+            return await MateriasCAService.ObtenerMateriaDetalles(materiaId, grupoId, role, ca_usuarioId, st_usuarioId);
+        }
+
+        public async Task<List<AlumnoCorreo>> BuscarAlumnosPorCorreo(string query)
+        {
+            //var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+
+            //if (fuenteDatos == FuenteDatos.API)
+            //{
+            //    return await MateriasSTService.BuscarAlumnosPorCorreo(query);
+            //}
+            return await MateriasCAService.BuscarAlumnosPorCorreo(query);
         }
 
         public async Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad)
