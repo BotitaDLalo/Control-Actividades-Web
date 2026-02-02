@@ -434,6 +434,7 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\Grupos\IGruposApiService.cs" />
     <Compile Include="Interfaces\IFuenteDatos.cs" />
     <Compile Include="Interfaces\Grupos\IGruposService.cs" />
     <Compile Include="Interfaces\Materias\IMateriasService.cs" />
@@ -512,6 +513,9 @@
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\FuenteDatosService.cs" />
+    <Compile Include="Services\Grupos\GruposApiCAService.cs" />
+    <Compile Include="Services\Grupos\GruposApiService.cs" />
+    <Compile Include="Services\Grupos\GruposApiSTService.cs" />
     <Compile Include="Services\Grupos\GruposCAService.cs" />
     <Compile Include="Services\Grupos\GruposService.cs" />
     <Compile Include="Services\Grupos\GruposSTService.cs" />
