@@ -291,23 +291,39 @@ namespace ControlActividades.Controllers.Actividades
                     .Where(a => a.ActividadId == id)
                     .Select(a => new
                     {
-                        a.ActividadId,
-                        a.NombreActividad,
-                        a.Descripcion,
-                        FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        a.Puntaje,
-                        a.MateriaId,
+                        ActividadId = a.ActividadId,
+                        NombreActividad = a.NombreActividad,
+                        Descripcion = a.Descripcion,
+                        FechaCreacion = a.FechaCreacion,
+                        //FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        FechaLimite = a.FechaLimite,
+                        //FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        Puntaje = a.Puntaje,
+                        MateriaId = a.MateriaId,
                         Enviado = a.Enviado,
                         FechaProgramada = a.FechaProgramada,
-                        // PermitirEntregasTarde is [NotMapped] on the entity; return false by default
                         PermitirEntregasTarde = false
                     })
                     .FirstOrDefaultAsync();
 
                 if (activity == null) return Content(HttpStatusCode.NotFound, "Actividad no encontrada");
 
-                return Ok(activity);
+                var activityRes = new
+                {
+                    ActividadId = activity.ActividadId,
+                    NombreActividad = activity.NombreActividad,
+                    Descripcion = activity.Descripcion,
+                    FechaCreacion = activity.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = activity.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    Puntaje = activity.Puntaje,
+                    MateriaId = activity.MateriaId,
+                    Enviado = activity.Enviado,
+                    FechaProgramada = activity.FechaProgramada,
+                    PermitirEntregasTarde = false
+                };
+
+
+                return Ok(activityRes);
             }
             catch (Exception ex)
             {
