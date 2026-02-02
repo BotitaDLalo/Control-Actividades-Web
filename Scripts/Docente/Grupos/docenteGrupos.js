@@ -6,6 +6,9 @@ if (div && div.dataset && div.dataset.docenteid) {
     docenteIdGlobal = localStorage.getItem('docenteId');
 }
 
+// Exponer cargarGrupos globalmente para compatibilidad con llamadas que esperan esa función
+if (typeof window.cargarGrupos === 'undefined') window.cargarGrupos = cargarGrupos;
+
 function abrirImportarAlumnos(grupoId) {
     // reutiliza modal/handler de GrupoActionsModal: establecer currentGrupoId y disparar click en input
     window.currentGrupoId = grupoId;

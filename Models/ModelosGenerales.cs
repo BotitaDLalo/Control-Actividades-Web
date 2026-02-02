@@ -219,13 +219,15 @@ namespace ControlActividades.Models
         public List<int> Grupos { get; set; }
     }
 
-    public class PeticionConsultarAvisos
+    public partial class PeticionConsultarAvisos
     {
         public int GrupoId { get; set; } = 0;
         public int MateriaId { get; set; } = 0;
+        // Opcional: origen de la petición (WEB/MOVIL)
+        public Views? View { get; set; }
     }
 
-    public class PeticionCrearAviso
+    public partial class PeticionCrearAviso
     {
         public int DocenteId { get; set; }
 
@@ -239,7 +241,11 @@ namespace ControlActividades.Models
 
         public int? GrupoId { get; set; }
         public int? MateriaId { get; set; }
+        // Opcional: origen de la petición (WEB/MOVIL)
+        public Views? View { get; set; }
     }
+
+    // Views enum defined in Models/Views.cs
 
 
     public class RegistrarUsuarioGoogle

@@ -446,16 +446,15 @@
         (function () {
             try {
                 if (materiaIdGlobal) {
-                    fetch('/api/Materias/ObtenerMateriaUnica?id=' + encodeURIComponent(materiaIdGlobal))
-                        .then(r => { if (!r.ok) throw r; return r.json(); })
-                        .then(d => {
-                if (d && d.NombreMateria) {
-                                // update compact header
-                                var el = document.getElementById('materiaNombre'); if (el) el.innerText = d.NombreMateria;
-                                var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (d.CodigoAcceso || '');
-                                try { var hdr = document.querySelector('.materia-header-compact'); if (hdr && d.CodigoColor) hdr.style.background = d.CodigoColor; } catch (e) { }
-                            }
-                        }).catch(() => { /* no-op */ });
+                    materiasService.getMateria(materiaIdGlobal).then(function (d) {
+                        // materiasService returns either DTO or response wrapper depending on view param; handle both
+                        var subj = d && d.Subject ? d.Subject : d;
+                        if (subj && subj.NombreMateria) {
+                            var el = document.getElementById('materiaNombre'); if (el) el.innerText = subj.NombreMateria;
+                            var cod = document.getElementById('codigoAcceso'); if (cod) cod.innerText = (subj.CodigoAcceso || '');
+                            try { var hdr = document.querySelector('.materia-header-compact'); if (hdr && subj.CodigoColor) hdr.style.background = subj.CodigoColor; } catch (e) { }
+                        }
+                    }).catch(function () { /* no-op */ });
                 }
             } catch (e) { }
             try {
@@ -481,7 +480,9 @@
     @Scripts.Render("~/bundles/materias")
     @Scripts.Render("~/bundles/grupos")
     @Scripts.Render("~/bundles/avisos")
-
+    <script src="~/Scripts/services/httpService.js"></script>
+    <script src="~/Scripts/services/materiasService.js"></script>
+    <script src="~/Scripts/Shared/sharedModal.js"></script>
     <script src="~/Scripts/Materias/configuracion.js"></script>
 }
 

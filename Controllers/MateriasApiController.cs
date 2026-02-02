@@ -243,7 +243,7 @@ namespace ControlActividades.Controllers
 
         [HttpGet]
         [Route("ObtenerMaterias")]
-        public async Task<IHttpActionResult> ObtenerMaterias()
+        public async Task<IHttpActionResult> ObtenerMaterias(Views view = Views.WEB)
         {
             try
             {
@@ -252,7 +252,37 @@ namespace ControlActividades.Controllers
                 if (materias == null || !materias.Any())
                     return NotFound();
 
-                return Ok(materias);
+                var hasViewParam = Request != null && Request.GetQueryNameValuePairs().Any(kv => string.Equals(kv.Key, "view", StringComparison.OrdinalIgnoreCase));
+
+                if (!hasViewParam)
+                {
+                    // legacy clients expect the raw entity list
+                    return Ok(materias.Select(m => new Models.Api.MateriaDto
+                    {
+                        MateriaId = m.MateriaId,
+                        NombreMateria = m.NombreMateria,
+                        Descripcion = m.Descripcion,
+                        CodigoAcceso = m.CodigoAcceso,
+                        CodigoColor = m.CodigoColor,
+                        DocenteId = m.DocenteId
+                    }).ToList());
+                }
+
+                var response = new Models.Api.MateriasResponseDto
+                {
+                    Materias = materias.Select(m => new Models.Api.MateriaDto
+                    {
+                        MateriaId = m.MateriaId,
+                        NombreMateria = m.NombreMateria,
+                        Descripcion = m.Descripcion,
+                        CodigoAcceso = m.CodigoAcceso,
+                        CodigoColor = m.CodigoColor,
+                        DocenteId = m.DocenteId
+                    }).ToList(),
+                    View = view.ToString()
+                };
+
+                return Ok(response);
             }
             catch (Exception)
             {
@@ -266,26 +296,43 @@ namespace ControlActividades.Controllers
 
         [HttpGet]
         [Route("ObtenerMateriaUnica")]
-        public async Task<IHttpActionResult> ObtenerMateriaUnica(int id)
+        public async Task<IHttpActionResult> ObtenerMateriaUnica(int id, Views view = Views.WEB)
         {
             try
             {
                 var subject = await Db.tbMaterias
                     .Where(m => m.MateriaId == id)
-                    .Select(m => new
+                    .Select(m => new Models.Api.MateriaDto
                     {
-                        m.MateriaId,
-                        m.NombreMateria,
-                        m.Descripcion,
-                        m.CodigoAcceso,
-                        m.CodigoColor,
-                        m.DocenteId
+                        MateriaId = m.MateriaId,
+                        NombreMateria = m.NombreMateria,
+                        Descripcion = m.Descripcion,
+                        CodigoAcceso = m.CodigoAcceso,
+                        CodigoColor = m.CodigoColor,
+                        DocenteId = m.DocenteId,
+                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(a => new Models.Api.ActividadDto
+                        {
+                            ActividadId = a.ActividadId,
+                            NombreActividad = a.NombreActividad,
+                            Descripcion = a.Descripcion,
+                            FechaCreacion = a.FechaCreacion,
+                            FechaLimite = a.FechaLimite,
+                            Puntaje = a.Puntaje,
+                            MateriaId = a.MateriaId
+                        }).ToList()
                     })
                     .FirstOrDefaultAsync();
 
                 if (subject is null) return Content(HttpStatusCode.NotFound, "Materia no encontrado");
 
-                return Ok(subject);
+                var hasViewParam = Request != null && Request.GetQueryNameValuePairs().Any(kv => string.Equals(kv.Key, "view", StringComparison.OrdinalIgnoreCase));
+                if (!hasViewParam)
+                {
+                    return Ok(subject);
+                }
+
+                var response = new Models.Api.MateriaResponseDto { Subject = subject, View = view.ToString() };
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -578,10 +625,10 @@ namespace ControlActividades.Controllers
                 var dbSubject = await Db.tbMaterias.FindAsync(id);
                 if (dbSubject == null)
                 {
-                    return Content(HttpStatusCode.NotFound, new ErrorResponse
+                    return Content(HttpStatusCode.NotFound, new Models.ApiErrorResponse
                     {
                         Mensaje = "La materia no existe en el sistema.",
-                        Codigo = MateriaErrorCodes.MATERIA_NO_ENCONTRADA,
+                        Codigo = ApiMateriaErrorCodes.MATERIA_NO_ENCONTRADA,
                         Detalles = $"No se encontró una materia con ID {id}."
                     });
                 }
@@ -591,10 +638,10 @@ namespace ControlActividades.Controllers
                 if (tieneAlumnos)
                 {
                     var countAlumnos = Db.tbAlumnosMaterias.Where(a => a.MateriaId == id).Count();
-                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    return Content(HttpStatusCode.Conflict, new Models.ApiErrorResponse
                     {
                         Mensaje = "No se puede eliminar la materia porque tiene alumnos inscritos.",
-                        Codigo = MateriaErrorCodes.MATERIA_CON_ALUMNOS,
+                        Codigo = ApiMateriaErrorCodes.MATERIA_CON_ALUMNOS,
                         Detalles = $"Hay {countAlumnos} alumno(s) inscrito(s) que debes eliminar antes en esta materia."
                     });
                 }
@@ -604,10 +651,10 @@ namespace ControlActividades.Controllers
                 if (tieneActividades)
                 {
                     var countActividades = Db.tbActividades.Where(a => a.MateriaId == id).Count();
-                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    return Content(HttpStatusCode.Conflict, new Models.ApiErrorResponse
                     {
                         Mensaje = "No se puede eliminar la materia porque tiene actividades creadas.",
-                        Codigo = MateriaErrorCodes.MATERIA_CON_ACTIVIDADES,
+                        Codigo = ApiMateriaErrorCodes.MATERIA_CON_ACTIVIDADES,
                         Detalles = $"Hay {countActividades} actividad(es) que debes eliminar antes en esta materia."
                     });
                 }
@@ -617,10 +664,10 @@ namespace ControlActividades.Controllers
                 if (tieneAvisos)
                 {
                     var countAvisos = Db.tbAvisos.Where(a => a.MateriaId == id).Count();
-                    return Content(HttpStatusCode.Conflict, new ErrorResponse
+                    return Content(HttpStatusCode.Conflict, new Models.ApiErrorResponse
                     {
                         Mensaje = "No se puede eliminar la materia porque tiene avisos asociados.",
-                        Codigo = MateriaErrorCodes.MATERIA_CON_AVISOS,
+                        Codigo = ApiMateriaErrorCodes.MATERIA_CON_AVISOS,
                         Detalles = $"Hay {countAvisos} aviso(s) que debes eliminar antes en esta materia."
                     });
                 }
@@ -640,7 +687,7 @@ namespace ControlActividades.Controllers
 
                 Console.WriteLine($"[LOG] Materia {id} eliminada exitosamente.");
 
-                return Ok(new SuccessResponse
+                return Ok(new Models.ApiSuccessResponse
                 {
                     Mensaje = "La materia ha sido eliminada exitosamente.",
                     Codigo = "EXITO",
@@ -650,10 +697,10 @@ namespace ControlActividades.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"[ERROR] DeleteSubject: {ex.Message}\n{ex.StackTrace}");
-                return Content(HttpStatusCode.InternalServerError, new ErrorResponse
+                return Content(HttpStatusCode.InternalServerError, new Models.ApiErrorResponse
                 {
                     Mensaje = "Ocurrió un error interno al intentar eliminar la materia.",
-                    Codigo = MateriaErrorCodes.ERROR_INTERNO,
+                    Codigo = ApiMateriaErrorCodes.ERROR_INTERNO,
                     Detalles = ex.Message
                 });
             }

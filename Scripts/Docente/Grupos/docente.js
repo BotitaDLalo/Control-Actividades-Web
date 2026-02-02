@@ -79,8 +79,12 @@ function irAMateria(materiaIdSeleccionada, seccion = 'avisos') {
 async function inicializar() {
     //await obtenerDocenteId();
     if (docenteIdGlobal != null) { 
-        cargarMateriasSinGrupo(docenteIdGlobal);
-        cargarGrupos(docenteIdGlobal)
+        if (typeof cargarMateriasSinGrupo === 'function') {
+            try { cargarMateriasSinGrupo(docenteIdGlobal); } catch (e) { console.warn('Error calling cargarMateriasSinGrupo', e); }
+        }
+        if (typeof cargarGrupos === 'function') {
+            try { cargarGrupos(docenteIdGlobal); } catch (e) { console.warn('Error calling cargarGrupos', e); }
+        }
     } else {
         AlertaCierreSesion();
     }

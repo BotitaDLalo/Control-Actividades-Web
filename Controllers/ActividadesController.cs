@@ -35,7 +35,6 @@ namespace ControlActividades.Controllers
                 {
                     query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now)).ToList();
                 }
-
                 var rolUsuario = Fg.ObtenerRolUsuario(User);
 
                 var resultado = query.Select(a => new
@@ -66,19 +65,21 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var a = await Db.tbActividades.Where(x => x.ActividadId == actividadId)
-                    .Select(x => new
-                    {
-                        ActividadId = x.ActividadId,
-                        NombreActividad = x.NombreActividad,
-                        Descripcion = x.Descripcion,
-                        FechaCreacion = x.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        FechaLimite = x.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        Puntaje = x.Puntaje,
-                        MateriaId = x.MateriaId,
-                        PermitirEntregasTarde = false,
-                        Enviado = x.Enviado
-                    }).FirstOrDefaultAsync();
+                var entity = await Db.tbActividades.FindAsync(actividadId);
+                if (entity == null) return HttpNotFound();
+
+                var a = new
+                {
+                    ActividadId = entity.ActividadId,
+                    NombreActividad = entity.NombreActividad,
+                    Descripcion = entity.Descripcion,
+                    FechaCreacion = entity.FechaCreacion == default(DateTime) ? null : entity.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = entity.FechaLimite == default(DateTime) ? null : entity.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    Puntaje = entity.Puntaje,
+                    MateriaId = entity.MateriaId,
+                    PermitirEntregasTarde = false,
+                    Enviado = entity.Enviado
+                };
 
                 if (a == null)
                 {
@@ -91,6 +92,53 @@ namespace ControlActividades.Controllers
             {
                 Response.StatusCode = 500;
                 return Json(new { mensaje = "Error al obtener la actividad", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Compatibilidad: ruta que usan scripts para abrir la pantalla de detalles/edición
+        // Redirige según rol: docentes -> EvaluarActividades (vista docente), alumnos -> Clase (vista alumno)
+        public ActionResult DetallesActividad(int actividadId)
+        {
+            try
+            {
+                if (User != null && User.IsInRole(Roles.DOCENTE))
+                {
+                    return Redirect($"/Docente/EvaluarActividades?actividadId={actividadId}");
+                }
+
+                // Por defecto redirigir a la vista de alumno para la actividad
+                return Redirect($"/Alumno/Clase?tipo=actividad&id={actividadId}");
+            }
+            catch
+            {
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        // Compatibilidad: obtener lista de alumnos inscritos en una materia para preparar calificaciones
+        [HttpGet]
+        public ActionResult AlumnosParaCalificarActividades(int materiaId)
+        {
+            try
+            {
+                var alumnos = Db.tbAlumnosMaterias
+                    .Where(am => am.MateriaId == materiaId)
+                    .Select(am => new
+                    {
+                        am.AlumnoMateriaId,
+                        am.AlumnoId,
+                        Nombre = am.Alumnos.Nombre,
+                        ApellidoPaterno = am.Alumnos.ApellidoPaterno,
+                        ApellidoMaterno = am.Alumnos.ApellidoMaterno,
+                        Email = am.Alumnos.IdentityUser != null ? am.Alumnos.IdentityUser.Email : null
+                    }).ToList();
+
+                return Json(alumnos, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al obtener alumnos para calificar", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 

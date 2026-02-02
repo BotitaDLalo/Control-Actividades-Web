@@ -413,6 +413,7 @@
     <Compile Include="Controllers\AvisosApiController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CargaMasivaController.cs" />
+    <Compile Include="Controllers\DatatablesController.cs" />
     <Compile Include="Controllers\DebugApiController.cs" />
     <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\DocenteApiController.cs" />
@@ -468,6 +469,8 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApiResponse.cs" />
+    <Compile Include="Models\Api\ActividadesDtos.cs" />
+    <Compile Include="Models\Api\MateriasDtos.cs" />
     <Compile Include="Models\db\cEstadoEntrega.cs" />
     <Compile Include="Models\db\cTipoEntrega.cs" />
     <Compile Include="Models\db\cTipoNotificacion.cs" />
@@ -496,6 +499,8 @@
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\ModelosGenerales.cs" />
+    <Compile Include="Models\Responses.cs" />
+    <Compile Include="Models\Views.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recursos\CustomUserIdProvider.cs" />
     <Compile Include="Recursos\EnumHelpers.cs" />
@@ -725,9 +730,12 @@
     <Content Include="Scripts\Materias\materias-grupo.js" />
     <Content Include="Scripts\Materias\materias-sin-grupo.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\services\httpService.js" />
+    <Content Include="Scripts\services\materiasService.js" />
     <Content Include="Scripts\Shared\common-helpers.js" />
     <Content Include="Scripts\Shared\modoColor.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
+    <Content Include="Scripts\Shared\sharedModal.js" />
     <Content Include="Templates\Emails\ResetPassword.html" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
     <Content Include="Views\Alumno\Materias.cshtml.txt" />

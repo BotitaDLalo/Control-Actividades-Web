@@ -513,8 +513,8 @@ namespace ControlActividades.Controllers.Actividades
         {
             try
             {
-                List<AlumnoEntregable> lsEntregables = new List<AlumnoEntregable>();
-                RespuestaAlumnosEntregables respuestaAlumnos = new RespuestaAlumnosEntregables();
+                var lsEntregables = new List<Models.Api.AlumnoEntregableDto>();
+                var respuestaAlumnos = new Models.Api.RespuestaAlumnosEntregablesDto();
 
                 //var lsAlumnosActividades = await Db.tbAlumnosActividades
                 //    .Where(a => a.ActividadId == actividadId && a.EstatusEntrega == true)
@@ -537,7 +537,7 @@ namespace ControlActividades.Controllers.Actividades
 
                 foreach (var alumnoActividad in lsAlumnosActividades)
                 {
-                    AlumnoEntregable alumnoEntregable = new AlumnoEntregable();
+                    var alumnoEntregable = new Models.Api.AlumnoEntregableDto();
 
                     //var alumno = alumnoActividad.Alumnos;
                     //var entregableAlumno = alumnoActividad.EntregablesAlumno;
@@ -586,38 +586,27 @@ namespace ControlActividades.Controllers.Actividades
                     var apellidoMaterno = alumno.ApellidoMaterno;
                     var user = await UserManager.FindByIdAsync(userId ?? "");
 
-
-
                     foreach (var entregable in entregableAlumno.ToList())
                     {
+                        var dto = new Models.Api.AlumnoEntregableDto
+                        {
+                            AlumnoId = alumnoId,
+                            NombreUsuario = user?.UserName ?? string.Empty,
+                            Nombres = nombres ?? string.Empty,
+                            ApellidoPaterno = apellidoPaterno ?? string.Empty,
+                            ApellidoMaterno = apellidoMaterno ?? string.Empty,
+                            FechaEntrega = alumnoActividad.FechaEntrega,
+                            EntregaId = entregable.EntregableId,
+                            Respuesta = entregable.Contenido,
+                            Calificacion = entregable.Calificacion
+                        };
 
-                        var userName = user.UserName;
-                        alumnoEntregable.AlumnoId = alumnoId;
-                        alumnoEntregable.NombreUsuario = userName ?? "";
-                        alumnoEntregable.Nombres = nombres ?? "";
-                        alumnoEntregable.ApellidoPaterno = apellidoPaterno ?? "";
-                        alumnoEntregable.ApellidoMaterno = apellidoMaterno ?? "";
-
-
-                        alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
-
-
-                        alumnoEntregable.EntregaId = entregable.EntregableId;
-
-
-                        alumnoEntregable.Respuesta = entregable.Contenido;
-
-
-                        alumnoEntregable.Calificacion = entregable.Calificacion;
-
-
-                        lsEntregables.Add(alumnoEntregable);
+                        lsEntregables.Add(dto);
                     }
 
                 }
 
                 respuestaAlumnos.AlumnosEntregables = lsEntregables;
-
 
                 return Ok(respuestaAlumnos);
             }
