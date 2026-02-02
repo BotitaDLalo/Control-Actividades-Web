@@ -469,35 +469,29 @@ namespace ControlActividades.Controllers
 
         // Nuevo: actualizar actividad (compatible con fetch PUT desde JS)
         [HttpPut]
-        public async Task<ActionResult> ActualizarActividad(int id, tbActividades model)
+        public async Task<ActionResult> ActualizarActividad(int id, ActividadDTO model)
         {
             if (model == null)
             {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                Response.StatusCode = 400; // Bad Request
                 return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
             }
 
             try
             {
-                var actividad = await Db.tbActividades.FindAsync(id);
-                if (actividad == null)
-                {
-                    Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return Json(new { mensaje = "Actividad no encontrada." }, JsonRequestBehavior.AllowGet);
-                }
 
-                actividad.NombreActividad = model.NombreActividad ?? actividad.NombreActividad;
-                actividad.Descripcion = model.Descripcion ?? actividad.Descripcion;
-                actividad.FechaLimite = model.FechaLimite != default(DateTime) ? model.FechaLimite : actividad.FechaLimite;
-                actividad.Puntaje = model.Puntaje;
-
-                await Db.SaveChangesAsync();
+                var actividadActualizada = await ActividadesService.ActualizarActividad(id, model);
 
                 return Json(new { mensaje = "Actividad actualizada correctamente." }, JsonRequestBehavior.AllowGet);
             }
+            catch(KeyNotFoundException ex)
+            {
+                Response.StatusCode = 404; // Not Found
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
             catch (Exception ex)
             {
-                Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                Response.StatusCode = 500; // Internal Server Error
                 return Json(new { mensaje = "Error al actualizar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }

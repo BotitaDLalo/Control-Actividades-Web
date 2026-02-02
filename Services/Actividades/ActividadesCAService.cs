@@ -103,6 +103,55 @@ namespace ControlActividades.Services.Actividades
             }
         }
 
+        public async Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividadDto)
+        {
+            try
+            {
+                var actividadEditar = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
+                if (actividadEditar == null)
+                {
+                    throw new KeyNotFoundException("Actividad no encontrada.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(actividadDto.NombreActividad))
+                {
+                    actividadEditar.NombreActividad = actividadDto.NombreActividad;
+                }
+                if (!string.IsNullOrWhiteSpace(actividadDto.Descripcion))
+                {
+                    actividadEditar.Descripcion = actividadDto.Descripcion;
+                }
+
+                if(actividadDto.FechaLimite != default(DateTime))
+                {
+                    actividadEditar.FechaLimite = actividadDto.FechaLimite;
+                }
+
+                if(actividadDto.Puntaje > 0)
+                {
+                    actividadEditar.Puntaje = actividadDto.Puntaje;
+                }
+
+                actividadEditar.Enviado = actividadDto.Enviado;
+                actividadEditar.FechaProgramada = actividadDto.FechaProgramada;
+
+                await Db.SaveChangesAsync();
+
+                return new ActividadRes
+                {
+                    ActividadId = actividadEditar.ActividadId,
+                    NombreActividad = actividadEditar.NombreActividad,
+                    Descripcion = actividadEditar.Descripcion,
+                    FechaCreacion = actividadEditar.FechaCreacion,
+                    FechaLimite = actividadEditar.FechaLimite,
+                    Puntaje = actividadEditar.Puntaje
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al actualizar la actividad: " + ex.Message);
+            }
+        }
         public async Task EliminarActividadAsync(int id)
         {
             try

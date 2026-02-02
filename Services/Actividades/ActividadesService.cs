@@ -84,6 +84,16 @@ namespace ControlActividades.Services
             return await ActivididadesCAService.ObtenerActividadPorId(actividadId);
         }
 
+        public async Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividad)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await ActividadesSTService.ActualizarActividad(id, actividad);
+            }
+            return await ActivididadesCAService.ActualizarActividad(id, actividad);
+        }
+
         public async Task EliminarActividadAsync(int id)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();

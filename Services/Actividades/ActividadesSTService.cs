@@ -33,6 +33,11 @@ namespace ControlActividades.Services.Actividades
             throw new NotImplementedException();
         }
 
+        public async Task<ActividadRes> ActualizarActividad(int actividadId, ActividadDTO model)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task EliminarActividadAsync (int id)
         {
             throw new NotImplementedException();

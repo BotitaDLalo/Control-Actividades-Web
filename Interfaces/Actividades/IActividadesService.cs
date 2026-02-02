@@ -10,9 +10,8 @@ namespace ControlActividades.Interfaces.Actividades
 
         Task<ActividadDetallesRes>ObtenerActividadPorId(int actividadId);
 
-        /*
         Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividad);
-        */
+        
         Task EliminarActividadAsync(int id);
 
         //Task<List<AlumnoDTO>> AlumnosParaCalificarActividad(int materiaId);
