@@ -120,7 +120,7 @@ namespace ControlActividades
                 )
             );
 
-            bundles.Add(new Bundle("~/bundles/grupos").Include(
+            bundles.Add(new Bundle("~/bundles/docenteGrupos").Include(
                 "~/Scripts/Docente/Grupos/docenteGrupos.js"
                 )
             );
@@ -129,6 +129,7 @@ namespace ControlActividades
             // Use a plain Bundle here to avoid the default Microsoft Ajax minifier parsing ES6+ syntax which can throw NullReferenceException
             var docenteGruposBundle = new Bundle("~/bundles/docentegrupos").Include(
                 "~/Scripts/Docente/Grupos/docente.js",
+                "~/Scripts/Docente/Grupos/docenteGrupos.js",
                 "~/Scripts/Docente/Grupos/docenteErrores.js",
                 "~/Scripts/Docente/Grupos/PrincipalMG.js"
 

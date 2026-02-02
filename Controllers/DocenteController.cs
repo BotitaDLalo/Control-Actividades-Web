@@ -203,7 +203,7 @@ namespace ControlActividades.Controllers
             // Vista simple para chatear con la API de IA
             return View();
         }
-
+        /*
         [HttpPost]
         public JsonResult CrearGrupo(tbGrupos grupo)
         {
@@ -219,6 +219,7 @@ namespace ControlActividades.Controllers
 
             return Json(new { mensaje = "Grupo creado con exito.", grupoId = grupo.GrupoId });
         }
+        */
 
         private string ObtenerClaveGrupo()
         {
