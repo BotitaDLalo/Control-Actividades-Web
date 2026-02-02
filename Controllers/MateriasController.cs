@@ -521,10 +521,9 @@ namespace ControlMaterias.Controllers
                 await Db.SaveChangesAsync();
 
                 //Envío de notificación a los alumnos dentro de la materia
-                /*await Ns.NotificacionCrearActividad(
-                    nuevaActividad,
-                    nuevaActividad.MateriaId
-                    );*/
+                await Ns.NotificacionCrearActividad(
+                    nuevaActividad
+                );
 
                 return Json(new { mensaje = "Actividad creada y asignada a los alumnos con éxito", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
             }
