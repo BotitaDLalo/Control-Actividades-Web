@@ -152,6 +152,63 @@ namespace ControlActividades.Controllers
         }
 
         //  SECCIÓN ALUMNOS
+        public ActionResult ObtenerEventosAlumnoCalendario(int alumnoId, DateTime start, DateTime end)
+        {
+            try
+            {
+                var gruposAlumno = Db.tbAlumnosGrupos
+                    .Where(a => a.AlumnoId == alumnoId)
+                    .Select(a => a.GrupoId)
+                    .ToList();
+
+                var materiasAlumno = Db.tbAlumnosMaterias
+                    .Where(a => a.AlumnoId == alumnoId)
+                    .Select(a => a.MateriaId)
+                    .ToList();
+
+                var eventosPorGrupos =
+                    from eg in Db.tbEventosGrupos
+                    join ev in Db.tbEventosAgenda on eg.FechaId equals ev.EventoId
+                    where gruposAlumno.Contains(eg.GrupoId)
+                          && ev.FechaInicio <= end
+                          && ev.FechaFinal >= start
+                    select ev;
+
+                var eventosPorMaterias =
+                    from em in Db.tbEventosMaterias
+                    join ev in Db.tbEventosAgenda on em.FechaId equals ev.EventoId
+                    where materiasAlumno.Contains(em.MateriaId)
+                          && ev.FechaInicio <= end
+                          && ev.FechaFinal >= start
+                    select ev;
+
+                var eventos = eventosPorGrupos
+                    .Union(eventosPorMaterias)
+                    .Distinct()
+                    .Select(ev => new
+                    {
+                        id = ev.EventoId,
+                        title = ev.Titulo,
+                        start = DbFunctions.TruncateTime(ev.FechaInicio),
+                        end = DbFunctions.AddDays(
+                              DbFunctions.TruncateTime(ev.FechaFinal),
+                              1
+                          ),
+                        allDay = true,
+                        color = ev.Color
+                    })
+                    .ToList();
+
+                return Json(eventos, JsonRequestBehavior.AllowGet);
+            }
+            catch
+            {
+                Response.StatusCode = 500;
+                return Json(new { }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
         // Obtener eventos por fecha seleccionada en el calendario
         public ActionResult ObtenerEventosAlumnoFecha(int alumnoId, string fecha)
         {
