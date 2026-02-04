@@ -489,3 +489,7 @@ Web.config
 App_Data/push-notification-9bc5f-firebase-adminsdk-es74b-f758cc2102.json
 
 .kilocode/rules/security.md
+
+# Uploads folder
+Uploads/
+
