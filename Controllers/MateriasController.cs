@@ -569,6 +569,8 @@ namespace ControlMaterias.Controllers
             }
         }
 
+        #endregion
+
         #region Avisos
         //Controlador para crear un aviso funciona desde dentro de la materia
         [HttpPost]

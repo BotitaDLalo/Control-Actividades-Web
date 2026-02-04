@@ -74,4 +74,12 @@ namespace ControlActividades.Models
         public int ca_usuarioId { get; set; }
     }
 
+
+    //Actividades
+    public class ObtenerActividadesPorMateriaRequest
+    {
+        public bool EsDocente { get; set; }
+        public int MateriaId { get; set; }
+        public string View { get; set; }
+    }
 }
