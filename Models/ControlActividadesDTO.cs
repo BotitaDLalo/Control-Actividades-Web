@@ -78,7 +78,7 @@ namespace ControlActividades.Models
     //Actividades
     public class ObtenerActividadesPorMateriaRequest
     {
-        public bool EsDocente { get; set; }
+        public string Role { get; set; }
         public int MateriaId { get; set; }
         public string View { get; set; }
     }

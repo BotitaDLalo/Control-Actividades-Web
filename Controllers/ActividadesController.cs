@@ -42,10 +42,9 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                bool esDocente = User != null && (User.IsInRole("Docente") ||
-                                                  User.IsInRole("Administrador"));
+                var rol = Fg.ObtenerRolUsuario(User);
 
-                var actividades = await ActividadesService.ObtenerActividadesPorMateria(materiaId, esDocente);
+                var actividades = await ActividadesService.ObtenerActividadesPorMateria(materiaId, rol);
 
                 return Json(actividades, JsonRequestBehavior.AllowGet);
             }

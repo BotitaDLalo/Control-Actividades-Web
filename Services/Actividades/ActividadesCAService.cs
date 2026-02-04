@@ -25,12 +25,12 @@ namespace ControlActividades.Services.Actividades
             }
         }
 
-        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, bool esDocente)
+        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
         {
             try
             {
                 var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
-                if (!esDocente)
+                if (rol == Roles.ALUMNO)
                 {
                     // Para alumnos: mostrar solo publicadas o programadas cuya fecha ya llegó
                     query = query.Where(a => a.Enviado == true ||
