@@ -744,6 +744,7 @@ namespace ControlActividades.Controllers
                 // PROCESAR RESPUESTA: detectar si viene JSON stringifyado
                 string textoRespuesta = respuestaRaw;
                 List<string> enlacesValidos = new List<string>();
+                List<object> archivosExternos = new List<object>();
                 
                 try
                 {
@@ -751,6 +752,8 @@ namespace ControlActividades.Controllers
                     {
                         var respuestaObj = JsonConvert.DeserializeObject<dynamic>(respuestaRaw);
                         textoRespuesta = respuestaObj.texto ?? respuestaObj.Respuesta ?? "";
+                        
+                        // Procesar enlaces del JSON interno
                         if (respuestaObj.enlaces != null)
                         {
                             var enlacesTemp = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(respuestaObj.enlaces));
@@ -760,7 +763,19 @@ namespace ControlActividades.Controllers
                                     enlacesValidos.Add(enlace);
                             }
                         }
-                        Console.WriteLine($"[LOG] Respuesta parseada - texto: {textoRespuesta}, enlaces: {enlacesValidos.Count}");
+                        
+                        // Procesar archivos del JSON interno (URLs de archivos subidos)
+                        if (respuestaObj.archivos != null)
+                        {
+                            var archivosTemp = JsonConvert.DeserializeObject<List<object>>(JsonConvert.SerializeObject(respuestaObj.archivos));
+                            foreach (var archivo in archivosTemp)
+                            {
+                                if (archivo != null)
+                                    archivosExternos.Add(archivo);
+                            }
+                        }
+                        
+                        Console.WriteLine($"[LOG] Respuesta parseada - texto: {textoRespuesta}, enlaces: {enlacesValidos.Count}, archivos externos: {archivosExternos.Count}");
                     }
                 }
                 catch (Exception ex)
@@ -970,14 +985,19 @@ namespace ControlActividades.Controllers
                 // 6. DETERMINAR TIPO DE ENTREGA
                 int tipoEntregaDeterminado = _determinarTipoEntrega(textoRespuesta, enlacesValidos, archivosMetadata);
 
+                // Combinar archivos subidos directamente con archivos del JSON (URLs)
+                var todosArchivos = new List<object>();
+                todosArchivos.AddRange(archivosMetadata);
+                todosArchivos.AddRange(archivosExternos);
+
                 // 7. CREAR ENTREGABLE CON TODO ESTRUCTURADO
                 var contenidoEstructurado = new
                 {
                     texto = textoRespuesta,
                     enlaces = enlacesValidos,
-                    archivos = archivosMetadata,
+                    archivos = todosArchivos,
                     fechaEntrega = DateTime.Now,
-                    totalArchivos = archivosMetadata.Count,
+                    totalArchivos = todosArchivos.Count,
                     totalEnlaces = enlacesValidos.Count
                 };
 
