@@ -40,6 +40,8 @@ namespace ControlActividades.Models
 
         public int MateriaId { get; set; } = 0;
         public int GrupoId { get; set; } = 0;
+
+        public int DocenteId { get; set; }
     }
 
     public class AutenticacionRespuesta
@@ -376,6 +378,20 @@ namespace ControlActividades.Models
         public int Puntaje { get; set; }
     }
 
+    public class ActividadDetallesRes
+    {
+        public int ActividadId { get; set; }
+        public string NombreActividad { get; set; }
+        public string Descripcion { get; set; }
+        public int MateriaId { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public DateTime FechaLimite { get; set; }
+        public int Puntaje { get; set; }
+        public bool? Enviado { get; set; }
+        public bool PermitirEntregasTarde { get; set; }
+        public DateTime? FechaProgramada { get; set; }
+    }
+
     public class MateriaRes
     {
         public int MateriaId { get; set; }
@@ -550,28 +566,28 @@ namespace ControlActividades.Models
         public string NombresDocente { get; set; }
     }
 
-    public class MateriaViewModel
-    {
-        public int MateriaId { get; set; }
+    //public class  MateriaCARes
+    //{
+    //    public int MateriaId { get; set; }
 
-        public int? GrupoId { get; set; }
+    //    public int? GrupoId { get; set; }
 
-        public string NombreMateria { get; set; }
+    //    public string NombreMateria { get; set; }
 
-        public string CodigoColor { get; set; }
+    //    public string CodigoColor { get; set; }
 
-        public string CodigoAcceso { get; set; }
+    //    public string CodigoAcceso { get; set; }
 
-        public string Descripcion { get; set; }
+    //    public string Descripcion { get; set; }
 
-        public string ApellidoPaternoDocente { get; set; }
+    //    public string ApellidoPaternoDocente { get; set; }
 
-        public string ApellidoMaternoDocente { get; set; }
+    //    public string ApellidoMaternoDocente { get; set; }
 
-        public string NombresDocente { get; set; }
+    //    public string NombresDocente { get; set; }
 
-        public int? DocenteId { get; set; }
-    }
+    //    public int? DocenteId { get; set; }
+    //}
 
     public class CrearAvisoRequest
     {
@@ -618,6 +634,38 @@ namespace ControlActividades.Models
         public string Titulo { get; set; }
         public string Descripcion { get; set; }
     }
+
+
+    public class AlumnoCorreo
+    {
+        public string Email { get; set; }
+        public string ApellidoPaterno { get; set; }
+        public string ApellidoMaterno { get; set; }
+        public string Nombre { get; set; }
+    }
+
+    public class ActividadModel
+    {
+        public int ActividadId { get; set; }
+
+        public string NombreActividad { get; set; }
+
+        public string DescripcionActividad { get; set; }
+
+        public string FechaCreacionActividad { get; set; }
+
+
+        public string FechaLimiteActividad { get; set; }
+
+        public decimal Puntaje { get; set; }
+
+        public bool? Enviado { get; set; }
+
+        public DateTime? FechaProgramada { get; set; }
+
+        public int MateriaId { get; set; }
+    }
+
 
 
 }

@@ -90,7 +90,7 @@ async function cargarActividadesAlumno() {
                 irAActividad(id);
             });
 
-            // revisar si el alumno ya entregó / fue calificado
+            // revisar si el alumno ya entregï¿½ / fue calificado
             (async function marcarEstadoEntrega(actividadId, nodo) {
                 try {
                     if (!actividadId || !alumnoIdGlobal) return;
@@ -99,14 +99,14 @@ async function cargarActividadesAlumno() {
                     if (!r.ok) return;
                     const envios = await r.json();
                     if (!envios || !Array.isArray(envios) || envios.length === 0) return;
-                    // Si hay envíos, buscar si alguno tiene calificación (>0)
+                    // Si hay envï¿½os, buscar si alguno tiene calificaciï¿½n (>0)
                     const tieneCalif = envios.some(e => (e.Calificacion || e.calificacion) > 0);
                     const estadoCont = nodo.querySelector('.estado-entrega');
                     if (!estadoCont) return;
                     if (tieneCalif) {
                         estadoCont.innerHTML = '<span class="badge bg-success">Calificado</span>';
                     } else {
-                        estadoCont.innerHTML = '<span class="badge bg-info text-dark">Entregado y esperando calificación</span>';
+                        estadoCont.innerHTML = '<span class="badge bg-info text-dark">Entregado y esperando calificaciï¿½n</span>';
                     }
                 } catch (e) {
                     console.warn('No se pudo obtener estado de entrega', e);

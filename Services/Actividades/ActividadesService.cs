@@ -1,0 +1,109 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Web;
+using ControlActividades.Interfaces.Actividades;
+using ControlActividades.Services.Actividades;
+using ControlActividades.Models;
+
+namespace ControlActividades.Services
+{
+    public class ActividadesService : IActividadesService
+    {
+
+        private ActividadesCAService _activididadesCAService;
+        private ActividadesSTService _actividadesSTService;
+        private FuenteDatosService _fuenteDatos;
+
+        public ActividadesService()
+        {
+        }
+        #region dependencias
+        public ActividadesService(ActividadesCAService actividadesCAService, ActividadesSTService actividadesSTService, FuenteDatosService fuenteDatosService)
+        {
+            FuenteDatosService = fuenteDatosService;
+            ActividadesSTService = actividadesSTService;
+            ActivididadesCAService = actividadesCAService;
+
+        }
+
+        public FuenteDatosService FuenteDatosService
+        {
+            get { 
+                return _fuenteDatos ?? (_fuenteDatos = new FuenteDatosService());
+            }
+            private set 
+            { 
+                _fuenteDatos = value; 
+            }
+        }
+
+        public ActividadesSTService ActividadesSTService
+        {
+            get
+            {
+                return _actividadesSTService ?? (_actividadesSTService = new ActividadesSTService());
+            }
+            private set
+            {
+                _actividadesSTService = value;
+            }
+        }
+
+        public ActividadesCAService ActivididadesCAService
+        {
+            get
+            {
+                return _activididadesCAService ?? (_activididadesCAService = new ActividadesCAService());
+            }
+            private set
+            {
+                _activididadesCAService = value;
+            }
+        }
+        #endregion
+
+        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await ActividadesSTService.ObtenerActividadesPorMateria(materiaId, rol);
+            }
+            return await ActivididadesCAService.ObtenerActividadesPorMateria(materiaId, rol);
+        }
+
+        public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+
+            if(fuenteDatos == FuenteDatos.API)
+            {
+                return await ActividadesSTService.ObtenerActividadPorId(actividadId);
+            }
+            return await ActivididadesCAService.ObtenerActividadPorId(actividadId);
+        }
+
+        public async Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividad)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await ActividadesSTService.ActualizarActividad(id, actividad);
+            }
+            return await ActivididadesCAService.ActualizarActividad(id, actividad);
+        }
+
+        public async Task EliminarActividadAsync(int id)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                await ActividadesSTService.EliminarActividadAsync(id);
+            }
+            await ActivididadesCAService.EliminarActividadAsync(id);
+        }       
+    }
+
+}

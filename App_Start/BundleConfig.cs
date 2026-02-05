@@ -62,8 +62,11 @@ namespace ControlActividades
             /*************** - SCRIPTS - ***************************/
             //SCRIPTS GENERALES - USAR EN TODOS LOS LAYOUTS
             bundles.Add(new ScriptBundle("~/bundles/carga")
-                .Include("~/Scripts/Componentes/PantallaCarga.js",
-                        "~/Scripts/Shared/modoColor.js")
+                .Include("~/Scripts/Componentes/PantallaCarga.js")
+            );
+
+            bundles.Add(new ScriptBundle("~/bundles/color")
+                .Include("~/Scripts/Shared/modoColor.js")
             );
 
             bundles.Add(new Bundle("~/bundles/header")
@@ -120,7 +123,7 @@ namespace ControlActividades
                 )
             );
 
-            bundles.Add(new Bundle("~/bundles/grupos").Include(
+            bundles.Add(new Bundle("~/bundles/docenteGrupos").Include(
                 "~/Scripts/Docente/Grupos/docenteGrupos.js"
                 )
             );
@@ -129,6 +132,7 @@ namespace ControlActividades
             // Use a plain Bundle here to avoid the default Microsoft Ajax minifier parsing ES6+ syntax which can throw NullReferenceException
             var docenteGruposBundle = new Bundle("~/bundles/docentegrupos").Include(
                 "~/Scripts/Docente/Grupos/docente.js",
+                "~/Scripts/Docente/Grupos/docenteGrupos.js",
                 "~/Scripts/Docente/Grupos/docenteErrores.js",
                 "~/Scripts/Docente/Grupos/PrincipalMG.js"
 

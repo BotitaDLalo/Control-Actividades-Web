@@ -13,6 +13,7 @@ using System.Web.Security;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlActividades.Services;
 using ControlMaterias.Controllers;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -29,6 +30,7 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private ActividadesService _actividadesService;
 
         public ActividadesController()
         {
@@ -40,37 +42,16 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
+                var rol = Fg.ObtenerRolUsuario(User);
 
-                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId);
-                if (!esDocente)
-                {
-                    // Para alumnos: mostrar solo publicadas o programadas cuya fecha ya llegó
-                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now));
-                }
+                var actividades = await ActividadesService.ObtenerActividadesPorMateria(materiaId, rol);
 
-                // Ordenar por fecha de creación descendente para que lo más reciente aparezca primero
-                var actividadesEntities = await query
-                    .OrderByDescending(a => a.FechaCreacion)
-                    .ToListAsync();
-
-                if (actividadesEntities == null || actividadesEntities.Count == 0)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
-                }
-
-                var resultado = actividadesEntities.Select(a => new
-                {
-                    a.ActividadId,
-                    a.NombreActividad,
-                    a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    a.Puntaje
-                }).ToList();
-
-                return Json(resultado, JsonRequestBehavior.AllowGet);
+                return Json(actividades, JsonRequestBehavior.AllowGet);
+            }
+            catch (KeyNotFoundException)
+            {
+                Response.StatusCode = 404; // Not Found
+                return Json(new { mensaje = "No se encontraron actividades para la materia especificada." }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -79,6 +60,7 @@ namespace ControlActividades.Controllers
             }
         }
 
+        #region Constructores con dependencias
         public ActividadesController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
         {
             UserManager = userManager;
@@ -148,7 +130,18 @@ namespace ControlActividades.Controllers
             }
         }
 
-
+        public ActividadesService ActividadesService
+        {
+            get
+            {
+                return _actividadesService ?? (_actividadesService = new ActividadesService());
+            }
+            private set
+            {
+                _actividadesService = value;
+            }
+        }
+        #endregion
 
         //Controlador para obtener los datos de una actividad
         [HttpGet]
@@ -156,30 +149,14 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                // Cargar la entidad y mapear a DTO en memoria para evitar errores de traducción de EF
-                var entidad = await Db.tbActividades.FindAsync(actividadId);
-                if (entidad == null)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontró la actividad con el ID especificado." }, JsonRequestBehavior.AllowGet);
-                }
-
-                var actividad = new
-                {
-                    entidad.ActividadId,
-                    entidad.NombreActividad,
-                    entidad.Descripcion,
-                    entidad.MateriaId,
-                    FechaCreacion = entidad.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = entidad.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    entidad.Puntaje,
-                    entidad.Enviado,
-                    // PermitirEntregasTarde no está mapeado en la BD (NotMapped); devolver valor por defecto
-                    PermitirEntregasTarde = entidad.PermitirEntregasTarde,
-                    FechaProgramada = entidad.FechaProgramada
-                };
-
+                var actividad = await ActividadesService.ObtenerActividadPorId(actividadId);
+                
                 return Json(actividad, JsonRequestBehavior.AllowGet);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Response.StatusCode = 404; // Not Found
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -491,35 +468,29 @@ namespace ControlActividades.Controllers
 
         // Nuevo: actualizar actividad (compatible con fetch PUT desde JS)
         [HttpPut]
-        public async Task<ActionResult> ActualizarActividad(int id, tbActividades model)
+        public async Task<ActionResult> ActualizarActividad(int id, ActividadDTO model)
         {
             if (model == null)
             {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                Response.StatusCode = 400; // Bad Request
                 return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
             }
 
             try
             {
-                var actividad = await Db.tbActividades.FindAsync(id);
-                if (actividad == null)
-                {
-                    Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return Json(new { mensaje = "Actividad no encontrada." }, JsonRequestBehavior.AllowGet);
-                }
 
-                actividad.NombreActividad = model.NombreActividad ?? actividad.NombreActividad;
-                actividad.Descripcion = model.Descripcion ?? actividad.Descripcion;
-                actividad.FechaLimite = model.FechaLimite != default(DateTime) ? model.FechaLimite : actividad.FechaLimite;
-                actividad.Puntaje = model.Puntaje;
-
-                await Db.SaveChangesAsync();
+                var actividadActualizada = await ActividadesService.ActualizarActividad(id, model);
 
                 return Json(new { mensaje = "Actividad actualizada correctamente." }, JsonRequestBehavior.AllowGet);
             }
+            catch(KeyNotFoundException ex)
+            {
+                Response.StatusCode = 404; // Not Found
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
             catch (Exception ex)
             {
-                Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                Response.StatusCode = 500; // Internal Server Error
                 return Json(new { mensaje = "Error al actualizar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -530,33 +501,29 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
-                if (activity == null)
-                {
-                    Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return Json(new { mensaje = "Actividad no encontrada." }, JsonRequestBehavior.AllowGet);
-                }
-
-                //var alumnoActividad = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == activity.ActividadId);
-                var existenEntregas = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == activity.ActividadId).AnyAsync();
-                
-                
-                if (existenEntregas)
-                {
-                    Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    return Json(new { mensaje = "Error al eliminar la actividad." }, JsonRequestBehavior.AllowGet);
-                }
-
-
-                Db.tbActividades.Remove(activity);
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Actividad eliminada correctamente." }, JsonRequestBehavior.AllowGet);
+                await ActividadesService.EliminarActividadAsync(id);
+            
+                return Json(new 
+                { 
+                    mensaje = "Actividad eliminada correctamente." 
+                }, JsonRequestBehavior.AllowGet);
+            
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
                 Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message },
+                    JsonRequestBehavior.AllowGet);
             }
         }
 

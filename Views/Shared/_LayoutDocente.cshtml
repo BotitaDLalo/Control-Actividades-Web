@@ -58,6 +58,7 @@
 
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/hubs"></script>
+    @Scripts.Render("~/bundles/color")
     @Scripts.Render("~/bundles/header")
 
     <script type="module">
@@ -82,9 +83,9 @@
     </script>
 
     @* Render docente/Grupos scripts bundle using Scripts.Render so that in development
-       (BundleTable.EnableOptimizations = false) the individual script files are output
-       and DOMContentLoaded handlers register correctly. *@
-    @Scripts.Render("~/bundles/docentegrupos")
+        (BundleTable.EnableOptimizations = false) the individual script files are output
+        and DOMContentLoaded handlers register correctly. *@
+    @Scripts.Render("~/bundles/docenteGrupos")
 
     @RenderSection("Scripts", required: false)
 </body>

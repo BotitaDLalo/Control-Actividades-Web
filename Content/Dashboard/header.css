@@ -10,7 +10,6 @@
 
     .nav-bar .header-icons {
         position: relative;
-        border: 1px solid red;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -35,8 +34,6 @@
 /* make svg icons follow currentColor */
 .nav-bar .header-icons svg {
     fill: currentColor;
-    border: 1px solid blue;
-
 }
     /* position notification panel and user dropdown relative to the header-icons container */
     .nav-bar .header-icons .notificaciones-container {

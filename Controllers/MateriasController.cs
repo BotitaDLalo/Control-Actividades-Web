@@ -8,6 +8,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
+using NPOI.SS.Formula.Eval;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -29,7 +30,7 @@ namespace ControlMaterias.Controllers
 
     public class MateriasController : Controller
     {
-        #region Propiedades
+
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
         private RoleManager<IdentityRole> _roleManager;
@@ -124,539 +125,131 @@ namespace ControlMaterias.Controllers
             }
         }
 
-        public MateriasService MateriasService
+        private MateriasService MateriasService
         {
             get
             {
                 return _materiasService ?? (_materiasService = new MateriasService());
             }
-            private set
+            set
             {
                 _materiasService = value;
             }
         }
 
         #endregion
-        #endregion
 
-        public ActionResult Index()
+
+        #region Materia
+        public async Task<ActionResult> Index()
         {
             //var lsMaterias = ObtenerMateriasSinGrupoPorUsuario();
-            int usuarioId = Fg.ObtenerUsuarioId(User);
+            int usuarioId = Fg.ObtenerCAUsuarioId(User);
             string role = Fg.ObtenerRolUsuario(User);
+            int st_usuarioId = 0;
 
-            List<MateriaViewModel> lsMaterias = MateriasService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, role);
+            List< MateriaCARes> lsMaterias = await MateriasService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, st_usuarioId, role);
 
             return View(lsMaterias);
         }
 
-        //[HttpGet]
-        //public ActionResult GrupoMaterias(int? grupoId)
-        //{
-        //    if (!grupoId.HasValue)
-        //    {
-        //        return RedirectToAction("Grupos");
-        //    }
 
-        //    string userId = User.Identity.GetUserId();
-        //    var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
-
-        //    ViewBag.DocenteId = docenteId;
-        //    ViewBag.GrupoId = grupoId.Value;
-
-        //    //return View("Grupos/GrupoMaterias");
-        //    return View("~/Views/Materias/GrupoMaterias.cshtml");
-        //}
-
-        //[HttpGet]
-        //public ActionResult MateriasSinGrupo()
-        //{
-        //    string userId = User.Identity.GetUserId();
-        //    var docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
-
-        //    ViewBag.DocenteId = docenteId;
-        //    return View("MateriasSinGrupoStandalone");
-        //}
-
-        [HttpPost]
-        public async Task<ActionResult> AsociarMateriasAGrupo(AsociarMateriasRequest request)
+        public async Task<ActionResult> MateriaDetalles(int? materiaId, int? grupoId)
         {
-
-            if (request == null || request.MateriaIds == null || !request.MateriaIds.Any())
+            // Redirigir a la vista docente centralizada `MateriasDetalles` para evitar mantener dos vistas casi idénticas.
+            if (!materiaId.HasValue)
             {
-                return new HttpStatusCodeResult(400, "No se enviaron materias para asociar.");
+                return RedirectToAction("Index");
             }
 
-            try
-            {
-                foreach (var materiaId in request.MateriaIds)
-                {
-                    // Evita duplicados en la tabla intermedia
-                    var existeAsociacion = await Db.tbGruposMaterias
-                        .AnyAsync(gm => gm.GrupoId == request.GrupoId && gm.MateriaId == materiaId);
-
-                    if (!existeAsociacion)
-                    {
-                        Db.tbGruposMaterias.Add(new tbGruposMaterias
-                        {
-                            GrupoId = request.GrupoId,
-                            MateriaId = materiaId
-                        });
-                    }
-                }
-
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Materias asociadas correctamente al grupo." });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al asociar materias: {ex.Message}");
-                Response.StatusCode = 500;
-                return Json(new { mensaje = "Error interno al asociar materias al grupo." });
-            }
-        }
 
 
-        [HttpGet]
-        public async Task<ActionResult> ObtenerDetallesMateria(int materiaId, int docenteId)
-        {
-            try
-            {
-                //var materiaDetalles = await Db.tbMaterias
-                //    .Where(m => m.MateriaId == materiaId && m.DocenteId == docenteId)
-                //    .Select(m => new MateriaViewModel
-                //    {
-                //        NombreMateria = m.NombreMateria,
-                //        CodigoAcceso = m.CodigoAcceso,
-                //        CodigoColor = m.CodigoColor,
-                //        DocenteId = m.DocenteId
-                //    })
-                //    .FirstOrDefaultAsync();
-
-                MateriaViewModel materiaDetalles = await MateriasService.ObtenerMateriaDetalles(materiaId, docenteId);
-
-                if (materiaDetalles == null)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "Materia No Encontrada O Sin Permiso" }, JsonRequestBehavior.AllowGet);
-                }
-
-                return Json(materiaDetalles, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener los detalles de la materia", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-
-
-        [HttpGet]
-        public async Task<ActionResult> BuscarAlumnosPorCorreo(string query)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(query))
-                {
-                    Response.StatusCode = 400; // Bad Request
-                    return Json(new { mensaje = "El criterio de búsqueda no puede estar vacío." }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Trim query and limit results to avoid large payloads
-                var q = query.Trim();
-
-                // Use explicit join to Users to ensure Email is available and avoid EF navigation translation issues
-                var alumnosConCorreo = await (from a in Db.tbAlumnos
-                                              join u in Db.Users on a.UserId equals u.Id
-                                              where a.Nombre.Contains(q)
-                                                    || a.ApellidoPaterno.Contains(q)
-                                                    || a.ApellidoMaterno.Contains(q)
-                                                    || u.Email.Contains(q)
-                                              orderby a.ApellidoPaterno, a.ApellidoMaterno, a.Nombre
-                                              select new
-                                              {
-                                                  Email = u.Email,
-                                                  a.Nombre,
-                                                  a.ApellidoPaterno,
-                                                  a.ApellidoMaterno
-                                              }).Take(25).ToListAsync();
-
-                return Json(alumnosConCorreo, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al buscar alumnos", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-
-
-        //controlador para unir materia con alumno
-
-        // Método para buscar el alumno por correo y asignarlo a la materia si no está asignado
-        [HttpPost]
-        public async Task<ActionResult> AsignarAlumnoMateria(string correo, int materiaId)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(correo))
-                {
-                    Response.StatusCode = 400; // Bad Request
-                    return Json(new { mensaje = "El correo no puede estar vacío." }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Buscar el alumno por correo usando join a Users para evitar problemas de navegación
-                var alumnoId = await (from a in Db.tbAlumnos
-                                      join u in Db.Users on a.UserId equals u.Id
-                                      where u.Email == correo
-                                      select (int?)a.AlumnoId).FirstOrDefaultAsync();
-
-                if (alumnoId == null || alumnoId == 0)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "Alumno no encontrado con el correo proporcionado." }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Verificar si ya existe la relación en la tabla alumnosMaterias
-                var relacionExistente = await Db.tbAlumnosMaterias
-                    .Where(am => am.AlumnoId == alumnoId && am.MateriaId == materiaId)
-                    .FirstOrDefaultAsync();
-
-                if (relacionExistente != null)
-                {
-                    Response.StatusCode = 400; // Bad Request
-                    return Json(new { mensaje = "El alumno ya está asignado a esta materia." }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Agregar nueva relación
-                var nuevaRelacion = new tbAlumnosMaterias
-                {
-                    AlumnoId = alumnoId.Value,
-                    MateriaId = materiaId
-                };
-
-                Db.tbAlumnosMaterias.Add(nuevaRelacion);
-                await Db.SaveChangesAsync();
-
-                //ENVÍO DE NOTIFICACIÓN
-                await Ns.NotificacionRegistrarAlumnoClase(
-                        new List<int> { alumnoId.Value },
-                        docenteId: 0,
-                        materiaId: materiaId
-                    );
-
-                return Json(new { mensaje = "Alumno asignado a la materia exitosamente.", success = true }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al asignar el alumno a la materia.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-
-
-        // Método para obtener la lista de alumnos que están dentro de la materia
-        [HttpGet]
-        public async Task<ActionResult> ObtenerAlumnosPorMateria(int materiaId)
-        {
-            try
-            {
-                // incluir correo del usuario relacionado (Identity User) para mostrar en la vista
-                var alumnos = await Db.tbAlumnosMaterias
-                    .Where(am => am.MateriaId == materiaId)
-                    .Join(Db.tbAlumnos,
-                        am => am.AlumnoId,
-                        a => a.AlumnoId,
-                        (am, a) => new { am, a })
-                    .Join(Db.Users,
-                        x => x.a.UserId,
-                        u => u.Id,
-                        (x, u) => new
-                        {
-                            x.am.AlumnoMateriaId,
-                            x.a.AlumnoId,
-                            x.a.Nombre,
-                            x.a.ApellidoPaterno,
-                            x.a.ApellidoMaterno,
-                            Email = u.Email,
-                            //Estatus = x.a.Estatus ?? "Activo"
-                        })
-                    .OrderBy(a => a.ApellidoPaterno)
-                    .ThenBy(a => a.ApellidoMaterno)
-                    .ThenBy(a => a.Nombre)
-                    .ToListAsync();
-
-
-                // Devolver lista junto con mensaje de OK
-                return Json(new { alumnos = alumnos }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener los alumnos", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-
-        //Eliminar a un alumno de la materia.
-        [HttpDelete]
-        public async Task<ActionResult> EliminarAlumnoDeMateria(int idEnlace)
-        {
-            try
-            {
-                // Buscar el registro en la base de datos
-                var alumnoMateria = await Db.tbAlumnosMaterias
-                    .FirstOrDefaultAsync(am => am.AlumnoMateriaId == idEnlace);
-
-                // Si no se encuentra se retorna un error
-                if (alumnoMateria == null)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontró el alumno en la materia" }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Eliminar el registro de la base de datos
-                Db.tbAlumnosMaterias.Remove(alumnoMateria);
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Alumno eliminado de la materia correctamente." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al eliminar al alumno.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-
-
-        // Controlador api que crea actividades y asigna a los alumnos
-        [HttpPost]
-        public async Task<ActionResult> CrearActividad(tbActividades actividadDto)
-        {
-            if (actividadDto == null)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
-            }
-
-            // Validar que la fecha límite sea en el futuro
-            if (actividadDto.FechaLimite <= DateTime.Now)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "La fecha límite debe ser en el futuro." }, JsonRequestBehavior.AllowGet);
-            }
-
-            // Verificar que la materia exista en la base de datos
-            var materiaExiste = await Db.tbMaterias.AnyAsync(m => m.MateriaId == actividadDto.MateriaId);
-            if (!materiaExiste)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "La materia especificada no existe." }, JsonRequestBehavior.AllowGet);
-            }
-
-            // Verificar que el tipo de actividad exista en la base de datos
-            //var tipoActividadExiste = await Db.cTiposActividades.AnyAsync(t => t.TipoActividadId == actividadDto.TipoActividadId);
-            //if (!tipoActividadExiste)
+            // Si el usuario es alumno, redirigir a la vista de alumno correspondiente
+            //try
             //{
-            //    Response.StatusCode = 400; // Bad Request
-            //    return Json(new { mensaje = "El tipo de actividad especificado no existe." }, JsonRequestBehavior.AllowGet);
+            //    var rolUsuario = Fg.ObtenerRolUsuario(User);
+            //    if (!string.IsNullOrEmpty(rolUsuario) && rolUsuario == Roles.ALUMNO)
+            //    {
+            //        // Preferir abrir la materia cuando se proporciona materiaId (aunque venga dentro de un grupo)
+            //        if (materiaId.HasValue && materiaId.Value > 0)
+            //        {
+            //            return RedirectToAction("Clase", "Alumno", new { tipo = "materia", id = materiaId.Value });
+            //        }
+
+            //        if (grupoId.HasValue && grupoId.Value > 0)
+            //        {
+            //            return RedirectToAction("Clase", "Alumno", new { tipo = "grupo", id = grupoId.Value });
+            //        }
+            //    }
             //}
+            //catch { /* si falla la obtención del rol seguir mostrando vista docente por defecto */ }
 
-            try
-            {
-                // Crear la nueva actividad
-                var nuevaActividad = new tbActividades
-                {
-                    NombreActividad = actividadDto.NombreActividad,
-                    Descripcion = actividadDto.Descripcion,
-                    FechaCreacion = DateTime.Now,
-                    FechaLimite = actividadDto.FechaLimite,
-                    //TipoActividadId = actividadDto.TipoActividadId,
-                    Puntaje = actividadDto.Puntaje,
-                    MateriaId = actividadDto.MateriaId,
-                    Enviado = actividadDto.Enviado,
-                    FechaProgramada = actividadDto.FechaProgramada
-                };
+            //// asegurar que ViewBag tenga los ids necesarios para las vistas/JS (docente u otros roles)
+            //try
+            //{
+            //    string userId = User != null ? User.Identity.GetUserId() : null;
+            //    var docenteId = 0;
+            //    if (!string.IsNullOrEmpty(userId))
+            //        docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
 
-                Db.tbActividades.Add(nuevaActividad);
-                await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID
+            //    ViewBag.DocenteId = docenteId;
+            //    ViewBag.MateriaId = materiaId.HasValue ? materiaId.Value : 0;
+            //    ViewBag.GrupoId = grupoId ?? 0;
+            //}
+            //catch { ViewBag.DocenteId = 0; ViewBag.MateriaId = materiaId ?? 0; ViewBag.GrupoId = grupoId ?? 0; }
 
-                // Solo asignar a alumnos si la actividad está publicada inmediatamente
-                // o si está programada y la fecha programada ya pasó
-                bool publicarAhora = nuevaActividad.Enviado == true;
-                bool programadaYA = nuevaActividad.Enviado == null && nuevaActividad.FechaProgramada.HasValue && nuevaActividad.FechaProgramada.Value <= DateTime.Now;
+            //var nombreMateria = Db.tbMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.NombreMateria).FirstOrDefault();
+            //ViewBag.NombreMateria = nombreMateria;
 
-                if (publicarAhora || programadaYA)
-                {
-                    // Obtener los alumnos que pertenecen a la materia
-                    var alumnosMateria = await Db.tbAlumnosMaterias
-                        .Where(am => am.MateriaId == actividadDto.MateriaId)
-                        .Select(am => am.AlumnoId)
-                        .ToListAsync();
+            int ca_usuarioId = Fg.ObtenerCAUsuarioId(User);
+            int st_usuarioId = Fg.ObtenerSTUsuarioId(User);
 
-                    // Crear registros en la tabla AlumnoActividad para cada alumno
-                    foreach (var alumnoId in alumnosMateria)
-                    {
-                        //var alumnoActividad = new tbAlumnosActividades
-                        //{
-                        //    ActividadId = nuevaActividad.ActividadId,
-                        //    AlumnoId = alumnoId,
-                        //    FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
-                        //    EstatusEntrega = false
-                        //};
+            string role = Fg.ObtenerRolUsuario(User);
 
-                        //Db.tbAlumnosActividades.Add(alumnoActividad);
-                    }
+            var materiaDetalles = await MateriasService.ObtenerMateriaDetalles(materiaId.Value, grupoId ?? 0, role, ca_usuarioId, st_usuarioId);
+            if (materiaDetalles == null)
+                return RedirectToAction("Index");
 
-                    // Guardar los cambios en la tabla AlumnoActividad
-                    //await Db.SaveChangesAsync();
-                }
-
-                // Guardar los cambios en la tabla AlumnoActividad
-                await Db.SaveChangesAsync();
-
-                //Envío de notificación a los alumnos dentro de la materia
-                await Ns.NotificacionCrearActividad(
-                    nuevaActividad
-                );
-
-                return Json(new { mensaje = "Actividad creada y asignada a los alumnos con éxito", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al crear la actividad", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
+            ViewBag.MateriaId = materiaId.HasValue ? materiaId.Value : 0;
+            ViewBag.GrupoId = grupoId ?? 0;
+            return View("MateriaDetalles");
         }
+
 
         [HttpPost]
-        public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
+        public async Task<ActionResult> CrearMateria(tbMaterias materia)
         {
-            if (req == null || req.origenMateriaId <= 0 || req.nuevoMateriaId <= 0)
+            if (!ModelState.IsValid)
             {
-                Response.StatusCode = 400;
-                return Json(new { mensaje = "Parámetros inválidos" }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = "Datos de materia inválidos." }, JsonRequestBehavior.AllowGet);
             }
 
-            try
-            {
-                var actividades = await Db.tbActividades.Where(a => a.MateriaId == req.origenMateriaId).ToListAsync();
-                if (actividades == null || actividades.Count == 0)
-                {
-                    return Json(new { mensaje = "No hay actividades para copiar" }, JsonRequestBehavior.AllowGet);
-                }
+            var usuarioId = Fg.ObtenerCAUsuarioId(User);
 
-                foreach (var a in actividades)
-                {
-                    var nueva = new tbActividades
-                    {
-                        NombreActividad = a.NombreActividad,
-                        Descripcion = a.Descripcion,
-                        FechaCreacion = DateTime.Now,
-                        FechaLimite = a.FechaLimite,
-                        //TipoActividadId = a.TipoActividadId,
-                        Puntaje = a.Puntaje,
-                        MateriaId = req.nuevoMateriaId
-                    };
-                    Db.tbActividades.Add(nueva);
-                }
+            materia.DocenteId = usuarioId;
+            materia.CodigoAcceso = ObtenerClaveMateria();
+            Db.tbMaterias.Add(materia);
+            await Db.SaveChangesAsync();
 
-                await Db.SaveChangesAsync();
-                return Json(new { mensaje = "Actividades copiadas" }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
+            return Json(new
             {
-                Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al copiar actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
+                mensaje = "Materia creada con éxito.",
+                materiaId = materia.MateriaId
+            }, JsonRequestBehavior.AllowGet);
         }
 
 
-        //Controlador que obtiene  todo lo de actividades que pertecenen a esa materia
-        [HttpGet]
-        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
+        private string ObtenerClaveMateria()
         {
-            try
-            {
-                // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
-                //bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
-                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId).ToList();
-                if (User.IsInRole(Roles.ALUMNO))
-                {
-                    // para alumnos mostrar actividades publicadas o programadas cuyo horario ya se cumplió
-                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now)).ToList();
-                }
-                var actividadesEntities = query;
-
-                //if (actividadesEntities == null || actividadesEntities.Count == 0)
-                //{
-                //    Response.StatusCode = 404; // Not Found
-                //    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
-                //}
-                var rolUsuario = Fg.ObtenerRolUsuario(User);
-
-                var resultado = actividadesEntities.Select(a => new
-                {
-                    a.ActividadId,
-                    a.NombreActividad,
-                    a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    a.Puntaje,
-                    Enviado = a.Enviado,
-                    FechaProgramada = a.FechaProgramada,
-                    Rol = rolUsuario
-                }).ToList();
-
-
-
-                return Json(new
-                {
-                    Actividades = resultado,
-                    RolUsuario = rolUsuario
-                }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
+            var random = new Random();
+            return new string(
+                Enumerable.Range(0, 10)
+                          .Select(_ => (char)random.Next('A', 'Z'))
+                          .ToArray()
+            );
         }
 
-        [HttpDelete]
-        [Route("api/Actividades/EliminarActividad/{id}")]
-        public async Task<ActionResult> EliminarActividad(int id)
-        {
-            try
-            {
-                // Buscar el registro en la tabla tbActividades
-                var actividad = await Db.tbActividades
-                    .FirstOrDefaultAsync(a => a.ActividadId == id);
-
-                if (actividad == null)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontró el registro en Actividades." }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Eliminar el registro
-                Db.tbActividades.Remove(actividad);
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Actividad eliminada correctamente." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
+        #endregion
 
         #region Avisos
         //Controlador para crear un aviso funciona desde dentro de la materia
@@ -672,7 +265,7 @@ namespace ControlMaterias.Controllers
 
             try
             {
-                var usuarioId = Fg.ObtenerUsuarioId(User);
+                var usuarioId = Fg.ObtenerCAUsuarioId(User);
 
                 var nuevoAviso = new tbAvisos
                 {
@@ -886,257 +479,313 @@ namespace ControlMaterias.Controllers
         }
         #endregion
 
-
-
-
+        #region Actividades
+        // Controlador api que crea actividades y asigna a los alumnos
         [HttpPost]
-        public async Task<ActionResult> CrearMateria(tbMaterias materia)
+        public async Task<ActionResult> CrearActividad(ActividadDTO actividadDto)
         {
-            if (!ModelState.IsValid)
+            if (actividadDto == null)
             {
-                return Json(new { error = "Datos de materia inválidos." }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 400; // Bad Request
+                return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
             }
 
-            materia.CodigoAcceso = ObtenerClaveMateria();
-            Db.tbMaterias.Add(materia);
-            await Db.SaveChangesAsync();
-
-            return Json(new
+            // Validar que la fecha límite sea en el futuro
+            if (actividadDto.FechaLimite <= DateTime.Now)
             {
-                mensaje = "Materia creada con éxito.",
-                materiaId = materia.MateriaId
-            }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 400; // Bad Request
+                return Json(new { mensaje = "La fecha límite debe ser en el futuro." }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+
+                var actividad = await MateriasService.CrearActividadAsync(actividadDto);
+                //Envío de notificación a los alumnos dentro de la materia
+                /*
+                await Ns.NotificacionCreaActividad(
+                    actividadDto
+                );*/
+                
+                return Json(new
+                {   mensaje = "Actividad creada y asignada a los alumnos con éxito",
+                    actividadId = actividad.ActividadId
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, ex.Message);
+            }
         }
 
-
-        private string ObtenerClaveMateria()
-        {
-            var random = new Random();
-            return new string(
-                Enumerable.Range(0, 10)
-                          .Select(_ => (char)random.Next('A', 'Z'))
-                          .ToArray()
-            );
-        }
-
+        //Controlador que obtiene  todo lo de actividades que pertecenen a esa materia
         [HttpGet]
-        public async Task<ActionResult> ObtenerMateriasSinGrupo(int docenteId)
+        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
         {
             try
             {
-                var materiasSinGrupo = await Db.tbMaterias
-                    .Where(m => m.DocenteId == docenteId &&
-                        !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
-                    .ToListAsync();
-
-                var resultado = new List<object>();
-
-                foreach (var materia in materiasSinGrupo)
+                // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
+                //bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
+                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId).ToList();
+                if (User.IsInRole(Roles.ALUMNO))
                 {
-                    var actividadesRecientes = await Db.tbActividades
-                        .Where(a => a.MateriaId == materia.MateriaId)
-                        .OrderByDescending(a => a.FechaCreacion)
-                        .Take(2)
-                        .Select(a => new
-                        {
-                            a.ActividadId,
-                            a.NombreActividad,
-                            a.FechaCreacion
-                        })
-                        .ToListAsync();
+                    // para alumnos mostrar actividades publicadas o programadas cuyo horario ya se cumplió
+                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now)).ToList();
+                }
+                var actividadesEntities = query;
 
-                    resultado.Add(new
-                    {
-                        materia.MateriaId,
-                        materia.NombreMateria,
-                        materia.Descripcion,
-                        materia.DocenteId,
-                        DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == materia.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
-                        materia.CodigoColor,
-                        materia.CodigoAcceso,
-                        // materia.DocenteId already included above
-                        ActividadesRecientes = actividadesRecientes
-                    });
+                //if (actividadesEntities == null || actividadesEntities.Count == 0)
+                //{
+                //    Response.StatusCode = 404; // Not Found
+                //    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
+                //}
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+
+                var resultado = actividadesEntities.Select(a => new
+                {
+                    a.ActividadId,
+                    a.NombreActividad,
+                    a.Descripcion,
+                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    a.Puntaje,
+                    Enviado = a.Enviado,
+                    FechaProgramada = a.FechaProgramada,
+                    Rol = rolUsuario
+                }).ToList();
+
+
+
+                return Json(new
+                {
+                    Actividades = resultado,
+                    RolUsuario = rolUsuario
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500; // Internal Server Error
+                return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Avisos
+        //Controlador para crear un aviso funciona desde dentro de la materia
+        [HttpPost]
+        public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
+        {
+            if (req == null || req.origenMateriaId <= 0 || req.nuevoMateriaId <= 0)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "Parámetros inválidos" }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var actividades = await Db.tbActividades.Where(a => a.MateriaId == req.origenMateriaId).ToListAsync();
+                if (actividades == null || actividades.Count == 0)
+                {
+                    return Json(new { mensaje = "No hay actividades para copiar" }, JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(resultado, JsonRequestBehavior.AllowGet);
+                foreach (var a in actividades)
+                {
+                    var nueva = new tbActividades
+                    {
+                        NombreActividad = a.NombreActividad,
+                        Descripcion = a.Descripcion,
+                        FechaCreacion = DateTime.Now,
+                        FechaLimite = a.FechaLimite,
+                        //TipoActividadId = a.TipoActividadId,
+                        Puntaje = a.Puntaje,
+                        MateriaId = req.nuevoMateriaId
+                    };
+                    Db.tbActividades.Add(nueva);
+                }
+
+                await Db.SaveChangesAsync();
+                return Json(new { mensaje = "Actividades copiadas" }, JsonRequestBehavior.AllowGet);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al obtener las materias", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Error al copiar actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
+        #endregion
 
-        //[HttpGet]
-        //public async Task<ActionResult> ObtenerMateriasSinGrupoPorUsuario()
-        //{
-        //    try
-        //    {
-        //        List<tbMaterias> materiasSinGrupo = new List<tbMaterias>();
-        //        var usuarioId = Fg.ObtenerUsuarioId(User);
+        #region Entregables
+        #endregion
 
-
-        //        if (User.IsInRole(Roles.DOCENTE))
-        //        {
-        //            materiasSinGrupo = await Db.tbMaterias
-        //            .Where(m => m.DocenteId == usuarioId && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
-        //            .ToListAsync();
-
-        //        }
-        //        else if (User.IsInRole(Roles.ALUMNO))
-        //        {
-        //            var lsMateriasAlumno = await Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId ).Select(a => a.MateriaId).ToListAsync();
-
-        //            lsMateriasAlumno = lsMateriasAlumno.Where(a => !Db.tbGruposMaterias.Any(gm => gm.MateriaId == a)).ToList();
-
-        //            materiasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).ToList();
-        //        }
-
-        //        var resultado = new List<object>();
-
-        //        foreach (var materia in materiasSinGrupo)
-        //        {
-        //            var actividadesRecientes = await Db.tbActividades
-        //                .Where(a => a.MateriaId == materia.MateriaId)
-        //                .OrderByDescending(a => a.FechaCreacion)
-        //                .Take(2)
-        //                .Select(a => new
-        //                {
-        //                    a.ActividadId,
-        //                    a.NombreActividad,
-        //                    a.FechaCreacion
-        //                })
-        //                .ToListAsync();
-
-        //            resultado.Add(new
-        //            {
-        //                materia.MateriaId,
-        //                materia.NombreMateria,
-        //                materia.Descripcion,
-        //                materia.DocenteId,
-        //                DocenteNombre = Db.tbDocentes.Where(d => d.DocenteId == materia.DocenteId).Select(d => d.Nombre + " " + d.ApellidoPaterno + " " + d.ApellidoMaterno).FirstOrDefault(),
-        //                materia.CodigoColor,
-        //                materia.CodigoAcceso,
-        //                // materia.DocenteId already included above
-        //                ActividadesRecientes = actividadesRecientes
-        //            });
-        //        }
-
-        //        return Json(resultado, JsonRequestBehavior.AllowGet);
-        //    }
-        //    catch (System.Exception ex)
-        //    {
-        //        Response.StatusCode = 500;
-        //        return Json(new { mensaje = "Error al obtener las materias", error = ex.Message }, JsonRequestBehavior.AllowGet);
-        //    }
-        //}
-
-        public List<MateriaViewModel> ObtenerMateriasSinGrupoPorUsuario()
+        #region Alumnos
+        [HttpGet]
+        public async Task<ActionResult> BuscarAlumnosPorCorreo(string query)
         {
             try
             {
-                //List<tbMaterias> materiasSinGrupo = new List<tbMaterias>();
-                List<MateriaViewModel> materiasSinGrupo = new List<MateriaViewModel>();
-                var usuarioId = Fg.ObtenerUsuarioId(User);
-
-
-                if (User.IsInRole(Roles.DOCENTE))
+                if (string.IsNullOrWhiteSpace(query))
                 {
-                    materiasSinGrupo = Db.tbMaterias
-                    .Where(m => m.DocenteId == usuarioId && !Db.tbGruposMaterias.Any(gm => gm.MateriaId == m.MateriaId))
-                    .Select(a => new MateriaViewModel
-                    {
-                        MateriaId = a.MateriaId,
-                        GrupoId = a.GruposMaterias.Where(gm => gm.MateriaId == a.MateriaId).Select(gm => gm.GrupoId).FirstOrDefault(),
-                        NombreMateria = a.NombreMateria,
-                        Descripcion = a.Descripcion,
-                        ApellidoPaternoDocente = a.Docentes.ApellidoPaterno,
-                        ApellidoMaternoDocente = a.Docentes.ApellidoMaterno,
-                        NombresDocente = a.Docentes.Nombre
-                    })
-                    .ToList();
-
-                }
-                else if (User.IsInRole(Roles.ALUMNO))
-                {
-                    var lsMateriasAlumno = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == usuarioId).Select(a => a.MateriaId).ToList();
-
-                    lsMateriasAlumno = lsMateriasAlumno.Where(a => !Db.tbGruposMaterias.Any(gm => gm.MateriaId == a)).ToList();
-
-                    materiasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumno.Contains(a.MateriaId)).Select(a => new MateriaViewModel
-                    {
-                        MateriaId = a.MateriaId,
-                        GrupoId = a.GruposMaterias.Where(gm => gm.MateriaId == a.MateriaId).Select(gm => gm.GrupoId).FirstOrDefault(),
-                        NombreMateria = a.NombreMateria,
-                        Descripcion = a.Descripcion,
-                        ApellidoPaternoDocente = a.Docentes.ApellidoPaterno,
-                        ApellidoMaternoDocente = a.Docentes.ApellidoMaterno,
-                        NombresDocente = a.Docentes.Nombre
-                    }).ToList();
+                    Response.StatusCode = 400; // Bad Request
+                    return Json(new { mensaje = "El criterio de búsqueda no puede estar vacío." }, JsonRequestBehavior.AllowGet);
                 }
 
-                return materiasSinGrupo;
+                // Trim query and limit results to avoid large payloads
+                var q = query.Trim();
+
+                var alumnosPorCorreo = await MateriasService.BuscarAlumnosPorCorreo(q);
+
+                return Json(alumnosPorCorreo, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new List<MateriaViewModel>();
+                Response.StatusCode = 500; // Internal Server Error
+                return Json(new { mensaje = "Error al buscar alumnos", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
-
-        public ActionResult MateriaDetalles(int? materiaId, int? grupoId)
+        // Método para buscar el alumno por correo y asignarlo a la materia si no está asignado
+        [HttpPost]
+        public async Task<ActionResult> AsignarAlumnoMateria(string correo, int materiaId)
         {
-            // Redirigir a la vista docente centralizada `MateriasDetalles` para evitar mantener dos vistas casi idénticas.
-            if (!materiaId.HasValue)
-            {
-                return RedirectToAction("Index");
-            }
-            // Si el usuario es alumno, redirigir a la vista de alumno correspondiente
             try
             {
-                var rolUsuario = Fg.ObtenerRolUsuario(User);
-                if (!string.IsNullOrEmpty(rolUsuario) && rolUsuario == Roles.ALUMNO)
+                if (string.IsNullOrWhiteSpace(correo))
                 {
-                    // Preferir abrir la materia cuando se proporciona materiaId (aunque venga dentro de un grupo)
-                    if (materiaId.HasValue && materiaId.Value > 0)
-                    {
-                        return RedirectToAction("Clase", "Alumno", new { tipo = "materia", id = materiaId.Value });
-                    }
-
-                    if (grupoId.HasValue && grupoId.Value > 0)
-                    {
-                        return RedirectToAction("Clase", "Alumno", new { tipo = "grupo", id = grupoId.Value });
-                    }
+                    Response.StatusCode = 400; // Bad Request
+                    return Json(new { mensaje = "El correo no puede estar vacío." }, JsonRequestBehavior.AllowGet);
                 }
-            }
-            catch { /* si falla la obtención del rol seguir mostrando vista docente por defecto */ }
 
-            // asegurar que ViewBag tenga los ids necesarios para las vistas/JS (docente u otros roles)
-            try
+                // Buscar el alumno por correo usando join a Users para evitar problemas de navegación
+                var alumnoId = await (from a in Db.tbAlumnos
+                                      join u in Db.Users on a.UserId equals u.Id
+                                      where u.Email == correo
+                                      select (int?)a.AlumnoId).FirstOrDefaultAsync();
+
+                if (alumnoId == null || alumnoId == 0)
+                {
+                    Response.StatusCode = 404; // Not Found
+                    return Json(new { mensaje = "Alumno no encontrado con el correo proporcionado." }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Verificar si ya existe la relación en la tabla alumnosMaterias
+                var relacionExistente = await Db.tbAlumnosMaterias
+                    .Where(am => am.AlumnoId == alumnoId && am.MateriaId == materiaId)
+                    .FirstOrDefaultAsync();
+
+                if (relacionExistente != null)
+                {
+                    Response.StatusCode = 400; // Bad Request
+                    return Json(new { mensaje = "El alumno ya está asignado a esta materia." }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Agregar nueva relación
+                var nuevaRelacion = new tbAlumnosMaterias
+                {
+                    AlumnoId = alumnoId.Value,
+                    MateriaId = materiaId
+                };
+
+                Db.tbAlumnosMaterias.Add(nuevaRelacion);
+                await Db.SaveChangesAsync();
+
+                //ENVÍO DE NOTIFICACIÓN
+                await Ns.NotificacionRegistrarAlumnoClase(
+                        new List<int> { alumnoId.Value },
+                        docenteId: 0,
+                        materiaId: materiaId
+                    );
+
+                return Json(new { mensaje = "Alumno asignado a la materia exitosamente.", success = true }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
             {
-                string userId = User != null ? User.Identity.GetUserId() : null;
-                var docenteId = 0;
-                if (!string.IsNullOrEmpty(userId))
-                    docenteId = Db.tbDocentes.Where(a => a.UserId == userId).Select(a => a.DocenteId).FirstOrDefault();
-
-                ViewBag.DocenteId = docenteId;
-                ViewBag.MateriaId = materiaId.HasValue ? materiaId.Value : 0;
-                ViewBag.GrupoId = grupoId ?? 0;
+                Response.StatusCode = 500; // Internal Server Error
+                return Json(new { mensaje = "Error al asignar el alumno a la materia.", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
-            catch { ViewBag.DocenteId = 0; ViewBag.MateriaId = materiaId ?? 0; ViewBag.GrupoId = grupoId ?? 0; }
-
-            var nombreMateria = Db.tbMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.NombreMateria).FirstOrDefault();
-            ViewBag.NombreMateria = nombreMateria;
-
-            // La vista física está en Views/Docente/MateriasDetalles.cshtml
-            // Aseguramos que se cargue la vista correcta especificando la ruta completa
-
-            //return View("~/Views/Docente/MateriasDetalles.cshtml");
-            return View("MateriaDetalles");
         }
 
+
+
+        // Método para obtener la lista de alumnos que están dentro de la materia
+        [HttpGet]
+        public async Task<ActionResult> ObtenerAlumnosPorMateria(int materiaId)
+        {
+            try
+            {
+                // incluir correo del usuario relacionado (Identity User) para mostrar en la vista
+                var alumnos = await Db.tbAlumnosMaterias
+                    .Where(am => am.MateriaId == materiaId)
+                    .Join(Db.tbAlumnos,
+                        am => am.AlumnoId,
+                        a => a.AlumnoId,
+                        (am, a) => new { am, a })
+                    .Join(Db.Users,
+                        x => x.a.UserId,
+                        u => u.Id,
+                        (x, u) => new
+                        {
+                            x.am.AlumnoMateriaId,
+                            x.a.AlumnoId,
+                            x.a.Nombre,
+                            x.a.ApellidoPaterno,
+                            x.a.ApellidoMaterno,
+                            Email = u.Email,
+                            //Estatus = x.a.Estatus ?? "Activo"
+                        })
+                    .OrderBy(a => a.ApellidoPaterno)
+                    .ThenBy(a => a.ApellidoMaterno)
+                    .ThenBy(a => a.Nombre)
+                    .ToListAsync();
+
+
+                // Devolver lista junto con mensaje de OK
+                return Json(new { alumnos = alumnos }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500; // Internal Server Error
+                return Json(new { mensaje = "Error al obtener los alumnos", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+
+        //Eliminar a un alumno de la materia.
+        [HttpDelete]
+        public async Task<ActionResult> EliminarAlumnoDeMateria(int idEnlace)
+        {
+            try
+            {
+                // Buscar el registro en la base de datos
+                var alumnoMateria = await Db.tbAlumnosMaterias
+                    .FirstOrDefaultAsync(am => am.AlumnoMateriaId == idEnlace);
+
+                // Si no se encuentra se retorna un error
+                if (alumnoMateria == null)
+                {
+                    Response.StatusCode = 404; // Not Found
+                    return Json(new { mensaje = "No se encontró el alumno en la materia" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Eliminar el registro de la base de datos
+                Db.tbAlumnosMaterias.Remove(alumnoMateria);
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Alumno eliminado de la materia correctamente." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500; // Internal Server Error
+                return Json(new { mensaje = "Error al eliminar al alumno.", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Configuracion
 
         [HttpDelete]
         public async Task<ActionResult> EliminarMateria(int id)
@@ -1149,20 +798,6 @@ namespace ControlMaterias.Controllers
                     Response.StatusCode = 404;
                     return Json(new { mensaje = "La materia no existe" }, JsonRequestBehavior.AllowGet);
                 }
-
-                //var actividades = Db.tbActividades.Where(a => a.MateriaId == id);
-                //Db.tbActividades.RemoveRange(actividades);
-
-                //var avisos = Db.tbAvisos.Where(a => a.MateriaId == id);
-                //Db.tbAvisos.RemoveRange(avisos);
-
-                //var relacionesAlumnos = Db.tbAlumnosMaterias.Where(am => am.MateriaId == id);
-                //Db.tbAlumnosMaterias.RemoveRange(relacionesAlumnos);
-
-                //var relacionMateriaConGrupo = Db.tbGruposMaterias.Where(mg => mg.MateriaId == id);
-                //Db.tbGruposMaterias.RemoveRange(relacionMateriaConGrupo);
-
-                //Db.tbMaterias.Remove(materia);
 
                 var existenAlumnos = Db.tbAlumnosMaterias.Where(a => a.MateriaId == id).Any();
                 if (existenAlumnos)
@@ -1300,6 +935,82 @@ namespace ControlMaterias.Controllers
             }
         }
 
+
+        [HttpPost]
+        public async Task<ActionResult> AsociarMateriasAGrupo(AsociarMateriasRequest request)
+        {
+
+            if (request == null || request.MateriaIds == null || !request.MateriaIds.Any())
+            {
+                return new HttpStatusCodeResult(400, "No se enviaron materias para asociar.");
+            }
+
+            try
+            {
+                foreach (var materiaId in request.MateriaIds)
+                {
+                    // Evita duplicados en la tabla intermedia
+                    var existeAsociacion = await Db.tbGruposMaterias
+                        .AnyAsync(gm => gm.GrupoId == request.GrupoId && gm.MateriaId == materiaId);
+
+                    if (!existeAsociacion)
+                    {
+                        Db.tbGruposMaterias.Add(new tbGruposMaterias
+                        {
+                            GrupoId = request.GrupoId,
+                            MateriaId = materiaId
+                        });
+                    }
+                }
+
+                await Db.SaveChangesAsync();
+
+                return Json(new { mensaje = "Materias asociadas correctamente al grupo." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al asociar materias: {ex.Message}");
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error interno al asociar materias al grupo." });
+            }
+        }
+
+        #endregion
+
+
+
+        #region PartialViews
+        public ActionResult AvisosPartialView()
+        {
+            return PartialView("_Avisos");
+        }
+
+        public ActionResult ActividadesPartialView()
+        {
+            return PartialView("_Actividades");
+        }
+
+        public ActionResult EntregablesPartialView()
+        {
+            return PartialView("_Entregables");
+        }
+
+        public ActionResult AlumnosPartialView()
+        {
+            return PartialView("_Alumnos");
+        }
+
+        public ActionResult ConfiguracionPartialView()
+        {
+
+            ViewBag.NombreMateria = "";
+            ViewBag.Descripcion = "";
+            return PartialView("_Configuracion");
+        }
+        #endregion
+
+
+
         [HttpPost]
         public async Task<ActionResult> ActualizarEstatusAlumno(int AlumnoId, int MateriaId, string Estatus)
         {
@@ -1324,6 +1035,7 @@ namespace ControlMaterias.Controllers
                 return Json(new { mensaje = "Error al actualizar estatus.", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
 
 
         protected override void Dispose(bool disposing)

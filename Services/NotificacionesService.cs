@@ -213,7 +213,22 @@ namespace ControlActividades.Services
         //SECCIÓN DE NOTIFICACIONES PARA -ALUMNOS- CUANDO EL DOCENTE HACE UNA ACCIÓN
 
         // Notificación cuando el docente crea una actividad
+        //API
         public async Task NotificacionCrearActividad(tbActividades actividad)
+        {
+            var (usuariosIds, tokens) = await ObtenerDestinatarios(null, actividad.MateriaId);
+
+            await ProcesarNotificacion(
+                usuariosIds,
+                tokens,
+                "Nueva actividad",
+                actividad.NombreActividad,
+                TiposNotificaciones.ActividadCreada,
+                actividad.MateriaId
+            );
+        }
+
+        public async Task NotificacionCreaActividad(ActividadDTO actividad)
         {
             var (usuariosIds, tokens) = await ObtenerDestinatarios(null, actividad.MateriaId);
 

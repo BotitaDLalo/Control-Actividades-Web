@@ -526,85 +526,87 @@ async function actualizarActividad(id) {
 }
 
 async function eliminarActividad(id) {
-  const result = await Swal.fire({
-    title: "¿Estás seguro?",
-    text: "¡Esta acción no se puede deshacer!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-    reverseButtons: true,
-  });
-
-  if (!result.isConfirmed) {
-    Swal.fire({
-      title: "Cancelado",
-      text: "La actividad no fue eliminada.",
-      icon: "info",
-      timer: 1500,
-      showConfirmButton: false,
+    const result = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "¡Esta acción no se puede deshacer!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        reverseButtons: true,
     });
-    return;
-  }
 
-  Swal.fire({
-    title: "Eliminando...",
-    text: `Eliminando actividad ${id}`,
-    allowOutsideClick: false,
-    didOpen: () => {
-      Swal.showLoading();
-    },
-  });
+    if (!result.isConfirmed) {
+        Swal.fire({
+            title: "Cancelado",
+            text: "La actividad no fue eliminada.",
+            icon: "info",
+            timer: 1500,
+            showConfirmButton: false,
+        });
+        return;
+    }
 
-  const endpoints = [
-    `/api/Actividades/EliminarActividad?id=${id}`,
-    `/api/Actividades/EliminarActividad/${id}`,
-    `/Materias/EliminarActividad?id=${id}`,
-    `/Materias/EliminarActividad/${id}`,
-  ];
+    Swal.fire({
+        title: "Eliminando...",
+        text: `Eliminando actividad ${id}`,
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
 
-  try {
+    const endpoints = [
+        `/api/Actividades/EliminarActividad?id=${id}`,
+        `/api/Actividades/EliminarActividad/${id}`,
+        `/Materias/EliminarActividad?id=${id}`,
+        `/Materias/EliminarActividad/${id}`,
+        `/Actividades/EliminarActividad/${id}`,
+    ];
+
+    try {
     const resp = await tryEndpoints(endpoints, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
     });
     const text = await resp.text();
     let data = null;
     try {
-      data = text ? JSON.parse(text) : null;
+        data = text ? JSON.parse(text) : null;
     } catch (e) {
-      data = null;
+        data = null;
     }
     Swal.close();
     Swal.fire(
-      "Eliminado!",
-      data && data.mensaje ? data.mensaje : `La actividad ${id} fue eliminada.`,
-      "success"
+        "Eliminado!",
+        data && data.mensaje ? data.mensaje : `La actividad ${id} fue eliminada.`,
+        "success"
     );
     cargarActividadesDeMateria();
-  } catch (error) {
-    console.error("Error al eliminar la actividad:", error);
-    Swal.close();
-    Swal.fire(
-      "Error",
-      "No se pudo eliminar la actividad. Revisa la consola para más detalles.",
-      "error"
-    );
-  }
+    }
+    catch (error) {
+        console.error("Error al eliminar la actividad:", error);
+        Swal.close();
+        Swal.fire(
+            "Error",
+            "No se pudo eliminar la actividad. Revisa la consola para más detalles.",
+            "error"
+        );
+    }
 }
 
 async function tryEndpoints(endpoints, fetchOptions) {
-  for (let i = 0; i < endpoints.length; i++) {
-    try {
-      const res = await fetch(endpoints[i], fetchOptions);
-      if (res.ok) return res;
-      // if server returned JSON with message, continue to next but remember last response
-      console.warn("Endpoint failed", endpoints[i], res.status);
-    } catch (e) {
-      console.warn("Fetch error for", endpoints[i], e);
+    for (let i = 0; i < endpoints.length; i++) {
+        try {
+            const res = await fetch(endpoints[i], fetchOptions);
+            if (res.ok) return res;
+            // if server returned JSON with message, continue to next but remember last response
+            console.warn("Endpoint failed", endpoints[i], res.status);
+        } catch (e) {
+            console.warn("Fetch error for", endpoints[i], e);
+        }
     }
-  }
-  throw new Error("Ningún endpoint respondió correctamente.");
+    throw new Error("Ningún endpoint respondió correctamente.");
 }
 
 function toInputDateTimeValue(dateStr) {

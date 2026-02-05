@@ -118,16 +118,18 @@ namespace ControlActividades.Controllers
             }
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            var usuarioId = Fg.ObtenerUsuarioId(User);
+            var ca_usuarioId = Fg.ObtenerCAUsuarioId(User);
+            var st_usuarioId = Fg.ObtenerSTUsuarioId(User); 
+
             var rol = Fg.ObtenerRolUsuario(User);
 
-            var tieneGrupos = GruposService.TieneGrupos(rol, usuarioId);
+            var tieneGrupos = await GruposService.TieneGrupos(rol, ca_usuarioId, st_usuarioId);
 
-            var tieneMaterias = GruposService.TieneMaterias(rol, usuarioId);
+            var tieneMaterias = await GruposService.TieneMaterias(rol, ca_usuarioId, st_usuarioId);
 
-            List<GrupoViewModel> lsGrupos = GruposService.ObtenerGruposPorUsuario(rol, usuarioId);
+            List<GruposCARes> lsGrupos = await GruposService.ObtenerGruposPorUsuario(rol, ca_usuarioId, st_usuarioId);
 
             if (!tieneGrupos && tieneMaterias)
             {
@@ -272,24 +274,23 @@ namespace ControlActividades.Controllers
         //}
 
         [HttpGet]
-        public ActionResult GrupoMaterias(int? grupoId)
+        public async Task<ActionResult> GrupoMaterias(int? grupoId)
         {
             if (!grupoId.HasValue)
             {
                 return RedirectToAction("Index", "Grupos");
             }
 
-            int usuarioId = -1;
-            string role = string.Empty;
+            //int usuarioId = -1;
+            //string role = string.Empty;
             //var lsMateriasDeGrupo = ObtenerMateriasPorGrupo(grupoId.Value);
 
-            if (User.IsInRole(Roles.ALUMNO))
-            {
-                usuarioId = Fg.ObtenerUsuarioId(User);
-                role = Fg.ObtenerRolUsuario(User);
-            }
+            
+            int usuarioId = Fg.ObtenerCAUsuarioId(User);
+            int st_usuarioId = Fg.ObtenerSTUsuarioId(User);
+            string role = Fg.ObtenerRolUsuario(User);
 
-            List<MateriaViewModel> lsMateriasDeGrupo = GruposService.ObtenerMateriasPorGrupo(grupoId.Value, usuarioId, role);
+            List< MateriaCARes> lsMateriasDeGrupo = await GruposService.ObtenerMateriasPorGrupo(grupoId.Value, usuarioId, st_usuarioId,role);
 
             return View(lsMateriasDeGrupo);
         }
