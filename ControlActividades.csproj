@@ -524,6 +524,7 @@
     <Compile Include="Services\Actividades\ActividadesService.cs" />
     <Compile Include="Services\Actividades\ActividadesSTService.cs" />
     <Compile Include="Services\Actividades\ActividadesCAService.cs" />
+    <Compile Include="Services\Actividades\ActividadesSTServiceExtensions.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\FuenteDatosService.cs" />

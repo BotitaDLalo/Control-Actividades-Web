@@ -12,8 +12,6 @@ namespace ControlActividades.Controllers
         {
             return View();
         }
-
-        // Acción para mostrar la vista Calendario (se añadió porque existe Views/Home/Calendario.cshtml)
         public ActionResult Calendario()
         {
             return View();

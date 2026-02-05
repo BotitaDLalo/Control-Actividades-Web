@@ -36,7 +36,7 @@ namespace ControlActividades.Models
         public int MateriaId { get; set; }
 
         public int GrupoId { get; set; }
-        public string View { set; get; }
+        public string View { get; set; }
         public int st_usuarioId { get; set; }
 
         public string Role { get; set; }
@@ -75,10 +75,18 @@ namespace ControlActividades.Models
     }
 
 
-    //Actividades
+    // Actividades
+    /// Petición usada para obtener actividades por materia.
+    /// Se agregó la propiedad <see cref="EsDocente"/> para compatibilidad
+    /// con el servicio ST (ActividadesSTService) que espera ese campo.
     public class ObtenerActividadesPorMateriaRequest
     {
+        /// Indica si el solicitante tiene rol de docente/administrador.
+        /// Usado por ActividadesSTService para filtrar la respuesta.
+        public bool EsDocente { get; set; }
+
         public string Role { get; set; }
+
         public int MateriaId { get; set; }
         public string View { get; set; }
     }
