@@ -528,12 +528,14 @@
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\FuenteDatosService.cs" />
+    <Compile Include="Services\GruposSTService.cs" />
     <Compile Include="Services\Grupos\GruposApiCAService.cs" />
     <Compile Include="Services\Grupos\GruposApiService.cs" />
     <Compile Include="Services\Grupos\GruposApiSTService.cs" />
     <Compile Include="Services\Grupos\GruposCAService.cs" />
     <Compile Include="Services\Grupos\GruposService.cs" />
     <Compile Include="Services\Grupos\GruposSTService.cs" />
+    <Compile Include="Services\IGruposSTService.cs" />
     <Compile Include="Services\Materias\MateriasApiCAService.cs" />
     <Compile Include="Services\Materias\MateriasApiService.cs" />
     <Compile Include="Services\Materias\MateriasApiSTService.cs" />

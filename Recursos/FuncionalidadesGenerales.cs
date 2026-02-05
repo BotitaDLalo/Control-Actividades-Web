@@ -13,6 +13,7 @@ using ControlActividades.Models.db;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.IdentityModel.Tokens;
+using System.Configuration;
 
 namespace ControlActividades.Recursos
 {
@@ -110,18 +111,41 @@ namespace ControlActividades.Recursos
         #region ST
         public string ObtenerUrlST()
         {
-            string url = @"";
-            return url;
+            try
+            {
+                var url = ConfigurationManager.AppSettings["ST_BaseUrl"];
+                return string.IsNullOrWhiteSpace(url) ? string.Empty : url.TrimEnd('/') + "/";
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         public string ObtenerFuenteDeDatos()
         {
-            return "";
+            try
+            {
+                var fuente = ConfigurationManager.AppSettings["ST_Fuente"];
+                return string.IsNullOrWhiteSpace(fuente) ? string.Empty : fuente;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         public string ObtenerXApiKey()
         {
-            return "";
+            try
+            {
+                var key = ConfigurationManager.AppSettings["ST_XApiKey"];
+                return string.IsNullOrWhiteSpace(key) ? string.Empty : key;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
         #endregion
 
@@ -165,7 +189,7 @@ namespace ControlActividades.Recursos
         //    if (Db.tbAlumnos.Any(a => a.UserId == userId))
         //        return Roles.ALUMNO;
 
-        //    // Fallback a claim si no hay registro en tablas específicas
+        //    // Fallback a claim si no hay registro en tablas especï¿½ficas
         //    var identity = User.Identity as ClaimsIdentity;
         //    return identity?.FindFirst(ClaimTypes.Role)?.Value;
         //}

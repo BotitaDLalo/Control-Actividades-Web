@@ -1,0 +1,39 @@
+@model IEnumerable<dynamic>
+<div id="seccion-actividades" class="seccion">
+ <h5>Actividades</h5>
+ <div id="listaActividadesAlumno">
+ <div class="text-muted p-3">Cargando actividades...</div>
+ </div>
+</div>
+
+@section Scripts{
+ @Scripts.Render("~/bundles/alumno")
+ <script>
+ (function(){
+ try{
+ // if client-side loader exists, call it
+ if (typeof cargarActividadesAlumno === 'function') {
+ setTimeout(cargarActividadesAlumno,50);
+ return;
+ }
+ // fallback to fetch
+ var mid = @(ViewBag.MateriaId ??0);
+ setTimeout(async function(){
+ try{
+ var cont = document.getElementById('listaActividadesAlumno');
+ if (!cont) return;
+ var resp = await fetch('/api/Actividades/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(mid));
+ if (!resp.ok) { cont.innerHTML = '<p class="text-danger">No se pudieron cargar actividades.</p>'; return; }
+ var payload = await resp.json();
+ var lista = Array.isArray(payload) ? payload : (payload.Actividades || payload.resultado || []);
+ if (!lista || lista.length===0) { cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>'; return; }
+ var html = '<ul class="list-group">';
+ lista.forEach(function(a){ html += '<li class="list-group-item"><strong>'+(a.NombreActividad||a.nombreActividad||'')+'</strong> <div class="small text-muted">'+(a.FechaCreacion||'')+'</div></li>'; });
+ html += '</ul>';
+ cont.innerHTML = html;
+ }catch(e){ console.error(e); }
+ },100);
+ }catch(e){ console.warn(e); }
+ })();
+ </script>
+}

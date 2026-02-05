@@ -90,4 +90,43 @@ namespace ControlActividades.Models
         public int MateriaId { get; set; }
         public string View { get; set; }
     }
+
+    // === ST Models appended ===
+
+    public class GruposSTRequest
+    {
+        public int ca_usuarioId { get; set; }
+        public int st_usuarioId { get; set; }
+        public string View { get; set; }
+    }
+
+    public class GrupoSTModel
+    {
+        public int GrupoId { get; set; }
+        public string NombreGrupo { get; set; }
+        public string Descripcion { get; set; }
+        public string CodigoAcceso { get; set; }
+    }
+
+    public class GruposSTResponse
+    {
+        public List<GrupoSTModel> Grupos { get; set; }
+    }
+
+    public class CrearAvisoSTRequest
+    {
+        public int UsuarioId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+        public int? GrupoId { get; set; }
+        public int? MateriaId { get; set; }
+        public string View { get; set; }
+    }
+
+    public class GenericSTResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+    }
+
 }

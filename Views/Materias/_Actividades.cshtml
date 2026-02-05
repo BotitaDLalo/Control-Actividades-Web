@@ -1,7 +1,98 @@
-﻿
+﻿@model IEnumerable<dynamic>
 @{
-    ViewBag.Title = "_Actividades";
+ ViewBag.Title = "_Actividades";
+ var materiaId = ViewBag.MateriaId ?? ViewBag.MateriaIdFromParent ??0;
 }
+<h2>Actividades</h2>
+<div id="seccion-actividades" class="seccion">
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h5>Actividades</h5>
+ @if (User.IsInRole("Docente"))
+ {
+ <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#crearActividadModal">Crear actividad</button>
+ }
+ </div>
 
-<h2>_Actividades</h2>
+ <div id="listaActividadesDeMateria">
+ @if (Model != null)
+ {
+ if (!Model.Any())
+ {
+ <p class="text-muted">No hay actividades registradas para esta materia.</p>
+ }
+ else
+ {
+ <ul class="list-group">
+ @foreach (var a in Model)
+ {
+ <li class="list-group-item">
+ <div class="d-flex justify-content-between">
+ <div>
+ <strong>@(a.NombreActividad ?? a.Nombre ?? a.nombreActividad)</strong>
+ <div class="small text-muted">Fecha: @(a.FechaCreacion ?? a.FechaCreacion)</div>
+ </div>
+ <div>
+ <span class="badge bg-secondary">Puntaje: @(a.Puntaje ??0)</span>
+ </div>
+ </div>
+ </li>
+ }
+ </ul>
+ }
+ }
+ else
+ {
+ <div class="text-muted p-3">Cargando actividades...</div>
+ }
+ </div>
+</div>
+
+@section Scripts{
+ @Scripts.Render("~/bundles/materias")
+ <script>
+ (function(){
+ try {
+ var mid = @materiaId;
+ // prefer global function from scriptsActividades.js
+ if (typeof cargarActividadesDeMateria === 'function') {
+ setTimeout(function(){ try{ cargarActividadesDeMateria(mid); }catch(e){ console.warn('cargarActividadesDeMateria failed', e); } },50);
+ return;
+ }
+
+ // fallback: try endpoints directly
+ setTimeout(async function(){
+ try{
+ var cont = document.getElementById('listaActividadesDeMateria');
+ if (!cont) return;
+ cont.innerHTML = '<p class="text-muted">Cargando actividades...</p>';
+ var endpoints = [
+ '/api/Actividades/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(mid),
+ '/Actividades/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(mid),
+ '/Materias/ObtenerActividadesPorMateria?materiaId=' + encodeURIComponent(mid)
+ ];
+ var resp = null;
+ for (var i=0;i<endpoints.length;i++){
+ try{ resp = await fetch(endpoints[i]); if (resp.ok) break; }catch(e){ resp=null; }
+ }
+ if (!resp || !resp.ok) { cont.innerHTML = '<p class="text-danger">No se pudieron cargar actividades.</p>'; return; }
+ var payload = await resp.json();
+ var lista = Array.isArray(payload) ? payload : (payload && payload.Actividades ? payload.Actividades : (payload.resultado || []));
+ if (!lista || lista.length===0){ cont.innerHTML = '<p class="text-muted">No hay actividades para esta materia.</p>'; return; }
+ var html = '<ul class="list-group">';
+ lista.forEach(function(a){
+ var nombre = a.NombreActividad || a.nombreActividad || a.Nombre || 'Actividad';
+ var fecha = a.FechaCreacion || a.fechaCreacion || '';
+ var punt = a.Puntaje || a.puntaje ||0;
+ html += '<li class="list-group-item d-flex justify-content-between align-items-center"><div><strong>'+escapeHtml(nombre)+'</strong><div class="small text-muted">'+escapeHtml(fecha)+'</div></div><span class="badge bg-secondary">Puntaje: '+punt+'</span></li>';
+ });
+ html += '</ul>';
+ cont.innerHTML = html;
+ }catch(err){ console.error(err); }
+ },100);
+ } catch(e){ console.warn(e); }
+
+ function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"]+/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]; }); }
+ })();
+ </script>
+}
 

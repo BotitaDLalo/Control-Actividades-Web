@@ -1,16 +1,72 @@
-﻿
+﻿@model IEnumerable<dynamic>
 @using Rol = ControlActividades.Roles;
 <div id="seccion-avisos" class="seccion">
-    <div class="dropdown">
-        <button class="btn-crear">Crear ▼</button>
-        <div class="dropdown-content">
-            @if (User.IsInRole(Rol.DOCENTE))
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5>Avisos</h5>
+        @if (User.IsInRole(Rol.DOCENTE))
+        {
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#crearAvisoMateriaModal">Crear
+                Aviso</button>
+        }
+    </div>
+
+    <div id="listaDeAvisosDeMateria">
+        @if (Model != null)
+        {
+            if (!Model.Any())
             {
-                <button class="misCursos-dropdown-item" data-bs-toggle="modal"
-                        data-bs-target="#crearAvisoMateriaModal">
-                    Crear Aviso
-                </button>
+                <p class="text-muted">No hay avisos registrados para esta materia.</p>
             }
-        </div>
+            else
+            {
+                <ul class="list-group">
+                    @foreach (var a in Model)
+                    {
+                        <li class="list-group-item">
+                            <strong>@(a.Titulo ?? a.Titulo)</strong>
+                            <div class="small text-muted">Publicado: @(a.FechaCreacion ?? a.FechaCreacion)</div>
+                            <p>@(a.Descripcion ?? a.Descripcion)</p>
+                        </li>
+                    }
+                </ul>
+            }
+        }
+        else
+        {
+            <div class="text-muted p-3">Cargando avisos...</div>
+        }
     </div>
 </div>
+
+@section Scripts{
+    @Scripts.Render("~/bundles/materias")
+    <script>
+        (function(){
+            try{
+                var mid = @(ViewBag.MateriaId ??0);
+                // prefer existing client script
+                if (typeof cargarAvisosDeMateria === 'function'){
+                    setTimeout(function(){ try{ cargarAvisosDeMateria(); }catch(e){ console.warn('cargarAvisosDeMateria failed', e);} },50);
+                    return;
+                }
+
+                // fallback loader
+                setTimeout(async function(){
+                    try{
+                        var cont = document.getElementById('listaDeAvisosDeMateria');
+                        if (!cont) return;
+                        var resp = await fetch('/Materias/ObtenerAvisos?IdMateria=' + encodeURIComponent(mid));
+                        if (!resp.ok) { cont.innerHTML = '<p class="text-danger">No se pudieron cargar avisos.</p>'; return; }
+                        var payload = await resp.json();
+                        var avisos = Array.isArray(payload) ? payload : (payload.avisos || payload.resultado || []);
+                        if (!avisos || avisos.length ===0){ cont.innerHTML = '<p class="text-muted">No hay avisos para esta materia.</p>'; return; }
+                        var html = '<ul class="list-group">';
+                        avisos.forEach(function(a){ html += '<li class="list-group-item"><strong>'+ (a.Titulo||'') +'</strong><div class="small text-muted">Publicado: '+(a.FechaCreacion||'')+'</div><p>'+ (a.Descripcion||'') +'</p></li>'; });
+                        html += '</ul>';
+                        cont.innerHTML = html;
+                    }catch(err){ console.error(err); }
+                },100);
+            }catch(e){ console.warn(e); }
+        })();
+    </script>
+}
