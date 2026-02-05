@@ -1189,8 +1189,8 @@ namespace ControlActividades.Controllers
                 };
 
                 // Límites
-                const long maxTamanoPorArchivo = 50 * 1024 * 1024; // 50MB
-                const long maxTamanoTotal = 200 * 1024 * 1024; // 200MB total
+                const long maxTamanoPorArchivo = 25 * 1024 * 1024; // 25MB
+                const long maxTamanoTotal = 100 * 1024 * 1024; // 100MB total
                 long tamanoTotalArchivos = 0;
 
                 Console.WriteLine($"[LOG] Procesando {files.Count} archivo(s)...");
