@@ -103,33 +103,6 @@ async function cargarEntregablesPorActividad(actividadId) {
 
 
 
-function cambiarSeccion(seccion) {
-    document.querySelectorAll('.seccion').forEach(div => div.style.display = 'none');
-    const seccionMostrar = document.getElementById(`seccion-${seccion}`);
-    if (seccionMostrar) {
-        seccionMostrar.style.display = 'block';
-    }
-
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    var tabBtn = document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`);
-    if (tabBtn && tabBtn.classList) tabBtn.classList.add('active');
-
-    // Cargar datos si se seleccionan secciones dinámicas
-    if (seccion === "actividades") {
-        cargarActividadesDeMateria(materiaIdGlobal);
-    }
-    if (seccion === "alumnos") {
-        cargarAlumnosAsignados(materiaIdGlobal);
-    }
-    if (seccion === "avisos") {
-        cargarAvisosDeMateria(materiaIdGlobal);
-    }
-    if (seccion === "entregables") {
-        cargarEntregablesDeMateria(materiaIdGlobal);
-    }
-}
-
-
 function convertirUrlsEnEnlaces(texto) {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     return texto.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');

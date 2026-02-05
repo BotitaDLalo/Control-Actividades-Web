@@ -14,12 +14,19 @@ function cambiarPanel(btn) {
     // activar el actual
     btn.classList.add("active");
 
-
     // obtener panel desde enum
     const panelKey = btn.dataset.panel;
     const partial = PanelMateria[panelKey];
 
 
     // cargar partial view
-    $("#contenedor-dinamico").load(`/Materias/${partial}`);
+    $("#contenedor-dinamico").load(
+        `/Materias/${partial}`,
+        { materiaId: window.materiaIdGlobal },
+        function () {
+            if (panelKey === "Avisos") {
+                cargarAvisosDeMateria(); 
+            }
+        }
+    );
 }

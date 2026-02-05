@@ -2,25 +2,6 @@ document.addEventListener("DOMContentLoaded", function () {
     //Cargar los avisos asinados a la materia
     // inyectar controles de filtro (nombre + fechas)
     try {
-        var cont = document.getElementById('seccion-avisos') || document.body;
-        var filtroDiv = document.createElement('div');
-        filtroDiv.style.display = 'flex';
-        filtroDiv.style.gap = '8px';
-        filtroDiv.style.marginBottom = '10px';
-
-        var inputNombre = document.createElement('input');
-        inputNombre.id = 'filtroAvisoNombre';
-        inputNombre.placeholder = 'Buscar por título...';
-        inputNombre.className = 'form-control form-control-sm';
-        inputNombre.style.width = '220px';
-
-        var inputDesde = document.createElement('input');
-        inputDesde.type = 'date';
-        inputDesde.id = 'filtroAvisoDesde';
-        inputDesde.className = 'form-control form-control-sm';
-        inputDesde.style.width = '150px';
-
-        var inputHasta = document.createElement('input');
         inputHasta.type = 'date';
         inputHasta.id = 'filtroAvisoHasta';
         inputHasta.className = 'form-control form-control-sm';
@@ -29,7 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
         var btn = document.createElement('button');
         btn.className = 'btn btn-sm btn-primary';
         btn.textContent = 'Filtrar';
-        btn.addEventListener('click', function(){ cargarAvisosDeMateria(); });
+
+        btn.addEventListener('click', function () {
+            cargarAvisosDeMateria();
+        });
 
         filtroDiv.appendChild(inputNombre);
         filtroDiv.appendChild(inputDesde);
@@ -40,12 +24,24 @@ document.addEventListener("DOMContentLoaded", function () {
         var lista = document.getElementById('listaDeAvisosDeMateria');
         if (lista) lista.parentNode.insertBefore(filtroDiv, lista);
         else document.body.insertBefore(filtroDiv, document.body.firstChild);
-    } catch(e) { console.warn('No se pudo insertar filtros de avisos', e); }
+    } catch (e)
+    {
+        console.warn('No se pudo insertar filtros de avisos', e);
+    }
 
     cargarAvisosDeMateria();
 });
 
-function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
+function escapeHtml(s)
+{
+    if (!s) return '';
+    return String(s).replace(/[&<>"'`]/g, function (m)
+                                            {
+                                                return (
+                                                    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }
+                                                )[m];
+                                            });
+}
 
 //Funcion para publicar un aviso
 async function publicarAviso() {
@@ -136,9 +132,11 @@ async function publicarAviso() {
 async function cargarAvisosDeMateria() {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
     if (!listaAvisos) return;
+
     try {
         const response = await fetch(`/Materias/ObtenerAvisos?IdMateria=${materiaIdGlobal}`);
         if (!response.ok) throw new Error("No se encontraron avisos.");
+
         const payload = await response.json();
         // payload puede venir como un arreglo directo o como { avisos: [...], RolUsuario: ... }
         let avisos = [];
@@ -201,26 +199,18 @@ function renderizarAvisos(avisos) {
 
     items.forEach(aviso => {
  
-        const avisoItem = document.createElement("div");
-        avisoItem.classList.add("aviso-item");
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
-
-        avisoItem.innerHTML = `
-            <div class="aviso-header">
-                <div class="aviso-icono">📢</div>
-                <div class="aviso-info">
-                    <strong>${aviso.Titulo}</strong>
-                    <p class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</p>
-                    <p class="ver-completo">Ver completo</p>
-                </div>
-                <div class="aviso-botones-container">
-                    <button class="aviso-editar-btn" data-id="${aviso.AvisoId}">Editar</button>
-                    <button class="aviso-eliminar-btn" data-id="${aviso.AvisoId}">Eliminar</button>
-                </div>
-        `;
 
         const avisoItem = document.createElement('div');
         avisoItem.className = 'aviso-item';
+        const botonesHtml = window.esDocente
+            ? `
+                <div style="display:flex;flex-direction:column;gap:8px;margin-left:12px">
+                    <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${aviso.AvisoId}">Editar</button>
+                    <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar</button>
+                </div>
+      `
+            : '';
         // Crear card
         avisoItem.innerHTML = `
             <div class="aviso-icono">📢</div>
@@ -230,10 +220,7 @@ function renderizarAvisos(avisos) {
                 <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</div>
                 <div class="ver-completo">Ver completo</div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-left:12px">
-                <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${aviso.AvisoId}">Editar</button>
-                <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar</button>
-            </div>
+           ${botonesHtml}
         `;
 
         // toggle descripcion
@@ -242,8 +229,13 @@ function renderizarAvisos(avisos) {
         if (ver && desc) ver.addEventListener('click', () => { desc.classList.toggle('oculto'); desc.classList.toggle('visible'); });
 
         // botones
-        avisoItem.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', () => eliminarAviso(aviso.AvisoId)));
-        avisoItem.querySelectorAll('.btn-editar').forEach(b => b.addEventListener('click', () => editarAviso(aviso.AvisoId)));
+        if (window.esDocente) {
+            avisoItem.querySelectorAll('.btn-eliminar')
+                .forEach(b => b.addEventListener('click', () => eliminarAviso(aviso.AvisoId)));
+
+            avisoItem.querySelectorAll('.btn-editar')
+                .forEach(b => b.addEventListener('click', () => editarAviso(aviso.AvisoId)));
+        }
 
         listaAvisos.appendChild(avisoItem);
     });

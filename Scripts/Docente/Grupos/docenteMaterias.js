@@ -149,7 +149,7 @@ async function cargarMateriasSinGrupo() {
 
     } catch (error) {
         console.error('Error al cargar materias sin grupo:', error);
-        Swal.fire({
+        /*Swal.fire({
             title: "Error al cargar materias",
             html: "Reintentando en <b></b> segundos...",
             timer: 4000,
@@ -167,7 +167,7 @@ async function cargarMateriasSinGrupo() {
             if (result.dismiss === Swal.DismissReason.timer) {
                 cargarMateriasSinGrupo();
             }
-        });
+        });*/
     }
 }
 
