@@ -110,7 +110,7 @@ async function cargarMateriasSinGrupo() {
         // Limpiar contenido anterior
         listaMateriasSinGrupo.innerHTML = "";
 
-        if (!materiasSinGrupo || materiasSinGrupo.length === 0) {
+        if (!materiasSinGrupo || materiasSinGrupo.length ===0) {
             const mensaje = document.createElement("p");
             mensaje.classList.add("text-center", "text-muted");
             mensaje.textContent = "No hay materias registradas.";
@@ -134,7 +134,7 @@ async function cargarMateriasSinGrupo() {
             if (materia.Descripcion) card.appendChild(subtitle);
 
             // agregar nombre del docente si viene
-            if (materia.DocenteId || materia.DocenteId === 0) {
+            if (materia.DocenteId || materia.DocenteId ===0) {
                 const nombreDocente = materia.DocenteNombre || materia.DocenteNombre || '';
                 if (nombreDocente) {
                     const d = document.createElement('div');
@@ -149,25 +149,11 @@ async function cargarMateriasSinGrupo() {
 
     } catch (error) {
         console.error('Error al cargar materias sin grupo:', error);
-        Swal.fire({
-            title: "Error al cargar materias",
-            html: "Reintentando en <b></b> segundos...",
-            timer: 4000,
-            timerProgressBar: true,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-                const timer = Swal.getPopup().querySelector("b");
-                let timerInterval = setInterval(() => {
-                    timer.textContent = `${Math.floor(Swal.getTimerLeft() / 1000)}`;
-                }, 100);
-            },
-            willClose: () => clearInterval(timerInterval)
-        }).then((result) => {
-            if (result.dismiss === Swal.DismissReason.timer) {
-                cargarMateriasSinGrupo();
-            }
-        });
+        // Disabled blocking Swal modal to avoid interrupting the UI during development.
+        // Previously this showed a modal with a countdown and retried; replace with a silent retry.
+        setTimeout(function () {
+            try { cargarMateriasSinGrupo(); } catch (e) { console.error('Retry failed', e); }
+        },4000);
     }
 }
 
