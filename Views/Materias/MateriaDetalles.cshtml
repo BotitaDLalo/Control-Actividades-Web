@@ -238,59 +238,54 @@
     </script>
 
     <nav class="materia-nav">
-        <button class="tab-button active" onclick="cambiarSeccion('avisos')">Avisos</button>
-        <button class="tab-button" onclick="cambiarSeccion('actividades')">Actividades</button>
-        <button class="tab-button" onclick="cambiarSeccion('entregables')">Entregables</button>
+        <button class="tab-button active"
+                data-panel="Avisos"
+                onclick="cambiarPanel(this)">
+            Avisos
+        </button>
+
+        <button class="tab-button"
+                data-panel="Actividades"
+                onclick="cambiarPanel(this)">
+            Actividades
+        </button>
+
+        <button class="tab-button"
+                data-panel="Entregables"
+                onclick="cambiarPanel(this)">
+            Entregables
+        </button>
 
         @if (User.IsInRole(Rol.DOCENTE))
         {
-            <button class="tab-button" onclick="cambiarSeccion('alumnos')">Alumnos</button>
-            <button class="tab-button" onclick="cambiarSeccion('configuracion')">Configuración</button>
+            <button class="tab-button"
+                    data-panel="Alumnos"
+                    onclick="cambiarPanel(this)">
+                Alumnos
+            </button>
+
+            <button class="tab-button"
+                    data-panel="Configuracion"
+                    onclick="cambiarPanel(this)">
+                Configuración
+            </button>
         }
-            <button class="tab-button active"
-                    data-panel="Avisos"
-                    onclick="cambiarPanel(this)">
-                Avisos
-            </button>
 
-            <button class="tab-button"
-                    data-panel="Actividades"
-                    onclick="cambiarPanel(this)">
-                Actividades
-            </button>
-
-            <button class="tab-button"
-                    data-panel="Entregables"
-                    onclick="cambiarPanel(this)">
-                Entregables
-            </button>
-
-            @if (User.IsInRole(Rol.DOCENTE))
-            {
-                <button class="tab-button"
-                        data-panel="Alumnos"
-                        onclick="cambiarPanel(this)">
-                    Alumnos
-                </button>
-
-                <button class="tab-button"
-                        data-panel="Configuracion"
-                        onclick="cambiarPanel(this)">
-                    Configuración
-                </button>
-            }
     </nav>
 
     <div id="contenedor-dinamico" class="materia-content">
         <div id="seccion-avisos" class="seccion">
-            <div class="dropdown">
-                <button class="btn-crear">Crear ▼</button>
-                <div class="dropdown-content">
-                    <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearAvisoMateriaModal">
-                        Crear Aviso
-                    </button>
+            @if (User.IsInRole(Rol.DOCENTE))
+            {
+                <div class="dropdown">
+                    <button class="btn-crear">Crear ▼</button>
+                    <div class="dropdown-content">
+                        <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearAvisoMateriaModal">
+                            Crear Aviso
+                        </button>
+                    </div>
                 </div>
-            </div>
+            }
             <!-- Filtros para avisos: buscar por título y filtrar por rango de fechas -->
             <div class="avisos-filters mb-3" style="display:flex;gap:8px;align-items:center;">
                 <input id="buscarAvisoTitulo" class="form-control" placeholder="Buscar por título..." style="max-width:360px;" />
