@@ -63,7 +63,7 @@ document.addEventListener("click", async function (e) {
 
     //Eliminar notificación
     const btnBorrar = e.target.closest(".btn-borrar-noti");
-    if (!btnBorrar){ 
+    if (btnBorrar){ 
         const item = btnBorrar.closest(".noti-item");
         const id = item?.dataset.id;
 
