@@ -3,7 +3,7 @@ var docenteIdGlobal = localStorage.getItem("docenteId");
 var materiaIdGlobal = localStorage.getItem("materiaIdSeleccionada");
 var grupoIdGlobal = localStorage.getItem("grupoIdSeleccionado");
 var actividadIdGlobal = localStorage.getItem("actividadSeleccionada");
-var puntajeMaximo = null;
+var puntajeMaximo = null
 
 // Helper: elimina backdrops residuales y restaura el body para evitar overlay gris pegado
 function _cleanupModalBackdrops() {
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const resp = await fetch('/api/Actividades/AsignarCalificacion', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ EntregaId: entregaId, Calificacion: cal, Comentario: comentario })
+                body: JSON.stringify({ EntregableId: entregaId, Calificacion: cal, Comentario: comentario })
             });
             if (!resp.ok) throw new Error('Error al guardar la calificación');
             // cerrar modal
