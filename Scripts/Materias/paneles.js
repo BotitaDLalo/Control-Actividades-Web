@@ -10,7 +10,6 @@ function cambiarPanel(btn) {
     document.querySelectorAll(".tab-button")
         .forEach(b => b.classList.remove("active"));
 
-
     // activar el actual
     btn.classList.add("active");
 
@@ -26,6 +25,9 @@ function cambiarPanel(btn) {
         function () {
             if (panelKey === "Avisos") {
                 cargarAvisosDeMateria(); 
+            }
+            if (panelKey === "Actividades") {
+                cargarActividadesDeMateria();
             }
         }
     );

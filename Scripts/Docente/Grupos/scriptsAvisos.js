@@ -226,7 +226,11 @@ function renderizarAvisos(avisos) {
         // toggle descripcion
         const ver = avisoItem.querySelector('.ver-completo');
         const desc = avisoItem.querySelector('.aviso-descripcion');
-        if (ver && desc) ver.addEventListener('click', () => { desc.classList.toggle('oculto'); desc.classList.toggle('visible'); });
+        if (ver && desc) ver.addEventListener('click', () =>
+                                            {
+                                                desc.classList.toggle('oculto');
+                                                desc.classList.toggle('visible');
+                                            });
 
         // botones
         if (window.esDocente) {
@@ -343,7 +347,10 @@ async function editarAviso(avisoId) {
 
         if (!updateResponse.ok) throw new Error("No se pudo actualizar el aviso.");
 
-        Swal.fire("Actualizado", "El aviso ha sido editado correctamente.", "success");
+        Swal.fire("Actualizado",
+            "El aviso ha sido editado correctamente.",
+            "success"
+        );
 
         // Recargar avisos para reflejar los cambios
         cargarAvisosDeMateria();

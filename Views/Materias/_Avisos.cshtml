@@ -2,7 +2,7 @@
 @using Rol = ControlActividades.Roles;
 <div id="seccion-avisos" class="seccion active">
     <script>
-    window.esDocente = @User.IsInRole(Rol.DOCENTE).ToString().ToLower();
+        window.esDocente = @User.IsInRole(Rol.DOCENTE).ToString().ToLower();
     </script>
     @if (User.IsInRole(Rol.DOCENTE))
     {

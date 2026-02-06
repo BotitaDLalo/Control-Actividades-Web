@@ -2,6 +2,28 @@
 @{
     ViewBag.Title = "_Actividades";
 }
+@using Rol = ControlActividades.Roles;
+<script>
+    window.esDocente = @User.IsInRole(Rol.DOCENTE).ToString().ToLower();
+</script>
 
-<h2>_Actividades</h2>
+<div id="seccion-actividades" class="seccion active">
+    
+    @if (User.IsInRole(Rol.DOCENTE))
+    {
+        <div class="dropdown-content">
+            <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearActividadModal">
+                📋Crear Tarea
+            </button>
+        </div>
+    }
 
+    <!-- Filter control will be injected dynamically by scriptsActividades.js -->
+    <div class="divider"></div>
+    <div id="listaActividadesDeMateria"></div>
+</div>
+
+<script src="~/Scripts/Materias/paneles.js"></script>
+@Scripts.Render("~/bundles/jqueryval")
+@Scripts.Render("~/bundles/materias")
+@Scripts.Render("~/bundles/grupos")
