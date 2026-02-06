@@ -1025,7 +1025,8 @@ namespace ControlActividades.Controllers
                             ActividadId = datosAlumnoActividad.ActividadId,
                             FechaEntrega = datosAlumnoActividad.FechaEntrega,
                             Contenido = datoEntregable.Contenido,
-                            Calificacion = datoEntregable.Calificacion ?? 0,
+                            Calificacion = datoEntregable.Calificacion ??0,
+                            Comentario = datoEntregable.Comentario ?? string.Empty,
                             EstadoEntregaId = estadoEntregaId
                         };
 
@@ -1097,11 +1098,12 @@ namespace ControlActividades.Controllers
                                 ActividadId = datosAlumnoActividad.ActividadId,
                                 FechaEntrega = datosAlumnoActividad.FechaEntrega,
                                 Contenido = entrega.Contenido,
-                                Calificacion = entrega.Calificacion ?? 0,
+                                Calificacion = entrega.Calificacion ??0,
+                                Comentario = entrega.Comentario ?? string.Empty,
                                 EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId
                             };
 
-                            lsEnvios.Add(envio);    
+                            lsEnvios.Add(envio); 
                         }
 
                         return Ok(lsEnvios);

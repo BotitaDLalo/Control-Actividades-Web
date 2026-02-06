@@ -335,7 +335,15 @@ function renderizarAlumnos(data) {
 
             var fechaCalifMostrar = 'Sin calificar';
             if (alumno.FechaCalificado) fechaCalifMostrar = formatDateToLocale(alumno.FechaCalificado);
-            var comentarioMostrar = alumno.Comentario ? ('Comentario: ' + escapeHtml(alumno.Comentario)) : '';
+            // Mostrar comentario del docente si existe; si no, mostrar mensaje por defecto
+            var comentarioMostrar = '';
+            try {
+                if (alumno.Comentario && String(alumno.Comentario).trim().length >0) {
+                    comentarioMostrar = 'Comentario: ' + escapeHtml(alumno.Comentario);
+                } else {
+                    comentarioMostrar = 'Comentario: El docente no ha agregado comentarios.';
+                }
+            } catch (e) { comentarioMostrar = 'Comentario: El docente no ha agregado comentarios.'; }
 
             var alumnoHTML =
                 '<div class="list-group-item d-flex justify-content-between align-items-center">' +
@@ -344,8 +352,8 @@ function renderizarAlumnos(data) {
                 '<p class="mb-1" style="color: #777;">Calificado: ' + fechaCalifMostrar + '</p>' +
                 '<p class="mb-1" style="color: #777;">' + comentarioMostrar + '</p></div>' +
                 '<div style="display:flex;gap:8px">' +
-                '<button class="btn btn-primary btn-sm" onclick="verRespuesta(' + (idParaVer || 0) + ',' + (alumno.AlumnoId || 0) + ')">Ver Respuesta</button>' +
-                '<button class="btn btn-warning btn-sm" onclick="abrirModalCalificar(' + (entregableId || 0) + ', ' + puntajeMaximo + ')">Calificar</button>' +
+                '<button class="btn btn-primary btn-sm" onclick="verRespuesta(' + (idParaVer ||0) + ',' + (alumno.AlumnoId ||0) + ')">Ver Respuesta</button>' +
+                '<button class="btn btn-warning btn-sm" onclick="abrirModalCalificar(' + (entregableId ||0) + ', ' + puntajeMaximo + ')">Calificar</button>' +
                 '</div>' +
                 '</div>';
 
@@ -495,8 +503,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!form) return;
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        var entregaId = parseInt(document.getElementById('entregaId').value || '0', 10);
-        var cal = parseInt(document.getElementById('calificacion').value || '0', 10);
+        var entregaId = parseInt(document.getElementById('entregaId').value || '0',10);
+        var cal = parseInt(document.getElementById('calificacion').value || '0',10);
         if (!entregaId || isNaN(cal)) { alert('Entrega o calificación inválida'); return; }
         try {
             var comentario = (document.getElementById('comentario') || {}).value || '';
@@ -504,40 +512,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ EntregableId: entregaId, Calificacion: cal, Comentario: comentario })
-            });
-            if (!resp.ok) throw new Error('Error al guardar la calificación');
-            // cerrar modal
-            var modalEl = document.getElementById('calificarModal');
-            var modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
+ });
+ if (!resp.ok) throw new Error('Error al guardar la calificación');
+ // cerrar modal
+ var modalEl = document.getElementById('calificarModal');
+ var modal = bootstrap.Modal.getInstance(modalEl);
+ if (modal) modal.hide();
 
-            Swal.fire({ icon: 'success', title: 'Calificación guardada', timer: 1200, showConfirmButton: false });
-            // recargar lista
-            prepararAlumnosYActividades();
-        } catch (err) {
-            console.error(err);
-            Swal.fire('Error', err.message || 'No se pudo guardar', 'error');
-        }
-    });
-});
-
-        // Inicializar control toggle para permitir entregas tarde
-        // Nota: no deshabilitamos el botón aquí para no interferir con la lógica
-        // definida en la vista EvaluarActividades (que añade su propio listener).
-        document.addEventListener('DOMContentLoaded', function () {
-            try {
-                var badge = document.getElementById('permitirTardeBadge');
-                var actividad = localStorage.getItem('actividadSeleccionada');
-                if (!actividad) return;
-
-                // Forzar que el badge muestre 'No' y estilo secundario inicialmente
-                function actualizarBadgeForzado() {
-                    if (!badge) return;
-                    badge.className = 'badge bg-secondary';
-                    badge.innerText = 'No';
-                }
-
-                try { actualizarBadgeForzado(); } catch (e) { }
-                // No añadimos listeners ni deshabilitamos el botón aquí
-            } catch (e) { console.warn(e); }
-        });
+ Swal.fire({ icon: 'success', title: 'Calificación guardada', timer:1200, showConfirmButton: false });
+ // recargar lista
+ // Store a flag in localStorage to notify any open alumno detail pages
+ try { localStorage.setItem('entregableCalificado', Date.now().toString()); } catch (e) { }
+ prepararAlumnosYActividades();
+ } catch (err) {
+ console.error(err);
+ Swal.fire('Error', err.message || 'No se pudo guardar', 'error');
+ }
+ });
+ });

@@ -270,6 +270,8 @@ namespace ControlActividades.Models
         public DateTime FechaEntrega { get; set; }
         public string Respuesta { get; set; }
         public int? Calificacion { get; set; }
+        // Añadido: comentario del docente para que el alumno lo vea
+        public string Comentario { get; set; }
     }
 
 
@@ -611,6 +613,8 @@ namespace ControlActividades.Models
         public string Contenido { get; set; }
 
         public int Calificacion { get; set; }
+        // Añadido: comentario del docente para la vista del alumno
+        public string Comentario { get; set; }
 
         public int EstadoEntregaId { get; set; }
     }
@@ -620,13 +624,6 @@ namespace ControlActividades.Models
         public int AlumnoId { get; set; }
         public int? GrupoId { get; set; }
         public int? MateriaId { get; set; }
-    }
-
-    public class AlumnoEliminarGrupoRequest
-    {
-        public int GrupoId { get; set; }
-        public int AlumnoMateriaId { get; set; }
-        public int AlumnoId { get; set; }
     }
     public class AvisoDto
     {
@@ -667,5 +664,11 @@ namespace ControlActividades.Models
     }
 
 
+
+    public class AlumnoEliminarGrupoRequest
+    {
+        public int GrupoId { get; set; }
+        public int AlumnoId { get; set; }
+    }
 
 }

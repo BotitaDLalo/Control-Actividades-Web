@@ -134,7 +134,10 @@ async function verificarEnvio() {
             if (isPending) {
                 calContainer.innerHTML = '<div class="alert alert-info" role="alert" style="display:inline-block;"><strong>Calificación:</strong> <span class="ms-2">En espera de calificar</span></div>';
             } else {
-                calContainer.innerHTML = '<div class="badge bg-success" style="font-size:1rem;padding:0.6rem0.9rem;"><strong>Calificación: </strong> <span class="ms-2">' + String(cal) + '</span></div>';
+                // mostrar calificación y comentario del docente (si existe)
+                var comentario = (envio.Comentario && String(envio.Comentario).trim().length >0) ? envio.Comentario : 'El docente no ha agregado comentarios.';
+                calContainer.innerHTML = '<div class="badge bg-success" style="font-size:1rem;padding:0.6rem0.9rem;"><strong>Calificación: </strong> <span class="ms-2">' + String(cal) + '</span></div>' +
+                '<div id="comentarioDocente" style="margin-top:8px;color:#444;">' + '<strong>Comentario del docente:</strong> <div style="margin-top:4px;color:#666;">' + escapeHtml(comentario) + '</div>' + '</div>';
             }
         }
     } catch (e) { console.error(e); }
@@ -171,4 +174,13 @@ async function enviarEntrega() {
         Swal.fire('Enviado', (data && data.mensaje) ? data.mensaje : 'Entrega registrada', 'success');
         verificarEnvio();
     } catch (e) { Swal.fire('Error', e.message || 'No se pudo enviar', 'error'); }
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }

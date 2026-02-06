@@ -617,6 +617,8 @@ namespace ControlActividades.Controllers
 
                 entregable.Calificacion = calificacion;
                 entregable.FechaCalificado = DateTime.Now;
+                // Guardar comentario si viene (permitir nulos/strings vacíos)
+                entregable.Comentario = asignarCalificacion.Comentario ?? entregable.Comentario;
 
                 Db.Entry(entregable).State = EntityState.Modified;
                 await Db.SaveChangesAsync();
