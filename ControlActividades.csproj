@@ -548,6 +548,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Administrador\administrador.css" />
+    <Content Include="Content\AlumnoActividadDetalle.css" />
+    <Content Include="Content\Alumno\ActividadDetalle.css" />
     <Content Include="Content\Alumno\avisosSeccion.css" />
     <Content Include="Content\Archivo_Papelera\Calendario.css" />
     <Content Include="Content\Alumno\Cards.css" />

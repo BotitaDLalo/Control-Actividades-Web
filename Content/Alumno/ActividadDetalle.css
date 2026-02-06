@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+/* Styles for Alumno ActividadDetalle view (placed in Content/Alumno/ActividadDetalle.css) */
+:root{
+ --primary:#2196F3;
+ --primary-dark:#1976D2;
+ --muted:#6c757d;
+ --card-bg:#ffffff;
+ --surface:#f8fafc;
+ --success:#2e7d32; /* green */
+ --warning:#f5a623; /* orange/yellow */
+ --danger:#d32f2f; /* red */
+ --text:#222;
+ --soft-border: rgba(33,37,41,0.06);
+}
+
+/* Make the container use full available area below header. */
+.alumno-actividad-container{
+ /* occupy almost full width of the main content area */
+ width: calc(100% -48px);
+ max-width: none;
+ height: calc(100vh -80px); /* adjust80px if header differs */
+ margin:8px24px;
+ padding:12px20px;
+ font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+ display:flex;
+ align-items:stretch;
+}
+
+.activity-card{
+ background: var(--card-bg);
+ border-radius:12px;
+ box-shadow:06px18px rgba(33,37,41,0.06);
+ overflow:hidden;
+ border:1px solid rgba(33,37,41,0.04);
+ display:flex;
+ flex-direction:column;
+ height:100%;
+ width:100%;
+}
+
+.activity-header{
+ background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+ color: white;
+ padding:10px14px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:12px;
+ flex:00 auto;
+}
+
+/* Hide the duplicate grade elements in the header: remove progress percent and small badge
+ The authoritative grade remains in the feedback section below (green). */
+.activity-header .progress-wrap,
+.activity-header .grade-badge {
+ display: none !important;
+}
+
+.activity-body{
+ padding:12px;
+ /* aim to avoid scroll by fitting content into grid areas */
+ overflow:hidden;
+ flex:11 auto;
+}
+
+/* Grid: main + side. We'll control vertical distribution so everything fits. */
+.activity-grid{
+ display:grid;
+ grid-template-columns:1fr320px;
+ gap:18px;
+ align-items:start;
+ height:100%;
+}
+
+/* Main column divides available vertical space between details and submission */
+.activity-main{
+ display:grid;
+ grid-template-rows:1fr0.6fr; /* details larger, submission smaller */
+ gap:12px;
+ height:100%;
+}
+
+.activity-side{
+ display:flex;
+ flex-direction:column;
+ gap:12px;
+ height:100%;
+}
+
+/* Compact sections to reduce vertical space */
+.details-section, .submission-section, .feedback-section{
+ background: #fff;
+ border-radius:8px;
+ padding:10px;
+ border:1px solid rgba(33,37,41,0.03);
+ margin:0;
+ box-sizing:border-box;
+}
+
+/* Make the details area scrollable internally if content is too big but prefer fitting */
+.details-section{ overflow:auto; }
+.submission-section{ overflow:auto; }
+.feedback-section{ overflow:auto; }
+
+.details-section h3, .submission-section h3, .feedback-section h3{
+ margin:006px0;
+ color:var(--primary-dark);
+ font-size:0.98rem;
+}
+
+.activity-description{
+ color:var(--text);
+ font-size:0.95rem;
+ margin:0;
+ white-space:pre-wrap;
+}
+
+.estado-entrega{ 
+ background: var(--surface);
+ border-radius:8px;
+ padding:8px;
+ border:1px solid rgba(33,37,41,0.04);
+ margin-top:8px;
+}
+
+.entrega-form { padding:8px6px; }
+.entrega-form label{font-weight:600; font-size:0.92rem;}
+
+#respuesta{ resize:vertical; min-height:64px; max-height:120px; }
+
+.compact-input input.form-control, .compact-input textarea.form-control{ padding:8px; font-size:0.95rem; }
+
+.compact-actions{ gap:8px; }
+
+/* Side summary */
+.side-summary{ background:#fff; border-radius:8px; padding:10px; border:1px solid rgba(33,37,41,0.03); }
+.side-summary .badge-calificacion{ padding:8px10px; border-radius:8px; font-size:0.95rem; }
+
+/* Progress circle */
+.progress-circle{ width:56px; height:56px; border-radius:50%; font-size:0.9rem; }
+.grade-value{ font-size:0.9rem; }
+
+/* Tighter badge/comment styles */
+.badge-calificacion{ display:inline-flex; align-items:center; gap:8px; padding:8px10px; border-radius:10px; background: linear-gradient(90deg,#e6f4ff,#f0fbff); color:var(--primary-dark); font-weight:700; }
+
+#comentarioDocente, .comentario-docente{ background:#fbfdff; border:1px solid rgba(33,37,41,0.03); padding:10px; border-radius:8px; color:var(--text); font-size:0.95rem }
+
+/* Reduce margins on small screens and stack columns */
+@media (max-width:1000px){
+ .activity-grid{ grid-template-columns:1fr; grid-auto-rows: auto; }
+ .alumno-actividad-container{ width: calc(100% -24px); height: auto; }
+ .activity-body{ overflow:auto; }
+}
+
+/* Accessibility focus outlines */
+button:focus, a:focus, input:focus, textarea:focus{ outline:3px solid rgba(33,150,243,0.18); outline-offset:2px; }
+
+/* Utility */
+.text-muted-small{ color:var(--muted); font-size:0.9rem; }

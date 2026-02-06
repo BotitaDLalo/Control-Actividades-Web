@@ -1,39 +1,108 @@
 @{
     Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
     ViewBag.Title = "ActividadDetalle";
-    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId : 0;
-    int actividadId = Request.QueryString["actividadId"] != null ? int.Parse(Request.QueryString["actividadId"]) : 0;
+    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId :0;
+    int actividadId = Request.QueryString["actividadId"] != null ? int.Parse(Request.QueryString["actividadId"]) :0;
 }
 
-<div class="container">
-    <h2 id="tituloActividad">Cargando...</h2>
-    <p id="descripcionActividad"></p>
-    <p>Fecha límite: <span id="fechaLimite"></span></p>
+<link href="~/Content/Alumno/ActividadDetalle.css" rel="stylesheet" />
 
-    <div id="estadoEntrega"></div>
+<div class="alumno-actividad-container">
+ <div class="activity-card" role="region" aria-labelledby="tituloActividad">
+ <div class="activity-header">
+ <div class="header-left">
+ <!-- Accessible icon for the activity: decorative via CSS -->
+ <span class="activity-icon" role="img" aria-label="Ícono de tarea"></span>
+ <div>
+ <h2 class="activity-title" id="tituloActividad">Cargando...</h2>
+ <div class="activity-meta" id="actividadMeta">&nbsp;</div>
+ </div>
+ </div>
 
-    <div id="entregaForm">
-        <label for="respuesta">Respuesta:</label>
-        <textarea id="respuesta" class="form-control" rows="6"></textarea>
-        <div class="mt-2">
-            <label for="respuestaLink">Enlace (opcional):</label>
-            <input type="url" id="respuestaLink" class="form-control" placeholder="https://ejemplo.com/album" />
-            <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
-        </div>
-        <div class="mt-2">
-            <label for="fileEntrega">Adjuntar archivo / foto (opcional)</label>
-            <input type="file" id="fileEntrega" class="form-control" multiple />
-        </div>
-        <button class="btn btn-primary mt-2" id="btnEnviar">Enviar entrega</button>
-    </div>
+ <div class="header-right">
+ <!-- Intentionally empty: header no longer shows duplicate grade/progress -->
+ </div>
+ </div>
 
-    <div id="calificacionAlumno" style="margin-top:20px;"></div>
+ <div class="activity-body">
+ <div class="activity-grid">
+ <div class="activity-main">
+ <!-- Detalles y Entrega (lado principal) -->
+ <section class="details-section" aria-labelledby="detallesTitle">
+ <h3 id="detallesTitle">Detalles de la Tarea</h3>
+ <div class="activity-description" id="descripcionActividad"></div>
+ <div id="estadoEntrega" class="estado-entrega" style="display:block" aria-live="polite"></div>
+ </section>
+
+ <section class="submission-section" aria-labelledby="tuEntregaTitle">
+ <div id="entregaForm" class="entrega-form mt-3">
+ <div class="mb-2 compact-input">
+ <label for="respuesta">Respuesta</label>
+ <textarea id="respuesta" class="form-control" rows="4" placeholder="Escribe tu respuesta o pega un enlace"></textarea>
+ </div>
+ <div class="mb-2 compact-input">
+ <label for="respuestaLink">Enlace (opcional)</label>
+ <input type="url" id="respuestaLink" class="form-control" placeholder="https://ejemplo.com/archivo" />
+ <small class="text-muted-small">Puedes pegar un enlace a Google Drive, Photos, Imgur u otro servicio.</small>
+ </div>
+ <div class="mb-2 compact-input">
+ <label for="fileEntrega">Adjuntar archivo / foto (opcional)</label>
+ <input type="file" id="fileEntrega" class="form-control" multiple />
+ </div>
+ <div class="d-flex justify-content-between align-items-center compact-actions">
+ <div>
+ <small class="text-muted-small">Recuerda revisar la descripción y las instrucciones antes de enviar.</small>
+ </div>
+ <button class="btn btn-primary custom-send" id="btnEnviar">Enviar entrega</button>
+ </div>
+ </div>
+ </section>
+ </div>
+
+ <aside class="activity-side" aria-labelledby="feedbackTitle">
+ <!-- Feedback y calificación en columna lateral -->
+ <section class="feedback-section" aria-labelledby="feedbackTitle">
+ <div id="calificacionAlumno" class="calificacion-alumno" style="margin-top:8px;" aria-live="polite"></div>
+ <div id="comentarioDocente" class="comentario-docente" aria-live="polite"></div>
+ </div>
+ </aside>
+ </div>
+ </div>
+ </div>
 </div>
 
 @section Scripts {
-    <script>
-        var alumnoIdGlobal = @alumnoId;
-        var actividadIdGlobal = @actividadId;
-    </script>
-    <script src="~/Scripts/Alumno/actividadDetalle.js"></script>
+ <script>
+ var alumnoIdGlobal = @alumnoId;
+ var actividadIdGlobal = @actividadId;
+
+ // Adjust container to use all space below header and match main content width
+ function adjustActivityLayout() {
+ try {
+ var container = document.querySelector('.alumno-actividad-container');
+ if (!container) return;
+ var header = document.querySelector('.layout-header');
+ var main = document.querySelector('main.layout-content') || document.querySelector('main');
+ var headerH = header ? header.getBoundingClientRect().height :0;
+ var topOffset =12; // small gap under header
+ var availH = window.innerHeight - headerH - topOffset;
+ if (availH <300) availH =300;
+ container.style.height = availH + 'px';
+
+ // set width to main content width if available
+ if (main) {
+ var mainRect = main.getBoundingClientRect();
+ var sidePadding =48; // leave some spacing
+ var w = Math.max(mainRect.width - sidePadding,640);
+ container.style.width = w + 'px';
+ } else {
+ container.style.width = 'calc(100% -48px)';
+ }
+ } catch (e) { console.warn(e); }
+ }
+
+ window.addEventListener('resize', adjustActivityLayout);
+ document.addEventListener('DOMContentLoaded', function () { adjustActivityLayout(); setTimeout(adjustActivityLayout,120); });
+ </script>
+ <script src="~/Scripts/Alumno/actividadDetalle.js"></script>
 }

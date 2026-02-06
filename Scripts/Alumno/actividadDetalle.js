@@ -126,18 +126,65 @@ async function verificarEnvio() {
             var calContainer = document.getElementById('calificacionAlumno');
             if (!calContainer) return;
 
+            // Elements for progress and badge
+            var progressEl = document.getElementById('progressCircle');
+            var gradeValueEl = document.getElementById('gradeValue');
+            var gradeBadgeEl = document.getElementById('gradeBadge');
+            var comentarioEl = document.getElementById('comentarioDocente');
+
             // Considerar que la API puede devolver0 como valor por defecto cuando no existe calificación.
             // Tratamos0 como "pendiente" para mejorar la UX, a menos que quieras que0 sea una nota válida.
             var cal = envio.Calificacion;
             var isPending = (cal === null || typeof cal === 'undefined' || Number(cal) ===0);
 
             if (isPending) {
+                // Reset progress and badge
+                if (gradeValueEl) gradeValueEl.innerText = '--%';
+                if (progressEl) progressEl.style.background = 'conic-gradient(#e0e0e00deg360deg)';
+                if (gradeBadgeEl) {
+                    gradeBadgeEl.className = 'grade-badge';
+                    gradeBadgeEl.innerHTML = '<div class="badge" style="background:#6c757d">En espera</div>';
+                }
                 calContainer.innerHTML = '<div class="alert alert-info" role="alert" style="display:inline-block;"><strong>Calificación:</strong> <span class="ms-2">En espera de calificar</span></div>';
+                if (comentarioEl) comentarioEl.innerHTML = '<strong>Comentario del docente:</strong><div style="margin-top:4px;color:#666;">Aún no hay comentarios.</div>';
             } else {
-                // mostrar calificación y comentario del docente (si existe)
-                var comentario = (envio.Comentario && String(envio.Comentario).trim().length >0) ? envio.Comentario : 'El docente no ha agregado comentarios.';
-                calContainer.innerHTML = '<div class="badge bg-success" style="font-size:1rem;padding:0.6rem0.9rem;"><strong>Calificación: </strong> <span class="ms-2">' + String(cal) + '</span></div>' +
-                '<div id="comentarioDocente" style="margin-top:8px;color:#444;">' + '<strong>Comentario del docente:</strong> <div style="margin-top:4px;color:#666;">' + escapeHtml(comentario) + '</div>' + '</div>';
+                var percent = Math.round(Number(cal));
+                if (isNaN(percent)) percent =0;
+                if (percent <0) percent =0;
+                if (percent >100) percent =100;
+
+                // choose color state
+                var color = '#2e7d32'; // green
+                var stateClass = 'grade-good';
+                if (percent <60) { color = '#d32f2f'; stateClass = 'grade-bad'; }
+                else if (percent <81) { color = '#f5a623'; stateClass = 'grade-medium'; }
+
+                // Update progress circle visually using conic-gradient
+                if (gradeValueEl) gradeValueEl.innerText = percent + '%';
+                if (progressEl) {
+                    var angle = Math.round((percent /100) *360);
+                    progressEl.style.background = 'conic-gradient(' + color + '0deg ' + angle + 'deg, #e9eef2 ' + angle + 'deg360deg)';
+                    progressEl.setAttribute('aria-valuenow', String(percent));
+                    progressEl.setAttribute('aria-valuemin', '0');
+                    progressEl.setAttribute('aria-valuemax', '100');
+                }
+
+                // Badge with color and numeric percent (emojis removed)
+                if (gradeBadgeEl) {
+                    gradeBadgeEl.className = 'grade-badge ' + stateClass;
+                    gradeBadgeEl.innerHTML = '<div class="badge" role="status" aria-label="Calificación ' + percent + '"><span>' + percent + '</span></div>';
+                }
+
+                // render main calificacion container with emphasis
+                calContainer.innerHTML = '<div style="display:flex;gap:12px;align-items:center;">' +
+                '<div style="font-size:1.15rem;font-weight:700;color:' + color + '">Calificación: <span style="margin-left:8px;">' + percent + '</span></div>' +
+                '</div>';
+
+                // Comentario del docente (si existe)
+                var comentario = (envio.Comentario && String(envio.Comentario).trim().length >0) ? envio.Comentario : null;
+                if (comentarioEl) {
+                    comentarioEl.innerHTML = '<strong>Comentario del docente:</strong> <div style="margin-top:6px;color:#444;">' + escapeHtml(comentario || 'El docente no ha agregado comentarios.') + '</div>';
+                }
             }
         }
     } catch (e) { console.error(e); }
@@ -177,10 +224,11 @@ async function enviarEntrega() {
 }
 
 function escapeHtml(unsafe) {
-    return unsafe
+    if (!unsafe) return '';
+    return String(unsafe)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
+        .replace(/\"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
