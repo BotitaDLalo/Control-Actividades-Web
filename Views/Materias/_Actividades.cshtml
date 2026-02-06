@@ -11,11 +11,9 @@
     
     @if (User.IsInRole(Rol.DOCENTE))
     {
-        <div class="dropdown-content">
-            <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearActividadModal">
-                📋Crear Tarea
-            </button>
-        </div>
+        <button class="misCursos-dropdown-item" data-bs-toggle="modal" data-bs-target="#crearActividadModal">
+            📋Crear Tarea
+        </button>   
     }
 
     <!-- Filter control will be injected dynamically by scriptsActividades.js -->

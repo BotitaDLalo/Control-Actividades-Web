@@ -29,6 +29,9 @@ function cambiarPanel(btn) {
             if (panelKey === "Actividades") {
                 cargarActividadesDeMateria();
             }
+            if (panelKey === "Alumnos") {
+                cargarAlumnosAsignados();
+            }
         }
     );
 }
