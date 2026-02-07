@@ -554,57 +554,35 @@ async function eliminarActividad(id) {
     });
 
     if (!result.isConfirmed) {
-        Swal.fire({
-            title: 'Cancelado',
-            text: 'La actividad no fue eliminada.',
-            icon: 'info',
-            timer: 1500,
-            showConfirmButton: false
-        });
         return;
     }
 
     Swal.fire({
         title: 'Eliminando...',
-        text: `Eliminando actividad ${id}`,
+        text: `Eliminando actividad`,
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
         }
     });
-
-    const endpoints = [
-        `/Actividades/EliminarActividad?id=${id}`,
-    //        `/api/Actividades/EliminarActividad?id=${id}`,
-    //      `/api/Actividades/EliminarActividad/${id}`,
-    //    `/Materias/EliminarActividad?id=${id}`,
-    //  `/Materias/EliminarActividad/${id}`
-    ];
-
+    
     try {
-        const resp = await tryEndpoints(endpoints,
-            {
-                method: 'DELETE', headers:
-                {
-                    'Content-Type': 'application/json'
-                }
-            });
-        const text = await resp.text();
-        let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
-        Swal.close();
-        Swal.fire('Eliminado!',
-            data &&
-                data.mensaje ?
-                data.mensaje : `La actividad ${id} fue eliminada.`, 'success'
-        );
+        const resp = await fetch(`/Actividades/EliminarActividad?id=${id}`, {
+            method: 'DELETE'
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            throw new Error(data?.mensaje || "Error al eliminar");
+        }
+ 
+        Swal.fire('Eliminado!', data.mensaje, 'success');
         cargarActividadesDeMateria();
+
     } catch (error) {
         console.error('Error al eliminar la actividad:', error);
-        Swal.close();
-        Swal.fire('Error',
-            'No se pudo eliminar la actividad.',
-            'error'
-        );
+        Swal.fire('Error', error.message, 'error');
     }
 }
 

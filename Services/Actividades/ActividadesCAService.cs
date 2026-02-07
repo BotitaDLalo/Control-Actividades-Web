@@ -154,29 +154,22 @@ namespace ControlActividades.Services.Actividades
         }
         public async Task EliminarActividadAsync(int id)
         {
-            try
+            
+            var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
+            if (activity == null)
             {
-                var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
-                if (activity == null)
-                {
-                    throw new KeyNotFoundException("Actividad no encontrada.");
-                }
-
-                //var alumnoActividad = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == activity.ActividadId);
-                var existenEntregas = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == activity.ActividadId).AnyAsync();
-                if (existenEntregas)
-                {
-                    throw new InvalidOperationException("No se puede eliminar la actividad porque ya tiene entregas de alumnos.");
-                }
-
-                Db.tbActividades.Remove(activity);
-                await Db.SaveChangesAsync();
-
+                throw new KeyNotFoundException("Actividad no encontrada.");
             }
-            catch (Exception ex)
+
+            //var alumnoActividad = await Db.tbAlumnosActividades.FirstOrDefaultAsync(a => a.ActividadId == activity.ActividadId);
+            var existenEntregas = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == activity.ActividadId).AnyAsync();
+            if (existenEntregas)
             {
-                throw new Exception("Error al eliminar la actividad: " + ex.Message);
+                throw new InvalidOperationException("No se puede eliminar la actividad porque ya tiene entregas de alumnos.");
             }
+
+            Db.tbActividades.Remove(activity);
+            await Db.SaveChangesAsync();
 
         }
 
