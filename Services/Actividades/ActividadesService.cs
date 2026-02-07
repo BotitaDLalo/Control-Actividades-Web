@@ -93,15 +93,15 @@ namespace ControlActividades.Services
             return await ActividadesCAService.ActualizarActividad(id, actividad);
         }
 
-        public async Task EliminarActividadAsync(int id)
+        public async Task EliminarActividad(int id)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                await ActividadesSTService.EliminarActividadAsync(id);
+                await ActividadesSTService.EliminarActividad(id);
             }
-            await ActividadesCAService.EliminarActividadAsync(id);
+            await ActividadesCAService.EliminarActividad(id);
         }       
     }
 

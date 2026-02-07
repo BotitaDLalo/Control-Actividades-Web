@@ -152,7 +152,7 @@ namespace ControlActividades.Services.Actividades
                 throw new Exception("Error al actualizar la actividad: " + ex.Message);
             }
         }
-        public async Task EliminarActividadAsync(int id)
+        public async Task EliminarActividad(int id)
         {
             
             var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
