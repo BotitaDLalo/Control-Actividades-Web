@@ -1,11 +1,12 @@
 var div = document.getElementById("docente-datos");
-var docenteIdGlobal = 0;
+var docenteIdGlobal = div.dataset.docenteid;
+/*
 if (div && div.dataset && div.dataset.docenteid) {
     docenteIdGlobal = div.dataset.docenteid;
 } else if (localStorage.getItem('docenteId')) {
     docenteIdGlobal = localStorage.getItem('docenteId');
 }
-
+*/
 function abrirImportarAlumnos(grupoId) {
     // reutiliza modal/handler de GrupoActionsModal: establecer currentGrupoId y disparar click en input
     window.currentGrupoId = grupoId;
@@ -32,7 +33,12 @@ function abrirImportarAlumnos(grupoId) {
                     return;
                 }
                 Swal.fire('Éxito', 'Importación completada', 'success');
-            } catch (err) { console.error(err); Swal.fire('Error', 'No se pudo subir archivo', 'error'); }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error',
+                    'No se pudo subir archivo',
+                    'error');
+            }
         });
     }
     // abrir selector
@@ -66,19 +72,24 @@ async function guardarGrupo() {
         const nombreMateria = materiaDiv.querySelector(".nombreMateria").value.trim();
         const descripcionMateria = materiaDiv.querySelector(".descripcionMateria").value.trim();
         if (nombreMateria) {
-            materiasNuevas.push({ NombreMateria: nombreMateria, Descripcion: descripcionMateria });
+            materiasNuevas.push(
+                {
+                    NombreMateria: nombreMateria,
+                    Descripcion: descripcionMateria
+                });
         }
     });
 
     // Crear el grupo en la base de datos
     const response = await fetch('/Grupos/CrearGrupo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
             NombreGrupo: nombre,
             Descripcion: descripcion,
             CodigoColor: color,
-            DocenteId: docenteIdGlobal
         })
     });
     
@@ -123,7 +134,14 @@ async function guardarGrupo() {
         if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
         if (typeof cargarMaterias === 'function') cargarMaterias();
         // Auto-open group actions modal for the newly created group
-        try { if (grupoId) { abrirAccionesGrupo(grupoId); } } catch (e) { console.warn('No se pudo abrir modal de grupo:', e); }
+        try {
+            if (grupoId)
+            {
+                abrirAccionesGrupo(grupoId);
+            }
+        } catch (e) {
+            console.warn('No se pudo abrir modal de grupo:', e);
+        }
     } else {
         Swal.fire({
             position: "top-end",
