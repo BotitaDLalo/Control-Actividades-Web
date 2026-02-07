@@ -692,8 +692,8 @@
     <Content Include="Scripts\dataTables.dataTables.js" />
     <Content Include="Scripts\dataTables.dataTables.min.js" />
     <Content Include="Scripts\dev\measureCardSize.js" />
-    <Content Include="Scripts\Docente\Agenda.js" />
-    <Content Include="Scripts\Docente\AgendaFullCalendar.js" />
+    <Content Include="Scripts\Papelera_Scripts\Agenda.js" />
+    <Content Include="Scripts\Papelera_Scripts\AgendaFullCalendar.js" />
     <Content Include="Scripts\Docente\Confirmacion.js" />
     <Content Include="Scripts\Docente\footer.js" />
     <Content Include="Scripts\Docente\Grupos\ActividadIA.js" />
@@ -714,7 +714,7 @@
     <Content Include="Scripts\Docente\Grupos\VistaMateriasD.js" />
     <Content Include="Scripts\Docente\IA.js" />
     <Content Include="Scripts\Docente\IAChat.js" />
-    <Content Include="Scripts\Docente\layout.js" />
+    <Content Include="Scripts\Papelera_Scripts\layout.js" />
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
