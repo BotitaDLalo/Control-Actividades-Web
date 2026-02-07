@@ -183,6 +183,7 @@ namespace ControlActividades.Models
         public string NombreMateria { get; set; }
 
         public string Descripcion { get; set; }
+        public string Color { get; set; }
     }
 
     public class Indices

@@ -30,8 +30,7 @@ async function guardarMateriaSinGrupo() {
         body: JSON.stringify({
             NombreMateria: nombre, // Enviamos el nombre de la materia
             Descripcion: descripcion, // Enviamos la descripción de la materia
-            CodigoColor: color, // Enviamos el color de la materia
-            DocenteId: docenteIdGlobal // Enviamos el docenteId obtenido previamente
+            CodigoColor: color // Enviamos el color de la materia
         })
     });
     
@@ -44,7 +43,7 @@ async function guardarMateriaSinGrupo() {
             timer: 2000
         });
         ;// Mostramos una alerta de éxito
-        const form = document.getElementById("materiasForm");
+        const form = document.getElementById("materiasSGForm");
         if (form) form.reset(); // Limpiamos el formulario
         if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo(); // Recargamos la lista de materias sin grupo
     } else {

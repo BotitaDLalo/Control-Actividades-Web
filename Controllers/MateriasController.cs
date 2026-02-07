@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using NPOI.SS.Formula.Eval;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
@@ -217,24 +218,32 @@ namespace ControlMaterias.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> CrearMateria(tbMaterias materia)
+        public async Task<ActionResult> CrearMateria(MateriasP materia)
         {
             if (!ModelState.IsValid)
             {
-                return Json(new { error = "Datos de materia inválidos." }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = "Datos de materia inválidos." });
             }
-
+            
             var usuarioId = Fg.ObtenerCAUsuarioId(User);
+            var codigoAcceso = ObtenerClaveMateria();
 
-            materia.DocenteId = usuarioId;
-            materia.CodigoAcceso = ObtenerClaveMateria();
-            Db.tbMaterias.Add(materia);
+            var materiadb = new tbMaterias
+            {
+                NombreMateria = materia.NombreMateria,
+                Descripcion = materia.Descripcion,
+                CodigoColor = materia.Color,
+                CodigoAcceso = codigoAcceso,
+                DocenteId = usuarioId,
+            };
+
+            Db.tbMaterias.Add(materiadb);
             await Db.SaveChangesAsync();
 
             return Json(new
             {
                 mensaje = "Materia creada con éxito.",
-                materiaId = materia.MateriaId
+                materiaId = materiadb.MateriaId
             }, JsonRequestBehavior.AllowGet);
         }
 
