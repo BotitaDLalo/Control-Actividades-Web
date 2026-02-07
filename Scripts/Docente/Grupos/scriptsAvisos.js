@@ -253,24 +253,31 @@ function aplicarFiltrosYRender() {
     }
 
     const term = document.getElementById('buscarAvisoTitulo')?.value.toLowerCase() || '';
-    const desde = document.getElementById('fechaDesdeAviso')?.value;
-    const hasta = document.getElementById('fechaHastaAviso')?.value;
+    const desdeValue = document.getElementById('fechaDesdeAviso')?.value;
+    const hastaValue = document.getElementById('fechaHastaAviso')?.value;
+
+    const desde = desdeValue ? new Date(desdeValue + "T00:00:00") : null;
+    const hasta = hastaValue ? new Date(hastaValue + "T23:59:59") : null;
 
     const filtrados = _avisosCache.filter(a => {
 
+        //Filtro por título
         if (term && !(a.Titulo || '').toLowerCase().includes(term))
             return false;
 
-        if (desde) {
-            const f = new Date(a.FechaCreacion);
-            if (f < new Date(desde)) return false;
-        }
+        // Fecha
+        if (desde || hasta) {
 
-        if (hasta) {
-            const f = new Date(a.FechaCreacion);
-            const h = new Date(hasta);
-            h.setHours(23, 59, 59, 999);
-            if (f > h) return false;
+            if (!a.FechaCreacionIso) return false;
+
+            const fechaAviso = new Date(a.FechaCreacionIso);
+            if (isNaN(fechaAviso)) return false;
+
+            if (desde && fechaAviso < desde)
+                return false;
+
+            if (hasta && fechaAviso > hasta)
+                return false;
         }
 
         return true;
