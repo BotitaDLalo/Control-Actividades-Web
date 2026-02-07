@@ -43,6 +43,8 @@ function escapeHtml(s)
                                             });
 }
 
+let _avisosCache = []; // cache local de avisos para filtrar en cliente
+
 //Funcion para publicar un aviso
 async function publicarAviso() {
     // Obtener valores de los inputs
@@ -127,7 +129,6 @@ async function publicarAviso() {
 }
 
 
-
 // Funcion que carga los avisos a la vista.
 async function cargarAvisosDeMateria() {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
@@ -146,39 +147,17 @@ async function cargarAvisosDeMateria() {
             avisos = payload.avisos;
         } else if (payload && Array.isArray(payload.resultado)) {
             avisos = payload.resultado;
-        } else {
-            // intentar extraer la primera propiedad que sea un array
-            const arr = payload && typeof payload === 'object' ? Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v)) : null;
-            if (arr) avisos = arr;
-        }
+        } 
 
-        // aplicar filtro cliente si hay controles
-        try {
-            var nombre = (document.getElementById('filtroAvisoNombre') || {}).value || '';
-            var desde = (document.getElementById('filtroAvisoDesde') || {}).value || '';
-            var hasta = (document.getElementById('filtroAvisoHasta') || {}).value || '';
-            if (nombre || desde || hasta) {
-                avisos = avisos.filter(function(a){
-                    var ok = true;
-                    if (nombre) ok = ok && (a.Titulo || '').toLowerCase().indexOf(nombre.toLowerCase()) !== -1;
-                    if (desde) {
-                        var f = new Date(a.FechaCreacion);
-                        var d = new Date(desde);
-                        if (!isNaN(f)) ok = ok && f >= d;
-                    }
-                    if (hasta) {
-                        var f2 = new Date(a.FechaCreacion);
-                        var h = new Date(hasta);
-                        // incluir todo el día
-                        h.setHours(23,59,59,999);
-                        if (!isNaN(f2)) ok = ok && f2 <= h;
-                    }
-                    return ok;
-                });
-            }
-        } catch(e) { console.warn(e); }
+        // Guardar en cache
+        _avisosCache = avisos || [];
 
-        renderizarAvisos(avisos);
+        // Renderizar todo inicialmente
+        renderizarAvisos(_avisosCache);
+
+        // Activar filtros
+        inicializarFiltrosAvisos();
+
     } catch (error) {
         listaAvisos.innerHTML = `<p class="aviso-error">${error.message}</p>`;
     }
@@ -244,6 +223,63 @@ function renderizarAvisos(avisos) {
         listaAvisos.appendChild(avisoItem);
     });
 }
+
+
+function inicializarFiltrosAvisos() {
+    if (window._filtrosAvisosInicializados) return;
+    window._filtrosAvisosInicializados = true;
+
+    const inputTitulo = document.getElementById('buscarAvisoTitulo');
+    const fechaDesde = document.getElementById('fechaDesdeAviso');
+    const fechaHasta = document.getElementById('fechaHastaAviso');
+    const btnLimpiar = document.getElementById('btnLimpiarFiltrosAvisos');
+
+    if (inputTitulo) inputTitulo.addEventListener('input', aplicarFiltrosYRender);
+    if (fechaDesde) fechaDesde.addEventListener('change', aplicarFiltrosYRender);
+    if (fechaHasta) fechaHasta.addEventListener('change', aplicarFiltrosYRender);
+
+    if (btnLimpiar) btnLimpiar.addEventListener('click', function () {
+        if (inputTitulo) inputTitulo.value = '';
+        if (fechaDesde) fechaDesde.value = '';
+        if (fechaHasta) fechaHasta.value = '';
+        aplicarFiltrosYRender();
+    });
+}
+
+function aplicarFiltrosYRender() {
+    if (!_avisosCache.length) {
+        renderizarAvisos([]);
+        return;
+    }
+
+    const term = document.getElementById('buscarAvisoTitulo')?.value.toLowerCase() || '';
+    const desde = document.getElementById('fechaDesdeAviso')?.value;
+    const hasta = document.getElementById('fechaHastaAviso')?.value;
+
+    const filtrados = _avisosCache.filter(a => {
+
+        if (term && !(a.Titulo || '').toLowerCase().includes(term))
+            return false;
+
+        if (desde) {
+            const f = new Date(a.FechaCreacion);
+            if (f < new Date(desde)) return false;
+        }
+
+        if (hasta) {
+            const f = new Date(a.FechaCreacion);
+            const h = new Date(hasta);
+            h.setHours(23, 59, 59, 999);
+            if (f > h) return false;
+        }
+
+        return true;
+    });
+
+    renderizarAvisos(filtrados);
+}
+
+
 
 async function eliminarAviso(avisoId) {
     // Mostrar una confirmación antes de proceder con la eliminación
