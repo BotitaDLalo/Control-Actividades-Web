@@ -1,4 +1,11 @@
-﻿const PanelMateria = Object.freeze({
+﻿document.addEventListener("DOMContentLoaded", function () {
+    const btnActivo = document.querySelector(".tab-button.active");
+    if (btnActivo) {
+        cambiarPanel(btnActivo);
+    }
+});
+
+const PanelMateria = Object.freeze({
     Avisos: "AvisosPartialView",
     Actividades: "ActividadesPartialView",
     Entregables: "EntregablesPartialView",
