@@ -1588,32 +1588,16 @@ namespace ControlActividades.Controllers
 
                 if (alumnoActividadEliminar != null)
                 {
-                    //if (alumnoActividadEliminar.EntregablesAlumno != null)
-                    //{
-                    //    Db.tbEntregablesAlumno.Remove(alumnoActividadEliminar.EntregablesAlumno);
-                    //}
-
-                    //Db.tbAlumnosActividades.Remove(alumnoActividadEliminar);
-                    //await Db.SaveChangesAsync();
-
-                    //var datosAlumnoActividad = await Db.tbAlumnosActividades.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).FirstOrDefaultAsync();
-
-
-                    //var alumnoActividadId = datosAlumnoActividad?.AlumnoActividadId ?? 0;
-
-                    //var datosEntregable = await Db.tbEntregablesAlumno.Where(a => a.AlumnoActividadId == alumnoActividadId).FirstOrDefaultAsync();
-
-                    //if (datosAlumnoActividad != null && datosEntregable != null)
-                    //{
-                    //    return Ok(new
-                    //    {
-                    //        AlumnoActividadId = alumnoActividadId,
-                    //        Respuesta = datosEntregable?.Respuesta ?? "",
-                    //        Status = datosAlumnoActividad.EstatusEntrega
-                    //    });
-                    //}
-
                     var entregables = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == alumnoActividadEliminar.EntregaActividadAlumnoId).ToList();
+                    
+                    foreach (var entrega in entregables)
+                    {
+                        if (entrega.Calificacion.HasValue)
+                        {
+                            return BadRequest("No puedes cancelar esta entrega pues ya esta calificada");
+                        }
+                    }
+                    
                     foreach (var entrega in entregables)
                     {
                         Db.tbEntregables.Remove(entrega);
