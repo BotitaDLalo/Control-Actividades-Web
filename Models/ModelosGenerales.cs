@@ -186,6 +186,19 @@ namespace ControlActividades.Models
         public string Color { get; set; }
     }
 
+    public class CrearMateriaConGrupoRequest
+    {
+        [Required]
+        public string NombreMateria { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string Color { get; set; }
+
+        [Required]
+        public int GrupoId { get; set; }
+    }
+
     public class Indices
     {
         public int GrupoId { get; set; } = 0;

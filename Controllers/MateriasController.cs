@@ -247,7 +247,71 @@ namespace ControlMaterias.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
+        private async Task<tbMaterias>CrearMateriaInterna(string nombre, string descripcion, string color, int docenteId)
+        {
+            var codigoAcceso = ObtenerClaveMateria();
 
+            var materiaDb = new tbMaterias
+            {
+                NombreMateria = nombre,
+                Descripcion = descripcion,
+                CodigoColor = color,
+                CodigoAcceso = codigoAcceso,
+                DocenteId = docenteId,
+            };
+
+            Db.tbMaterias.Add(materiaDb);
+            await Db.SaveChangesAsync();
+
+            return materiaDb;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CrearMateriaConGrupo(CrearMateriaConGrupoRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "Datos inválidos." });
+            }
+
+            var docenteId = Fg.ObtenerCAUsuarioId(User);
+
+            // Validar que el grupo exista y pertenezca al docente
+            var grupo = await Db.tbGrupos
+                .FirstOrDefaultAsync(g => g.GrupoId == request.GrupoId && g.DocenteId == docenteId);
+
+            if (grupo == null)
+            {
+                Response.StatusCode = 404;
+                return Json(new { mensaje = "Grupo no encontrado o no autorizado." });
+            }
+
+            // Crear materia reutilizando lógica
+            var nuevaMateria = await CrearMateriaInterna(
+                request.NombreMateria,
+                request.Descripcion,
+                request.Color,
+                docenteId
+            );
+
+            // Crear relación
+            var relacion = new tbGruposMaterias
+            {
+                GrupoId = request.GrupoId,
+                MateriaId = nuevaMateria.MateriaId
+            };
+
+            Db.tbGruposMaterias.Add(relacion);
+            await Db.SaveChangesAsync();
+
+            return Json(new
+            {
+                mensaje = "Materia creada y asociada correctamente.",
+                materiaId = nuevaMateria.MateriaId
+            });
+        }
         private string ObtenerClaveMateria()
         {
             var random = new Random();

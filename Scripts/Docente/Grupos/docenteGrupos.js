@@ -299,3 +299,54 @@ async function subirExcelAlumnos(grupoId, materiaId) {
         }
     } catch (err) { console.error(err); Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo subir el archivo', position: 'top-end' }); }
 }
+
+
+async function crearMateriaGrupo() {
+    const nombre = document.querySelector("#nombreMateria").value.trim();
+    const descripcion = document.querySelector("#descripcionMateria").value.trim();
+
+    if (!nombre) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campo requerido',
+            text: 'El nombre de la materia es obligatorio',
+            confirmButtonText: 'Entendido'
+        });
+        return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const grupoId = params.get('grupoId');
+
+    const response = await fetch('/Materias/CrearMateriaConGrupo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            NombreMateria: nombre,
+            Descripcion: descripcion,
+            GrupoId: grupoId
+        })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        await Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: data.mensaje
+        });
+
+        const modalElement = document.getElementById('materiasGrupoModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        modal.hide();
+
+        location.reload(); //Refresca la página para mostrar la nueva materia en el grupo
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.mensaje || 'Ocurrió un error.'
+        });
+    }
+}
