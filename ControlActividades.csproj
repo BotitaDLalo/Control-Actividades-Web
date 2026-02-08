@@ -679,7 +679,7 @@
     <Content Include="Scripts\Alumno\UnirseClase.js" />
     <Content Include="Scripts\Alumno\VentanasDi.js" />
     <Content Include="Scripts\Papelera_Scripts\Vistamaterias.js" />
-    <Content Include="Scripts\Avisos\avisos.js" />
+    <Content Include="Scripts\Papelera_Scripts\avisos.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -702,7 +702,7 @@
     <Content Include="Scripts\Docente\Grupos\DetalleMateria.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleMateriaIconos.js" />
     <Content Include="Scripts\Docente\Grupos\docente.js" />
-    <Content Include="Scripts\Docente\Grupos\docenteErrores.js" />
+    <Content Include="Scripts\Papelera_Scripts\docenteErrores.js" />
     <Content Include="Scripts\Docente\Grupos\docenteGrupos.js" />
     <Content Include="Scripts\Docente\Grupos\docenteMaterias.js" />
     <Content Include="Scripts\Papelera_Scripts\mostrarMateriasGrupo.js" />
@@ -851,6 +851,7 @@
     <Folder Include="Content\Images\" />
     <Folder Include="Dashboard\" />
     <Folder Include="Interfaces\Alumnos\" />
+    <Folder Include="Scripts\Papelera_Scripts\Avisos\" />
     <Folder Include="Services\Docente\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
