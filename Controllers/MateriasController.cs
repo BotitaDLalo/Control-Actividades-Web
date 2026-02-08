@@ -796,6 +796,25 @@ namespace ControlMaterias.Controllers
 
         #region Configuracion
 
+        [HttpGet]
+        public async Task<ActionResult> ObtenerMateriaEditar(int materiaId)
+        {
+            var materia = await Db.tbMaterias.FindAsync(materiaId);
+
+            if (materia == null)
+            {
+                Response.StatusCode = 404;
+                return Json(new { mensaje = "Materia no encontrada." }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new
+            {
+                MateriaId = materia.MateriaId,
+                NombreMateria = materia.NombreMateria,
+                Descripcion = materia.Descripcion
+            }, JsonRequestBehavior.AllowGet);
+        }
+
         [HttpDelete]
         public async Task<ActionResult> EliminarMateria(int id)
         {
@@ -842,44 +861,57 @@ namespace ControlMaterias.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ActualizarMateria(int materiaId, tbMaterias materiaDto)
+        public async Task<ActionResult> ActualizarMateria(int materiaId, MateriasP materiaDto)
         {
             try
             {
+                if (materiaDto == null)
+                {
+                    return Json(new { mensaje = "Datos no envidados correctamente." });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "Datos inválidos" });
+                }
+
                 var materiaExistente = await Db.tbMaterias.FindAsync(materiaId);
                 if (materiaExistente == null)
                 {
                     Response.StatusCode = 404;
-                    return Json(new { mensaje = "Materia no encontrada." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { mensaje = "Materia no encontrada." });
                 }
 
+                if (!string.IsNullOrWhiteSpace(materiaDto.NombreMateria))
+                {
+                    materiaExistente.NombreMateria = materiaDto.NombreMateria;
+                }
 
-                materiaExistente.NombreMateria = string.IsNullOrWhiteSpace(materiaDto.NombreMateria)
-                    ? materiaExistente.NombreMateria : materiaDto.NombreMateria;
-
-                materiaExistente.Descripcion = string.IsNullOrWhiteSpace(materiaDto.Descripcion)
-                    ? materiaExistente.Descripcion : materiaDto.Descripcion;
-
+                materiaExistente.Descripcion = materiaDto.Descripcion;
+                if (!string.IsNullOrWhiteSpace(materiaDto.Descripcion))
+                {
+                    materiaExistente.Descripcion = materiaDto.Descripcion;
+                }
 
                 await Db.SaveChangesAsync();
-                if (materiaDto == null)
-                {
-                    return Json(new { mensaje = "El objeto materiaDto llegó nulo." }, JsonRequestBehavior.AllowGet);
-                }
 
                 return Json(new
                 {
                     MateriaId = materiaExistente.MateriaId,
                     NombreMateria = materiaExistente.NombreMateria,
                     Descripcion = materiaExistente.Descripcion
-                }, JsonRequestBehavior.AllowGet);
+                });
 
-                //return Json(materiaExistente, JsonRequestBehavior.AllowGet);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al actualizar la materia", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new 
+                { 
+                    mensaje = "Error al actualizar la materia", 
+                    error = ex.Message 
+                });
             }
         }
 

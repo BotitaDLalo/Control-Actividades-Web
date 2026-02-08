@@ -44,6 +44,14 @@ function cambiarPanel(btn) {
                     cargarActividadesParaEntregables();
                 }
             }
+            if (panelKey === "Configuracion") {
+                cargarMateriaEditar();
+                const btn = document.getElementById("btnGuardarMateriaEditada");
+
+                if (btn) {
+                    btn.addEventListener("click", guardarConfig);
+                }
+            }
         }
     );
 }

@@ -631,49 +631,8 @@
             }
         }
 
-        if (btnGuardarNombre) btnGuardarNombre.addEventListener('click', function () {
-            guardarConfig();
-        });
-        if (btnGuardarDescripcion) btnGuardarDescripcion.addEventListener('click', function () {
-            guardarConfig();
-        });
-
-        // rellenar inputs de configuracion con datos actuales
-        fetch(`/api/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`).then(r => r.json()).then(data => {
-            if (data && data.NombreMateria) {
-                document.getElementById('configNombre').value = data.NombreMateria || '';
-                document.getElementById('configDescripcion').value = data.Descripcion || '';
-            }
-        }).catch(()=>{});
-        // Configuración actions
-        const btnEliminar = document.getElementById('btnEliminarMateria');
         const btnCopiar = document.getElementById('btnCopiarMateria');
         const btnEditar = document.getElementById('btnEditarMateria');
-
-        if (btnEliminar) btnEliminar.addEventListener('click', async function () {
-            if (!confirm('¿Eliminar esta materia? Esta acción no se puede deshacer.')) return;
-            try {
-                const resp = await fetch(`/Materias/EliminarMateria?id=${materiaIdGlobal}`, {
-                    method: 'DELETE'
-                });
-                if (resp.ok) {
-                    Swal.fire(
-                        {
-                            icon: 'success',
-                            title: 'Materia eliminada',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    // redirect to grupos overview
-                    window.location.href = '/Docente/Index';
-                } else {
-                    const txt = await resp.text();
-                    Swal.fire('Error', txt || 'No se pudo eliminar la materia', 'error');
-                }
-            } catch (e) {
-                console.error(e); Swal.fire('Error', 'No se pudo eliminar', 'error');
-            }
-        });
 
         if (btnCopiar) btnCopiar.addEventListener('click', async function () {
             try {
