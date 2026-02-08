@@ -39,6 +39,11 @@ function cambiarPanel(btn) {
             if (panelKey === "Alumnos") {
                 cargarAlumnosAsignados();
             }
+            if (panelKey === "Entregables") {
+                if (typeof cargarActividadesParaEntregables === "function") {
+                    cargarActividadesParaEntregables();
+                }
+            }
         }
     );
 }
