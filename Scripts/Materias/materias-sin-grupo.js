@@ -85,3 +85,36 @@ async function cargarMateriasSinGrupo() {
         //});
     }
 }
+
+
+//async function crearMateriaSinGrupo() {
+
+//    const nombre = document.querySelector("#nombreMateria").value;
+//    const descripcion = document.querySelector("#descripcionMateria").value;
+
+//    const response = await fetch('/Materias/CrearMateria', {
+//        method: 'POST',
+//        headers: {
+//            'Content-Type': 'application/json'
+//        },
+//        body: JSON.stringify({
+//            NombreMateria: nombre,
+//            Descripcion: descripcion
+//        })
+//    });
+
+//    const data = await response.json();
+
+//    if (response.ok) {
+//        alert(data.mensaje);
+
+//        // cerrar modal
+//        const modalElement = document.getElementById('modalMateria');
+//        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+//        modal.hide();
+//        cargarMateriasSinGrupo();
+
+//    } else {
+//        alert("Error al crear la materia");
+//    }
+//}
