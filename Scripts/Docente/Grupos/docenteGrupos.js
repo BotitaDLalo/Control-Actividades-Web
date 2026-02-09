@@ -58,7 +58,7 @@ async function guardarGrupo() {
             icon: "question",
             title: "Ingrese nombre del grupo.",
             showConfirmButton: false,
-            timer: 2500
+            timer:2500
         });
         return;
     }
@@ -117,7 +117,7 @@ async function guardarGrupo() {
         }
 
         // Asociar materias seleccionadas al grupo
-        if (materiasSeleccionadas.length > 0) {
+        if (materiasSeleccionadas.length >0) {
             checkboxes.forEach(cb => console.log(cb.value, cb.checked));
             await asociarMateriasAGrupo(grupoId, materiasSeleccionadas);
         }
@@ -127,7 +127,7 @@ async function guardarGrupo() {
             icon: "success",
             title: "Grupo registrado correctamente.",
             showConfirmButton: false,
-            timer: 2000
+            timer:2000
         });
         const form = document.getElementById("gruposForm");
         if (form) form.reset();
@@ -139,7 +139,7 @@ async function guardarGrupo() {
             icon: "error",
             title: "Error al registrar grupo.",
             showConfirmButton: false,
-            timer: 2000
+            timer:2000
         });
     }
 }
@@ -172,15 +172,50 @@ function agregarMateria() {
     if (!materiasContainer) return;
 
     const materiaDiv = document.createElement("div");
-    materiaDiv.classList.add("materia-item");
+    materiaDiv.classList.add("materia-item", "d-flex", "align-items-start", "gap-2", "mb-2");
 
-    materiaDiv.innerHTML = `
-        <input type="text" placeholder="Nombre de la Materia" class="nombreMateria">
-        <input type="text" placeholder="Descripción" class="descripcionMateria">
-        <button type="button" onclick="removerDeLista(this)">❌</button>
-    `;
+    const nombreInput = document.createElement("input");
+    nombreInput.type = "text";
+    nombreInput.placeholder = "Nombre de la Materia";
+    nombreInput.className = "nombreMateria form-control form-control-sm";
+    nombreInput.style.maxWidth = "260px";
+
+    const descripcionInput = document.createElement("input");
+    descripcionInput.type = "text";
+    descripcionInput.placeholder = "Descripción";
+    descripcionInput.className = "descripcionMateria form-control form-control-sm flex-grow-1";
+    descripcionInput.style.minWidth = "180px";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "btn btn-outline-danger btn-sm";
+    removeBtn.style.height = "34px";
+    removeBtn.style.display = "flex";
+    removeBtn.style.alignItems = "center";
+    removeBtn.style.justifyContent = "center";
+    removeBtn.innerHTML = '<span style="line-height:1">✖</span>';
+    removeBtn.addEventListener('click', function () { removerDeLista(this); });
+
+    materiaDiv.appendChild(nombreInput);
+    materiaDiv.appendChild(descripcionInput);
+    materiaDiv.appendChild(removeBtn);
 
     materiasContainer.appendChild(materiaDiv);
+
+    // Inject lightweight styles once to improve spacing and responsiveness
+    if (!document.getElementById('docente-grupos-materias-style')) {
+        const style = document.createElement('style');
+        style.id = 'docente-grupos-materias-style';
+        style.textContent = `
+            .materia-item { width:100%; }
+            .materia-item .form-control { border-radius:4px; }
+            @media (max-width:576px) {
+                .materia-item { flex-direction: column; gap:6px; }
+                .materia-item .btn { align-self: flex-end; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 // Remover materia del formulario antes de enviarla
@@ -211,12 +246,12 @@ function showEditarGrupoPrompt(grupo) {
         body: JSON.stringify({ GrupoId: grupo.GrupoId, NombreGrupo: nombre, Descripcion: descripcion })
     }).then(r => {
         if (r.ok) {
-            Swal.fire({ position: 'top-end', icon: 'success', title: 'Grupo actualizado', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ position: 'top-end', icon: 'success', title: 'Grupo actualizado', showConfirmButton: false, timer:1500 });
             if (typeof cargarGrupos === 'function') cargarGrupos();
         } else {
-            Swal.fire({ position: 'top-end', icon: 'error', title: 'Error al actualizar grupo', showConfirmButton: false, timer: 2000 });
+            Swal.fire({ position: 'top-end', icon: 'error', title: 'Error al actualizar grupo', showConfirmButton: false, timer:2000 });
         }
-    }).catch(err => { console.error(err); Swal.fire({ position: 'top-end', icon: 'error', title: 'Error', showConfirmButton: false, timer: 2000 }); });
+    }).catch(err => { console.error(err); Swal.fire({ position: 'top-end', icon: 'error', title: 'Error', showConfirmButton: false, timer:2000 }); });
 }
 
 async function eliminarGrupo(grupoId) {
@@ -233,18 +268,18 @@ async function eliminarGrupo(grupoId) {
         if (result.isConfirmed) {
             const response = await fetch(`/Grupos/EliminarGrupo?grupoId=${grupoId}`, { method: "DELETE" });
             if (response.ok) {
-                Swal.fire({ position: "top-end", icon: "success", title: "El grupo ha sido eliminado.", showConfirmButton: false, timer: 2000 });
+                Swal.fire({ position: "top-end", icon: "success", title: "El grupo ha sido eliminado.", showConfirmButton: false, timer:2000 });
                 if (typeof cargarGrupos === 'function') cargarGrupos();
             } else {
-                Swal.fire({ position: "top-end", icon: "error", title: "No se pudo eliminar el grupo.", showConfirmButton: false, timer: 2000 });
+                Swal.fire({ position: "top-end", icon: "error", title: "No se pudo eliminar el grupo.", showConfirmButton: false, timer:2000 });
             }
         } else if (result.isDenied) {
             const response = await fetch(`/Grupos/EliminarGrupoConMaterias?grupoId=${grupoId}`, { method: "DELETE" });
             if (response.ok) {
-                Swal.fire({ position: "top-end", icon: "success", title: "El grupo y sus materias han sido eliminados.", showConfirmButton: false, timer: 2000 });
+                Swal.fire({ position: "top-end", icon: "success", title: "El grupo y sus materias han sido eliminados.", showConfirmButton: false, timer:2000 });
                 if (typeof cargarGrupos === 'function') cargarGrupos();
             } else {
-                Swal.fire({ position: "top-end", icon: "error", title: "No se pudo eliminar el grupo y sus materias.", showConfirmButton: false, timer: 2000 });
+                Swal.fire({ position: "top-end", icon: "error", title: "No se pudo eliminar el grupo y sus materias.", showConfirmButton: false, timer:2000 });
             }
         }
     });
@@ -280,7 +315,7 @@ function crearAvisoGrupal(id) {
 
 async function subirExcelAlumnos(grupoId, materiaId) {
     const input = document.getElementById('excelFileInput');
-    if (!input || input.files.length === 0) { Swal.fire({ icon: 'warning', title: 'Seleccione un archivo', text: 'Adjunte un .xlsx o .xls', position: 'top-end' }); return; }
+    if (!input || input.files.length ===0) { Swal.fire({ icon: 'warning', title: 'Seleccione un archivo', text: 'Adjunte un .xlsx o .xls', position: 'top-end' }); return; }
 
     const file = input.files[0];
     const formData = new FormData();

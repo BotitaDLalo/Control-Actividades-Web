@@ -10,21 +10,9 @@ namespace ControlActividades.Services.Actividades
  {
  public static Task<List<ActividadRes>> ObtenerActividadesPorMateria(this ActividadesSTService servicio, int materiaId, string rol)
  {
- bool esDocente = false;
- try
- {
- if (!string.IsNullOrWhiteSpace(rol))
- {
- var r = rol.Trim();
- esDocente = r.Equals("Docente", StringComparison.OrdinalIgnoreCase) || r.Equals("Administrador", StringComparison.OrdinalIgnoreCase) || r.Equals("DOCENTE", StringComparison.OrdinalIgnoreCase);
- }
- }
- catch
- {
- esDocente = false;
- }
-
- return servicio.ObtenerActividadesPorMateria(materiaId, esDocente);
+ // Llamar directamente a la firma existente que espera el rol como string.
+ // La versión anterior intentaba convertir a bool y llamar a una sobrecarga que no existe en este proyecto.
+ return servicio.ObtenerActividadesPorMateria(materiaId, rol);
  }
  }
 }

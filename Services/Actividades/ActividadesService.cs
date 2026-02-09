@@ -99,8 +99,12 @@ namespace ControlActividades.Services
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                await ActividadesSTService.EliminarActividad(id);
+                // ST implementation exposes EliminarActividadAsync
+                await ActividadesSTService.EliminarActividadAsync(id);
+                return;
             }
+
+            // CA implementation exposes EliminarActividad
             await ActividadesCAService.EliminarActividad(id);
         }       
     }

@@ -501,7 +501,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                await ActividadesService.EliminarActividadAsync(id);
+                await ActividadesService.EliminarActividad(id);
             
                 return Json(new 
                 { 

@@ -75,14 +75,14 @@ namespace ControlActividades.Models
     }
 
 
-<<<<<<< HEAD
+
     // Actividades
     /// Petición usada para obtener actividades por materia.
     /// Se agregó la propiedad <see cref="EsDocente"/> para compatibilidad
     /// con el servicio ST (ActividadesSTService) que espera ese campo.
-=======
+
     // ACTIVIDADES //
->>>>>>> origin/MigracionPruebas
+
     public class ObtenerActividadesPorMateriaRequest
     {
         /// Indica si el solicitante tiene rol de docente/administrador.
@@ -95,7 +95,7 @@ namespace ControlActividades.Models
         public string View { get; set; }
     }
 
-<<<<<<< HEAD
+
     // === ST Models appended ===
 
     public class GruposSTRequest
@@ -133,7 +133,7 @@ namespace ControlActividades.Models
         public bool Success { get; set; }
         public string Message { get; set; }
     }
-=======
+
     public class ObtenerActividadPorIdRequest
     {
         public int ActividadId { get; set;}
@@ -154,6 +154,6 @@ namespace ControlActividades.Models
         public DateTime? FechaProgramada { get; set; }
     }
 
->>>>>>> origin/MigracionPruebas
+
 
 }
