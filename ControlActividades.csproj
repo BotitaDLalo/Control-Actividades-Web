@@ -669,15 +669,15 @@
     <Content Include="Scripts\Alumno\actividades.js" />
     <Content Include="Scripts\Alumno\AgendaFullCalendar.js" />
     <Content Include="Scripts\Papelera_Scripts\alumno.js" />
-    <Content Include="Scripts\Alumno\Avisos.js" />
+    <Content Include="Scripts\Papelera_Scripts\AvisosA.js" />
     <Content Include="Scripts\Materias\paneles.js" />
     <Content Include="Scripts\Papelera_Scripts\Calendario.js" />
     <Content Include="Scripts\Papelera_Scripts\Clases.js" />
     <Content Include="Scripts\Papelera_Scripts\layout.js" />
     <Content Include="Scripts\Papelera_Scripts\materias.js" />
-    <Content Include="Scripts\Papelera_Scripts\Notificaciones.js" />
+    <Content Include="Scripts\Papelera_Scripts\DNotificaciones.js" />
     <Content Include="Scripts\Alumno\UnirseClase.js" />
-    <Content Include="Scripts\Alumno\VentanasDi.js" />
+    <Content Include="Scripts\Papelera_Scripts\VentanasDi.js" />
     <Content Include="Scripts\Papelera_Scripts\Vistamaterias.js" />
     <Content Include="Scripts\Papelera_Scripts\avisos.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -694,7 +694,7 @@
     <Content Include="Scripts\dev\measureCardSize.js" />
     <Content Include="Scripts\Papelera_Scripts\Agenda.js" />
     <Content Include="Scripts\Papelera_Scripts\AgendaFullCalendar.js" />
-    <Content Include="Scripts\Docente\Confirmacion.js" />
+    <Content Include="Scripts\Papelera_Scripts\Confirmacion.js" />
     <Content Include="Scripts\Docente\footer.js" />
     <Content Include="Scripts\Docente\Grupos\ActividadIA.js" />
     <Content Include="Scripts\Docente\Grupos\cambiarCodigoMateria.js" />
@@ -706,7 +706,7 @@
     <Content Include="Scripts\Docente\Grupos\docenteGrupos.js" />
     <Content Include="Scripts\Docente\Grupos\docenteMaterias.js" />
     <Content Include="Scripts\Papelera_Scripts\mostrarMateriasGrupo.js" />
-    <Content Include="Scripts\Docente\Grupos\Notificaciones.js" />
+    <Content Include="Scripts\Papelera_Scripts\ANotificaciones.js" />
     <Content Include="Scripts\Papelera_Scripts\PrincipalMG.js" />
     <Content Include="Scripts\Docente\Grupos\scriptsActividades.js" />
     <Content Include="Scripts\Docente\Grupos\scriptsAlumnos.js" />
