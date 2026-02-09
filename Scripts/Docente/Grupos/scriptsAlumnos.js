@@ -19,13 +19,22 @@ function setupAlumnoSearch() {
     buscar.addEventListener('input', function () {
         clearTimeout(debounceTimer);
         var q = this.value.trim();
-        if (!q) { renderSugerencias([]); return; }
+        if (!q) {
+            renderSugerencias([]);
+            return;
+        }
         debounceTimer = setTimeout(async function () {
             try {
                 var basePath = (window.appBasePath || '');
                 var resp = await fetch('/Materias/BuscarAlumnosPorCorreo?query=' + encodeURIComponent(q), { credentials: 'same-origin' });
-                if (!resp.ok) { renderSugerencias([]); return; }
-                var data = await resp.json().catch(function(){return [];});
+                if (!resp.ok) {
+                    renderSugerencias([]);
+                    return;
+                }
+                var data = await resp.json().catch(
+                    function () {
+                        return [];
+                    });
                 renderSugerencias(data || []);
             } catch (e) { console.error('Error buscar alumnos', e); renderSugerencias([]); }
         }, 250);
@@ -43,15 +52,27 @@ function setupAlumnoSearch() {
     if (btnAsignar) {
         btnAsignar.addEventListener('click', async function () {
             var correo = buscar.value.trim();
-            if (!correo) { alert('Ingresa el correo del alumno'); return; }
+            if (!correo) {
+                alert('Ingresa el correo del alumno');
+                return;
+            }
             var materiaId = window.materiaIdGlobal || (typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : null);
-            if (!materiaId) { alert('No se pudo identificar la materia'); return; }
+            if (!materiaId) {
+                alert('No se pudo identificar la materia');
+                return;
+            }
             try {
                 var body = new URLSearchParams();
                 body.append('correo', correo);
                 body.append('materiaId', materiaId);
                 var basePath = (window.appBasePath || '');
-                var resp = await fetch('/Materias/AsignarAlumnoMateria', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString(), credentials: 'same-origin' });
+                var resp = await fetch('/Materias/AsignarAlumnoMateria',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: body.toString(),
+                        credentials: 'same-origin'
+                    });
                 if (!resp.ok) {
                     var txt = await resp.text().catch(()=>'');
                     alert('Error al asignar alumno: ' + (txt || resp.status));
@@ -59,10 +80,14 @@ function setupAlumnoSearch() {
                 }
                 var j = await resp.json().catch(()=>null);
                 alert((j && j.mensaje) ? j.mensaje : 'Alumno asignado correctamente');
+
                 if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaId);
                 buscar.value = '';
                 renderSugerencias([]);
-            } catch (e) { console.error(e); alert('Error al asignar alumno'); }
+            } catch (e) {
+                console.error(e);
+                alert('Error al asignar alumno');
+            }
         });
     }
 }
@@ -79,6 +104,7 @@ function renderSugerencias(items) {
         var li = document.createElement('li');
         li.className = 'list-group-item list-group-item-action';
         var display = ((it.Nombre || '') + ' ' + (it.ApellidoPaterno || '') + ' ' + (it.ApellidoMaterno || '')).trim();
+
         if (!display) display = it.Email || it.email || it.UserName || '';
         li.textContent = display + (it.Email ? (' — ' + it.Email) : '');
         li.addEventListener('click', function () {
@@ -133,12 +159,23 @@ function renderAlumnosTable(alumnos) {
 
         // eliminar button
         if (a.AlumnoMateriaId || a.alumnoMateriaId) {
-            var delBtn = document.createElement('button'); delBtn.className = 'btn btn-sm btn-danger'; delBtn.textContent = 'Eliminar';
-            delBtn.addEventListener('click', function () { eliminardelgrupo(a.AlumnoMateriaId || a.alumnoMateriaId); });
+            var delBtn = document.createElement('button');
+            delBtn.className = 'btn btn-sm btn-danger'; delBtn.textContent = 'Eliminar';
+            delBtn.addEventListener('click',
+                function ()
+                {
+                    eliminardelgrupo(a.AlumnoMateriaId || a.alumnoMateriaId);
+                });
             grupoAcc.appendChild(delBtn);
         } else {
-            var delBtn = document.createElement('button'); delBtn.className = 'btn btn-sm btn-danger'; delBtn.textContent = 'Eliminar';
-            delBtn.addEventListener('click', function () { eliminardelgrupo(a.AlumnoId || a.alumnoId || (a.Alumno && a.Alumno.AlumnoId)); });
+            var delBtn = document.createElement('button');
+            delBtn.className = 'btn btn-sm btn-danger'; delBtn.textContent = 'Eliminar';
+            delBtn.addEventListener('click',
+                function ()
+                {
+                    eliminardelgrupo(a.AlumnoId || a.alumnoId || (a.Alumno && a.Alumno.AlumnoId));
+                }
+            );
             grupoAcc.appendChild(delBtn);
         }
 
@@ -156,12 +193,21 @@ async function cargarAlumnosAsignados(materiaOrAlumnos) {
     var cont = document.getElementById('listaAlumnosAsignados');
     if (!cont) return;
     try {
-        if (Array.isArray(materiaOrAlumnos)) { renderAlumnosTable(materiaOrAlumnos); return; }
+        if (Array.isArray(materiaOrAlumnos))
+        {
+            renderAlumnosTable(materiaOrAlumnos);
+            return;
+        }
         var materiaId = (typeof materiaOrAlumnos !== 'undefined' && materiaOrAlumnos) ? materiaOrAlumnos : (typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : (window.materiaIdGlobal || null));
-        if (!materiaId) { cont.innerHTML = '<p class="text-muted">No hay materia seleccionada.</p>'; return; }
+        if (!materiaId) {
+            cont.innerHTML = '<p class="text-muted">No hay materia seleccionada.</p>'; return;
+        }
         var basePath = (window.appBasePath || '');
         var resp = await fetch('/Materias/ObtenerAlumnosPorMateria?materiaId=' + encodeURIComponent(materiaId));
-        if (!resp.ok) { cont.innerHTML = '<p class="text-danger">Error al cargar alumnos.</p>'; return; }
+        if (!resp.ok) {
+            cont.innerHTML = '<p class="text-danger">Error al cargar alumnos.</p>';
+            return;
+        }
         var data = await resp.json();
         var alumnos = [];
         if (data) {
@@ -169,7 +215,9 @@ async function cargarAlumnosAsignados(materiaOrAlumnos) {
             else if (Array.isArray(data.alumnos)) alumnos = data.alumnos;
         }
         renderAlumnosTable(alumnos);
-    } catch (e) { console.error('Error cargarAlumnosAsignados', e); }
+    } catch (e) {
+        console.error('Error cargarAlumnosAsignados', e);
+    }
 }
 
 async function eliminardelgrupo(enlaceId) {
@@ -181,7 +229,10 @@ async function eliminardelgrupo(enlaceId) {
         if (!r.ok) throw new Error('No eliminado');
         alert('Alumno eliminado');
         if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
-    } catch (e) { console.error(e); alert('Error al eliminar alumno'); }
+    } catch (e) {
+        console.error(e);
+        alert('Error al eliminar alumno');
+    }
 }
 
 // Expose globally
@@ -199,20 +250,38 @@ document.addEventListener('DOMContentLoaded', function () {
         window._importDialogOpen = true;
 
         var input = document.getElementById('fileImportarAlumnos');
-        if (input) { try { input.remove(); } catch (e) { } }
-        input = document.createElement('input'); input.type = 'file'; input.accept = '.xlsx,.xls'; input.id = 'fileImportarAlumnos'; input.style.display = 'none';
+        if (input)
+        {
+            try {
+                input.remove();
+            } catch (e) { }
+        }
+        input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.id = 'fileImportarAlumnos';
+        input.style.display = 'none';
         document.body.appendChild(input);
         input.addEventListener('change', async function (ev) {
             try {
-                var file = ev.target.files && ev.target.files[0]; if (!file) return;
-                var fd = new FormData(); fd.append('file', file);
+                var file = ev.target.files && ev.target.files[0];
+                if (!file) return;
+
+                var fd = new FormData();
+                fd.append('file', file);
+
                 if (grupoId) fd.append('GrupoId', grupoId);
                 if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) fd.append('MateriaId', materiaIdGlobal);
                 console.log('ImportarAlumnosExcel: enviando', file.name, 'MateriaId=', materiaIdGlobal, 'GrupoId=', grupoId);
+
                 var basePath = (window.appBasePath || '');
                 var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd, credentials: 'same-origin' });
                 var json = await resp.json().catch(function(){return {};});
-                if (!resp.ok) { alert(json.mensaje || 'Error importar'); return; }
+
+                if (!resp.ok) {
+                    alert(json.mensaje || 'Error importar');
+                    return;
+                }
 
                 // Mostrar resumen detallado de la importación (si la API lo retorna)
                 try {
@@ -239,16 +308,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
                 }
             } catch (e) {
-                console.error(e); alert('Error al subir archivo');
+                console.error(e);
+                alert('Error al subir archivo');
             } finally {
                 // Limpiar y permitir futuras aperturas
-                try { input.remove(); } catch (e) { }
+                try {
+                    input.remove();
+                } catch (e) { }
                 window._importDialogOpen = false;
             }
         });
-        setTimeout(function () { try { input.click(); } catch (e) { console.error(e); window._importDialogOpen = false; } }, 10);
+        setTimeout(function ()
+        {
+            try {
+                input.click();
+            } catch (e) {
+                console.error(e);
+                window._importDialogOpen = false;
+            }
+        }, 10);
     }
 
-    if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); createAndOpenFileInput(); });
+    if (btn) btn.addEventListener('click',
+        function (e)
+        {
+            e.preventDefault();
+            createAndOpenFileInput();
+        });
 });
 

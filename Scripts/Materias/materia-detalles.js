@@ -1,21 +1,11 @@
-﻿function cambiarSeccion(seccion) {
-    const params = new URLSearchParams(window.location.search);
-
-    const materiaId = params.get('materiaId');
-    if (!materiaId) return;
-
-    document.querySelectorAll('.seccion').forEach(div => div.style.display = 'none');
-    const seccionMostrar = document.getElementById(`seccion-${seccion}`);
-    if (seccionMostrar) {
-        seccionMostrar.style.display = 'block';
-    }
-
-// Formatea la respuesta para mostrarla en el modal: intenta parsear JSON con campos comunes y mostrar en HTML limpio.
+﻿// Formatea la respuesta para mostrarla en el modal: intenta parsear JSON con campos comunes y mostrar en HTML limpio.
 window.formatRespuestaForModal = function (respuestaRaw) {
     if (!respuestaRaw) return '<div class="text-muted"><em>Sin respuesta</em></div>';
     var r = respuestaRaw;
     // Si viene codificado con encodeURIComponent en dataset, decodificar
-    try { r = decodeURIComponent(r); } catch (e) { /* noop */ }
+    try {
+        r = decodeURIComponent(r);
+    } catch (e) { /* noop */ }
 
     // Intentar parsear JSON
     try {
@@ -120,34 +110,12 @@ function createAndOpenFileInputForMateria(grupoId) {
 function initImportButtonOnMateria() {
     var btn = document.getElementById('btnImportarAlumnos');
     if (!btn) return;
-    btn.addEventListener('click', function (e) { e.preventDefault(); createAndOpenFileInputForMateria(); });
+    btn.addEventListener('click',
+        function (e)
+        {
+            e.preventDefault(); createAndOpenFileInputForMateria();
+        });
 }
-
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initImportButtonOnMateria);
-else initImportButtonOnMateria();
-    // Fin de la función cambiarSeccion
-
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`).classList.add('active');
-
-    // Cargar datos si se seleccionan secciones dinámicas
-    if (seccion === "actividades") {
-        cargarActividadesDeMateria(materiaId);
-    }
-    else if (seccion === "alumnos") {
-        cargarAlumnosAsignados(materiaId);
-    }
-    else if (seccion === "avisos") {
-        cargarAvisosDeMateria(materiaId);
-    }
-    else if (seccion === "entregables") {
-        cargarEntregablesDeMateria(materiaId);
-    }
-}
-
-
-
-
 
 // Carga entregables: lista de actividades y un botón para ver entregables por actividad
 var actividadesCache = [];
@@ -259,7 +227,9 @@ async function cargarEntregablesDeMateria(materiaId) {
         }
         cont.innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
         // Mostrar todos los entregables agrupados por actividad por defecto
-        try { cargarTodosEntregables(actividades); } catch (e) { /* noop */ }
+        try {
+            cargarTodosEntregables(actividades);
+        } catch (e) { /* noop */ }
     } catch (err) {
         console.error(err);
         cont.innerHTML = '<p class="text-danger">Error al cargar actividades.</p>';
@@ -389,3 +359,4 @@ function renderEntregablesGrouped(resultsMap, actividades, container) {
         container.appendChild(actDiv);
     });
 }
+

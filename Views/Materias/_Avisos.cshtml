@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<dynamic>
 @using Rol = ControlActividades.Roles;
+<<<<<<< HEAD
 <div id="seccion-avisos" class="seccion">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5>Avisos</h5>
@@ -69,4 +70,34 @@
             }catch(e){ console.warn(e); }
         })();
     </script>
+=======
+<div id="seccion-avisos" class="seccion active">
+    <script>
+        window.esDocente = @User.IsInRole(Rol.DOCENTE).ToString().ToLower();
+    </script>
+    @if (User.IsInRole(Rol.DOCENTE))
+    {
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#crearAvisoMateriaModal">
+            📢 Crear Aviso
+        </button>
+    }
+    <!-- Filtros para avisos: buscar por título y filtrar por rango de fechas -->
+    <div class="avisos-filters mb-3" style="display:flex;gap:8px;align-items:center;">
+        <input id="buscarAvisoTitulo" class="form-control" placeholder="Buscar por título..." style="max-width:360px;" />
+        <input id="fechaDesdeAviso" type="date" class="form-control" style="max-width:170px;" />
+        <input id="fechaHastaAviso" type="date" class="form-control" style="max-width:170px;" />
+        <button id="btnLimpiarFiltrosAvisos" class="btn btn-secondary" type="button">Limpiar</button>
+    </div>
+    <div class="divider"></div>
+    <div id="listaDeAvisosDeMateria"></div>
+</div>
+
+@Scripts.Render("~/bundles/avisos")
+<script src="~/Scripts/Materias/paneles.js"></script>
+
+
+@section Styles{
+    @Styles.Render("~/Content/Docente/css")
+    @Styles.Render("~/Content/Materia-Detalles/css")
+>>>>>>> origin/MigracionPruebas
 }

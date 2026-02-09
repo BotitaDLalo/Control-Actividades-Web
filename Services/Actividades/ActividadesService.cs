@@ -10,8 +10,7 @@ namespace ControlActividades.Services
 {
     public class ActividadesService : IActividadesService
     {
-
-        private ActividadesCAService _activididadesCAService;
+        private ActividadesCAService _actividadesCAService;
         private ActividadesSTService _actividadesSTService;
         private FuenteDatosService _fuenteDatos;
 
@@ -23,7 +22,7 @@ namespace ControlActividades.Services
         {
             FuenteDatosService = fuenteDatosService;
             ActividadesSTService = actividadesSTService;
-            ActivididadesCAService = actividadesCAService;
+            ActividadesCAService = actividadesCAService;
 
         }
 
@@ -50,15 +49,15 @@ namespace ControlActividades.Services
             }
         }
 
-        public ActividadesCAService ActivididadesCAService
+        public ActividadesCAService ActividadesCAService
         {
             get
             {
-                return _activididadesCAService ?? (_activididadesCAService = new ActividadesCAService());
+                return _actividadesCAService ?? (_actividadesCAService = new ActividadesCAService());
             }
             private set
             {
-                _activididadesCAService = value;
+                _actividadesCAService = value;
             }
         }
         #endregion
@@ -70,7 +69,7 @@ namespace ControlActividades.Services
             {
                 return await ActividadesSTService.ObtenerActividadesPorMateria(materiaId, rol);
             }
-            return await ActivididadesCAService.ObtenerActividadesPorMateria(materiaId, rol);
+            return await ActividadesCAService.ObtenerActividadesPorMateria(materiaId, rol);
         }
 
         public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)
@@ -81,7 +80,7 @@ namespace ControlActividades.Services
             {
                 return await ActividadesSTService.ObtenerActividadPorId(actividadId);
             }
-            return await ActivididadesCAService.ObtenerActividadPorId(actividadId);
+            return await ActividadesCAService.ObtenerActividadPorId(actividadId);
         }
 
         public async Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividad)
@@ -91,18 +90,18 @@ namespace ControlActividades.Services
             {
                 return await ActividadesSTService.ActualizarActividad(id, actividad);
             }
-            return await ActivididadesCAService.ActualizarActividad(id, actividad);
+            return await ActividadesCAService.ActualizarActividad(id, actividad);
         }
 
-        public async Task EliminarActividadAsync(int id)
+        public async Task EliminarActividad(int id)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                await ActividadesSTService.EliminarActividadAsync(id);
+                await ActividadesSTService.EliminarActividad(id);
             }
-            await ActivididadesCAService.EliminarActividadAsync(id);
+            await ActividadesCAService.EliminarActividad(id);
         }       
     }
 

@@ -183,6 +183,20 @@ namespace ControlActividades.Models
         public string NombreMateria { get; set; }
 
         public string Descripcion { get; set; }
+        public string Color { get; set; }
+    }
+
+    public class CrearMateriaConGrupoRequest
+    {
+        [Required]
+        public string NombreMateria { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string Color { get; set; }
+
+        [Required]
+        public int GrupoId { get; set; }
     }
 
     public class Indices
@@ -378,20 +392,6 @@ namespace ControlActividades.Models
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaLimite { get; set; }
         public int Puntaje { get; set; }
-    }
-
-    public class ActividadDetallesRes
-    {
-        public int ActividadId { get; set; }
-        public string NombreActividad { get; set; }
-        public string Descripcion { get; set; }
-        public int MateriaId { get; set; }
-        public DateTime FechaCreacion { get; set; }
-        public DateTime FechaLimite { get; set; }
-        public int Puntaje { get; set; }
-        public bool? Enviado { get; set; }
-        public bool PermitirEntregasTarde { get; set; }
-        public DateTime? FechaProgramada { get; set; }
     }
 
     public class MateriaRes

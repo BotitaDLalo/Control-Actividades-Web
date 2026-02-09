@@ -3,5 +3,30 @@
     ViewBag.Title = "_Configuracion";
 }
 
-<h2>_Configuracion</h2>
 
+<h4>Configuración de la materia</h4>
+
+<div class="mb-3">
+    <label class="form-label">Editar Nombre</label>
+    <div class="input-group">
+        <input id="configNombre" class="form-control" />
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Editar Descripción</label>
+    <div class="d-flex" style="gap:10px; align-items:flex-start;">
+        <textarea id="configDescripcion" class="form-control" style="min-height:120px; flex:1;"></textarea>
+    </div>
+</div>
+
+<button id="btnGuardarMateriaEditada" class="btn btn-primary" type="button" style="margin-left:2cm;">Guardar</button>
+
+<div class="d-flex" style="gap:10px;">
+    <button id="btnCopiarMateria" class="btn btn-secondary">Copiar Materia</button>
+    <button id="btnCambiarCodigo" class="btn btn-warning">Cambiar código de clase</button>
+    <button id="btnEliminarMateria" class="btn btn-danger">Eliminar Materia</button>
+</div>
+
+<script src="~/Scripts/Materias/paneles.js"></script>
+<script src="~/Scripts/Materias/configuracion.js"></script>

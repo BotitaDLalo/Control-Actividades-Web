@@ -30,8 +30,7 @@ async function guardarMateriaSinGrupo() {
         body: JSON.stringify({
             NombreMateria: nombre, // Enviamos el nombre de la materia
             Descripcion: descripcion, // Enviamos la descripción de la materia
-            CodigoColor: color, // Enviamos el color de la materia
-            DocenteId: docenteIdGlobal // Enviamos el docenteId obtenido previamente
+            CodigoColor: color // Enviamos el color de la materia
         })
     });
     
@@ -44,7 +43,7 @@ async function guardarMateriaSinGrupo() {
             timer: 2000
         });
         ;// Mostramos una alerta de éxito
-        const form = document.getElementById("materiasForm");
+        const form = document.getElementById("materiasSGForm");
         if (form) form.reset(); // Limpiamos el formulario
         if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo(); // Recargamos la lista de materias sin grupo
     } else {
@@ -149,11 +148,33 @@ async function cargarMateriasSinGrupo() {
 
     } catch (error) {
         console.error('Error al cargar materias sin grupo:', error);
+<<<<<<< HEAD
         // Disabled blocking Swal modal to avoid interrupting the UI during development.
         // Previously this showed a modal with a countdown and retried; replace with a silent retry.
         setTimeout(function () {
             try { cargarMateriasSinGrupo(); } catch (e) { console.error('Retry failed', e); }
         },4000);
+=======
+        /*Swal.fire({
+            title: "Error al cargar materias",
+            html: "Reintentando en <b></b> segundos...",
+            timer: 4000,
+            timerProgressBar: true,
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+                const timer = Swal.getPopup().querySelector("b");
+                let timerInterval = setInterval(() => {
+                    timer.textContent = `${Math.floor(Swal.getTimerLeft() / 1000)}`;
+                }, 100);
+            },
+            willClose: () => clearInterval(timerInterval)
+        }).then((result) => {
+            if (result.dismiss === Swal.DismissReason.timer) {
+                cargarMateriasSinGrupo();
+            }
+        });*/
+>>>>>>> origin/MigracionPruebas
     }
 }
 

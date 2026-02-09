@@ -3,5 +3,21 @@
     ViewBag.Title = "_Entregables";
 }
 
-<h2>_Entregables</h2>
+<!-- Filtro por actividad -->
+<div class="mb-3 entregables-filters">
+    <label for="buscarActividadEntregables" class="col-form-label">Buscar actividad:</label>
+    <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
+
+    <label for="selectActividadEntregables" class="mb-0">Filtrar por actividad:</label>
+    <div style="display:flex;gap:8px;align-items:center;">
+        <select id="selectActividadEntregables" class="form-select form-select-sm">
+            <option value="0">-- Seleccione una actividad --</option>
+        </select>
+    </div>
+</div>
+
+<!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
+<div id="listaEntregables" class="mt-2">
+    <p class="text-muted">Selecciona una actividad para ver los entregables.</p>
+</div>
 

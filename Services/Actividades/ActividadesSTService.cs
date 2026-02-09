@@ -31,7 +31,7 @@ namespace ControlActividades.Services.Actividades
             }
         }
         
-        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, bool esDocente)
+        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
         {
             string query = url + "ObtenerActividadesPorMateria";
 
@@ -41,7 +41,7 @@ namespace ControlActividades.Services.Actividades
 
                 var model = new ObtenerActividadesPorMateriaRequest()
                 {
-                    EsDocente = esDocente,
+                    Role = rol,
                     MateriaId = materiaId,
                     View = View,
                 };
@@ -75,7 +75,43 @@ namespace ControlActividades.Services.Actividades
 
         public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)
         {
-            throw new NotImplementedException();
+            string query = url + "ObtenerActividadPorId";
+            
+            try
+            {
+                string response = string.Empty;
+                
+                var model = new ObtenerActividadPorIdRequest()
+                {
+                    ActividadId = actividadId,
+                    View = View,
+                };
+                
+                var json = JsonConvert.SerializeObject(model);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("X-API-KEY", apiKey);
+
+                    HttpResponseMessage res = await client.PostAsync(query, content);
+
+                    if (!res.IsSuccessStatusCode)
+                    {
+                        throw new Exception();
+                    }
+                    response = await res.Content.ReadAsStringAsync();
+                }
+
+                var actividad = JsonConvert.DeserializeObject<ActividadDetallesRes>(response);
+
+                return actividad;
+            }
+            catch (Exception)
+            {
+                return new ActividadDetallesRes();
+            }
+            
         }
 
         public async Task<ActividadRes> ActualizarActividad(int actividadId, ActividadDTO model)
