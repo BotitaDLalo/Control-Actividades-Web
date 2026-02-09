@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -114,14 +115,82 @@ namespace ControlActividades.Services.Actividades
             
         }
 
-        public async Task<ActividadRes> ActualizarActividad(int actividadId, ActividadDTO model)
+        public async Task<ActividadRes> ActualizarActividad(int actividadId, ActividadDTO actividadmodelo)
         {
-            throw new NotImplementedException();
+            string query = url + "ActualizarActividad";
+
+            try
+            {
+                string response = string.Empty;
+
+                var model = new ActividadDTO()
+                {
+                    NombreActividad = actividadmodelo.NombreActividad,
+                    Descripcion = actividadmodelo.Descripcion,
+                    FechaLimite = actividadmodelo.FechaLimite,
+                    Puntaje = actividadmodelo.Puntaje,
+                    Enviado = actividadmodelo.Enviado,
+                    FechaProgramada = actividadmodelo.FechaProgramada
+                };
+
+                var json = JsonConvert.SerializeObject(model);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("X-API-KEY", apiKey);
+
+                    HttpResponseMessage res = await client.PostAsync(query, content);
+
+                    if (!res.IsSuccessStatusCode)
+                    {
+                        throw new Exception();
+                    }
+                    response = await res.Content.ReadAsStringAsync();
+                }
+
+                var actividad = JsonConvert.DeserializeObject<ActividadRes>(response);
+
+                return actividad;
+            }
+            catch (Exception)
+            {
+                return new ActividadRes();
+            }
         }
 
-        public async Task EliminarActividadAsync (int id)
+        public async Task EliminarActividad (int id)
         {
-            throw new NotImplementedException();
+            string query = url + "EliminarActividad";
+
+            
+            var model = new ObtenerActividadPorIdRequest()
+            {
+                ActividadId = id,
+                View = View,
+            };
+
+            var json = JsonConvert.SerializeObject(model);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-API-KEY", apiKey);
+
+                var res = await client.PostAsync(query, content);
+
+                var response = await res.Content.ReadAsStringAsync();
+
+                if (res.StatusCode == HttpStatusCode.NotFound)
+                    throw new KeyNotFoundException(response);
+
+                if (res.StatusCode == HttpStatusCode.BadRequest)
+                    throw new InvalidOperationException(response);
+
+                if (!res.IsSuccessStatusCode)
+                    throw new Exception($"Error en API externa: {response}");
+            }
+
         }
     }
 }

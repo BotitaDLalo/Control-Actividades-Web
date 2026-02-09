@@ -481,7 +481,11 @@ namespace ControlActividades.Controllers
 
                 var actividadActualizada = await ActividadesService.ActualizarActividad(id, model);
 
-                return Json(new { mensaje = "Actividad actualizada correctamente." }, JsonRequestBehavior.AllowGet);
+                return Json(new 
+                { 
+                    mensaje = "Actividad actualizada correctamente.",
+                    data = actividadActualizada
+                });
             }
             catch(KeyNotFoundException ex)
             {
@@ -501,7 +505,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                await ActividadesService.EliminarActividadAsync(id);
+                await ActividadesService.EliminarActividad(id);
             
                 return Json(new 
                 { 

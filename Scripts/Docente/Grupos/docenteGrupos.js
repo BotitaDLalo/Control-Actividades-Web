@@ -343,7 +343,7 @@ async function crearMateriaGrupo() {
 
         location.reload(); //Refresca la página para mostrar la nueva materia en el grupo
     } else {
-        Swal.fire({
+        Swal.fire({ 
             icon: 'error',
             title: 'Error',
             text: data.mensaje || 'Ocurrió un error.'

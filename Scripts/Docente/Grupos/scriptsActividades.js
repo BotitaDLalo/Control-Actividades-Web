@@ -620,7 +620,7 @@ async function editarActividad(id) {
         const resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${id}`);
         if (!resp.ok) throw new Error('No se pudo obtener la actividad');
         const data = await resp.json();
-
+        
         // llenar formulario
         document.getElementById('nombre').value = data.NombreActividad || '';
         document.getElementById('descripcion').value = data.Descripcion || '';
@@ -628,14 +628,28 @@ async function editarActividad(id) {
         try {
             var d = document.getElementById('fechaLimite');
             var h = document.getElementById('horaLimite');
+
             var fechaISO = data.FechaLimite || data.FechaCreacion;
             if (fechaISO) {
-                var dt = new Date(fechaISO);
-                if (!isNaN(dt)) {
-                    if (d) d.value = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-                    if (h) h.value = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
-                    // store for modal show handler
-                    window._editarFechaISO = fechaISO;
+
+                let timestamp;
+
+                // Detectar formato /Date(123456789)/
+                const match = /\/Date\((\d+)\)\//.exec(fechaISO);
+                if (match) {
+                    timestamp = parseInt(match[1], 10);
+                }
+
+                if (timestamp) {
+                    const dt = new Date(timestamp);
+
+                    if (d) d.value = dt.toISOString().substring(0, 10);
+
+                    if (h) {
+                        const hours = String(dt.getHours()).padStart(2, '0');
+                        const minutes = String(dt.getMinutes()).padStart(2, '0');
+                        h.value = `${hours}:${minutes}`;
+                    }
                 }
             }
         } catch (e) {
@@ -648,7 +662,10 @@ async function editarActividad(id) {
 
         // marcar que estamos editando
         window.editingActividadId = id;
-
+        var titulo = document.getElementById('crearActividadModalLabel');
+        if (titulo) {
+            titulo.textContent = 'Editar actividad';
+        }
         // preparar botón publicar para actualizar
         var btn = document.getElementById('btnPublicarActividad');
         if (btn) {
@@ -688,10 +705,23 @@ async function actualizarActividad(id) {
     // leer campos
     let nombre = document.getElementById('nombre').value.trim();
     let descripcion = document.getElementById('descripcion').value.trim();
-    let fechaHoraLimite = document.getElementById('horaLimite').value;
+    let fecha = document.getElementById('fechaLimite').value;
+    let hora = document.getElementById('horaLimite').value;
     let puntajeInput = document.getElementById("puntaje");
     let sinPuntajeCheckbox = document.getElementById("sinPuntaje");
     let puntaje = null;
+
+    if (!fecha || !hora) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: 'Completa fecha y hora.'
+        });
+        return;
+    }
+
+    let fechaHoraLimite = `${fecha}T${hora}:00`;
+
     if (puntajeInput && !puntajeInput.disabled && puntajeInput.value !== '') {
         puntaje = parseInt(puntajeInput.value, 10);
     }
@@ -714,14 +744,6 @@ async function actualizarActividad(id) {
 
     // incluir estatus y fecha programada si aplica
     // modal ya no contiene estatus/fecha programada
-
-    const endpoints = [
-        `/api/Actividades/ActualizarActividad?id=${id}`,
-        `/api/Actividades/ActualizarActividad/${id}`,
-        `/Actividades/ActualizarActividad?id=${id}`,
-        `/Actividades/ActualizarActividad/${id}`
-    ];
-
     Swal.fire({
         title: 'Guardando...',
         allowOutsideClick: false,
@@ -731,28 +753,23 @@ async function actualizarActividad(id) {
     });
 
     try {
-        const resp = await tryEndpoints(endpoints, {
+        const resp = await fetch(`/Actividades/ActualizarActividad?id=${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
-        });
-        const text = await resp.text();
-        let data = null;
-        try {
-            data = text ? JSON.parse(text) : null;
-        } catch (e) {
-            data = null;
+        })
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            throw new Error(data?.mensaje || 'Error al actualizar');
         }
 
-        Swal.close();
         Swal.fire({
             icon: 'success',
             title: 'Actividad actualizada'
         });
 
-        // cerrar modal
         try {
             if (window.jQuery && $('#crearActividadModal').modal) {
                 $('#crearActividadModal').modal('hide');
@@ -765,14 +782,15 @@ async function actualizarActividad(id) {
 
         // limpiar estado
         window.editingActividadId = null;
-        try { document.getElementById('actividadesForm').reset(); } catch (e) { }
+        try {
+            document.getElementById('actividadesForm').reset();
+        } catch (e) { }
 
         // recargar lista
         setTimeout(cargarActividadesDeMateria, 300);
 
     } catch (e) {
         console.error(e);
-        Swal.close();
         Swal.fire('Error', e.message || 'No se pudo actualizar la actividad', 'error');
     }
 }
