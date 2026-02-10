@@ -12,6 +12,7 @@ using System.Web.Http;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
+using ControlActividades.Services.Grupos;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -27,20 +28,22 @@ namespace ControlActividades.Controllers
         private RoleManager<IdentityRole> _roleManager;
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
+        private GruposApiService _gruposApiService;
         
         public GruposApiController()
         {
         }
         
-        public GruposApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
+        public GruposApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, GruposApiService gruposApiService)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             RoleManager = roleManager;
             Db = DbContext;
             Fg = fg;
+            GruposApiService = gruposApiService;
         }
-
+        #region Propiedades
         public ApplicationSignInManager SignInManager
         {
             get
@@ -100,6 +103,18 @@ namespace ControlActividades.Controllers
             }
         }
 
+        public GruposApiService GruposApiService
+        {
+            get
+            {
+                return _gruposApiService ?? (_gruposApiService = new GruposApiService());
+            }
+            set
+            {
+                _gruposApiService = value;
+            }
+        }
+        #endregion
 
 
         #region Docente
@@ -201,12 +216,9 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var lsGrupos = await Db.tbGrupos.Where(a => a.DocenteId == docenteId)
-                    .Select(a => new
-                    {
-                        a.GrupoId,
-                        a.NombreGrupo
-                    }).ToListAsync();
+                int st_docenteId = 0;
+
+                var lsGrupos = await GruposApiService.ObtenerGruposCreados(docenteId, st_docenteId);
 
                 return Ok(lsGrupos);
             }
@@ -225,47 +237,51 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var lsGrupos = await Db.tbGrupos.Where(a => a.DocenteId == docenteId).ToListAsync();
+                //var lsGrupos = await Db.tbGrupos.Where(a => a.DocenteId == docenteId).ToListAsync();
 
 
-                var listaGruposMaterias = new List<object>();
-                foreach (var grupo in lsGrupos)
-                {
-                    var lsMateriasId = await Db.tbGruposMaterias.Where(a => a.GrupoId == grupo.GrupoId).Select(a => a.MateriaId).ToListAsync();
+                //var listaGruposMaterias = new List<object>();
+                //foreach (var grupo in lsGrupos)
+                //{
+                //    var lsMateriasId = await Db.tbGruposMaterias.Where(a => a.GrupoId == grupo.GrupoId).Select(a => a.MateriaId).ToListAsync();
 
-                    var lsMaterias = await Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(m => new
-                    {
-                        m.MateriaId,
-                        m.NombreMateria,
-                        m.Descripcion,
-                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(b => new
-                        {
-                            b.ActividadId,
-                            b.NombreActividad,
-                            b.Descripcion,
-                            b.FechaCreacion,
-                            b.FechaLimite,
-                            //b.TipoActividadId,
-                            b.Puntaje,
-                            b.MateriaId,
-                        }).ToList()
-                    }).ToListAsync();
-
-
-                    listaGruposMaterias.Add(new
-                    {
-                        GrupoId = grupo.GrupoId,
-                        NombreGrupo = grupo.NombreGrupo,
-                        Descripcion = grupo.Descripcion,
-                        CodigoAcceso = grupo.CodigoAcceso,
-                        CodigoColor = grupo.CodigoColor,
-
-                        Materias = lsMaterias
-                    });
-                }
+                //    var lsMaterias = await Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(m => new
+                //    {
+                //        m.MateriaId,
+                //        m.NombreMateria,
+                //        m.Descripcion,
+                //        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(b => new
+                //        {
+                //            b.ActividadId,
+                //            b.NombreActividad,
+                //            b.Descripcion,
+                //            b.FechaCreacion,
+                //            b.FechaLimite,
+                //            //b.TipoActividadId,
+                //            b.Puntaje,
+                //            b.MateriaId,
+                //        }).ToList()
+                //    }).ToListAsync();
 
 
-                return Ok(listaGruposMaterias);
+                //    listaGruposMaterias.Add(new
+                //    {
+                //        GrupoId = grupo.GrupoId,
+                //        NombreGrupo = grupo.NombreGrupo,
+                //        Descripcion = grupo.Descripcion,
+                //        CodigoAcceso = grupo.CodigoAcceso,
+                //        CodigoColor = grupo.CodigoColor,
+
+                //        Materias = lsMaterias
+                //    });
+                //}
+                int st_docenteId = 0;
+
+                string role = Roles.DOCENTE;
+
+                var lsGrupos = await GruposApiService.ObtenerGruposMaterias(docenteId, st_docenteId, role);
+
+                return Ok(lsGrupos);
             }
             catch (Exception e)
             {
@@ -650,46 +666,49 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var lsGruposAlumnosId = await Db.tbAlumnosGrupos.Where(a => a.AlumnoId == alumnoId).Select(a => a.GrupoId).ToListAsync();
+                //var lsGruposAlumnosId = await Db.tbAlumnosGrupos.Where(a => a.AlumnoId == alumnoId).Select(a => a.GrupoId).ToListAsync();
 
-                var lsGrupos = await Db.tbGrupos.Where(a => lsGruposAlumnosId.Contains(a.GrupoId)).ToListAsync();
+                //var lsGrupos = await Db.tbGrupos.Where(a => lsGruposAlumnosId.Contains(a.GrupoId)).ToListAsync();
 
-                var listaGruposMaterias = new List<object>();
-                foreach (var grupo in lsGrupos)
-                {
-                    var lsMateriasGrupoId = await Db.tbGruposMaterias.Where(a => a.GrupoId == grupo.GrupoId).Select(a => a.MateriaId).ToListAsync();
-
-
-                    var lsMaterias = await Db.tbMaterias.Where(a => lsMateriasGrupoId.Contains(a.MateriaId)).Select(m => new
-                    {
-                        m.MateriaId,
-                        m.NombreMateria,
-                        m.Descripcion,
-                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(b => new
-                        {
-                            b.ActividadId,
-                            b.NombreActividad,
-                            b.Descripcion,
-                            b.FechaCreacion,
-                            b.FechaLimite,
-                            //b.TipoActividadId,
-                            b.Puntaje,
-                            b.MateriaId,
-                        }).ToList()
-                    }).ToListAsync();
+                //var listaGruposMaterias = new List<object>();
+                //foreach (var grupo in lsGrupos)
+                //{
+                //    var lsMateriasGrupoId = await Db.tbGruposMaterias.Where(a => a.GrupoId == grupo.GrupoId).Select(a => a.MateriaId).ToListAsync();
 
 
-                    listaGruposMaterias.Add(new
-                    {
-                        GrupoId = grupo.GrupoId,
-                        NombreGrupo = grupo.NombreGrupo,
-                        Descripcion = grupo.Descripcion,
-                        //codigoAcceso = grupo.CodigoAcceso,
-                        CodigoColor = grupo.CodigoColor,
-                        Materias = lsMaterias
-                    });
-                }
+                //    var lsMaterias = await Db.tbMaterias.Where(a => lsMateriasGrupoId.Contains(a.MateriaId)).Select(m => new
+                //    {
+                //        m.MateriaId,
+                //        m.NombreMateria,
+                //        m.Descripcion,
+                //        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(b => new
+                //        {
+                //            b.ActividadId,
+                //            b.NombreActividad,
+                //            b.Descripcion,
+                //            b.FechaCreacion,
+                //            b.FechaLimite,
+                //            //b.TipoActividadId,
+                //            b.Puntaje,
+                //            b.MateriaId,
+                //        }).ToList()
+                //    }).ToListAsync();
 
+
+                //    listaGruposMaterias.Add(new
+                //    {
+                //        GrupoId = grupo.GrupoId,
+                //        NombreGrupo = grupo.NombreGrupo,
+                //        Descripcion = grupo.Descripcion,
+                //        //codigoAcceso = grupo.CodigoAcceso,
+                //        CodigoColor = grupo.CodigoColor,
+                //        Materias = lsMaterias
+                //    });
+                //}
+                int st_alumnoId = 0;
+                string role = Roles.ALUMNO;
+
+                var listaGruposMaterias = await GruposApiService.ObtenerGruposMaterias(alumnoId, st_alumnoId, role);
 
                 return Ok(listaGruposMaterias);
 

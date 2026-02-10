@@ -27,12 +27,14 @@ namespace ControlActividades.Models.db
         [Required]
         public string UserId { get; set; }
 
+        public int? ST_UsuarioId { get; set; }
+
         public virtual ICollection<tbAlumnosGrupos> AlumnosGrupos { get; set; }
 
         public virtual ICollection<tbAlumnosMaterias> AlumnosMaterias { get; set; }
 
         //public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
 
-        public virtual ICollection<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set;  }
+        public virtual ICollection<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set; }
     }
 }

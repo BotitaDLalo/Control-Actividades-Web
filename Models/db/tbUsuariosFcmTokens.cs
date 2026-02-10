@@ -13,7 +13,6 @@ namespace ControlActividades.Models.db
         [Required]
         public string UserId { get; set; }
         
-        [Required]
         public string Token {  get; set; }
         
         public virtual ApplicationUser IdentityUser { get; set; }

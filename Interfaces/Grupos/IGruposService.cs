@@ -10,12 +10,12 @@ namespace ControlActividades.Interfaces
 {
     public interface IGruposService
     {
-        bool TieneGrupos(string role, int usuarioId);
+        Task<bool> TieneGrupos(string role, int ca_usuarioId, int st_usuarioId);
 
-        bool TieneMaterias(string role, int usuarioId);
+        Task<bool> TieneMaterias(string role, int ca_usuarioId, int st_usuarioId);
 
-        List<GrupoViewModel> ObtenerGruposPorUsuario(string role, int usuarioId);
+        Task<List<GruposCARes>> ObtenerGruposPorUsuario(string role, int ca_usuarioId, int st_usuarioId);
 
-        List<MateriaViewModel> ObtenerMateriasPorGrupo(int grupoId, int usuarioId, string role);
+        Task<List<MateriaCARes>> ObtenerMateriasPorGrupo(int grupoId, int ca_usuarioId, int st_usuarioId, string role);
     }
 }

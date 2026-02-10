@@ -1,4 +1,5 @@
-﻿@model List<ControlActividades.Models.MateriaViewModel>
+﻿@*@model List<ControlActividades.Models.MateriaViewModel>*@
+@model List<ControlActividades.Models.MateriaCARes>
 @{
     Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
     ViewBag.Title = "Materias del grupo";
@@ -25,7 +26,7 @@
                 </button>
                 <a href="@Url.Action("MateriaDetalles", "Materias", new { materiaId = materia.MateriaId})" class="text-decoration-none text-reset">
                     <div class="row g-0 h-100">
-                        <div class="col-md-4 d-flex align-items-center justify-content-center p-3" style="min-height:180px; background-color: @("#"+(materia.CodigoColor ?? "1db7f7"))">
+                        <div class="col-md-4 d-flex align-items-center justify-content-center p-3" style="min-height:180px; background-color: @(""+(materia.CodigoColor ?? "#1db7f7"))">
                             <img src="~/Content/Iconos/materia_2.svg"
                                  class="img-fluid rounded-start"
                                  style="object-fit: cover"

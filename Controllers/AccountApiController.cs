@@ -113,7 +113,7 @@ namespace ControlActividades.Controllers
         {
             get
             {
-                return _notifServ ?? (_notifServ = new NotificacionesService(Db,new FCMService()));
+                return _notifServ ?? (_notifServ = new NotificacionesService(Db, new FCMService()));
             }
             private set
             {
@@ -289,8 +289,72 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
+        [Route("CrearAdministrador")]
+        public async Task<IHttpActionResult> CrearAdministrador([FromBody] UsuarioRegistroAdministrador model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var nombreUsuario = model.Correo;
+                    var nombreUsuarioEncontrado = await UserManager.FindByNameAsync(nombreUsuario);
+
+                    if (nombreUsuarioEncontrado != null)
+                    {
+                        return Content(HttpStatusCode.BadRequest, new
+                        {
+                            ErrorCode = ErrorCodigos.nombreUsuarioUsado,
+                            ErrorMessage = Errores.GetMensajeError(ErrorCodigos.nombreUsuarioUsado)
+                        });
+                    }
+
+
+                    var userName = model.NombreUsuario;
+                    var email = model.Correo;
+                    var rol = Roles.ADMINISTRADOR;
+
+                    var user = new ApplicationUser { UserName = email, Email = email };
+                    var result = await UserManager.CreateAsync(user, model.Clave);
+                    if (!result.Succeeded)
+                    {
+                        return Content(HttpStatusCode.BadRequest, new { });
+                    }
+
+                    if (!await RoleManager.RoleExistsAsync(rol))
+                    {
+                        await RoleManager.CreateAsync(new IdentityRole(rol));
+                    }
+
+                    var userFound = UserManager.FindByEmail(email);
+                    var asignarRol = await UserManager.AddToRoleAsync(user.Id, rol);
+                    if (!asignarRol.Succeeded)
+                    {
+                        return Content(HttpStatusCode.BadRequest, new { });
+                    }
+
+
+                    var fcmToken = model.FcmToken;
+
+                    if (fcmToken == null) return Content(HttpStatusCode.BadRequest, new { });
+
+                    await Ns.RegistrarFcmTokenUsuario(userFound.Id, fcmToken);
+
+                    return Ok();
+                }
+                return Content(HttpStatusCode.BadRequest, new { Mensaje = "Hubo un error en el registro" });
+
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.BadRequest, new { e.Message });
+
+            }
+        }
+
+
+        [HttpPost]
         [Route("InicioSesionUsuario")]
-        public async Task<IHttpActionResult> InicioSesionUsuario([FromBody]UsuarioInicioSesion model)
+        public async Task<IHttpActionResult> InicioSesionUsuario([FromBody] UsuarioInicioSesion model)
         {
             try
             {
