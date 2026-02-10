@@ -92,39 +92,46 @@ namespace ControlActividades
                         "~/Scripts/Agenda/calendario-detalles.js",
                         "~/Scripts/Agenda/calendario-editar.js"
             ));
-            /*
-            bundles.Add(new Bundle("~/bundles/docente")
-                .Include("~/Scripts/Docente/*.js")
-                );
-            */
-            bundles.Add(new Bundle("~/bundles/ia").Include(
-                "~/Scripts/Docente/Grupos/ActividadIA.js",
+            
+            bundles.Add(new Bundle("~/bundles/iachat").Include(
                 "~/Scripts/Docente/IA.js",
                 "~/Scripts/Docente/IAChat.js"
                 )
             );
 
-            bundles.Add(new Bundle("~/bundles/materias").Include(
-                "~/Scripts/Docente/Grupos/docente.js",
-                "~/Scripts/Docente/Grupos/DetalleActividad.js",
-                // Ensure docente utilities (defines docenteIdGlobal) load before DetalleMateria
-                "~/Scripts/Docente/Grupos/DetalleMateria.js",
-                "~/Scripts/Docente/Grupos/DetalleMaterialIconos.js",
-                "~/Scripts/Docente/Grupos/docenteMaterias.js",
-                "~/Scripts/Docente/Grupos/VistaMateriasD.js",
-                "~/Scripts/Docente/Grupos/scriptsActividades.js",
-                "~/Scripts/Docente/Grupos/scriptsAlumnos.js"
+            bundles.Add(new Bundle("~/bundles/iaactividades").Include(
+                "~/Scripts/Docente/Grupos/ActividadIA.js",
+                "~/Scripts/Docente/IA.js"
                 )
             );
 
-            bundles.Add(new Bundle("~/bundles/avisos").Include(
-                "~/Scripts/Docente/Grupos/scriptsAvisos.js",
-                "~/Scripts/Avisos/avisos.js"
+            //Usar en vista de materias (listado de materias y creación)
+            bundles.Add(new Bundle("~/bundles/materiasCreacion").Include(
+                "~/Scripts/Docente/Grupos/docente.js",
+                "~/Scripts/Docente/Grupos/docenteMaterias.js",
+                "~/Scripts/Docente/Grupos/docenteGrupos.js"
                 )
             );
+
+            //Usar solo en la vista de detalles de materia (avisos, actividades, etc).
+            bundles.Add(new Bundle("~/bundles/materiasDetalles").Include(
+                "~/Scripts/Materias/paneles.js",
+                "~/Scripts/Docente/Grupos/scriptsAvisos.js",
+                "~/Scripts/Docente/Grupos/DetalleActividad.js",
+                "~/Scripts/Docente/Grupos/DetalleMateria.js",
+                "~/Scripts/Docente/Grupos/DetalleMateriaIconos.js",
+                "~/Scripts/Docente/Grupos/scriptsActividades.js",
+                "~/Scripts/Docente/Grupos/scriptsAlumnos.js",
+                "~/Scripts/Materias/configuracion.js",
+                "~/Scripts/Materias/materia-detalles.js"
+                )
+            );
+
 
             bundles.Add(new Bundle("~/bundles/docenteGrupos").Include(
-                "~/Scripts/Docente/Grupos/docenteGrupos.js"
+                "~/Scripts/Docente/Grupos/docenteGrupos.js",
+                "~/Scripts/Docente/Grupos/docente.js",
+                "~/Scripts/Grupos/grupos.js"
                 )
             );
 

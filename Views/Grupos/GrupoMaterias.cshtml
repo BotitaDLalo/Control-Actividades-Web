@@ -74,11 +74,5 @@
 }
 
 @section Scripts{
-    @*<script src="~/Scripts/Docente/Grupos/mostrarMateriasGrupo.js"></script>*@
-    @*<script>
-            document.addEventListener('DOMContentLoaded', function () {
-                if (typeof cargarMateriasDeGrupo === 'function') cargarMateriasDeGrupo();
-            });
-        </script>
-        <script src="~/Scripts/Materias/materias-grupo.js"></script>*@
+    @Scripts.Render("~/bundles/materiasCreacion")
 }

@@ -657,7 +657,7 @@
     <Content Include="Content\site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <Content Include="Scripts\Actividades\actividades.js" />
+    <Content Include="Scripts\Papelera_Scripts\actividades.js" />
     <Content Include="Scripts\Actividades\entregables.js" />
     <Content Include="Scripts\Administrador\Autorizar.js" />
     <Content Include="Scripts\Agenda\calendario-detalles.js" />
@@ -687,7 +687,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\Papelera_Scripts\FullCalendarGeneral.js" />
-    <Content Include="Scripts\Componentes\componenteAvisos.js" />
+    <Content Include="Scripts\Papelera_Scripts\componenteAvisos.js" />
     <Content Include="Scripts\Componentes\PantallaCarga.js" />
     <Content Include="Scripts\dataTables.dataTables.js" />
     <Content Include="Scripts\dataTables.dataTables.min.js" />
@@ -813,7 +813,7 @@
     <Content Include="Views\Materias\Index.cshtml" />
     <Content Include="Views\Grupos\GrupoMaterias.cshtml" />
     <Content Include="Views\Materias\MateriasModal.cshtml" />
-    <Content Include="Views\Materias\CrearActividadModal.cshtml" />
+    <Content Include="Scripts\Papelera_Scripts\CrearActividadModal.cshtml" />
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
     <Content Include="SOLUCION_PROBLEMA_ALUMNO_REAPARECE.md" />
     <Content Include="SIMPLIFICACION_METODOS_ELIMINACION.md" />

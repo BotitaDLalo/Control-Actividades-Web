@@ -7,7 +7,7 @@
                 <h5 class="modal-title modal-title-custom" id="materiasModalLabel">Creación de Materia</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
+
             <div class="modal-body modal-body-custom">
                 <form id="materiasSGForm">
                     <div class="mb-3">
@@ -26,9 +26,9 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="submit" class="btn btn-primary" onClick="guardarMateriaSinGrupo()">Crear</button>
             </div>
-            
+
         </div>
     </div>
 </div>
-<script src="~/Scripts/Materias/materias-sin-grupo.js"></script>
-<script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>
+
+@Scripts.Render("~/bundles/materiasCreacion")
