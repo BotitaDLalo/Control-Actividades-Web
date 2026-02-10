@@ -58,13 +58,20 @@
                         <textarea id="descripcion" name="Descripcion" required></textarea>
 
                         <div class="fechas-juntas">
-                            <div class="campo-fecha">
+                            <div>
                                 <label for="FechaInicio">Fecha Inicio:</label>
-                                <input type="datetime-local" id="FechaInicio" name="FechaInicio" required>
+                                <div class="inputs-inline">
+                                    <input type="date" id="FechaInicio" name="FechaInicio" required>
+                                    <input type="time" id="HoraInicio" name="HoraInicio" required>
+                                </div>
                             </div>
-                            <div class="campo-fecha">
+
+                            <div>
                                 <label for="FechaFinal">Fecha Final:</label>
-                                <input type="datetime-local" id="fechaFinal" name="FechaFinal" required>
+                                <div class="inputs-inline">
+                                    <input type="date" id="FechaFinal" name="FechaFinal" required>
+                                    <input type="time" id="HoraFinal" name="HoraFinal" required>
+                                </div>
                             </div>
                         </div>
 
@@ -99,9 +106,9 @@
                             </div>
                         </div>
                     </form>
-                    <div class="modal-footer modal-footer-custom">
-                        <button type="submit" form="formEvento" class="btn btn-primary-custom">Guardar</button>
-                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="submit" form="formEvento" class="btn btn-primary-custom">Guardar</button>
                 </div>
 
             </div>
@@ -228,8 +235,12 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary-custom">Guardar cambios</button>
+                        
                     </form>
+                </div>
+
+                <div class="modal-footer modal-footer-custom">
+                    <button type="submit" form="formEditarEvento" class="btn btn-primary-custom">Guardar cambios</button>
                 </div>
 
             </div>

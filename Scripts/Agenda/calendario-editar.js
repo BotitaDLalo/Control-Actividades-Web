@@ -293,7 +293,7 @@ if (_formEditarEvento) {
 
             // Notificar al sistema
             document.dispatchEvent(new CustomEvent("eventoEditado"));
-
+            
         } catch (err) {
             console.error(err);
             Swal.fire("Error", "No se pudo editar el evento", "error");

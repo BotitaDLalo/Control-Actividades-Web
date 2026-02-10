@@ -1,4 +1,20 @@
-﻿(function () {
+﻿function establecerFechaHoraSeleccionada() {
+
+    if (!fechaSeleccionadaGlobal) return;
+
+    const fechaInicioInput = document.getElementById("FechaInicio");
+    const horaInicioInput = document.getElementById("HoraInicio");
+    const fechaFinalInput = document.getElementById("FechaFinal");
+    const horaFinalInput = document.getElementById("HoraFinal");
+
+    fechaInicioInput.value = fechaSeleccionadaGlobal;
+    fechaFinalInput.value = fechaSeleccionadaGlobal;
+
+    horaInicioInput.value = "00:00";
+    horaFinalInput.value = "23:59";
+}
+
+(function () {
 
     let modalCrear, formEvento;
 
@@ -11,6 +27,9 @@
 
         formEvento = document.getElementById("formEvento");
 
+        modalEl.addEventListener("show.bs.modal", function () {
+            establecerFechaHoraSeleccionada();
+        });
         // Cargar grupos y materias
         cargarGruposMaterias();
 
