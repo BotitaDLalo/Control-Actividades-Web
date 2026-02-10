@@ -481,14 +481,11 @@
     <Compile Include="Models\db\cTiposActividades.cs" />
     <Compile Include="Models\db\tbActividades.cs" />
     <Compile Include="Models\db\tbAlumnos.cs" />
-    <Compile Include="Models\db\tbAlumnosActividades.cs" />
     <Compile Include="Models\db\tbAlumnosGrupos.cs" />
     <Compile Include="Models\db\tbAlumnosMaterias.cs" />
     <Compile Include="Models\db\tbAvisos.cs" />
-    <Compile Include="Models\db\tbCalificaciones.cs" />
     <Compile Include="Models\db\tbDocentes.cs" />
     <Compile Include="Models\db\tbEntregaActividadAlumno.cs" />
-    <Compile Include="Models\db\tbEntregableAlumno.cs" />
     <Compile Include="Models\db\tbEntregables.cs" />
     <Compile Include="Models\db\tbEventosAgenda.cs" />
     <Compile Include="Models\db\tbEventosGrupos.cs" />
