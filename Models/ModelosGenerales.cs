@@ -338,6 +338,28 @@ namespace ControlActividades.Models
         public string FcmToken { get; set; }
     }
 
+    public class UsuarioRegistroAdministrador
+    {
+        public string NombreUsuario { get; set; }
+
+        [Required]
+        public string ApellidoPaterno { get; set; }
+
+        [Required]
+        public string ApellidoMaterno { get; set; }
+
+        [Required]
+        public string Nombre { get; set; }
+
+        public string Correo { get; set; }
+
+        [Required]
+        public string Clave { get; set; }
+
+        public string FcmToken { get; set; }
+    }
+
+
     public class VerificarGoogleIdToken
     {
         [Required]
