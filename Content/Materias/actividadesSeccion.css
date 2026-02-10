@@ -127,14 +127,12 @@
 }
 
 .actividad-descripcion {
-    font-size: 16px;
-    color: #444;
+    font-size: 20px;
+    color: var(--txt-principal);
     margin-top: 15px;
     line-height: 1.5;
     max-height: 0; /* Inicialmente oculta */
     overflow: hidden;
-    opacity: 0; /* Inicialmente oculta */
-    transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 
 .actividad-descripcion.visible {

@@ -184,32 +184,27 @@ function renderizarAvisos(avisos) {
         avisoItem.className = 'aviso-item';
         const botonesHtml = window.esDocente
             ? `
-                <div style="display:flex;flex-direction:column;gap:8px;margin-left:12px">
-                    <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${aviso.AvisoId}">Editar</button>
-                    <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar</button>
+                <div style="display:block; flex-direction:column;gap:8px;margin-left:12px">
+                    <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">Editar ✏️</button>
+                </div>
+                <div style="display:block; flex-direction:column;gap:8px;margin-left:12px">
+                    <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar 🗑️</button>
                 </div>
       `
             : '';
         // Crear card
         avisoItem.innerHTML = `
-            <div class="aviso-icono">📢</div>
+            
             <div class="aviso-info">
-                <strong>${escapeHtml(aviso.Titulo)}</strong>
-                <div class="aviso-descripcion oculto">${escapeHtml(aviso.Descripcion)}</div>
+                <div class="aviso-icono">📢
+                    <span><strong>${escapeHtml(aviso.Titulo)}</strong><span>
+                </div>
+            
+                <div class="aviso-descripcion visible">${escapeHtml(aviso.Descripcion)}</div>
                 <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</div>
-                <div class="ver-completo">Ver completo</div>
             </div>
            ${botonesHtml}
         `;
-
-        // toggle descripcion
-        const ver = avisoItem.querySelector('.ver-completo');
-        const desc = avisoItem.querySelector('.aviso-descripcion');
-        if (ver && desc) ver.addEventListener('click', () =>
-                                            {
-                                                desc.classList.toggle('oculto');
-                                                desc.classList.toggle('visible');
-                                            });
 
         // botones
         if (window.esDocente) {

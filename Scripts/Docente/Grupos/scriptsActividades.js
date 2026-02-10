@@ -463,13 +463,14 @@ function renderActividadesDirect(listado) {
             : '';
 
         actividadItem.innerHTML = `
-            <div class="icono">📋</div>
             <div class="info">
-                <strong>${escapeHtml(actividad.NombreActividad)}</strong>
+                <div class="icono">📋
+                    <span><strong>${escapeHtml(actividad.NombreActividad)}</strong></span>
+                </div>
+                
                 <p class="fecha-publicado">Publicado: ${formatearFecha(actividad.FechaCreacion)}</p>
-                <p class="puntaje" style="font-weight: bold; color: #d35400;">Puntaje: ${actividad.Puntaje}</p>
-                <p class="actividad-descripcion oculto">${descripcionActividadConEnlace}</p>
-                <p class="ver-completo">Ver completo</p>
+                <p class="puntaje" style="font-size:19px; font-weight: bold; color: #d35400;">Puntaje: ${actividad.Puntaje}</p>
+                <p class="actividad-descripcion visible">${descripcionActividadConEnlace}</p>
             </div>
             <div class="fecha-entrega">
                 <strong>Fecha de entrega:</strong><br>
@@ -481,19 +482,6 @@ function renderActividadesDirect(listado) {
             </div>
         `;
 
-        const verCompleto = actividadItem.querySelector(".ver-completo");
-        const descripcion = actividadItem.querySelector(".actividad-descripcion");
-        if (verCompleto && descripcion) {
-            verCompleto.addEventListener("click", () => {
-                if (descripcion.classList.contains("oculto")) {
-                    descripcion.classList.remove("oculto");
-                    descripcion.classList.add("visible");
-                } else {
-                    descripcion.classList.remove("visible");
-                    descripcion.classList.add("oculto");
-                }
-            });
-        }
 
         // botones
         if (window.esDocente) {
