@@ -395,7 +395,7 @@ namespace ControlActividades.Controllers
             {
                 return BadRequest("Error al actualizar: " + e.Message);
             }
-        }*/
+        }
 
 
 
