@@ -1282,7 +1282,7 @@ namespace ControlActividades.Controllers
         }
 
 
-       /* [HttpPost]
+        /*[HttpPost]
         [Route("EliminarAlumnoMateria")]
         public async Task<IHttpActionResult> EliminarAlumnoDeMateria(
             [FromBody] AlumnoEliminarRequest request)
