@@ -19,7 +19,7 @@
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
-    <IISExpressSSLPort>44391</IISExpressSSLPort>
+    <IISExpressSSLPort>44344</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
@@ -434,6 +434,7 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\Actividades\IActividadesService.cs" />
     <Compile Include="Interfaces\Grupos\IGruposApiService.cs" />
     <Compile Include="Interfaces\IFuenteDatos.cs" />
     <Compile Include="Interfaces\Grupos\IGruposService.cs" />
@@ -508,6 +509,9 @@
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Recursos\StringExtensions.cs" />
     <Compile Include="Services\ActividadesService.cs" />
+    <Compile Include="Services\Actividades\ActividadesCAService.cs" />
+    <Compile Include="Services\Actividades\ActividadesService.cs" />
+    <Compile Include="Services\Actividades\ActividadesSTService.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\FuenteDatosService.cs" />
