@@ -1,4 +1,4 @@
-﻿using System.Data.Entity;
+using System.Data.Entity;
 using System.Reflection.Emit;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -32,22 +32,15 @@ namespace ControlActividades.Models
         public DbSet<tbDocentes> tbDocentes { get; set; }
         public DbSet<tbAlumnosGrupos> tbAlumnosGrupos { get; set; }
         public DbSet<tbAlumnosMaterias> tbAlumnosMaterias { get; set; }
-        //public DbSet<tbAlumnosActividades> tbAlumnosActividades { get; set; }
-        //public DbSet<tbEntregableAlumno> tbEntregablesAlumno { get; set; }
         public DbSet<tbGrupos> tbGrupos { get; set; }
         public DbSet<tbGruposMaterias> tbGruposMaterias { get; set; }
         public DbSet<tbMaterias> tbMaterias { get; set; }
         public DbSet<tbActividades> tbActividades { get; set; }
-        public DbSet<tbCalificaciones> tbCalificaciones { get; set; }
-        //public DbSet<cTiposActividades> cTiposActividades { get; set; }
         public DbSet<tbAvisos> tbAvisos { get; set; }
         public DbSet<tbEventosAgenda> tbEventosAgenda { get; set; }
         public DbSet<tbEventosGrupos> tbEventosGrupos { get; set; }
         public DbSet<tbEventosMaterias> tbEventosMaterias { get; set; }
         public DbSet<tbNotificaciones> tbNotificaciones { get; set; }
-
-
-
         public DbSet<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set; }
         public DbSet<tbEntregables> tbEntregables { get; set; }
         public DbSet<cTipoEntrega> cTipoEntrega { get; set; }
