@@ -14,6 +14,12 @@ namespace ControlActividades.Models
 
         public int Calificacion { get; set; }
     }
+
+    public class QuitarCalificacionPeticion
+    {
+        public int EntregableId { get; set; }
+    }
+
     public class ProblemDetails
     {
         public int Status { get; set; }

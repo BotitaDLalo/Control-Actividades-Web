@@ -610,7 +610,29 @@ namespace ControlActividades.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("QuitarCalificacion")]
+        public async Task<IHttpActionResult> QuitarCalificacion([FromBody] QuitarCalificacionPeticion peticion)
+        {
+            try
+            {
+                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == peticion.EntregableId);
 
+                if (entregable == null) return BadRequest("Entregable no encontrado");
+
+                entregable.Calificacion = null;
+                entregable.FechaCalificado = null;
+
+                Db.Entry(entregable).State = EntityState.Modified;
+                await Db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
 
 
