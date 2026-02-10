@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -13,52 +12,34 @@ namespace ControlActividades.Controllers
     {
         private string GetApiKey()
         {
-            // Prefer environment variable for safety, fallback to Web.config appSettings
+            // Prefer environment variable for safety
             var key = Environment.GetEnvironmentVariable("AIService_ApiKey");
             if (!string.IsNullOrEmpty(key)) return key;
-            try
-            {
-                return ConfigurationManager.AppSettings["AIService_ApiKey"];
-            }
-            catch
-            {
-                return null;
-            }
+
+            // Support alternate key name used in Web.config
+            key = ConfigurationManager.AppSettings["AI:ApiKey"];
+            if (!string.IsNullOrEmpty(key)) return key;
+
+            // Fallback to legacy name
+            return ConfigurationManager.AppSettings["AIService_ApiKey"];
         }
 
         private string GetForwardUrl()
         {
-            try
-            {
-                return ConfigurationManager.AppSettings["AIService_ForwardUrl"];
-            }
-            catch
-            {
-                return null;
-            }
+            return ConfigurationManager.AppSettings["AIService_ForwardUrl"];
         }
 
         private bool UseApiKeyInHeader()
         {
-            try
-            {
-                var v = ConfigurationManager.AppSettings["AIService_UseApiKeyInHeader"];
-                if (string.IsNullOrEmpty(v)) return true; // default to header
-                return v.Trim().ToLower() == "true";
-            }
-            catch
-            {
-                return true;
-            }
+            var v = ConfigurationManager.AppSettings["AIService_UseApiKeyInHeader"];
+            if (string.IsNullOrEmpty(v)) return true; // default to header
+            return v.Trim().ToLower() == "true";
         }
 
         // Ping simple para comprobar disponibilidad
         [HttpGet]
         [Route("ping")]
-        public IHttpActionResult Ping()
-        {
-            return Ok(new { mensaje = "pong" });
-        }
+        public IHttpActionResult Ping() => Ok(new { mensaje = "pong" });
 
         // Stub/proxy para pruebas: /api/IA/MejorarDescripcion
         [HttpPost]
@@ -78,19 +59,15 @@ namespace ControlActividades.Controllers
 
         private async Task<IHttpActionResult> ProxyRequest()
         {
-            string forwardUrl = GetForwardUrl();
-            string apiKey = GetApiKey();
-            bool useHeader = UseApiKeyInHeader();
+            var forwardUrl = GetForwardUrl();
+            var apiKey = GetApiKey();
+            var useHeader = UseApiKeyInHeader();
 
             if (string.IsNullOrEmpty(forwardUrl))
-            {
-                return Content(HttpStatusCode.InternalServerError, new { mensaje = "AIService_ForwardUrl no configurada. Actualiza Web.config appSettings con la URL del endpoint AI." });
-            }
+                return Content(System.Net.HttpStatusCode.InternalServerError, new { mensaje = "AIService_ForwardUrl no configurada." });
 
             if (string.IsNullOrEmpty(apiKey))
-            {
-                return Content(HttpStatusCode.InternalServerError, new { mensaje = "AIService_ApiKey no configurada. Establece la clave en variable de entorno 'AIService_ApiKey' o en Web.config appSettings." });
-            }
+                return Content(System.Net.HttpStatusCode.InternalServerError, new { mensaje = "AIService_ApiKey no configurada." });
 
             string body;
             try
@@ -99,17 +76,16 @@ namespace ControlActividades.Controllers
             }
             catch (Exception ex)
             {
-                return Content(HttpStatusCode.BadRequest, new { mensaje = "Error leyendo el cuerpo de la petición", detalle = ex.Message });
+                return Content(System.Net.HttpStatusCode.BadRequest, new { mensaje = "Error leyendo el cuerpo de la petición", detalle = ex.Message });
             }
 
             try
             {
                 using (var client = new HttpClient())
                 {
-                    string target = forwardUrl;
+                    var target = forwardUrl;
                     if (!useHeader)
                     {
-                        // append api key as query string parameter if not present
                         var separator = target.Contains("?") ? "&" : "?";
                         target = target + separator + "key=" + WebUtility.UrlEncode(apiKey);
                     }
@@ -122,18 +98,16 @@ namespace ControlActividades.Controllers
                     var resp = await client.PostAsync(target, content);
                     var respText = await resp.Content.ReadAsStringAsync();
 
-                    // return raw response preserving status code
-                    var respMessage = Content(resp.StatusCode, respText);
-                    return respMessage;
+                    return Content(resp.StatusCode, respText);
                 }
             }
             catch (HttpRequestException hre)
             {
-                return Content(HttpStatusCode.BadGateway, new { mensaje = "Error al comunicarse con el servicio AI externo", detalle = hre.Message });
+                return Content(System.Net.HttpStatusCode.BadGateway, new { mensaje = "Error al comunicarse con el servicio AI externo", detalle = hre.Message });
             }
             catch (Exception ex)
             {
-                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Error interno al procesar la petición AI", detalle = ex.Message });
+                return Content(System.Net.HttpStatusCode.InternalServerError, new { mensaje = "Error interno al procesar la petición AI", detalle = ex.Message });
             }
         }
     }
