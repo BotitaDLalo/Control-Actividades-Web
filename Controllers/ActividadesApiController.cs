@@ -502,6 +502,7 @@ namespace ControlActividades.Controllers
                             alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
                             alumnoEntregable.EntregaId = entregable.EntregableId;
                             alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                            alumnoEntregable.FechaCalificado = entregable.FechaCalificado;
 
                             string contenidoRaw = entregable.Contenido ?? "";
                             try

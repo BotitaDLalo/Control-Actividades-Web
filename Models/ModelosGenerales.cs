@@ -273,6 +273,7 @@ namespace ControlActividades.Models
         public DateTime FechaEntrega { get; set; }
         public string Respuesta { get; set; }
         public int Calificacion { get; set; }
+        public DateTime? FechaCalificado { get; set; }
         public string Texto { get; set; }
         public List<string> Enlaces { get; set; }
         public List<object> Archivos { get; set; }
@@ -574,6 +575,9 @@ namespace ControlActividades.Models
         public string Contenido { get; set; }
 
         public int Calificacion { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public DateTime? FechaCalificado { get; set; }
 
         public int EstadoEntregaId { get; set; }    
     }

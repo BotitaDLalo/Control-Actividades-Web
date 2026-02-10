@@ -1389,6 +1389,7 @@ namespace ControlActividades.Controllers
                                 FechaEntrega = datosAlumnoActividad.FechaEntrega,
                                 Contenido = entrega.Contenido,
                                 Calificacion = entrega.Calificacion ?? 0,
+                                FechaCalificado = entrega.FechaCalificado,
                                 EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId
                             };
 
