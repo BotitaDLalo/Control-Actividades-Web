@@ -131,7 +131,7 @@ namespace ControlActividades.Controllers
             return false;
         }
 
-        [HttpPost]
+        /*[HttpPost]
         [Route("SubirEntrega")]
         public async Task<IHttpActionResult> SubirEntrega()
         {
@@ -412,7 +412,7 @@ namespace ControlActividades.Controllers
                 var inner = ex.InnerException != null ? ex.InnerException.Message : null;
                 return Content(HttpStatusCode.InternalServerError, new { mensaje = ex.Message, innerException = inner, detalle = ex.ToString() });
             }
-        }
+        }*/
 
         private string BuildRespuestaWithFiles(string respuesta, List<string> files)
         {

@@ -694,7 +694,7 @@ namespace ControlActividades.Controllers
             {
                 //var lsMateriasAlumnoId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == alumnoId).Select(a => a.MateriaId);
 
-                var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
+                /*var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
                 {
                     a.MateriaId,
                     a.NombreMateria,
@@ -728,7 +728,7 @@ namespace ControlActividades.Controllers
                                   aviso.GrupoId,
                                   aviso.MateriaId
                               }).ToList()
-                }).ToList();
+                }).ToList();*/
 
                 //foreach (var materia in lsMateriasSinGrupo)
                 //{
