@@ -372,17 +372,17 @@ function redirigir(tipoId, materiaId, grupoId) {
 
         //Actividad creada
         case 2:
-            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            window.location.href = `/Materias/MateriaDetalles?materiaId=${materiaId}`;
             break;
        
         //Actividad Entregada (NOTIFICACIÓN PARA DOCENTE)
         case 3:
-            window.location.href = "/Actividades/MisCalificaciones";
+            window.location.href = `/Materias/MateriaDetalles?materiaId=${materiaId}`;
             break;
 
         //Aviso
         case 4:
-            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            window.location.href = `/Materias/MateriaDetalles?materiaId=${materiaId}`;
             break;
 
         //Evento

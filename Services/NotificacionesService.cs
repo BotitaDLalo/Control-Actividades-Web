@@ -228,6 +228,7 @@ namespace ControlActividades.Services
             );
         }
 
+        //WEB
         public async Task NotificacionCreaActividad(ActividadDTO actividad)
         {
             var (usuariosIds, tokens) = await ObtenerDestinatarios(null, actividad.MateriaId);
@@ -379,8 +380,6 @@ namespace ControlActividades.Services
         //SECCIÓN DE NOTIFICACIONES PARA -DOCENTES- CUANDO EL ALUMNO HACE UNA ACCIÓN
 
         // Notificación cuando el alumno sube su tarea
-
-        // Notificación cuando el alumno deja un comentario (posible implementación)
 
 
         #endregion
