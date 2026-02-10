@@ -575,6 +575,8 @@
     <Content Include="Content\dataTables.dataTables.css" />
     <Content Include="Content\dataTables.dataTables.min.css" />
     <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\bote-eliminar.svg" />
+    <Content Include="Content\Iconos\lapiz-editar.svg" />
     <Content Include="Content\Iconos\notiGrupoAsignado.svg" />
     <Content Include="Content\Iconos\notiActividadCalificada.svg" />
     <Content Include="Content\Iconos\notiActividadEntregada.svg" />

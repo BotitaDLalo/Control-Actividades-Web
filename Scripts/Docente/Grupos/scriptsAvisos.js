@@ -184,27 +184,33 @@ function renderizarAvisos(avisos) {
         avisoItem.className = 'aviso-item';
         const botonesHtml = window.esDocente
             ? `
-                <div style="display:block; flex-direction:column;gap:8px;margin-left:12px">
-                    <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">Editar ✏️</button>
-                </div>
-                <div style="display:block; flex-direction:column;gap:8px;margin-left:12px">
-                    <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar 🗑️</button>
-                </div>
+        <div class="aviso-botones-lateral">
+            <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">
+                Editar
+                <img src="/Content/Iconos/lapiz-editar.svg" class="icono-btn" />    
+            </button>
+            <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">
+                Eliminar
+                <img src="/Content/Iconos/bote-eliminar.svg" class="icono-btn" />    
+            </button>
+        </div>
       `
             : '';
         // Crear card
         avisoItem.innerHTML = `
-            
-            <div class="aviso-info">
-                <div class="aviso-icono">📢
-                    <span><strong>${escapeHtml(aviso.Titulo)}</strong><span>
-                </div>
-            
-                <div class="aviso-descripcion visible">${escapeHtml(aviso.Descripcion)}</div>
-                <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</div>
-            </div>
-           ${botonesHtml}
-        `;
+    <div class="aviso-info">
+        <div class="aviso-icono">
+            📢 <strong>${escapeHtml(aviso.Titulo)}</strong>
+        </div>
+        <div class="aviso-descripcion visible">
+            ${escapeHtml(aviso.Descripcion)}
+        </div>
+        <div class="aviso-fecha-publicado">
+            Publicado: ${aviso.FechaCreacion}
+        </div>
+    </div>
+    ${botonesHtml}
+`;
 
         // botones
         if (window.esDocente) {

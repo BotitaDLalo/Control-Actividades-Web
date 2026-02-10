@@ -77,18 +77,6 @@
     opacity: 0;
 }
 
-.aviso-ver-completo {
-    font-size: 14px;
-    color: #007bff;
-    cursor: pointer;
-    margin-top: 10px;
-    text-decoration: underline;
-    transition: color 0.3s ease;
-}
-
-    .aviso-ver-completo:hover {
-        color: #0056b3;
-    }
 
 /* Estilos para los botones Editar, Eliminar e Ir a Actividades */
 .aviso-botones-container {
@@ -156,4 +144,25 @@
     height: 100%;
     border-radius: 8px;
     z-index: -1;
+}
+
+.aviso-item {
+    position: relative;
+    display: flex;
+    justify-content: space-between; /* separa izquierda y derecha */
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.aviso-botones-lateral {
+    display: flex;
+    flex-direction: column; /* uno arriba del otro */
+    gap: 10px;
+    min-width: 120px;
+}
+.icono-btn {
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+    vertical-align: middle;
 }
