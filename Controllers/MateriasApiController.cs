@@ -689,7 +689,25 @@ namespace ControlActividades.Controllers
                         b.FechaLimite,
                         b.Puntaje,
                         b.MateriaId
-                    }).ToList()
+                    }).ToList(),
+
+                    Avisos = (from aviso in Db.tbAvisos
+                              join docente in Db.tbDocentes on aviso.DocenteId equals docente.DocenteId into gj
+                              from subdocente in gj.DefaultIfEmpty() // Esto es un LEFT JOIN
+                              where aviso.MateriaId == a.MateriaId && aviso.GrupoId == null
+                              select new
+                              {
+                                  aviso.AvisoId,
+                                  aviso.Titulo,
+                                  aviso.Descripcion,
+                                  aviso.FechaCreacion,
+                                  // Construimos el nombre completo que la app espera
+                                  DocenteNombre = subdocente != null
+                                      ? subdocente.Nombre + " " + subdocente.ApellidoPaterno + " " + subdocente.ApellidoMaterno
+                                      : "",
+                                  aviso.GrupoId,
+                                  aviso.MateriaId
+                              }).ToList()
                 }).ToList();
 
                 //foreach (var materia in lsMateriasSinGrupo)
