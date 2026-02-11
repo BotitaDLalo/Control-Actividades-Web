@@ -101,6 +101,65 @@ namespace ControlActividades.Controllers
             }
 
         }
-        
+
+        [HttpPost]
+        [Route("MejorarDescripcion")]
+        public async Task<IHttpActionResult> MejorarDescripcion([FromBody] dynamic data)
+        {
+            try
+            {
+                var apiKey = GetApiKey();
+                if (string.IsNullOrEmpty(apiKey))
+                    return InternalServerError(new Exception("API key no configurada"));
+
+                string nombre = data?.Nombre;
+                string descripcion = data?.Descripcion;
+
+                if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(descripcion))
+                    return BadRequest("Nombre y descripción son obligatorios");
+
+                var prompt = $@"
+Genera exactamente 3 versiones mejoradas de la siguiente actividad.
+No expliques nada.
+No numeres.
+Separa cada sugerencia con una línea en blanco.
+
+Título: {nombre}
+Descripción: {descripcion}
+";
+
+                var requestBody = new
+                {
+                    contents = new[]
+                    {
+                new {
+                    parts = new[] {
+                        new { text = prompt }
+                    }
+                }
+            }
+                };
+
+                using (var client = new HttpClient())
+                {
+                    var url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+
+                    var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
+                    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                    var response = await client.PostAsync(url, content);
+                    var responseText = await response.Content.ReadAsStringAsync();
+
+                    return ResponseMessage(new HttpResponseMessage(response.StatusCode)
+                    {
+                        Content = new StringContent(responseText, System.Text.Encoding.UTF8, "application/json")
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
     }
 }
