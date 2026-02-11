@@ -253,6 +253,12 @@ namespace ControlActividades.Models
         public string IdToken { get; set; }
     }
 
+    public class ForgotPasswordRequest
+    {
+        [Required]
+        public string Email { get; set; }
+    }
+
     public class RespuestaAlumnosEntregables
     {
         public int ActividadId { get; set; }

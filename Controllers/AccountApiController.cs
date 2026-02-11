@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Http;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
@@ -731,12 +732,19 @@ namespace ControlActividades.Controllers
                     Db.tbDocentes.Add(docente);
                     await Db.SaveChangesAsync();
 
+                    int docenteId = docente.DocenteId;
+
                     await Ns.RegistrarFcmTokenUsuario(identityUserId, fcmToken);
 
-                    return Ok(new
+                    return Ok(new AutenticacionRespuesta
                     {
-                        estaAutorizado = EstatusAutorizacion.PENDIENTE,
-                        requiereDatosAdicionales = RequiereDatosAdicionales.NO_REQUERIDO
+                        Id = docenteId,
+                        UserName = userName,
+                        Correo = email,
+                        Rol = role,
+                        Token = token,
+                        EstaAutorizado = EstatusAutorizacion.PENDIENTE,
+                        RequiereDatosAdicionales = RequiereDatosAdicionales.NO_REQUERIDO
                     });
                 }
 
@@ -780,6 +788,50 @@ namespace ControlActividades.Controllers
                 }
 
                 return BadRequest("Rol no válido");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+
+        [HttpPost]
+        [Route("ForgotPassword")]
+        public async Task<IHttpActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrEmpty(request.Email))
+                {
+                    return BadRequest("El correo es requerido");
+                }
+
+                var user = await UserManager.FindByNameAsync(request.Email);
+                if (user == null)
+                {
+                    return Ok(new { mensaje = "Se ha enviado un enlace de restablecimiento si el correo existe" });
+                }
+
+                var token = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var baseUrl = $"{Request.RequestUri.Scheme}://{Request.RequestUri.Host}:{Request.RequestUri.Port}";
+                var resetlink = $"{baseUrl}/Account/ResetPassword?userId={user.Id}&code={Uri.EscapeDataString(token)}";
+                if (string.IsNullOrEmpty(resetlink))
+                {
+                    return BadRequest("Error al generar el enlace de restablecimiento");
+                }
+
+                var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/ResetPassword.html");
+                if (System.IO.File.Exists(templatePath))
+                {
+                    var html = System.IO.File.ReadAllText(templatePath);
+                    html = html.Replace("{{link}}", resetlink);
+
+                    var emailService = new Services.EmailService();
+                    await emailService.SendEmailAsync(user.Email, "Restablecer contraseña", html);
+                }
+
+                return Ok(new { mensaje = "Se ha enviado un enlace de restablecimiento a su correo" });
             }
             catch (Exception e)
             {
