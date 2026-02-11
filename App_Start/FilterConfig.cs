@@ -14,6 +14,8 @@ namespace ControlActividades
             // Require authentication globally; actions/controllers marked with [AllowAnonymous]
             // (e.g., Account.Login/Register) will remain accessible.
             filters.Add(new System.Web.Mvc.AuthorizeAttribute());
+            // Custom filter to log admin actions when impersonating users
+            filters.Add(new AdminAuditLogAttribute());
         }
     }
 }

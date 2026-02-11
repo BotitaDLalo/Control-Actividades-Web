@@ -428,6 +428,7 @@
     <Compile Include="Controllers\MateriasController.cs" />
     <Compile Include="Controllers\MigracionUsuariosController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
+    <Compile Include="Filters\AdminAuditLogAttribute.cs" />
     <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
     <Compile Include="Filters\NoCacheAttribute.cs" />
     <Compile Include="Global.asax.cs">
