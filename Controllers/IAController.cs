@@ -15,7 +15,7 @@ namespace ControlActividades.Controllers
         private string GetApiKey()
         {
             return Environment.GetEnvironmentVariable("GENERATIVE_API_KEY")
-                ?? ConfigurationManager.AppSettings["GenerativeApiKey"];
+                   ?? ConfigurationManager.AppSettings["GenerativeApiKey"];
         }
 
         private string GetForwardUrl()
@@ -26,10 +26,11 @@ namespace ControlActividades.Controllers
         private bool UseApiKeyInHeader()
         {
             var v = ConfigurationManager.AppSettings["AIService_UseApiKeyInHeader"];
-            if (string.IsNullOrEmpty(v)) return true; // default to header
+            if (string.IsNullOrEmpty(v))
+                return true; // default to header
+
             return v.Trim().ToLower() == "true";
         }
-
 
         // Stub para el chat: /api/IA/GenerarContenido
         [HttpPost]
@@ -47,22 +48,30 @@ namespace ControlActividades.Controllers
 
             if (string.IsNullOrEmpty(forwardUrl))
             {
-                return Content(System.Net.HttpStatusCode.InternalServerError, new { mensaje = "AIService_ForwardUrl no configurada." });
+                return Content(System.Net.HttpStatusCode.InternalServerError,
+                    new { mensaje = "AIService_ForwardUrl no configurada." });
             }
 
             if (string.IsNullOrEmpty(apiKey))
             {
-                return Content(System.Net.HttpStatusCode.InternalServerError, new { mensaje = "AIService_ApiKey no configurada." });
+                return Content(System.Net.HttpStatusCode.InternalServerError,
+                    new { mensaje = "AIService_ApiKey no configurada." });
             }
 
             string body;
+
             try
             {
                 body = await Request.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
-                return Content(System.Net.HttpStatusCode.BadRequest, new { mensaje = "Error leyendo el cuerpo de la petición", detalle = ex.Message });
+                return Content(System.Net.HttpStatusCode.BadRequest,
+                    new
+                    {
+                        mensaje = "Error leyendo el cuerpo de la petición",
+                        detalle = ex.Message
+                    });
             }
 
             try
@@ -70,6 +79,7 @@ namespace ControlActividades.Controllers
                 using (var client = new HttpClient())
                 {
                     var target = forwardUrl;
+
                     if (!useHeader)
                     {
                         var separator = target.Contains("?") ? "&" : "?";
@@ -77,7 +87,8 @@ namespace ControlActividades.Controllers
                     }
                     else
                     {
-                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                        client.DefaultRequestHeaders.Authorization =
+                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                     }
 
                     var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
@@ -93,13 +104,22 @@ namespace ControlActividades.Controllers
             }
             catch (HttpRequestException hre)
             {
-                return Content(System.Net.HttpStatusCode.BadGateway, new { mensaje = "Error al comunicarse con el servicio AI externo", detalle = hre.Message });
+                return Content(System.Net.HttpStatusCode.BadGateway,
+                    new
+                    {
+                        mensaje = "Error al comunicarse con el servicio AI externo",
+                        detalle = hre.Message
+                    });
             }
             catch (Exception ex)
             {
-                return Content(System.Net.HttpStatusCode.InternalServerError, new { mensaje = "Error interno al procesar la petición AI", detalle = ex.Message });
+                return Content(System.Net.HttpStatusCode.InternalServerError,
+                    new
+                    {
+                        mensaje = "Error interno al procesar la petición AI",
+                        detalle = ex.Message
+                    });
             }
-
         }
 
         [HttpPost]
@@ -109,6 +129,7 @@ namespace ControlActividades.Controllers
             try
             {
                 var apiKey = GetApiKey();
+
                 if (string.IsNullOrEmpty(apiKey))
                     return InternalServerError(new Exception("API key no configurada"));
 
@@ -132,27 +153,20 @@ Descripción: {descripcion}
                 {
                     contents = new[]
                     {
-                new {
-                    parts = new[] {
-                        new { text = prompt }
+                        new
+                        {
+                            parts = new[]
+                            {
+                                new { text = prompt }
+                            }
+                        }
                     }
-                    else
-                    {
-                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-                    }
-
-                    var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
-                    var resp = await client.PostAsync(target, content);
-                    var respText = await resp.Content.ReadAsStringAsync();
-
-                    return Content(resp.StatusCode, respText);
-                }
-            }
                 };
 
                 using (var client = new HttpClient())
                 {
-                    var url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+                    var url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key="
+                              + apiKey;
 
                     var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
                     var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
