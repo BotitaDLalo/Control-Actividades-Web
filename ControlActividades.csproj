@@ -481,6 +481,14 @@
     <Compile Include="Migrations\202601312203196_Campo_ST_usuarios.Designer.cs">
       <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202602111138426_SyncFix.cs" />
+    <Compile Include="Migrations\202602111138426_SyncFix.Designer.cs">
+      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.cs" />
+    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.Designer.cs">
+      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Dtos\Migracion\MigracionUsuariosDto.cs" />
     <Compile Include="Dtos\Migracion\UsuarioMigracionDto.cs" />
@@ -495,6 +503,7 @@
     <Compile Include="Models\db\tbAlumnos.cs" />
     <Compile Include="Models\db\tbAlumnosGrupos.cs" />
     <Compile Include="Models\db\tbAlumnosMaterias.cs" />
+    <Compile Include="Models\db\tbAuditoria.cs" />
     <Compile Include="Models\db\tbAvisos.cs" />
     <Compile Include="Models\db\tbDocentes.cs" />
     <Compile Include="Models\db\tbEntregaActividadAlumno.cs" />
@@ -931,6 +940,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202601312203196_Campo_ST_usuarios.resx">
       <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202602111138426_SyncFix.resx">
+      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202602111144587_CreateTablaLogsAdministrador.resx">
+      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
