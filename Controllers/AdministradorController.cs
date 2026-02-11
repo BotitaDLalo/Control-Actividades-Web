@@ -1,11 +1,4 @@
-﻿using System;
-using System.Security.Claims;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+﻿using ControlActividades.Filters;
 using ControlActividades.Models;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
@@ -13,7 +6,15 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using ControlActividades.Filters;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Hosting;
+using System.Web.Mvc;
 
 namespace ControlActividades.Controllers
 {
@@ -237,6 +238,29 @@ namespace ControlActividades.Controllers
                 {
                     var userId = docente.UserId;
                     var codigoDocente = docente.CodigoAutorizacion;
+                    var fechaLimite = docente.FechaExpiracionCodigo;
+
+                    if (fechaLimite < DateTime.Now || string.IsNullOrEmpty(codigoDocente))
+                    {
+                        bool existeCodigo = false;
+
+                        do
+                        {
+                            existeCodigo = Db.tbDocentes.Any(a => a.CodigoAutorizacion == codigoDocente);
+
+                            if (existeCodigo)
+                            {
+                                codigoDocente = Fg.GenerarCodigoAleatorio();
+                            }
+                        }
+                        while (existeCodigo);
+
+                        DateTime fechaExpiracionCodigo = DateTime.UtcNow.AddMinutes(59);
+                        docente.FechaExpiracionCodigo = fechaExpiracionCodigo;
+                        docente.CodigoAutorizacion = codigoDocente;
+
+                        Db.SaveChanges();
+                    }
 
                     var user = await UserManager.FindByIdAsync(userId);
 
@@ -244,9 +268,19 @@ namespace ControlActividades.Controllers
                     {
                         try
                         {
-                            var email = user.Email;
 
-                            await EmailService.SendEmailAsync(email ?? "", "Código de verificación", codigoDocente ?? "");
+                            var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/CodigoDocente.html");
+                            var html = System.IO.File.ReadAllText(templatePath);
+
+                            //Se reemplaza link en el archivo html por el link real
+                            html = html.Replace("{{codigoDocente}}", codigoDocente);
+
+                            var emailService = new Services.EmailService();
+                            await emailService.SendEmailAsync(
+                                user.Email,
+                                "Código de verificación",
+                                html
+                            );
 
                             docente.seEnvioCorreo = true;
                             Db.SaveChanges();
@@ -257,6 +291,10 @@ namespace ControlActividades.Controllers
                         {
                             return Json(new { mensaje = "No se pudo mandar código de verificación." }, JsonRequestBehavior.AllowGet);
                         }
+                    }
+                    else
+                    {
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                     }
                 }
 
@@ -313,7 +351,7 @@ namespace ControlActividades.Controllers
                     var codigoDocente = docente.CodigoAutorizacion;
                     var fechaLimite = docente.FechaExpiracionCodigo;
 
-                    if (fechaLimite < DateTime.Now)
+                    if (fechaLimite < DateTime.Now || string.IsNullOrEmpty(codigoDocente))
                     {
                         bool existeCodigo = false;
 
@@ -341,9 +379,19 @@ namespace ControlActividades.Controllers
                     {
                         try
                         {
-                            var email = user.Email;
 
-                            await EmailService.SendEmailAsync(email ?? "", "Código de verificación", codigoDocente ?? "");
+                            var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/CodigoDocente.html");
+                            var html = System.IO.File.ReadAllText(templatePath);
+                            
+                            //Se reemplaza link en el archivo html por el link real
+                            html = html.Replace("{{codigoDocente}}", codigoDocente);
+
+                            var emailService = new Services.EmailService();
+                            await emailService.SendEmailAsync(
+                                user.Email, 
+                                "Código de verificación", 
+                                html
+                            );
 
                             docente.seEnvioCorreo = true;
                             Db.SaveChanges();

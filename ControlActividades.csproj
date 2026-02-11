@@ -765,6 +765,7 @@
     <Content Include="Scripts\Shared\common-helpers.js" />
     <Content Include="Scripts\Shared\modoColor.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
+    <Content Include="Templates\Emails\CodigoDocente.html" />
     <Content Include="Templates\Emails\ResetPassword.html" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
     <Content Include="Views\Alumno\Materias.cshtml.txt" />
