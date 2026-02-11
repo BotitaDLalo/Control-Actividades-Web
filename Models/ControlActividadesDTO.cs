@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -36,7 +36,7 @@ namespace ControlActividades.Models
         public int MateriaId { get; set; }
 
         public int GrupoId { get; set; }
-        public string View { set; get; }
+        public string View { get; set; }
         public int st_usuarioId { get; set; }
 
         public string Role { get; set; }
@@ -74,7 +74,6 @@ namespace ControlActividades.Models
         public int ca_usuarioId { get; set; }
     }
 
-
     // ACTIVIDADES //
     public class ObtenerActividadesPorMateriaRequest
     {
@@ -102,6 +101,41 @@ namespace ControlActividades.Models
         public bool PermitirEntregasTarde { get; set; }
         public DateTime? FechaProgramada { get; set; }
     }
+    public class GruposSTRequest
+    {
+        public int ca_usuarioId { get; set; }
+        public int st_usuarioId { get; set; }
+        public string View { get; set; }
+    }
 
+    public class GrupoSTModel
+    {
+        public int GrupoId { get; set; }
+        public string NombreGrupo { get; set; }
+        public string Descripcion { get; set; }
+        public string CodigoAcceso { get; set; }
+    }
+
+    public class GruposSTResponse
+    {
+        public List<GrupoSTModel> Grupos { get; set; }
+    }
+
+    public class GenericSTResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+    }
+
+    public class ActividadDTO
+    {
+        public string NombreActividad { get; set; }
+        public string Descripcion { get; set; }
+        public DateTime FechaLimite { get; set; }
+        public int Puntaje { get; set; }
+        public int MateriaId { get; set; }
+        public bool? Enviado { get; set; }
+        public DateTime? FechaProgramada { get; set; }
+    }
 
 }

@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -125,7 +125,11 @@ namespace ControlActividades.Services.Actividades
                 actividadEditar.FechaLimite = actividadDto.FechaLimite;
             }
 
-            
+                if (actividadDto.Puntaje > 0)
+                {
+                    actividadEditar.Puntaje = actividadDto.Puntaje;
+                }
+
                 actividadEditar.Puntaje = actividadDto.Puntaje;
             
 

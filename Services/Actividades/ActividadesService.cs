@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
@@ -104,5 +104,3 @@ namespace ControlActividades.Services
             await ActividadesCAService.EliminarActividad(id);
         }       
     }
-
-}

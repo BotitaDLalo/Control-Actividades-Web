@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
@@ -481,11 +481,7 @@ namespace ControlActividades.Controllers
 
                 var actividadActualizada = await ActividadesService.ActualizarActividad(id, model);
 
-                return Json(new 
-                { 
-                    mensaje = "Actividad actualizada correctamente.",
-                    data = actividadActualizada
-                });
+                return Json(new { mensaje = "Actividad actualizada correctamente." }, JsonRequestBehavior.AllowGet);
             }
             catch(KeyNotFoundException ex)
             {

@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

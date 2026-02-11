@@ -439,6 +439,7 @@
     <Compile Include="Interfaces\Docente\IDocentesService.cs" />
     <Compile Include="Migracion\BulkIdentityMigrator.cs" />
     <Compile Include="Migracion\MigradorUsuariosRunner.cs" />
+    <Compile Include="Interfaces\Actividades\IActividadesService.cs" />
     <Compile Include="Interfaces\Grupos\IGruposApiService.cs" />
     <Compile Include="Interfaces\IFuenteDatos.cs" />
     <Compile Include="Interfaces\Grupos\IGruposService.cs" />
@@ -518,9 +519,10 @@
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Recursos\StringExtensions.cs" />
+    <Compile Include="Services\ActividadesService.cs" />
+    <Compile Include="Services\Actividades\ActividadesCAService.cs" />
     <Compile Include="Services\Actividades\ActividadesService.cs" />
     <Compile Include="Services\Actividades\ActividadesSTService.cs" />
-    <Compile Include="Services\Actividades\ActividadesCAService.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\FuenteDatosService.cs" />
