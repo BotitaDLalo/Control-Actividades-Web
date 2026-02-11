@@ -5,12 +5,12 @@
 
 <div class="modal fade" id="crearActividadModal" tabindex="-1" aria-labelledby="crearActividadModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="crearActividadModalLabel">Crear Actividad</h5>
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title modal-title-custom" id="crearActividadModalLabel">Crear Actividad</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body modal-body-custom">
                 <form id="actividadesForm" style="display:flex;flex-direction:column;gap:12px;">
                     <div class="form-group mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
@@ -32,14 +32,13 @@
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="puntaje" class="form-label">Puntaje (opcional)</label>
-                            <input type="number" id="puntaje" class="form-control" min="0" step="1" placeholder="Dejar vacío = Sin puntaje">
+                            <input type="number" id="puntaje" class="form-control" min="0" step="1">
                         </div>
                     </div>
 
-                    <small class="text-muted mb-0">Nota: si no indicas puntaje o pones 0 se mostrará como "Sin puntaje".</small>
                 </form>
             </div>
-            <div class="modal-footer d-flex flex-wrap justify-content-end gap-3" style="padding:1rem 1.25rem;">
+            <div class="modal-footer modal-footer-custom d-flex flex-wrap justify-content-end gap-3" style="padding:1rem 1.25rem;">
                 <button type="button" class="btn btn-secondary me-auto" data-bs-dismiss="modal">Cancelar</button>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-outline-secondary" id="btnSugerencias">Sugerencias</button>
@@ -52,17 +51,20 @@
 </div>
 
 <div class="modal fade" id="sugerenciasModal" tabindex="-1" aria-labelledby="sugerenciasModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="sugerenciasModalLabel">Sugerencias</h5>
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content modal-content-custom">
+            
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title modal-title-custom" id="sugerenciasModalLabel">Sugerencias</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
+            
+            <div class="modal-body modal-body-custom">
                 <div id="sugerenciasLista" class="">
                 </div>
             </div>
-            <div class="modal-footer">
+            
+            <div class="modal-footer modal-footer-custom">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="btnAplicarSugerencia">
                     Aceptar
