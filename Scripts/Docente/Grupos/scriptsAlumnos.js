@@ -241,99 +241,108 @@ window.eliminardelgrupo = eliminardelgrupo;
 
 // NOTE: Estatus change UI/endpoint was removed; no client-side function needed.
 
-// Import button handling
+// Import handling: expose a top-level function so dynamic buttons/modals can open file selector
+function createAndOpenFileInput(grupoId) {
+ // Evitar abrir el diálogo más de una vez simultáneamente
+ if (window._importDialogOpen) return;
+ window._importDialogOpen = true;
+
+ var input = document.getElementById('fileImportarAlumnos');
+ if (input)
+ {
+ try {
+ input.remove();
+ } catch (e) { }
+ }
+ input = document.createElement('input');
+ input.type = 'file';
+ input.accept = '.xlsx,.xls';
+ input.id = 'fileImportarAlumnos';
+ input.style.display = 'none';
+ document.body.appendChild(input);
+ input.addEventListener('change', async function (ev) {
+ try {
+ var file = ev.target.files && ev.target.files[0];
+ if (!file) return;
+
+ var fd = new FormData();
+ fd.append('file', file);
+
+ if (grupoId) fd.append('GrupoId', grupoId);
+ if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) fd.append('MateriaId', materiaIdGlobal);
+ console.log('ImportarAlumnosExcel: enviando', file.name, 'MateriaId=', materiaIdGlobal, 'GrupoId=', grupoId);
+
+ var basePath = (window.appBasePath || '');
+ var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd, credentials: 'same-origin' });
+ var json = await resp.json().catch(function(){return {};});
+
+ if (!resp.ok) {
+ alert(json.mensaje || 'Error importar');
+ return;
+ }
+
+ // Mostrar resumen detallado de la importación (si la API lo retorna)
+ try {
+ var totalLeidos = json.TotalLeidos || json.Total ||0;
+ var agregadosCount = (json.Agregados && Array.isArray(json.Agregados)) ? json.Agregados.length : (json.AgregadosCount ||0);
+ var omitidosCount = (json.Omitidos && Array.isArray(json.Omitidos)) ? json.Omitidos.length : (json.OmitidosCount ||0);
+ var noEncontradosCount = (json.NoEncontrados && Array.isArray(json.NoEncontrados)) ? json.NoEncontrados.length : (json.NoEncontradosCount ||0);
+ var summary = `Total leídos: ${totalLeidos}\nAgregados: ${agregadosCount}\nOmitidos: ${omitidosCount}\nNo encontrados: ${noEncontradosCount}`;
+ if (window.Swal && typeof Swal.fire === 'function') {
+ Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
+ } else {
+ alert(summary.replace(/\n/g, '\n'));
+ }
+ } catch (e) {
+ console.warn('No se pudo construir resumen de importación', e);
+ if (window.Swal && typeof Swal.fire === 'function') Swal.fire('Importación completa', 'Importación finalizada', 'success');
+ else alert('Importación completada');
+ }
+
+ // Si la API devuelve la lista de alumnos importados, renderizarlos directamente
+ if (json && Array.isArray(json.Alumnos) && json.Alumnos.length >0) {
+ if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(json.Alumnos);
+ } else {
+ if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
+ }
+ } catch (e) {
+ console.error(e);
+ alert('Error al subir archivo');
+ } finally {
+ // Limpiar y permitir futuras aperturas
+ try {
+ input.remove();
+ } catch (e) { }
+ window._importDialogOpen = false;
+ }
+ });
+ setTimeout(function ()
+ {
+ try {
+ input.click();
+ } catch (e) {
+ console.error(e);
+ window._importDialogOpen = false;
+ }
+ },10);
+}
+
+// Also support older code that registers handler on DOMContentLoaded: keep listener but add delegation
 document.addEventListener('DOMContentLoaded', function () {
-    var btn = document.getElementById('btnImportarAlumnos');
-    function createAndOpenFileInput(grupoId) {
-        // Evitar abrir el diálogo más de una vez simultáneamente
-        if (window._importDialogOpen) return;
-        window._importDialogOpen = true;
+ var btn = document.getElementById('btnImportarAlumnos');
+ if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); createAndOpenFileInput(); });
 
-        var input = document.getElementById('fileImportarAlumnos');
-        if (input)
-        {
-            try {
-                input.remove();
-            } catch (e) { }
-        }
-        input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.xlsx,.xls';
-        input.id = 'fileImportarAlumnos';
-        input.style.display = 'none';
-        document.body.appendChild(input);
-        input.addEventListener('change', async function (ev) {
-            try {
-                var file = ev.target.files && ev.target.files[0];
-                if (!file) return;
-
-                var fd = new FormData();
-                fd.append('file', file);
-
-                if (grupoId) fd.append('GrupoId', grupoId);
-                if (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) fd.append('MateriaId', materiaIdGlobal);
-                console.log('ImportarAlumnosExcel: enviando', file.name, 'MateriaId=', materiaIdGlobal, 'GrupoId=', grupoId);
-
-                var basePath = (window.appBasePath || '');
-                var resp = await fetch('/api/Alumnos/ImportarAlumnosExcel', { method: 'POST', body: fd, credentials: 'same-origin' });
-                var json = await resp.json().catch(function(){return {};});
-
-                if (!resp.ok) {
-                    alert(json.mensaje || 'Error importar');
-                    return;
-                }
-
-                // Mostrar resumen detallado de la importación (si la API lo retorna)
-                try {
-                    var totalLeidos = json.TotalLeidos || json.Total || 0;
-                    var agregadosCount = (json.Agregados && Array.isArray(json.Agregados)) ? json.Agregados.length : (json.AgregadosCount || 0);
-                    var omitidosCount = (json.Omitidos && Array.isArray(json.Omitidos)) ? json.Omitidos.length : (json.OmitidosCount || 0);
-                    var noEncontradosCount = (json.NoEncontrados && Array.isArray(json.NoEncontrados)) ? json.NoEncontrados.length : (json.NoEncontradosCount || 0);
-                    var summary = `Total leídos: ${totalLeidos}\nAgregados: ${agregadosCount}\nOmitidos: ${omitidosCount}\nNo encontrados: ${noEncontradosCount}`;
-                    if (window.Swal && typeof Swal.fire === 'function') {
-                        Swal.fire('Importación completa', summary.replace(/\n/g, '<br/>'), 'success');
-                    } else {
-                        alert(summary.replace(/\n/g, '\n'));
-                    }
-                } catch (e) {
-                    console.warn('No se pudo construir resumen de importación', e);
-                    if (window.Swal && typeof Swal.fire === 'function') Swal.fire('Importación completa', 'Importación finalizada', 'success');
-                    else alert('Importación completada');
-                }
-
-                // Si la API devuelve la lista de alumnos importados, renderizarlos directamente
-                if (json && Array.isArray(json.Alumnos) && json.Alumnos.length > 0) {
-                    if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(json.Alumnos);
-                } else {
-                    if (typeof cargarAlumnosAsignados === 'function') cargarAlumnosAsignados(materiaIdGlobal);
-                }
-            } catch (e) {
-                console.error(e);
-                alert('Error al subir archivo');
-            } finally {
-                // Limpiar y permitir futuras aperturas
-                try {
-                    input.remove();
-                } catch (e) { }
-                window._importDialogOpen = false;
-            }
-        });
-        setTimeout(function ()
-        {
-            try {
-                input.click();
-            } catch (e) {
-                console.error(e);
-                window._importDialogOpen = false;
-            }
-        }, 10);
-    }
-
-    if (btn) btn.addEventListener('click',
-        function (e)
-        {
-            e.preventDefault();
-            createAndOpenFileInput();
-        });
+ // Delegated listener: if the button is added later (dynamically), catch clicks on it
+ document.addEventListener('click', function (e) {
+ try {
+ var target = e.target;
+ if (!target) return;
+ var btnEl = target.closest && target.closest('#btnImportarAlumnos');
+ if (btnEl) {
+ e.preventDefault();
+ createAndOpenFileInput();
+ }
+ } catch (ex) { /* swallow */ }
+ });
 });
 

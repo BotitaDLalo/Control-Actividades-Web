@@ -1,4 +1,4 @@
-﻿using NPOI.POIFS.Crypt;
+using NPOI.POIFS.Crypt;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Configuration;
@@ -136,6 +136,16 @@ Descripción: {descripcion}
                     parts = new[] {
                         new { text = prompt }
                     }
+                    else
+                    {
+                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                    }
+
+                    var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+                    var resp = await client.PostAsync(target, content);
+                    var respText = await resp.Content.ReadAsStringAsync();
+
+                    return Content(resp.StatusCode, respText);
                 }
             }
                 };
