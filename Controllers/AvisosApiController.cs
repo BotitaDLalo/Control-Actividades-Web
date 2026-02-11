@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -287,14 +287,12 @@ namespace ControlActividades.Controllers
 
         [HttpGet]
         [Route("ConsultarAvisosCreados")]
-        public IHttpActionResult ConsultarAvisos([FromBody] PeticionConsultarAvisos consultarAvisos)
+        public IHttpActionResult ConsultarAvisos(int grupoId = 0, int materiaId = 0)
         {
             try
             {
                 List<RespuestaConsultarAvisos> lsResAvisos = new List<RespuestaConsultarAvisos>();
                 List<tbAvisos> lsAvisos = new List<tbAvisos>();
-                int grupoId = consultarAvisos.GrupoId;
-                int materiaId = consultarAvisos.MateriaId;
 
                 if (grupoId != 0)
                 {
@@ -363,7 +361,6 @@ namespace ControlActividades.Controllers
                     return BadRequest("ID de aviso no válido.");
                 }
 
-                // 1. Usamos FindAsync igual que en tu método ActualizarActividad
                 var dbAviso = await Db.tbAvisos.FindAsync(avisoActualizado.AvisoId);
 
                 if (dbAviso == null)
@@ -371,15 +368,13 @@ namespace ControlActividades.Controllers
                     return Content(HttpStatusCode.NotFound, "Aviso no encontrado");
                 }
 
-                // 2. Actualización de campos
                 dbAviso.Titulo = avisoActualizado.Titulo;
                 dbAviso.Descripcion = avisoActualizado.Descripcion;
 
-                // 3. Guardar cambios
+
                 await Db.SaveChangesAsync();
 
-                // 4. Proyección Limpia (Igual que en ActualizarActividad)
-                // Esto evita el Error 500 por referencias circulares.
+
                 var respuestaLimpia = new
                 {
                     AvisoId = dbAviso.AvisoId,
@@ -389,9 +384,7 @@ namespace ControlActividades.Controllers
                     GrupoId = dbAviso.GrupoId,
                     MateriaId = dbAviso.MateriaId,
                     FechaCreacion = dbAviso.FechaCreacion,
-                    // Si tienes el nombre del docente disponible en el objeto cargado (por caché de EF), lo enviamos.
-                    // Si no, enviamos un string genérico o nulo, ya que Flutter probablemente ya tiene el nombre.
-               
+
                 };
 
                 return Ok(respuestaLimpia);
@@ -401,6 +394,7 @@ namespace ControlActividades.Controllers
                 return BadRequest("Error al actualizar: " + e.Message);
             }
         }
+
 
 
         [HttpPost]
