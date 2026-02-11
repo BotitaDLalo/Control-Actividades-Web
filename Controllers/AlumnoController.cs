@@ -14,6 +14,9 @@ using System.Web.Mvc;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 
 namespace ControlActividades.Controllers
 {
@@ -673,6 +676,256 @@ namespace ControlActividades.Controllers
         }
         #endregion
 
-        // ... rest of existing AlumnoController code ...
+        #region ImportarAlumnosExcel
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ImportarAlumnosExcel()
+        {
+            try
+            {
+                var httpRequest = Request;
+                if (httpRequest == null || httpRequest.Files.Count ==0)
+                    return Json(new { mensaje = "No se recibió archivo." }, JsonRequestBehavior.AllowGet);
+
+                var file = httpRequest.Files[0];
+                if (file == null || file.ContentLength ==0)
+                    return Json(new { mensaje = "Archivo vacío." }, JsonRequestBehavior.AllowGet);
+
+                int grupoId =0;
+                int materiaId =0;
+                int.TryParse(httpRequest.Form["GrupoId"], out grupoId);
+                int.TryParse(httpRequest.Form["MateriaId"], out materiaId);
+
+                if (grupoId ==0 && materiaId ==0)
+                    return Json(new { mensaje = "Debe enviar GrupoId o MateriaId." }, JsonRequestBehavior.AllowGet);
+
+                IWorkbook workbook;
+                using (var stream = file.InputStream)
+                {
+                    if (file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                        workbook = new XSSFWorkbook(stream);
+                    else
+                        workbook = new HSSFWorkbook(stream);
+                }
+
+                var sheet = workbook.GetSheetAt(0);
+                if (sheet == null)
+                    return Json(new { mensaje = "Hoja no encontrada en el archivo." }, JsonRequestBehavior.AllowGet);
+
+                int startRow = sheet.FirstRowNum;
+                var headerRow = sheet.GetRow(startRow);
+                bool hasHeader = false;
+                if (headerRow != null)
+                {
+                    var headerCells = headerRow.LastCellNum >0 ? headerRow.LastCellNum :1;
+                    for (int hc =0; hc < headerCells; hc++)
+                    {
+                        var hCell = headerRow.GetCell(hc);
+                        var hText = hCell != null ? new DataFormatter().FormatCellValue(hCell)?.ToString()?.ToLower() : null;
+                        if (!string.IsNullOrEmpty(hText) && hText.Contains("email"))
+                        {
+                            hasHeader = true;
+                            break;
+                        }
+                    }
+                }
+
+                var emails = new List<string>();
+                var formatter = new DataFormatter();
+                for (int r = hasHeader ? startRow +1 : startRow; r <= sheet.LastRowNum; r++)
+                {
+                    var row = sheet.GetRow(r);
+                    if (row == null) continue;
+
+                    string found = null;
+                    var lastCell = row.LastCellNum >0 ? row.LastCellNum :1;
+                    for (int c =0; c < lastCell; c++)
+                    {
+                        var cell = row.GetCell(c);
+                        if (cell == null) continue;
+                        var cellText = formatter.FormatCellValue(cell)?.Trim();
+                        if (string.IsNullOrWhiteSpace(cellText)) continue;
+                        if (cellText.Contains("@"))
+                        {
+                            found = cellText;
+                            break;
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(found)) continue;
+                    var emailNormalized = found.Trim().ToLowerInvariant();
+                    if (!emailNormalized.Contains("@")) continue;
+                    emails.Add(emailNormalized);
+                }
+
+                if (!emails.Any())
+                    return Json(new { mensaje = "No se encontraron emails en el archivo." }, JsonRequestBehavior.AllowGet);
+
+                var added = new List<string>();
+                var skipped = new List<string>();
+                var notFound = new List<string>();
+                var lsAlumnosId = new List<int>();
+
+                foreach (var email in emails.Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    var user = await UserManager.FindByEmailAsync(email);
+
+                    if (user == null)
+                    {
+                        try
+                        {
+                            var password = "Tmp#" + Guid.NewGuid().ToString("N").Substring(0,8);
+                            var newUser = new ApplicationUser { UserName = email, Email = email };
+                            var createResult = await UserManager.CreateAsync(newUser, password);
+                            if (createResult.Succeeded)
+                            {
+                                var roleName = ControlActividades.Models.Role.Alumno.ToString();
+                                if (!await RoleManager.RoleExistsAsync(roleName))
+                                {
+                                    await RoleManager.CreateAsync(new IdentityRole(roleName));
+                                }
+                                await UserManager.AddToRoleAsync(newUser.Id, roleName);
+                                user = await UserManager.FindByEmailAsync(email);
+                            }
+                            else
+                            {
+                                // log errors and treat as not found
+                                Console.WriteLine($"Crear usuario falló para {email}: {string.Join(";", createResult.Errors)}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error creando usuario para email " + email + ": " + ex.Message);
+                        }
+                    }
+
+                    if (user == null)
+                    {
+                        notFound.Add(email);
+                        continue;
+                    }
+
+                    var alumnoId = await Db.tbAlumnos.Where(a => a.UserId == user.Id).Select(a => a.AlumnoId).FirstOrDefaultAsync();
+                    if (alumnoId ==0)
+                    {
+                        try
+                        {
+                            var nombrePart = (user.Email ?? "Alumno").Split('@')[0];
+                            var nuevoAlumno = new tbAlumnos
+                            {
+                                UserId = user.Id,
+                                Nombre = string.IsNullOrWhiteSpace(nombrePart) ? "Alumno" : nombrePart,
+                                ApellidoPaterno = "N/A",
+                                ApellidoMaterno = "N/D",
+                                Matricula = user.Email ?? Guid.NewGuid().ToString()
+                            };
+                            Db.tbAlumnos.Add(nuevoAlumno);
+                            try
+                            {
+                                await Db.SaveChangesAsync();
+                                alumnoId = nuevoAlumno.AlumnoId;
+                            }
+                            catch (System.Data.Entity.Validation.DbEntityValidationException dbValEx)
+                            {
+                                foreach (var eve in dbValEx.EntityValidationErrors)
+                                {
+                                    Console.WriteLine("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:", eve.Entry.Entity.GetType().Name, eve.Entry.State);
+                                    foreach (var ve in eve.ValidationErrors)
+                                    {
+                                        Console.WriteLine("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage);
+                                    }
+                                }
+                                alumnoId =0;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error creando tbAlumnos para " + email + ": " + ex.Message);
+                        }
+                    }
+
+                    if (alumnoId ==0)
+                    {
+                        notFound.Add(email);
+                        continue;
+                    }
+
+                    lsAlumnosId.Add(alumnoId);
+
+                    if (grupoId >0)
+                    {
+                        bool existe = Db.tbAlumnosGrupos.Any(a => a.GrupoId == grupoId && a.AlumnoId == alumnoId);
+                        if (!existe)
+                        {
+                            Db.tbAlumnosGrupos.Add(new tbAlumnosGrupos { AlumnoId = alumnoId, GrupoId = grupoId });
+                            added.Add(email);
+                        }
+                        else
+                        {
+                            skipped.Add(email);
+                        }
+                    }
+                    else if (materiaId >0)
+                    {
+                        bool existe = Db.tbAlumnosMaterias.Any(a => a.MateriaId == materiaId && a.AlumnoId == alumnoId);
+                        if (!existe)
+                        {
+                            Db.tbAlumnosMaterias.Add(new tbAlumnosMaterias { AlumnoId = alumnoId, MateriaId = materiaId });
+                            added.Add(email);
+                        }
+                        else
+                        {
+                            skipped.Add(email);
+                        }
+                    }
+                }
+
+                try
+                {
+                    await Db.SaveChangesAsync();
+                }
+                catch (System.Data.Entity.Validation.DbEntityValidationException dbValEx)
+                {
+                    var detalles = new List<string>();
+                    foreach (var eve in dbValEx.EntityValidationErrors)
+                    {
+                        foreach (var ve in eve.ValidationErrors)
+                        {
+                            detalles.Add($"{eve.Entry.Entity.GetType().Name}.{ve.PropertyName}: {ve.ErrorMessage}");
+                        }
+                    }
+                    return Json(new { mensaje = "Validation failed", detalles }, JsonRequestBehavior.AllowGet);
+                }
+
+                var alumnos = (from a in Db.tbAlumnos
+                                where lsAlumnosId.Contains(a.AlumnoId)
+                                join u in Db.Users on a.UserId equals u.Id into uj
+                                from u in uj.DefaultIfEmpty()
+                                select new EmailVerificadoAlumno
+                                {
+                                    AlumnoId = a.AlumnoId,
+                                    Email = u.Email ?? "",
+                                    UserName = u.UserName ?? "",
+                                    Nombre = a.Nombre,
+                                    ApellidoPaterno = a.ApellidoPaterno,
+                                    ApellidoMaterno = a.ApellidoMaterno
+                                }).ToList();
+
+                return Json(new
+                {
+                    TotalLeidos = emails.Count,
+                    Agregados = added,
+                    Omitidos = skipped,
+                    NoEncontrados = notFound,
+                    Alumnos = alumnos
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("ImportarAlumnosExcel MVC error: " + ex.Message + "\n" + ex.StackTrace);
+                return Json(new { mensaje = "Error al importar: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        #endregion
     }
 }
