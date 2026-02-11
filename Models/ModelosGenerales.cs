@@ -13,7 +13,6 @@ namespace ControlActividades.Models
         public int EntregableId { get; set; }
 
         public int Calificacion { get; set; }
-        public string Comentario { get; set; }
     }
     public class ProblemDetails
     {
@@ -455,7 +454,6 @@ namespace ControlActividades.Models
     {
         public int EntregaId { get; set; }
         public int Calificacion { get; set; }
-        public string Comentario { get; set; }
     }
 
 

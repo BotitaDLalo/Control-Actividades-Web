@@ -1715,14 +1715,84 @@ namespace ControlActividades.Controllers
                 foreach (var email in emails.Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     var user = await UserManager.FindByEmailAsync(email);
+
+                    // If identity user does not exist, try to create one automatically
+                    if (user == null)
+                    {
+                        try
+                        {
+                            var password = "Tmp#" + Guid.NewGuid().ToString("N").Substring(0,8);
+                            var newUser = new ApplicationUser { UserName = email, Email = email };
+                            var createResult = await UserManager.CreateAsync(newUser, password);
+                            if (createResult.Succeeded)
+                            {
+                                // Ensure role Alumno exists and assign
+                                var roleName = Role.Alumno.ToString();
+                                if (!await RoleManager.RoleExistsAsync(roleName))
+                                {
+                                    await RoleManager.CreateAsync(new IdentityRole(roleName));
+                                }
+                                await UserManager.AddToRoleAsync(newUser.Id, roleName);
+                                user = await UserManager.FindByEmailAsync(email);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // ignore creation errors, will be treated as not found below
+                            Console.WriteLine("Error creando usuario para email " + email + ": " + ex.Message);
+                        }
+                    }
+
                     if (user == null)
                     {
                         notFound.Add(email);
                         continue;
                     }
 
+                    // Ensure there is a tbAlumnos record for this identity user; create if missing
                     var alumnoId = await Db.tbAlumnos.Where(a => a.UserId == user.Id).Select(a => a.AlumnoId).FirstOrDefaultAsync();
-                    if (alumnoId == 0)
+                    if (alumnoId ==0)
+                    {
+                        try
+                        {
+                            // Create a minimal alumno record (Nombre and apellidos deben cumplir Required)
+                            var nombrePart = (user.Email ?? "Alumno").Split('@')[0];
+                            var nuevoAlumno = new tbAlumnos
+                            {
+                                UserId = user.Id,
+                                Nombre = string.IsNullOrWhiteSpace(nombrePart) ? "Alumno" : nombrePart,
+                                ApellidoPaterno = "N/A",
+                                ApellidoMaterno = "N/D",
+                                Matricula = user.Email ?? Guid.NewGuid().ToString()
+                            };
+                            Db.tbAlumnos.Add(nuevoAlumno);
+                            try
+                            {
+                                await Db.SaveChangesAsync();
+                                alumnoId = nuevoAlumno.AlumnoId;
+                            }
+                            catch (System.Data.Entity.Validation.DbEntityValidationException dbValEx)
+                            {
+                                // Log validation errors for debugging and mark as not found so import continues
+                                foreach (var eve in dbValEx.EntityValidationErrors)
+                                {
+                                    Console.WriteLine("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:",
+                                    eve.Entry.Entity.GetType().Name, eve.Entry.State);
+                                    foreach (var ve in eve.ValidationErrors)
+                                    {
+                                        Console.WriteLine("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage);
+                                    }
+                                }
+                                alumnoId =0;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error creando tbAlumnos para " + email + ": " + ex.Message);
+                        }
+                    }
+
+                    if (alumnoId ==0)
                     {
                         notFound.Add(email);
                         continue;
@@ -1730,7 +1800,7 @@ namespace ControlActividades.Controllers
 
                     lsAlumnosId.Add(alumnoId);
 
-                    if (grupoId > 0)
+                    if (grupoId >0)
                     {
                         bool existe = Db.tbAlumnosGrupos.Any(a => a.GrupoId == grupoId && a.AlumnoId == alumnoId);
                         if (!existe)
@@ -1743,7 +1813,7 @@ namespace ControlActividades.Controllers
                             skipped.Add(email);
                         }
                     }
-                    else if (materiaId > 0)
+                    else if (materiaId >0)
                     {
                         bool existe = Db.tbAlumnosMaterias.Any(a => a.MateriaId == materiaId && a.AlumnoId == alumnoId);
                         if (!existe)
