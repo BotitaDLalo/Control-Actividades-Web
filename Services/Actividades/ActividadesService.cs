@@ -28,12 +28,13 @@ namespace ControlActividades.Services
 
         public FuenteDatosService FuenteDatosService
         {
-            get { 
+            get
+            {
                 return _fuenteDatos ?? (_fuenteDatos = new FuenteDatosService());
             }
-            private set 
-            { 
-                _fuenteDatos = value; 
+            private set
+            {
+                _fuenteDatos = value;
             }
         }
 
@@ -76,7 +77,7 @@ namespace ControlActividades.Services
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
 
-            if(fuenteDatos == FuenteDatos.API)
+            if (fuenteDatos == FuenteDatos.API)
             {
                 return await ActividadesSTService.ObtenerActividadPorId(actividadId);
             }
@@ -102,5 +103,6 @@ namespace ControlActividades.Services
                 await ActividadesSTService.EliminarActividad(id);
             }
             await ActividadesCAService.EliminarActividad(id);
-        }       
+        }
     }
+}

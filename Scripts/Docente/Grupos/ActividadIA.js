@@ -209,7 +209,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const resp = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ Nombre: nombre, Descripcion: descripcion, model: 'gemini-2.5-flash' })
+            body: JSON.stringify(
+                {
+                    Nombre: nombre,
+                    Descripcion: descripcion,
+                    model: 'gemini-2.5-flash'
+                })
         });
 
         const textResp = await resp.text();
