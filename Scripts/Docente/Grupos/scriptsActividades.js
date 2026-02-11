@@ -455,30 +455,48 @@ function renderActividadesDirect(listado) {
 
         const actividadItem = document.createElement('div');
         actividadItem.classList.add('actividad-item');
-        const botonesHtml = window.esDocente
-            ? `
-                <button class="btn btn-sm btn-warning editar-btn" data-id="${actividad.ActividadId}">Editar</button>
-                <button class="btn btn-sm btn-danger eliminar-btn" data-id="${actividad.ActividadId}">Eliminar</button>
-        `
-            : '';
 
         actividadItem.innerHTML = `
-            <div class="info">
-                <div class="icono">📋
-                    <span><strong>${escapeHtml(actividad.NombreActividad)}</strong></span>
+            <div class="actividad-info">
+                <div class="icono">
+                    📋 <strong>${escapeHtml(actividad.NombreActividad)}</strong>
                 </div>
-                
-                <p class="fecha-publicado">Publicado: ${formatearFecha(actividad.FechaCreacion)}</p>
-                <p class="puntaje" style="font-size:19px; font-weight: bold; color: #d35400;">Puntaje: ${actividad.Puntaje}</p>
-                <p class="actividad-descripcion visible">${descripcionActividadConEnlace}</p>
+
+                <p class="fecha-publicado">
+                    Publicado: ${formatearFecha(actividad.FechaCreacion)}
+                </p>
+
+                <p class="puntaje">
+                    Puntaje: ${actividad.Puntaje}
+                </p>
+
+                <p class="actividad-descripcion visible">
+                    ${descripcionActividadConEnlace}
+                </p>
+
+                <div class="fecha-entrega">
+                    <strong>Fecha de entrega:</strong>
+                    ${formatearFecha(actividad.FechaLimite)}
+                </div>
             </div>
-            <div class="fecha-entrega">
-                <strong>Fecha de entrega:</strong><br>
-                ${formatearFecha(actividad.FechaLimite)}
-            </div>
-            <div class = "botones-container">
-                <button class="btn btn-sm btn-primary btn-ir-actividades" data-id="${actividad.ActividadId}">FVer / Entregar</button>
-                ${botonesHtml}
+
+            <div class="actividad-botones-lateral">
+                <button class="btn btn-sm btn-primary btn-ir-actividades" 
+                        data-id="${actividad.ActividadId}">
+                    Ver actividad
+                </button>
+
+                ${window.esDocente ? `
+                    <button class="btn btn-sm btn-warning editar-btn" 
+                            data-id="${actividad.ActividadId}">
+                        Editar
+                    </button>
+
+                    <button class="btn btn-sm btn-danger eliminar-btn" 
+                            data-id="${actividad.ActividadId}">
+                        Eliminar
+                    </button>
+                ` : ''}
             </div>
         `;
 

@@ -187,11 +187,9 @@ function renderizarAvisos(avisos) {
         <div class="aviso-botones-lateral">
             <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">
                 Editar
-                <img src="/Content/Iconos/lapiz-editar.svg" class="icono-btn" />    
             </button>
             <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">
                 Eliminar
-                <img src="/Content/Iconos/bote-eliminar.svg" class="icono-btn" />    
             </button>
         </div>
       `

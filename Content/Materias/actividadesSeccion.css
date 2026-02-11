@@ -94,7 +94,7 @@
 
 .icono {
     font-size: 30px;
-    color: #007bff;
+    color: var(--txt-principal);
     margin-right: 15px;
 }
 
@@ -115,7 +115,7 @@
 
 .fecha-entrega {
     font-size: 14px;
-    text-align: right;
+    text-align: left;
     color: var(--txt-principal-light);
 }
 
@@ -145,18 +145,6 @@
         max-height: 0;
         opacity: 0;
     }
-.ver-completo {
-    font-size: 14px;
-    color: var(--enlace-azul);
-    cursor: pointer;
-    margin-top: 10px;
-    text-decoration: underline;
-    transition: color 0.3s ease;
-}
-
-.ver-completo:hover {
-    color: #0056b3;
-}
 
 /* Estilos para los botones Editar, Eliminar e Ir a Actividades */
 .botones-container {
@@ -241,7 +229,7 @@
 
     .icono {
         font-size: 22px;
-        color: #007bff;
+        color: var(--txt-principal);
         margin-right: 0;
         margin-bottom: 4px;
     }
@@ -277,4 +265,26 @@
     .actividad-descripcion.visible {
         max-height: 800px;
     }
+}
+
+.actividad-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; 
+    gap: 20px;
+}
+
+.actividad-botones-lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 150px;
+}
+
+    .actividad-botones-lateral button {
+        width: 100%;
+    }
+
+.icono .actividad-info {
+    color: var(--txt-principal);
 }
