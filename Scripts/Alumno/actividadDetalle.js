@@ -2,35 +2,55 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarDetalleActividad();
     verificarEnvio();
 
-    document.getElementById('btnEnviar').addEventListener('click', enviarEntrega);
+    var btn = document.getElementById('btnEnviar');
+    if (btn) btn.addEventListener('click', enviarEntrega);
 });
+
+function parseServerDateFlexible(val) {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    // Handle /Date(123456789)/
+    try {
+        var s = String(val).trim();
+        var msMatch = s.match(/\/(?:Date)?\((-?\d+)(?:[-+]\d+)?\)\//);
+        if (msMatch) return new Date(parseInt(msMatch[1],10));
+        // plain number
+        if (/^-?\d+$/.test(s)) return new Date(parseInt(s,10));
+        var d = new Date(s);
+        if (!isNaN(d.getTime())) return d;
+    } catch (e) { }
+    return null;
+}
+
+function formatDateForUser(d) {
+    if (!d) return '—';
+    try {
+        // show date + short time
+        return d.toLocaleString('es-ES', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        return d.toString();
+    }
+}
 
 async function cargarDetalleActividad() {
     try {
-        // Intentar primero endpoint API (más consistente), si falla, intentar el endpoint MVC
         let resp = await fetch(`/api/Actividades/ObtenerActividad?id=${actividadIdGlobal}`);
-        if (!resp.ok) {
-            resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${actividadIdGlobal}`);
-        }
+        if (!resp.ok) resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${actividadIdGlobal}`);
         if (!resp.ok) throw new Error('No se encontró la actividad');
 
-        // Leer como texto y parsear con tolerancia (algunos endpoints pueden devolver HTML en error)
         const text = await resp.text();
         let data = null;
         try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
-        if (!data) {
-            try { data = resp.ok ? JSON.parse(text) : null; } catch (e) { data = null; }
-        }
+        if (!data) try { data = resp.ok ? JSON.parse(text) : null; } catch (e) { data = null; }
         if (!data) throw new Error('Respuesta inválida del servidor al obtener actividad');
+
         document.getElementById('tituloActividad').innerText = data.NombreActividad || 'Sin título';
         document.getElementById('descripcionActividad').innerText = data.Descripcion || '';
-        // FechaLimite puede venir como string ISO o como objeto; manejar ambos casos
+
         let fechaVal = data.FechaLimite || data.fechaLimite || data.FechaLimiteString || null;
-        let fechaText = '';
-        if (fechaVal) {
-            const d = new Date(fechaVal);
-            fechaText = isNaN(d.getTime()) ? String(fechaVal) : d.toLocaleString();
-        }
+        let fechaText = '—';
+        const d = parseServerDateFlexible(fechaVal);
+        if (d) fechaText = formatDateForUser(d);
         document.getElementById('fechaLimite').innerText = fechaText;
     } catch (e) {
         console.error(e);
@@ -39,78 +59,67 @@ async function cargarDetalleActividad() {
 
 // Escuchar evento de calificación para refrescar vista del alumno si corresponde
 window.addEventListener('entregableCalificado', function (ev) {
-    try {
-        var detalle = ev && ev.detail;
-        if (!detalle) return;
-        // Si el alumno está viendo esta entrega, refrescar la sección de calificación
-        // Intentamos identificar si el alumno actual corresponde a la entrega (no siempre disponible en cliente)
-        // Forzar recarga parcial: volver a llamar a verificarEnvio
-        verificarEnvio();
-    } catch (e) { console.error(e); }
+    try { verificarEnvio(); } catch (e) { console.error(e); }
 });
 
 // También escuchar cambios en localStorage (cuando docente guarda y guarda marca en localStorage)
-window.addEventListener('storage', function (e) {
-    try {
-        if (e.key === 'entregableCalificado') {
-            // recargar vista de envío
-            verificarEnvio();
-        }
-    } catch (err) { console.error(err); }
-});
+window.addEventListener('storage', function (e) { try { if (e.key === 'entregableCalificado') verificarEnvio(); } catch (err) { console.error(err); } });
 
 async function verificarEnvio() {
     try {
         const resp = await fetch(`/api/Alumnos/ObtenerEnviosActividadesAlumno?ActividadId=${actividadIdGlobal}&AlumnoId=${alumnoIdGlobal}`);
         if (!resp.ok) return;
         const data = await resp.json();
-        const envio = Array.isArray(data) && data.length > 0 ? data[0] : (data || null);
+        const envio = Array.isArray(data) && data.length >0 ? data[0] : (data || null);
         if (envio) {
-            var estadoHtml = '<p>Ya entregado. Fecha: ' + new Date(envio.FechaEntrega).toLocaleString() + '</p>';
+            var d = parseServerDateFlexible(envio.FechaEntrega || envio.fechaEntrega || envio.FechaEntrega);
+            var fechaTexto = formatDateForUser(d);
+            var estadoHtml = '<p>Ya entregado. Fecha: ' + fechaTexto + '</p>';
             try {
                 var parsed = JSON.parse(envio.Contenido || 'null');
-                if (parsed && parsed.Archivos && Array.isArray(parsed.Archivos) && parsed.Archivos.length > 0) {
+                if (parsed && parsed.Archivos && Array.isArray(parsed.Archivos) && parsed.Archivos.length >0) {
                     estadoHtml += '<p>Archivos adjuntos:</p><ul>';
                     parsed.Archivos.forEach(function (a) { estadoHtml += '<li><a href="' + a + '" target="_blank">' + a.split('/').pop() + '</a></li>'; });
                     estadoHtml += '</ul>';
                 } else if (parsed && parsed.Respuesta) {
-                    estadoHtml += '<div><strong>Respuesta:</strong><pre>' + parsed.Respuesta + '</pre></div>';
+                    estadoHtml += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(parsed.Respuesta) + '</pre></div>';
                 } else {
-                    if (envio.Contenido) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + envio.Contenido + '</pre></div>';
+                    if (envio.Contenido) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(envio.Contenido) + '</pre></div>';
                 }
             } catch (e) {
-                if (envio.Contenido) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + envio.Contenido + '</pre></div>';
+                if (envio.Contenido) estadoHtml += '<div><strong>Respuesta:</strong><pre>' + escapeHtml(envio.Contenido) + '</pre></div>';
             }
 
             document.getElementById('estadoEntrega').innerHTML = estadoHtml;
-            document.getElementById('entregaForm').style.display = 'none';
-            // Mostrar calificación o estado pendiente
+            var ef = document.getElementById('entregaForm'); if (ef) ef.style.display = 'none';
             if (envio.Calificacion !== null && envio.Calificacion !== undefined) {
-                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: ' + envio.Calificacion + '</p>';
+                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: <strong>' + envio.Calificacion + '</strong></p>';
             } else {
                 document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: <em>Pendiente de calificar</em></p>';
             }
+        } else {
+            // show form
+            var ef2 = document.getElementById('entregaForm'); if (ef2) ef2.style.display = '';
         }
     } catch (e) { console.error(e); }
 }
 
 async function enviarEntrega() {
-    const respuesta = document.getElementById('respuesta').value.trim();
+    const respuesta = (document.getElementById('respuesta') || {}).value.trim();
     const respuestaLink = (document.getElementById('respuestaLink') || {}).value || '';
     const fileInput = document.getElementById('fileEntrega');
-    if (!respuesta && !respuestaLink && (!fileInput || !fileInput.files || fileInput.files.length === 0)) { alert('Agrega una respuesta, un link o un archivo.'); return; }
+    if (!respuesta && !respuestaLink && (!fileInput || !fileInput.files || fileInput.files.length ===0)) { alert('Agrega una respuesta, un link o un archivo.'); return; }
 
     const form = new FormData();
     form.append('ActividadId', actividadIdGlobal);
     form.append('AlumnoId', alumnoIdGlobal);
-    // Enviar contenido estructurado: Respuesta (texto) y Link opcional
     const payload = { Respuesta: respuesta };
     if (respuestaLink) payload.Link = respuestaLink;
     form.append('Respuesta', JSON.stringify(payload));
     form.append('FechaEntrega', new Date().toISOString());
 
-    if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        for (let i = 0; i < fileInput.files.length; i++) {
+    if (fileInput && fileInput.files && fileInput.files.length >0) {
+        for (let i =0; i < fileInput.files.length; i++) {
             form.append('files', fileInput.files[i]);
         }
     }
@@ -125,4 +134,9 @@ async function enviarEntrega() {
         Swal.fire('Enviado', (data && data.mensaje) ? data.mensaje : 'Entrega registrada', 'success');
         verificarEnvio();
     } catch (e) { Swal.fire('Error', e.message || 'No se pudo enviar', 'error'); }
+}
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;");
 }
