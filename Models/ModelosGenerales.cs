@@ -56,6 +56,7 @@ namespace ControlActividades.Models
         public string Token { get; set; }
         public string EstaAutorizado { get; set; }
         public bool? RequiereDatosAdicionales { get; set; }
+        public string Mensaje { get; set; }
     }
 
     public class CancelarEnvioActividadAlumno

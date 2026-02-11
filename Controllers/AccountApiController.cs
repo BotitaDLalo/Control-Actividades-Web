@@ -549,11 +549,16 @@ namespace ControlActividades.Controllers
         {
             try
             {
+                if (usuario == null || string.IsNullOrEmpty(usuario.IdToken))
+                {
+                    return BadRequest("El idToken es requerido");
+                }
+
                 var payload = await GoogleJsonWebSignature.ValidateAsync(usuario.IdToken);
 
                 if (payload == null)
                 {
-                    return BadRequest("idToken inválido");
+                    return BadRequest("idToken de Google inválido");
                 }
 
                 var userName = (payload.FamilyName ?? "") + (payload.GivenName ?? "");
@@ -581,7 +586,10 @@ namespace ControlActividades.Controllers
                     if (rolUsuario == "Docente")
                     {
                         var docente = Db.tbDocentes.FirstOrDefault(a => a.UserId == user.Id);
-                        if (docente == null) return BadRequest();
+                        if (docente == null)
+                        {
+                            return BadRequest("Error: Docente no encontrado en la base de datos. Contacte al administrador.");
+                        }
 
                         AutenticacionRespuesta respuesta;
 
@@ -600,7 +608,8 @@ namespace ControlActividades.Controllers
                         {
                             respuesta = new AutenticacionRespuesta
                             {
-                                EstaAutorizado = EstatusAutorizacion.DENEGADO
+                                EstaAutorizado = EstatusAutorizacion.DENEGADO,
+                                Mensaje = "Su cuenta de docente ha sido denegada. Contacte al administrador."
                             };
                         }
                         else
@@ -622,7 +631,10 @@ namespace ControlActividades.Controllers
                     else if (rolUsuario == "Alumno")
                     {
                         var alumno = Db.tbAlumnos.FirstOrDefault(a => a.UserId == user.Id);
-                        if (alumno == null) return BadRequest();
+                        if (alumno == null)
+                        {
+                            return BadRequest("Error: Alumno no encontrado en la base de datos. Contacte al administrador.");
+                        }
 
                         return Ok(new AutenticacionRespuesta
                         {
@@ -633,6 +645,10 @@ namespace ControlActividades.Controllers
                             Token = token,
                             EstaAutorizado = EstatusAutorizacion.AUTORIZADO
                         });
+                    }
+                    else
+                    {
+                        return BadRequest($"Rol de usuario no reconocido: {rolUsuario}");
                     }
                 }
 
@@ -647,21 +663,29 @@ namespace ControlActividades.Controllers
 
                 if (!result.Succeeded)
                 {
-                    return BadRequest("Error al crear el usuario");
+                    var errores = string.Join(", ", result.Errors);
+                    return BadRequest($"Error al crear el usuario: {errores}");
                 }
+
+                // Asignar rol por defecto
+                await UserManager.AddToRoleAsync(nuevoUsuario.Id, "Alumno");
 
                 return Ok(new AutenticacionRespuesta
                 {
                     Correo = email,
                     Token = token,
                     EstaAutorizado = EstatusAutorizacion.PENDIENTE,
-                    RequiereDatosAdicionales = RequiereDatosAdicionales.REQUERIDO
+                    RequiereDatosAdicionales = RequiereDatosAdicionales.REQUERIDO,
+                    Mensaje = "Usuario nuevo creado. Por favor complete sus datos."
                 });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest($"Error de configuración: {ex.Message}");
             }
             catch (Exception ex)
             {
-                // Puedes registrar el error en logs si lo deseas
-                return BadRequest(ex.Message);
+                return BadRequest($"Error en el servidor: {ex.Message}");
             }
         }
 
@@ -835,7 +859,7 @@ namespace ControlActividades.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return BadRequest($"Error al procesar la solicitud: {e.Message}");
             }
         }
 
