@@ -409,10 +409,12 @@ namespace ControlActividades.Controllers
                 DefaultAuthenticationTypes.ApplicationCookie
             );
 
+            string adminEmail = User.Identity.Name;
+
             //Claims de impersonación
             identity.AddClaim(new Claim("IsImpersonating", "true"));
-            identity.AddClaim(new Claim("AdminOriginalId", adminId));
-            identity.AddClaim(new Claim("AdminOriginalName", User.Identity.Name));
+            identity.AddClaim(new Claim("AdminId", adminId));
+            identity.AddClaim(new Claim("AdminEmail", adminEmail));
 
             // Reemplazar cookie
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
