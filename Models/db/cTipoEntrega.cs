@@ -12,7 +12,7 @@ namespace ControlActividades.Models.db
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int TipoEntregaId { get; set; }
+        public int TipoActividadId { get; set; }
         
         [Required]
         public string Nombre { get; set; }

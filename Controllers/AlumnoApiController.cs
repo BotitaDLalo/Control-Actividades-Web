@@ -1047,7 +1047,8 @@ namespace ControlActividades.Controllers
                 {
                     mensaje = "Error al registrar el envío de la actividad.",
                     error = ex.Message,
-                    innerError = ex.InnerException?.Message
+                    innerError = ex.InnerException?.Message,
+                    innerInner = ex.InnerException?.InnerException?.Message
                 });
             }
         }
