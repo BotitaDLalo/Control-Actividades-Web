@@ -7,13 +7,13 @@ namespace ControlActividades.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.4.4")]
-    public sealed partial class Campo_ST_usuarios : IMigrationMetadata
+    public sealed partial class ModificacionActividades : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(Campo_ST_usuarios));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(ModificacionActividades));
         
         string IMigrationMetadata.Id
         {
-            get { return "202601312203196_Campo_ST_usuarios"; }
+            get { return "202602121917033_ModificacionActividades"; }
         }
         
         string IMigrationMetadata.Source

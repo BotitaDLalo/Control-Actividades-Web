@@ -18,7 +18,7 @@
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
-    <Use64BitIISExpress />
+    <Use64BitIISExpress>false</Use64BitIISExpress>
     <IISExpressSSLPort>44344</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
@@ -469,9 +469,9 @@
     <Compile Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.Designer.cs">
       <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202601312203196_Campo_ST_usuarios.cs" />
-    <Compile Include="Migrations\202601312203196_Campo_ST_usuarios.Designer.cs">
-      <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
+    <Compile Include="Migrations\202602121917033_ModificacionActividades.cs" />
+    <Compile Include="Migrations\202602121917033_ModificacionActividades.Designer.cs">
+      <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
@@ -510,7 +510,6 @@
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Recursos\StringExtensions.cs" />
-    <Compile Include="Services\ActividadesService.cs" />
     <Compile Include="Services\Actividades\ActividadesCAService.cs" />
     <Compile Include="Services\Actividades\ActividadesService.cs" />
     <Compile Include="Services\Actividades\ActividadesSTService.cs" />
@@ -923,8 +922,8 @@
     <EmbeddedResource Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.resx">
       <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601312203196_Campo_ST_usuarios.resx">
-      <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202602121917033_ModificacionActividades.resx">
+      <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
