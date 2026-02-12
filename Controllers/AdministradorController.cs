@@ -8,6 +8,7 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -128,33 +129,25 @@ namespace ControlActividades.Controllers
 
         #endregion
 
-
         public async Task<ActionResult> Index()
         {
-            List<DocentesValidacion> lsDocentesAdministrar = new List<DocentesValidacion>();
-            var lsDocentes = Db.tbDocentes.ToList();
-
-            foreach (var d in lsDocentes)
-            {
-                string email = await ObtenerCorreoDocente(d.DocenteId);
-                var autorizado = EstadoAutorizado(d.estaAutorizado);
-                var envioCorreo = EnvioCorreo(d.seEnvioCorreo);
-
-                DocentesValidacion docente = new DocentesValidacion()
+            var docentes = await Db.tbDocentes
+                .Select(d => new DocentesValidacion
                 {
                     DocenteId = d.DocenteId,
                     ApellidoPaterno = d.ApellidoPaterno,
                     ApellidoMaterno = d.ApellidoMaterno,
                     Nombre = d.Nombre,
-                    Email = email,
-                    Autorizado = autorizado,
-                    EnvioCorreo = envioCorreo,
+                    Email = d.IdentityUser.Email,
+                    Autorizado = d.estaAutorizado == true ? "Autorizado"
+                                : d.estaAutorizado == false ? "Denegado"
+                                : "Pendiente",
+                    EnvioCorreo = d.seEnvioCorreo ? "Enviado" : "Sin enviar",
                     UserId = d.UserId
-                };
-                lsDocentesAdministrar.Add(docente);
-            }
+                })
+                .ToListAsync();
 
-            return View(lsDocentesAdministrar);
+            return View(docentes);
         }
 
         public ActionResult VerDocentes()

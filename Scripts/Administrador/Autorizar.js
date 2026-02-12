@@ -92,7 +92,13 @@ $(document).ready(function () {
                 docenteId: id // tu variable con el ID del docente
             },
             success: function (response) {
-                alert(response.mensaje);
+
+                Swal.fire({
+                    title: "Código de autorización enviado al docente",
+                    icon: "success",
+                    draggable: true
+                });
+
                 var modal = bootstrap.Modal.getInstance(document.getElementById('confirmacionModal'));
                 if (modal) moda.hide();
             },
@@ -143,7 +149,12 @@ $(document).ready(function () {
                 docenteId: id
             },
             success: function (response) {
-                alert(response.mensaje);
+
+                Swal.fire({
+                    title: "Código de autorización enviado al docente",
+                    icon: "success",
+                    draggable: true
+                });
 
                 var modal = bootstrap.Modal.getInstance(document.getElementById('reenviarModal'));
                 if (modal) modal.hide();

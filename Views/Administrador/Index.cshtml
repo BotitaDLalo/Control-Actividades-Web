@@ -51,16 +51,16 @@
 <!-- Modal de Confirmación -->
 <div class="modal fade" id="confirmacionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        
+
         <div class="modal-content modal-content-custom">
             <i class="bi bi-check-circle text-success fs-1"></i>
 
             <div class="modal-body modal-body-custom" style="font-size:22px">
                 ¿Desea enviar el código?
             </div>
-            
+
             <input type="hidden" id="docenteId" />
-        
+
             <div class="modal-footer modal-footer-custom">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-success" id="confirmarAutorizarBtn" data-confirmar-autorizacionbtn-docenteid="">Enviar</button>
@@ -106,7 +106,7 @@
 
 <div class="container-custom">
     <!-- Tabla de docentes -->
-    <table class="table table-striped table-hover">
+    <table id="tablaDocentes" class="table table-striped table-hover">
         <thead class="table-header-custom">
             <tr>
                 <th>Apellido Paterno</th>
@@ -175,10 +175,19 @@
 </div>
 
 @section Scripts{
-    @Scripts.Render("~/bundles/jqueryval")
     <script src="~/Scripts/Administrador/Autorizar.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#tablaDocentes').DataTable({
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50],
+                ordering: true,
+                searching: true,
+                responsive: true,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                }
+            });
+        });
+    </script>
 }
-
-@section Styles{
-    @Styles.Render("~/Content/Alumno/css")
-} 
