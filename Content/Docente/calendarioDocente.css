@@ -10,13 +10,27 @@
     padding: 2px 6px;
 }
 
-.fechas-juntas{
+.fechas-juntas {
     display: flex;
-    gap: 20px;
-    align-items: center;
+    gap: 40px; /* separación entre inicio y final */
     margin-bottom: 15px;
 }
 
+    .fechas-juntas div {
+        display: flex;
+        flex-direction: column; /* label arriba */
+        gap: 8px;
+    }
+
+        .fechas-juntas div input[type="date"],
+        .fechas-juntas div input[type="time"] {
+            display: inline-block;
+        }
+
+        .fechas-juntas div .inputs-inline {
+            display: flex;
+            gap: 10px; /* espacio entre fecha y hora */
+        }
 .campo-fecha{
     display: flex;
     flex-direction: column;

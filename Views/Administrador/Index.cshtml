@@ -9,12 +9,14 @@
 <!-- Modal -->
 <div class="modal fade" id="modalValidacion" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel" style="font-size:24px">Validar Docente</h5>
+        <div class="modal-content modal-content-custom">
+
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title modal-title-custom" id="exampleModalLabel" style="font-size:24px">Validar Docente</h5>
                 <button type="button" class="btn-close btn-cerrar-administrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" style="text-align: left;">
+
+            <div class="modal-body modal-body-custom" style="text-align: left;">
                 <p><strong>Apellido Paterno: </strong><span id="modalApellidoPaterno"></span></p>
                 <p><strong>Apellido Materno: </strong><span id="modalApellidoMaterno"></span></p>
                 <p><strong>Nombres: </strong><span id="modalNombres"></span></p>
@@ -49,17 +51,22 @@
 <!-- Modal de Confirmación -->
 <div class="modal fade" id="confirmacionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+
+        <div class="modal-content modal-content-custom">
             <i class="bi bi-check-circle text-success fs-1"></i>
-            <div class="modal-body" style="font-size:22px">
+
+            <div class="modal-body modal-body-custom" style="font-size:22px">
                 ¿Desea enviar el código?
             </div>
+
             <input type="hidden" id="docenteId" />
-            <div class="modal-footer">
+
+            <div class="modal-footer modal-footer-custom">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-success" id="confirmarAutorizarBtn" data-confirmar-autorizacionbtn-docenteid="">Enviar</button>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -83,13 +90,13 @@
 <!--Modal reenviar -->
 <div class="modal fade" id="reenviarModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content modal-content-custom">
             <i class="bi bi-check-circle text-success fs-1"></i>
-            <div class="modal-body" style="font-size:22px">
+            <div class="modal-body modal-body-custom" style="font-size:22px">
                 ¿Desea reenviar código?
             </div>
             <input type="hidden" id="docenteId" />
-            <div class="modal-footer">
+            <div class="modal-footer modal-footer-custom">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-success" id="confirmarReenviarBtn" data-confirmar-reenviarbtn-docenteid="">Reenviar</button>
             </div>
@@ -99,7 +106,7 @@
 
 <div class="container-custom">
     <!-- Tabla de docentes -->
-    <table class="table table-striped table-hover">
+    <table id="tablaDocentes" class="table table-striped table-hover">
         <thead class="table-header-custom">
             <tr>
                 <th>Apellido Paterno</th>
@@ -168,10 +175,19 @@
 </div>
 
 @section Scripts{
-    @Scripts.Render("~/bundles/jqueryval")
     <script src="~/Scripts/Administrador/Autorizar.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#tablaDocentes').DataTable({
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50],
+                ordering: true,
+                searching: true,
+                responsive: true,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                }
+            });
+        });
+    </script>
 }
-
-@section Styles{
-    @Styles.Render("~/Content/Alumno/css")
-} 

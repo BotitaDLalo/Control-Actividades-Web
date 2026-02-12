@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
@@ -100,14 +100,9 @@ namespace ControlActividades.Services
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                // ST implementation exposes EliminarActividadAsync
-                await ActividadesSTService.EliminarActividadAsync(id);
-                return;
+                await ActividadesSTService.EliminarActividad(id);
             }
-
-            // CA implementation exposes EliminarActividad
             await ActividadesCAService.EliminarActividad(id);
         }
     }
-
 }

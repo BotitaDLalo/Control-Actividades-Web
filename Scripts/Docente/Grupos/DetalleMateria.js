@@ -1,11 +1,11 @@
-// Obtener el ID del docente almacenado en localStorage
 var respTxt = '-';
-//let docenteIdGlobal = localStorage.getItem("docenteId");
 
 document.addEventListener("DOMContentLoaded", function () {
     const urlParams = new URLSearchParams(window.location.search);
     const materiaId = urlParams.get('materiaId');
-    const seccion = urlParams.get('seccion') || 'avisos';
+
+    // iniciar carga del header
+    loadMateriaHeader();
 
     // Cargar datos de encabezado de materia (no depende de docenteId)
     async function loadMateriaHeader() {
@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    //SI SE OCUPA
     function populateHeader(data) {
         if (!data) return;
         const name = data.NombreMateria || data.Nombre || data.nombreMateria;
@@ -46,88 +47,60 @@ document.addEventListener("DOMContentLoaded", function () {
             const el = document.getElementById('codigoAcceso');
             if (el) el.innerText = codigo;
         }
-        try { document.querySelector('.materia-header').style.backgroundColor = color; } catch (e) { }
+        try {
+            document.querySelector('.materia-header').style.backgroundColor = color;
+        } catch (e) {
+        }
     }
 
-    // iniciar carga del header
-    loadMateriaHeader();
 
-async function cargarEntregablesPorActividad(actividadId) {
-    var cont = document.getElementById('listaEntregables');
-    if (!cont) return;
-    cont.innerHTML = '<p class="text-muted">Cargando entregables...</p>';
+    async function cargarEntregablesPorActividad(actividadId) {
+        var cont = document.getElementById('listaEntregables');
+        if (!cont) return;
+        cont.innerHTML = '<p class="text-muted">Cargando entregables...</p>';
 
-    try {
-        // Intentar ambos endpoints: MVC y API
-        var endpoints = [
-            `/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`,
-            `/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`
-        ];
+        try {
+            // Intentar ambos endpoints: MVC y API
+            var endpoints = [
+                `/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`,
+                `/api/Actividades/ObtenerAlumnosEntregables?actividadId=${encodeURIComponent(actividadId)}`
+            ];
 
-        var resp = null;
-        for (var i = 0; i < endpoints.length; i++) {
-            try {
-                resp = await fetch(endpoints[i]);
-                if (resp.ok) break;
-            } catch (e) { resp = null; }
+            var resp = null;
+            for (var i = 0; i < endpoints.length; i++) {
+                try {
+                    resp = await fetch(endpoints[i]);
+                    if (resp.ok) break;
+                } catch (e) { resp = null; }
+            }
+
+            if (!resp || !resp.ok) {
+                cont.innerHTML = '<p class="text-danger">No se pudieron cargar los entregables.</p>';
+                return;
+            }
+
+            var data = await resp.json();
+            // data puede venir dentro de propiedades (si es MVC devuelve Ok(object))
+            // Normalizar al formato esperado por renderEntregablesForActivity
+            var normalized = data;
+            // Si la respuesta es el objeto RespuestaAlumnosEntregables
+            if (data && (data.AlumnosEntregables || typeof data.TotalEntregados !== 'undefined')) {
+                normalized = data;
+            } else if (data && data.d) {
+                normalized = data.d;
+            }
+
+            renderEntregablesForActivity(normalized, cont);
+        } catch (err) {
+            console.error('Error al cargar entregables por actividad:', err);
+            cont.innerHTML = '<p class="text-danger">Error al cargar entregables.</p>';
         }
-
-        if (!resp || !resp.ok) {
-            cont.innerHTML = '<p class="text-danger">No se pudieron cargar los entregables.</p>';
-            return;
-        }
-
-        var data = await resp.json();
-        // data puede venir dentro de propiedades (si es MVC devuelve Ok(object))
-        // Normalizar al formato esperado por renderEntregablesForActivity
-        var normalized = data;
-        // Si la respuesta es el objeto RespuestaAlumnosEntregables
-        if (data && (data.AlumnosEntregables || typeof data.TotalEntregados !== 'undefined')) {
-            normalized = data;
-        } else if (data && data.d) {
-            normalized = data.d;
-        }
-
-        renderEntregablesForActivity(normalized, cont);
-    } catch (err) {
-        console.error('Error al cargar entregables por actividad:', err);
-        cont.innerHTML = '<p class="text-danger">Error al cargar entregables.</p>';
     }
-}
 
-    // Mostrar sección solicitada
-    cambiarSeccion(seccion);
     var html = '<div class="table-responsive"><table class="table table-sm table-entregables"><thead><tr><th>Alumno</th><th>Respuesta</th><th>Fecha</th><th>Calificación</th><th>Acciones</th></tr></thead><tbody>';
 
 });
 
-
-
-function cambiarSeccion(seccion) {
-    document.querySelectorAll('.seccion').forEach(div => div.style.display = 'none');
-    const seccionMostrar = document.getElementById(`seccion-${seccion}`);
-    if (seccionMostrar) {
-        seccionMostrar.style.display = 'block';
-    }
-
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    var tabBtn = document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`);
-    if (tabBtn && tabBtn.classList) tabBtn.classList.add('active');
-
-    // Cargar datos si se seleccionan secciones dinámicas
-    if (seccion === "actividades") {
-        cargarActividadesDeMateria(materiaIdGlobal);
-    }
-    if (seccion === "alumnos") {
-        cargarAlumnosAsignados(materiaIdGlobal);
-    }
-    if (seccion === "avisos") {
-        cargarAvisosDeMateria(materiaIdGlobal);
-    }
-    if (seccion === "entregables") {
-        cargarEntregablesDeMateria(materiaIdGlobal);
-    }
-}
 
 
 function convertirUrlsEnEnlaces(texto) {

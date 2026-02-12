@@ -13,7 +13,6 @@ namespace ControlActividades.Models
         public int EntregableId { get; set; }
 
         public int Calificacion { get; set; }
-        public string Comentario { get; set; }
     }
     public class ProblemDetails
     {
@@ -183,6 +182,20 @@ namespace ControlActividades.Models
         public string NombreMateria { get; set; }
 
         public string Descripcion { get; set; }
+        public string Color { get; set; }
+    }
+
+    public class CrearMateriaConGrupoRequest
+    {
+        [Required]
+        public string NombreMateria { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public string Color { get; set; }
+
+        [Required]
+        public int GrupoId { get; set; }
     }
 
     public class Indices
@@ -463,7 +476,6 @@ namespace ControlActividades.Models
     {
         public int EntregaId { get; set; }
         public int Calificacion { get; set; }
-        public string Comentario { get; set; }
     }
 
 

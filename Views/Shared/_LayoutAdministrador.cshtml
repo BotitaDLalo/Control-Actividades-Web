@@ -19,6 +19,7 @@
     <link rel="icon" href="@Url.Content("~/Content/Iconos/logo2.svg")" type="image/x-icon" />
     <link href="~/Content/Componentes/carga.css" rel="stylesheet" />
     <link href="~/Content/Administrador/administrador.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 
 
     <!-- Use Inter font site-wide -->
@@ -47,33 +48,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @Scripts.Render("~/bundles/jquery")
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/color")
     @Scripts.Render("~/bundles/carga")
     @Scripts.Render("~/bundles/header")
 
-    <!--
-         <!-- Modal de privacidad
-         <div id="privacy-modal" class="modal">
-             <div class="modal-content">
-                 <!-- Botón para cerrar (X)
-                 <span class="close-modal">&times;</span>
 
-                 <!-- Título del modal
-                 <h2 class="modal-title">Aviso de Privacidad</h2>
-                 <hr />
-
-                 <!-- Contenido del aviso
-                 <p class="modal-text">
-                     En Aprende+ valoramos tu privacidad. Este aviso describe cómo recopilamos, usamos y protegemos la información personal que compartes con nosotros. Si tienes alguna duda, no dudes en contactarnos.
-                 </p>
-
-                 <!-- Botón de aceptar
-                 <button class="modal-button" id="modal-accept">Aceptar</button>
-             </div>
-         </div>
-    -->
-    <script src="~/Scripts/Componentes/PantallaCarga.js"></script>
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/hubs"></script>
 

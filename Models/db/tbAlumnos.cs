@@ -12,6 +12,8 @@ namespace ControlActividades.Models.db
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int AlumnoId { get; set; }
 
+        public string Matricula { get; set; }
+
         [Required]
         public string ApellidoPaterno { get; set; }
 

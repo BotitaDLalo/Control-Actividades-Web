@@ -29,6 +29,7 @@ namespace ControlActividades.Models
 
         public DbSet<tbUsuariosFcmTokens> tbUsuariosFcmTokens { get; set; }
         public DbSet<tbAlumnos> tbAlumnos { get; set; }
+        public DbSet<tbAuditoria> tbAuditoria { get; set; }
         public DbSet<tbDocentes> tbDocentes { get; set; }
         public DbSet<tbAlumnosGrupos> tbAlumnosGrupos { get; set; }
         public DbSet<tbAlumnosMaterias> tbAlumnosMaterias { get; set; }

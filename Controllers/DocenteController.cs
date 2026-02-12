@@ -127,7 +127,7 @@ namespace ControlActividades.Controllers
             return View(aviso);
         }
 
-
+        /*
         public ActionResult MateriasDetalles(int? materiaId, int? grupoId)
         {
             if (!materiaId.HasValue)
@@ -145,7 +145,8 @@ namespace ControlActividades.Controllers
 
             return View();
         }
-
+        */
+        /*
         // GET: /Docente/GrupoMaterias -> vista que muestra materias de un grupo
         [HttpGet]
         public ActionResult GrupoMaterias(int? grupoId)
@@ -163,7 +164,7 @@ namespace ControlActividades.Controllers
 
             return View();
         }
-
+        */
         public ActionResult EvaluarActividades()
         {
             string userId = User.Identity.GetUserId();
@@ -172,7 +173,7 @@ namespace ControlActividades.Controllers
             ViewBag.DocenteId = docenteId;
             return View();
         }
-
+        /*
         // GET: /Docente/Grupos -> mostrar vista independiente GruposStandalone
         [HttpGet]
         public ActionResult Grupos()
@@ -183,8 +184,8 @@ namespace ControlActividades.Controllers
             ViewBag.DocenteId = docenteId;
             // Devolver la vista independiente que no choque con otros archivos Grupos.cshtml
             return View("GruposStandalone");
-        }
-
+        }*/
+        /*
         // GET: /Docente/MateriasSinGrupo -> mostrar vista independiente MateriasSinGrupoStandalone
         [HttpGet]
         public ActionResult MateriasSinGrupo()
@@ -194,7 +195,7 @@ namespace ControlActividades.Controllers
 
             ViewBag.DocenteId = docenteId;
             return View("MateriasSinGrupoStandalone");
-        }
+        }*/
 
         [HttpGet]
         public ActionResult ChatIA()
@@ -202,7 +203,7 @@ namespace ControlActividades.Controllers
             // Vista simple para chatear con la API de IA
             return View();
         }
-
+        /*
         [HttpPost]
         public JsonResult CrearGrupo(tbGrupos grupo)
         {
@@ -218,13 +219,14 @@ namespace ControlActividades.Controllers
 
             return Json(new { mensaje = "Grupo creado con exito.", grupoId = grupo.GrupoId });
         }
+        */
 
         private string ObtenerClaveGrupo()
         {
             var random = new Random();
             return new string(Enumerable.Range(0, 8).Select(_ => (char)random.Next('A', 'Z' + 1)).ToArray());
         }
-
+        /*
         [HttpGet]
         public JsonResult ObtenerGrupos(int docenteId)
         {
@@ -234,7 +236,7 @@ namespace ControlActividades.Controllers
 
             return Json(grupos, JsonRequestBehavior.AllowGet);
         }
-
+        */
         [HttpPost]
         public JsonResult AsociarMaterias(AsociarMateriasRequest request)
         {

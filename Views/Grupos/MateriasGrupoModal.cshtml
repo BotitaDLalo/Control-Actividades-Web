@@ -1,0 +1,30 @@
+﻿<div class="modal fade" id="materiasGrupoModal" tabindex="-1" aria-labelledby="materiasModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top:110px;">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title modal-title-custom" id="materiasModalLabel">Creación de Materia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body modal-body-custom">
+                <form id="materiasGForm">
+                    <div class="mb-3">
+                        <label for="nombreMateria" class="form-label">Nombre de la materia <span class="text-danger">Campo Requerido*</span></label>
+                        <input type="text" class="form-control" id="nombreMateria" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Ingrese el nombre de la materia" required>
+                    </div>
+                    <div class="mb-3">
+                        <div class="mb-3">
+                            <label for="descripcionMateria" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcionMateria" rows="3" placeholder="Ingrese una descripción"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer modal-footer-custom">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="submit" class="btn btn-primary" onClick="crearMateriaGrupo()">Crear</button>
+            </div>
+            
+        </div>
+    </div>
+</div>

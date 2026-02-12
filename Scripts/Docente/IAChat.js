@@ -56,7 +56,15 @@
     async function sendPrompt(prompt){
         console.log('sendPrompt called', prompt);
         appendMessage('user', prompt);
-        var payload = { model: null, text: prompt };
+        var payload = {
+            contents: [
+                {
+                    parts: [
+                        { text: prompt }
+                    ]
+                }
+            ]
+        };
         try{
             // Build API URL using appBase if provided (handles apps hosted under a virtual directory)
             var basePath = (typeof window.appBase === 'string' && window.appBase.length) ? window.appBase : '';
