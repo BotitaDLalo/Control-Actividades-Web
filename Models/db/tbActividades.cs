@@ -21,27 +21,18 @@ namespace ControlActividades.Models.db
 
         public DateTime FechaLimite { get; set; }
 
-        //public int TipoActividadId { get; set; }
-
-        public int Puntaje {  get; set; }
+        public Decimal Puntaje {  get; set; }
 
         public int MateriaId { get; set; }
 
-        // Permite que el docente acepte entregas fuera de la fecha límite cuando esté activado
-        [NotMapped]
         public bool PermitirEntregasTarde { get; set; }
 
-        // Indica si la actividad fue enviada/publicada a los alumnos.
-        // true = publicada/enviada, false = borrador, null = programada / publicar después
         public bool? Enviado { get; set; }
 
-        // Opcional: fecha programada para publicación (puede usarse si Enviado == null)
         public DateTime? FechaProgramada { get; set; }
 
+        public int LimiteEntregasPorAlumno { get; set; }
 
-        //public virtual ICollection<tbAlumnosActividades> AlumnosActividades { get; set; }
-        //public virtual cTiposActividades TiposActividades { get; set; }
-        
         public virtual ICollection<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set; }
         
         public virtual tbMaterias Materias { get; set; }
