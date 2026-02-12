@@ -1183,21 +1183,43 @@ namespace ControlActividades.Controllers
                     .FirstOrDefaultAsync(e => e.ActividadId == actividadId && e.AlumnoId == alumnoId);
 
                 tbEntregaActividadAlumno entregaActividad;
-                int entregaActividadAlumnoId;
+                int entregaActividadAlumnoId = 0;
 
                 if (entregaExistente != null)
                 {
-                    // ✅ LA ENTREGA YA EXISTE - ACTUALIZAR
-                    entregaActividad = entregaExistente;
-                    entregaActividad.FechaEntrega = fechaEntregaParsed;
-                    entregaActividad.EstadoEntregaId = 1;
-                    
-                    Db.tbEntregaActividadAlumno.Attach(entregaActividad);
-                    Db.Entry(entregaActividad).State = System.Data.Entity.EntityState.Modified;
+                    //// ✅ LA ENTREGA YA EXISTE - ACTUALIZAR
+                    //entregaActividad = entregaExistente;
+                    //entregaActividad.FechaEntrega = fechaEntregaParsed;
+                    //entregaActividad.EstadoEntregaId = 1;
+
+                    //Db.tbEntregaActividadAlumno.Attach(entregaActividad);
+                    //Db.Entry(entregaActividad).State = System.Data.Entity.EntityState.Modified;
+                    //await Db.SaveChangesAsync();
+
+                    //entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
+                    //Console.WriteLine($"[LOG] Entrega actualizada con ID: {entregaActividadAlumnoId}");
+
+                    entregaExistente.Estatus = false;
+
+                    int entregaIdExistente = entregaExistente.EntregaActividadAlumnoId;
+
+                    var lsEntregablesExistentes = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaIdExistente).ToList();
+                    Db.tbEntregables.RemoveRange(lsEntregablesExistentes);
+
+
+                    entregaActividad = new tbEntregaActividadAlumno()
+                    {
+                        ActividadId = actividadId,
+                        AlumnoId = alumnoId,
+                        FechaEntrega = fechaEntregaParsed,
+                        EstadoEntregaId = 1,
+                        Estatus = true
+                    };
+
+                    Db.tbEntregaActividadAlumno.Add(entregaActividad);
                     await Db.SaveChangesAsync();
-                    
+                 
                     entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
-                    Console.WriteLine($"[LOG] Entrega actualizada con ID: {entregaActividadAlumnoId}");
                 }
                 else
                 {
@@ -1227,19 +1249,19 @@ namespace ControlActividades.Controllers
                     Directory.CreateDirectory(destFolder);
 
                 // ✅ SI LA ENTREGA YA EXISTÍA, ELIMINAR ENTREGABLES ANTIGUOS
-                if (entregaExistente != null)
-                {
-                    var entregablesAntiguos = Db.tbEntregables
-                        .Where(e => e.EntregaActividadAlumnoId == entregaActividadAlumnoId)
-                        .ToList();
+                //if (entregaExistente != null)
+                //{
+                //    var entregablesAntiguos = Db.tbEntregables
+                //        .Where(e => e.EntregaActividadAlumnoId == entregaActividadAlumnoId)
+                //        .ToList();
                     
-                    foreach (var entregableAntiguo in entregablesAntiguos)
-                    {
-                        Db.tbEntregables.Remove(entregableAntiguo);
-                    }
-                    await Db.SaveChangesAsync();
-                    Console.WriteLine($"[LOG] Entregables antiguos eliminados");
-                }
+                //    foreach (var entregableAntiguo in entregablesAntiguos)
+                //    {
+                //        Db.tbEntregables.Remove(entregableAntiguo);
+                //    }
+                //    await Db.SaveChangesAsync();
+                //    Console.WriteLine($"[LOG] Entregables antiguos eliminados");
+                //}
 
                 var extensionesPermitidas = new[] 
                 { 
