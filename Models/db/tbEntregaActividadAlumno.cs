@@ -20,11 +20,14 @@ namespace ControlActividades.Models.db
 
         public DateTime FechaEntrega { get; set; }
 
-        //public bool EstatusEntregada { get; set; }
+        public bool Estatus { get; set; }
 
         public int EstadoEntregaId { get; set; }
-        [NotMapped]
         public DateTime? FechaCalificado { get; set; }
+
+        public Decimal Calificacion { get; set; }
+
+        public bool EntregaTardia { get; set; } 
     
         public tbActividades tbActividades { get; set; }    
     
