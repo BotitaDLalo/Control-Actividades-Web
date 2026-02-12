@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
@@ -145,7 +146,7 @@ namespace ControlActividades.Controllers
 
 
         [HttpPost]
-        public JsonResult CrearGrupo(tbGrupos grupo)
+        public JsonResult CrearGrupo(CrearGrupoDTO grupodto)
         {
             if (!ModelState.IsValid)
             {
@@ -153,11 +154,33 @@ namespace ControlActividades.Controllers
                 return Json(new { mensaje = "Datos del grupo invalidos." });
             }
 
+            int idDocente = Fg.ObtenerCAUsuarioId(User);
+            if(idDocente == 0)
+            {
+                Response.StatusCode = 401;
+                return Json(new
+                { 
+                    mensaje = "No se pudo identificar al docente." 
+                });
+            }
+
+            var grupo = new tbGrupos
+            {
+                NombreGrupo = grupodto.NombreGrupo,
+                Descripcion = grupodto.Descripcion,
+                CodigoColor = grupodto.CodigoColor,
+                DocenteId = idDocente
+            };
+
             grupo.CodigoAcceso = ObtenerClaveGrupo();
+
             Db.tbGrupos.Add(grupo);
             Db.SaveChanges();
 
-            return Json(new { mensaje = "Grupo creado con exito.", grupoId = grupo.GrupoId });
+            return Json(new { 
+                mensaje = "Grupo creado con exito.", 
+                grupoId = grupo.GrupoId 
+            });
         }
 
         private string ObtenerClaveGrupo()

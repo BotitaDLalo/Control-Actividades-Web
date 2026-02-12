@@ -131,8 +131,6 @@ namespace ControlActividades.Controllers
             //buscar registro si existe, bool
            // var engoogle = Db.UsersLogins.Where(u => u.Email == model.Email && u.LoginProvider == "Google").Any();
 
-
-
             var usuario = await UserManager.FindByEmailAsync(model.Email);
             if (usuario == null)
             {
@@ -148,7 +146,6 @@ namespace ControlActividades.Controllers
 
             role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
 
-            //if (role == Role.Docente && !usuario.EmailConfirmed)
             if (role == Role.Docente && !usuario.EmailConfirmed)
             {
                 Session[SessionKeys.Email.ToString()] = model.Email;

@@ -59,28 +59,56 @@ if (document.readyState === 'loading') {
     // DOM already ready
     initHeaderNotifications();
 }
-document.addEventListener("click", function (event) {
+document.addEventListener("click", async function (e) {
+
+    //Eliminar notificación
+    const btnBorrar = e.target.closest(".btn-borrar-noti");
+    if (btnBorrar){ 
+        const item = btnBorrar.closest(".noti-item");
+        const id = item?.dataset.id;
+
+        if (!id) return;
+
+        try {
+            const resp = await fetch(`/api/Notificaciones/EliminarNotificacion/${id}`, {
+                method: "DELETE"
+            });
+
+            if (resp.ok) item.remove(); 
+            return;
+
+        } catch (err) {
+            console.error("Error eliminando notificación", err);
+        }
+    }
+
+    
     const panel = document.getElementById("notificaciones-panel");
     const icono = document.getElementById("notificaciones-icono");
+
+    // Click fuera de notificaciones
+    if (panel?.classList.contains("mostrar") &&
+        !panel.contains(e.target) &&
+        !icono.contains(e.target)) {
+        cerrarNotificaciones();
+    }
+
+
     const userDropdown = document.getElementById("userDropdown");
     const dropdownMenu = document.querySelector(".dropdown-menu");
 
     if (!panel.classList.contains("mostrar")) return;
 
-    // Click fuera de notificaciones
-    if (!icono.contains(event.target) && !panel.contains(event.target)) {
-        cerrarNotificaciones();
-    }
-
     // Click fuera de dropdown usuario
     if (
         dropdownMenu?.classList.contains("show") &&
-        !userDropdown.contains(event.target) &&
-        !dropdownMenu.contains(event.target)
+        !userDropdown.contains(e.target) &&
+        !dropdownMenu.contains(e.target)
     ) {
         cerrarDropdownUsuario();
     }
 });
+
 
 function cerrarNotificaciones() {
     const panel = document.getElementById("notificaciones-panel");
@@ -344,17 +372,17 @@ function redirigir(tipoId, materiaId, grupoId) {
 
         //Actividad creada
         case 2:
-            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            window.location.href = `/Materias/MateriaDetalles?materiaId=${materiaId}`;
             break;
        
         //Actividad Entregada (NOTIFICACIÓN PARA DOCENTE)
         case 3:
-            window.location.href = "/Actividades/MisCalificaciones";
+            window.location.href = `/Materias/MateriaDetalles?materiaId=${materiaId}`;
             break;
 
         //Aviso
         case 4:
-            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
+            window.location.href = `/Materias/MateriaDetalles?materiaId=${materiaId}`;
             break;
 
         //Evento
@@ -378,29 +406,3 @@ function redirigir(tipoId, materiaId, grupoId) {
     }
 }
 
-//Eliminar notificación
-document.addEventListener("click", async function (e) {
-
-    const btn = e.target.closest(".btn-borrar-noti");
-    if (!btn) return;
-
-    const notiItem = btn.closest(".noti-item");
-    const notiId = notiItem?.dataset.id;
-
-    if (!notiId) return;
-
-    try {
-        const resp = await fetch(`/api/Notificaciones/EliminarNotificacion/${notiId}`, {
-            method: "DELETE"
-        });
-
-        if (resp.ok) {
-            notiItem.remove();
-        } else {
-            console.error("No se pudo eliminar la notificación");
-        }
-    } catch (err) {
-        console.error("Error eliminando notificación", err);
-    }
-
-});

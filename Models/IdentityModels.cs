@@ -29,6 +29,7 @@ namespace ControlActividades.Models
 
         public DbSet<tbUsuariosFcmTokens> tbUsuariosFcmTokens { get; set; }
         public DbSet<tbAlumnos> tbAlumnos { get; set; }
+        public DbSet<tbAuditoria> tbAuditoria { get; set; }
         public DbSet<tbDocentes> tbDocentes { get; set; }
         public DbSet<tbAlumnosGrupos> tbAlumnosGrupos { get; set; }
         public DbSet<tbAlumnosMaterias> tbAlumnosMaterias { get; set; }
@@ -46,6 +47,7 @@ namespace ControlActividades.Models
         public DbSet<cTipoEntrega> cTipoEntrega { get; set; }
         public DbSet<cEstadoEntrega> cEstadoEntrega { get; set; }
         public DbSet<cTipoNotificacion> cTipoNotificacion { get; set; }
+        public DbSet<cEstadoEntregas> cEstadoEntregas { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

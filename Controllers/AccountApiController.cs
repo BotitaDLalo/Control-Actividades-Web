@@ -438,7 +438,11 @@ namespace ControlActividades.Controllers
             }
             catch (Exception e)
             {
-                return Content(HttpStatusCode.BadRequest, new { e.Message });
+                return Content(HttpStatusCode.BadRequest, new
+                {
+                    Message = e.Message,
+                    InnerException = e.InnerException?.Message
+                });
             }
 
         }

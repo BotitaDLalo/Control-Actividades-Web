@@ -213,7 +213,23 @@ namespace ControlActividades.Services
         //SECCIÓN DE NOTIFICACIONES PARA -ALUMNOS- CUANDO EL DOCENTE HACE UNA ACCIÓN
 
         // Notificación cuando el docente crea una actividad
+        //API
         public async Task NotificacionCrearActividad(tbActividades actividad)
+        {
+            var (usuariosIds, tokens) = await ObtenerDestinatarios(null, actividad.MateriaId);
+
+            await ProcesarNotificacion(
+                usuariosIds,
+                tokens,
+                "Nueva actividad",
+                actividad.NombreActividad,
+                TiposNotificaciones.ActividadCreada,
+                actividad.MateriaId
+            );
+        }
+
+        //WEB
+        public async Task NotificacionCreaActividad(ActividadDTO actividad)
         {
             var (usuariosIds, tokens) = await ObtenerDestinatarios(null, actividad.MateriaId);
 
@@ -245,7 +261,7 @@ namespace ControlActividades.Services
 
         }
 
-        
+
         // Notificación cuando el docente registra un alumno(s)
         public async Task NotificacionRegistrarAlumnoClase(
             List<int> lsAlumnosId,
@@ -281,7 +297,7 @@ namespace ControlActividades.Services
             int? materiaRef = null;
             int? grupoRef = null;
 
-            if (materiaId > 0)
+            if (grupoId != -1)
             {
                 nombreClase = await Db.tbGrupos
                     .Where(g => g.GrupoId == grupoId)
@@ -292,7 +308,7 @@ namespace ControlActividades.Services
                 grupoRef = grupoId;
                 mensaje = $"al grupo {nombreClase}";
             }
-            else
+            else if (materiaId != -1)
             {
                 nombreClase = await Db.tbMaterias
                     .Where(m => m.MateriaId == materiaId)
@@ -302,9 +318,13 @@ namespace ControlActividades.Services
                 tipoNotificacion = TiposNotificaciones.MateriaAsignada;
                 materiaRef = materiaId;
                 mensaje = $"a la materia {nombreClase}";
-
             }
-            
+            else
+            {
+                // Nada que notificar
+                return;
+            }
+
             string nombreDocente = await Db.tbDocentes
                 .Where(d => d.DocenteId == docenteId)
                 .Select(d =>
@@ -323,6 +343,7 @@ namespace ControlActividades.Services
                 grupoRef
             );
         }
+
 
 
         // Notificación cuando el docente crea un evento
@@ -364,8 +385,6 @@ namespace ControlActividades.Services
         //SECCIÓN DE NOTIFICACIONES PARA -DOCENTES- CUANDO EL ALUMNO HACE UNA ACCIÓN
 
         // Notificación cuando el alumno sube su tarea
-
-        // Notificación cuando el alumno deja un comentario (posible implementación)
 
 
         #endregion

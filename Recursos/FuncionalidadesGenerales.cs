@@ -165,7 +165,7 @@ namespace ControlActividades.Recursos
         //    if (Db.tbAlumnos.Any(a => a.UserId == userId))
         //        return Roles.ALUMNO;
 
-        //    // Fallback a claim si no hay registro en tablas específicas
+        //    // Fallback a claim si no hay registro en tablas especï¿½ficas
         //    var identity = User.Identity as ClaimsIdentity;
         //    return identity?.FindFirst(ClaimTypes.Role)?.Value;
         //}

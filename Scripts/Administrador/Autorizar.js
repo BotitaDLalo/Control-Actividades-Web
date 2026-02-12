@@ -73,7 +73,8 @@ $(document).ready(function () {
     $('#abrirReenviarModal').click(function () {
         var docenteId = $(this).data('docenteid');
         $('#confirmarReenviarBtn').attr('data-confirmar-reenviarbtn-docenteid', docenteId);
-        $('#reenviarModal').modal('show');
+        var modal = new bootstrap.Modal(document.getElementById('reenviarModal'));
+        modal.show();
     });
 
 
@@ -82,35 +83,31 @@ $(document).ready(function () {
     $('#confirmarAutorizarBtn').click(function () {
         var id = $(this).data('confirmar-autorizacionbtn-docenteid');
         let token = $('input[name="__RequestVerificationToken"]').val();
+
         $.ajax({
             url: `/Administrador/AutorizarDocente`,
             type: 'POST',
-            //headers: {
-            //    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-            //},
-            //data: {
-            //    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
-            //    docenteId:id
-            //},
             data: {
                 __RequestVerificationToken: token,
                 docenteId: id // tu variable con el ID del docente
             },
-            //contentType: 'application/json',
             success: function (response) {
-                $('#confirmacionModal').modal('hide');
-                $('#modalValidacion').modal('hide');
-                location.reload();
+
+                Swal.fire({
+                    title: "Código de autorización enviado al docente",
+                    icon: "success",
+                    draggable: true
+                });
+
+                var modal = bootstrap.Modal.getInstance(document.getElementById('confirmacionModal'));
+                if (modal) moda.hide();
             },
-            error: function (status, error) {
-                $('#confirmacionModal').modal('hide');
-                $('#modalValidacion').modal('hide');
+            error: function (xhr) {
+                console.log(xhr.responseText);
                 alert('No se pudo autorizar el docente');
             }
         });
     });
-
-
 
 
     $('#confirmarDenegarBtn').click(function () {
@@ -139,29 +136,34 @@ $(document).ready(function () {
     });
 
 
-
     $('#confirmarReenviarBtn').click(function () {
+
         var id = $(this).data('confirmar-reenviarbtn-docenteid');
+        let token = $('input[name="__RequestVerificationToken"]').val();
+
         $.ajax({
             url: '/Administrador/ReenviarCodigo',
             type: 'POST',
-            headers: {
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            data: {
+                __RequestVerificationToken: token,
+                docenteId: id
             },
-            data: JSON.stringify(id),
-            contentType: 'application/json',
             success: function (response) {
-                $('#reenviarModal').modal('hide');
-                $('#modalValidacion').modal('hide');
-                location.reload();
+
+                Swal.fire({
+                    title: "Código de autorización enviado al docente",
+                    icon: "success",
+                    draggable: true
+                });
+
+                var modal = bootstrap.Modal.getInstance(document.getElementById('reenviarModal'));
+                if (modal) modal.hide();
             },
-            error: function (status, error) {
-                $('#reenviarModal').modal('hide');
-                $('#modalValidacion').modal('hide');
-                location.reload();
+            error: function (xhr) {
+                console.log(xhr.responseText);
+                alert("Error al reenviar");
             }
         });
-
 
     });
 

@@ -1,5 +1,6 @@
 ﻿@*@model List<ControlActividades.Models.MateriaViewModel>*@
 @model List<ControlActividades.Models.MateriaCARes>
+@using roles = ControlActividades.Roles;
 @{
     Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
     ViewBag.Title = "Materias del grupo";
@@ -8,6 +9,16 @@
 }
 
 <div class="container mt-4">
+    @if (User.IsInRole(roles.DOCENTE))
+    {
+        <div class="d-flex justify-content-end align-items-center mb-3">
+            <div class="ms-3 d-flex align-items-center" style="gap:8px;">
+                <input id="buscarMateria" class="form-control" placeholder="Buscar..." style="min-width:240px;" />
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#materiasGrupoModal" style="min-width:150px; padding:.35rem .9rem;">Crear Materia para el grupo</button>
+            </div>
+        </div>
+        @Html.Partial("MateriasGrupoModal")
+    }
     <div id="listaMateriasGrupo" class="content">
         @foreach (var materia in Model)
         {
@@ -63,11 +74,5 @@
 }
 
 @section Scripts{
-    @*<script src="~/Scripts/Docente/Grupos/mostrarMateriasGrupo.js"></script>*@
-    @*<script>
-            document.addEventListener('DOMContentLoaded', function () {
-                if (typeof cargarMateriasDeGrupo === 'function') cargarMateriasDeGrupo();
-            });
-        </script>
-        <script src="~/Scripts/Materias/materias-grupo.js"></script>*@
+    @Scripts.Render("~/bundles/materiasCreacion")
 }

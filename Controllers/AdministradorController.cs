@@ -1,11 +1,4 @@
-﻿using System;
-using System.Security.Claims;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+﻿using ControlActividades.Filters;
 using ControlActividades.Models;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
@@ -13,7 +6,16 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using ControlActividades.Filters;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Hosting;
+using System.Web.Mvc;
 
 namespace ControlActividades.Controllers
 {
@@ -127,52 +129,42 @@ namespace ControlActividades.Controllers
 
         #endregion
 
-
         public async Task<ActionResult> Index()
         {
-            List<DocentesValidacion> lsDocentesAdministrar = new List<DocentesValidacion>();
-            var lsDocentes = Db.tbDocentes.ToList();
-
-            foreach (var d in lsDocentes)
-            {
-                string email = await ObtenerCorreoDocente(d.DocenteId);
-                var autorizado = EstadoAutorizado(d.estaAutorizado);
-                var envioCorreo = EnvioCorreo(d.seEnvioCorreo);
-
-                DocentesValidacion docente = new DocentesValidacion()
+            var docentes = await Db.tbDocentes
+                .Select(d => new DocentesValidacion
                 {
                     DocenteId = d.DocenteId,
                     ApellidoPaterno = d.ApellidoPaterno,
                     ApellidoMaterno = d.ApellidoMaterno,
                     Nombre = d.Nombre,
-                    Email = email,
-                    Autorizado = autorizado,
-                    EnvioCorreo = envioCorreo,
+                    Email = d.IdentityUser.Email,
+                    Autorizado = d.estaAutorizado == true ? "Autorizado"
+                                : d.estaAutorizado == false ? "Denegado"
+                                : "Pendiente",
+                    EnvioCorreo = d.seEnvioCorreo ? "Enviado" : "Sin enviar",
                     UserId = d.UserId
-                };
-                lsDocentesAdministrar.Add(docente);
-            }
+                })
+                .ToListAsync();
 
-            return View(lsDocentesAdministrar);
+            return View(docentes);
         }
 
-        public ActionResult VerDocentes()
+        public async Task <ActionResult> VerDocentes()
         {
-            List<DocentesValidacion> lsDocentesAdministrar = new List<DocentesValidacion>();
-            var lsDocentes = Db.tbDocentes.ToList();
-            foreach (var d in lsDocentes)
+            
+                    var docentes = await Db.tbDocentes
+            .Select(d => new DocentesValidacion
             {
-                DocentesValidacion docente = new DocentesValidacion()
-                {
-                    DocenteId = d.DocenteId,
-                    ApellidoPaterno = d.ApellidoPaterno,
-                    ApellidoMaterno = d.ApellidoMaterno,
-                    Nombre = d.Nombre,
-                    UserId = d.UserId
-                };
-                lsDocentesAdministrar.Add(docente);
-            }
-            return View(lsDocentesAdministrar);
+                DocenteId = d.DocenteId,
+                ApellidoPaterno = d.ApellidoPaterno,
+                ApellidoMaterno = d.ApellidoMaterno,
+                Nombre = d.Nombre,
+                UserId = d.UserId
+            })
+            .ToListAsync();
+
+                    return View(docentes);
         }
         #region Metodos de la tabla
         private static string EstadoAutorizado(bool? status)
@@ -237,6 +229,29 @@ namespace ControlActividades.Controllers
                 {
                     var userId = docente.UserId;
                     var codigoDocente = docente.CodigoAutorizacion;
+                    var fechaLimite = docente.FechaExpiracionCodigo;
+
+                    if (fechaLimite < DateTime.Now || string.IsNullOrEmpty(codigoDocente))
+                    {
+                        bool existeCodigo = false;
+
+                        do
+                        {
+                            existeCodigo = Db.tbDocentes.Any(a => a.CodigoAutorizacion == codigoDocente);
+
+                            if (existeCodigo)
+                            {
+                                codigoDocente = Fg.GenerarCodigoAleatorio();
+                            }
+                        }
+                        while (existeCodigo);
+
+                        DateTime fechaExpiracionCodigo = DateTime.UtcNow.AddMinutes(59);
+                        docente.FechaExpiracionCodigo = fechaExpiracionCodigo;
+                        docente.CodigoAutorizacion = codigoDocente;
+
+                        Db.SaveChanges();
+                    }
 
                     var user = await UserManager.FindByIdAsync(userId);
 
@@ -244,9 +259,19 @@ namespace ControlActividades.Controllers
                     {
                         try
                         {
-                            var email = user.Email;
 
-                            await EmailService.SendEmailAsync(email ?? "", "Código de verificación", codigoDocente ?? "");
+                            var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/CodigoDocente.html");
+                            var html = System.IO.File.ReadAllText(templatePath);
+
+                            //Se reemplaza link en el archivo html por el link real
+                            html = html.Replace("{{codigoDocente}}", codigoDocente);
+
+                            var emailService = new Services.EmailService();
+                            await emailService.SendEmailAsync(
+                                user.Email,
+                                "Código de verificación",
+                                html
+                            );
 
                             docente.seEnvioCorreo = true;
                             Db.SaveChanges();
@@ -257,6 +282,10 @@ namespace ControlActividades.Controllers
                         {
                             return Json(new { mensaje = "No se pudo mandar código de verificación." }, JsonRequestBehavior.AllowGet);
                         }
+                    }
+                    else
+                    {
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                     }
                 }
 
@@ -313,7 +342,7 @@ namespace ControlActividades.Controllers
                     var codigoDocente = docente.CodigoAutorizacion;
                     var fechaLimite = docente.FechaExpiracionCodigo;
 
-                    if (fechaLimite < DateTime.Now)
+                    if (fechaLimite < DateTime.Now || string.IsNullOrEmpty(codigoDocente))
                     {
                         bool existeCodigo = false;
 
@@ -341,9 +370,19 @@ namespace ControlActividades.Controllers
                     {
                         try
                         {
-                            var email = user.Email;
 
-                            await EmailService.SendEmailAsync(email ?? "", "Código de verificación", codigoDocente ?? "");
+                            var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/CodigoDocente.html");
+                            var html = System.IO.File.ReadAllText(templatePath);
+                            
+                            //Se reemplaza link en el archivo html por el link real
+                            html = html.Replace("{{codigoDocente}}", codigoDocente);
+
+                            var emailService = new Services.EmailService();
+                            await emailService.SendEmailAsync(
+                                user.Email, 
+                                "Código de verificación", 
+                                html
+                            );
 
                             docente.seEnvioCorreo = true;
                             Db.SaveChanges();
@@ -409,10 +448,12 @@ namespace ControlActividades.Controllers
                 DefaultAuthenticationTypes.ApplicationCookie
             );
 
+            string adminEmail = User.Identity.Name;
+
             //Claims de impersonación
             identity.AddClaim(new Claim("IsImpersonating", "true"));
-            identity.AddClaim(new Claim("AdminOriginalId", adminId));
-            identity.AddClaim(new Claim("AdminOriginalName", User.Identity.Name));
+            identity.AddClaim(new Claim("AdminId", adminId));
+            identity.AddClaim(new Claim("AdminEmail", adminEmail));
 
             // Reemplazar cookie
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);

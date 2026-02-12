@@ -13,10 +13,10 @@ namespace ControlActividades.Models.db
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TipoActividadId { get; set; }
+        
         [Required]
         public string Nombre { get; set; }
 
-        public ICollection<tbEntregables> tbEntregables { get; set; }
-
+        public virtual ICollection<tbEntregables> tbEntregables { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+let fechaSeleccionadaGlobal = null;
 // Prevent duplicate initialization
 (function () {
 
@@ -23,6 +24,8 @@
             dateClick: function (info) {
                 console.log("Fecha clickeada:", info.dateStr);
 
+                // Guardamos la fecha seleccionada
+                fechaSeleccionadaGlobal = info.dateStr;
                 // Mostrar la fecha en el título del modal
                 document.getElementById("fechaSeleccionadaTexto").textContent = info.dateStr;
                 abrirModalEventosDia(info.dateStr);
@@ -153,6 +156,10 @@
 
         //Cuando se crea un evento, recargar eventos
         document.addEventListener('eventoCreado', () => {
+            calendar.refetchEvents();
+        });
+
+        document.addEventListener('eventoEditado', () => {
             calendar.refetchEvents();
         });
 

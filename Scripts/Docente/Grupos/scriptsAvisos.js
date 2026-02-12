@@ -2,25 +2,6 @@ document.addEventListener("DOMContentLoaded", function () {
     //Cargar los avisos asinados a la materia
     // inyectar controles de filtro (nombre + fechas)
     try {
-        var cont = document.getElementById('seccion-avisos') || document.body;
-        var filtroDiv = document.createElement('div');
-        filtroDiv.style.display = 'flex';
-        filtroDiv.style.gap = '8px';
-        filtroDiv.style.marginBottom = '10px';
-
-        var inputNombre = document.createElement('input');
-        inputNombre.id = 'filtroAvisoNombre';
-        inputNombre.placeholder = 'Buscar por título...';
-        inputNombre.className = 'form-control form-control-sm';
-        inputNombre.style.width = '220px';
-
-        var inputDesde = document.createElement('input');
-        inputDesde.type = 'date';
-        inputDesde.id = 'filtroAvisoDesde';
-        inputDesde.className = 'form-control form-control-sm';
-        inputDesde.style.width = '150px';
-
-        var inputHasta = document.createElement('input');
         inputHasta.type = 'date';
         inputHasta.id = 'filtroAvisoHasta';
         inputHasta.className = 'form-control form-control-sm';
@@ -29,7 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
         var btn = document.createElement('button');
         btn.className = 'btn btn-sm btn-primary';
         btn.textContent = 'Filtrar';
-        btn.addEventListener('click', function(){ cargarAvisosDeMateria(); });
+
+        btn.addEventListener('click', function () {
+            cargarAvisosDeMateria();
+        });
 
         filtroDiv.appendChild(inputNombre);
         filtroDiv.appendChild(inputDesde);
@@ -40,12 +24,26 @@ document.addEventListener("DOMContentLoaded", function () {
         var lista = document.getElementById('listaDeAvisosDeMateria');
         if (lista) lista.parentNode.insertBefore(filtroDiv, lista);
         else document.body.insertBefore(filtroDiv, document.body.firstChild);
-    } catch(e) { console.warn('No se pudo insertar filtros de avisos', e); }
+    } catch (e)
+    {
+        console.warn('No se pudo insertar filtros de avisos', e);
+    }
 
     cargarAvisosDeMateria();
 });
 
-function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"'`]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' })[m]; }); }
+function escapeHtml(s)
+{
+    if (!s) return '';
+    return String(s).replace(/[&<>"'`]/g, function (m)
+                                            {
+                                                return (
+                                                    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }
+                                                )[m];
+                                            });
+}
+
+let _avisosCache = []; // cache local de avisos para filtrar en cliente
 
 //Funcion para publicar un aviso
 async function publicarAviso() {
@@ -131,14 +129,15 @@ async function publicarAviso() {
 }
 
 
-
 // Funcion que carga los avisos a la vista.
 async function cargarAvisosDeMateria() {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
     if (!listaAvisos) return;
+
     try {
         const response = await fetch(`/Materias/ObtenerAvisos?IdMateria=${materiaIdGlobal}`);
         if (!response.ok) throw new Error("No se encontraron avisos.");
+
         const payload = await response.json();
         // payload puede venir como un arreglo directo o como { avisos: [...], RolUsuario: ... }
         let avisos = [];
@@ -148,39 +147,17 @@ async function cargarAvisosDeMateria() {
             avisos = payload.avisos;
         } else if (payload && Array.isArray(payload.resultado)) {
             avisos = payload.resultado;
-        } else {
-            // intentar extraer la primera propiedad que sea un array
-            const arr = payload && typeof payload === 'object' ? Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v)) : null;
-            if (arr) avisos = arr;
-        }
+        } 
 
-        // aplicar filtro cliente si hay controles
-        try {
-            var nombre = (document.getElementById('filtroAvisoNombre') || {}).value || '';
-            var desde = (document.getElementById('filtroAvisoDesde') || {}).value || '';
-            var hasta = (document.getElementById('filtroAvisoHasta') || {}).value || '';
-            if (nombre || desde || hasta) {
-                avisos = avisos.filter(function(a){
-                    var ok = true;
-                    if (nombre) ok = ok && (a.Titulo || '').toLowerCase().indexOf(nombre.toLowerCase()) !== -1;
-                    if (desde) {
-                        var f = new Date(a.FechaCreacion);
-                        var d = new Date(desde);
-                        if (!isNaN(f)) ok = ok && f >= d;
-                    }
-                    if (hasta) {
-                        var f2 = new Date(a.FechaCreacion);
-                        var h = new Date(hasta);
-                        // incluir todo el día
-                        h.setHours(23,59,59,999);
-                        if (!isNaN(f2)) ok = ok && f2 <= h;
-                    }
-                    return ok;
-                });
-            }
-        } catch(e) { console.warn(e); }
+        // Guardar en cache
+        _avisosCache = avisos || [];
 
-        renderizarAvisos(avisos);
+        // Renderizar todo inicialmente
+        renderizarAvisos(_avisosCache);
+
+        // Activar filtros
+        inicializarFiltrosAvisos();
+
     } catch (error) {
         listaAvisos.innerHTML = `<p class="aviso-error">${error.message}</p>`;
     }
@@ -201,53 +178,114 @@ function renderizarAvisos(avisos) {
 
     items.forEach(aviso => {
  
-        const avisoItem = document.createElement("div");
-        avisoItem.classList.add("aviso-item");
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
-
-        avisoItem.innerHTML = `
-            <div class="aviso-header">
-                <div class="aviso-icono">📢</div>
-                <div class="aviso-info">
-                    <strong>${aviso.Titulo}</strong>
-                    <p class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</p>
-                    <p class="ver-completo">Ver completo</p>
-                </div>
-                <div class="aviso-botones-container">
-                    <button class="aviso-editar-btn" data-id="${aviso.AvisoId}">Editar</button>
-                    <button class="aviso-eliminar-btn" data-id="${aviso.AvisoId}">Eliminar</button>
-                </div>
-        `;
 
         const avisoItem = document.createElement('div');
         avisoItem.className = 'aviso-item';
+        const botonesHtml = window.esDocente
+            ? `
+        <div class="aviso-botones-lateral">
+            <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">
+                Editar
+            </button>
+            <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">
+                Eliminar
+            </button>
+        </div>
+      `
+            : '';
         // Crear card
         avisoItem.innerHTML = `
-            <div class="aviso-icono">📢</div>
-            <div class="aviso-info">
-                <strong>${escapeHtml(aviso.Titulo)}</strong>
-                <div class="aviso-descripcion oculto">${escapeHtml(aviso.Descripcion)}</div>
-                <div class="aviso-fecha-publicado">Publicado: ${aviso.FechaCreacion || aviso.FechaCreacion}</div>
-                <div class="ver-completo">Ver completo</div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-left:12px">
-                <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${aviso.AvisoId}">Editar</button>
-                <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${aviso.AvisoId}">Eliminar</button>
-            </div>
-        `;
-
-        // toggle descripcion
-        const ver = avisoItem.querySelector('.ver-completo');
-        const desc = avisoItem.querySelector('.aviso-descripcion');
-        if (ver && desc) ver.addEventListener('click', () => { desc.classList.toggle('oculto'); desc.classList.toggle('visible'); });
+    <div class="aviso-info">
+        <div class="aviso-icono">
+            📢 <strong>${escapeHtml(aviso.Titulo)}</strong>
+        </div>
+        <div class="aviso-descripcion visible">
+            ${escapeHtml(aviso.Descripcion)}
+        </div>
+        <div class="aviso-fecha-publicado">
+            Publicado: ${aviso.FechaCreacion}
+        </div>
+    </div>
+    ${botonesHtml}
+`;
 
         // botones
-        avisoItem.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', () => eliminarAviso(aviso.AvisoId)));
-        avisoItem.querySelectorAll('.btn-editar').forEach(b => b.addEventListener('click', () => editarAviso(aviso.AvisoId)));
+        if (window.esDocente) {
+            avisoItem.querySelectorAll('.btn-eliminar')
+                .forEach(b => b.addEventListener('click', () => eliminarAviso(aviso.AvisoId)));
+
+            avisoItem.querySelectorAll('.btn-editar')
+                .forEach(b => b.addEventListener('click', () => editarAviso(aviso.AvisoId)));
+        }
 
         listaAvisos.appendChild(avisoItem);
     });
 }
+
+
+function inicializarFiltrosAvisos() {
+    if (window._filtrosAvisosInicializados) return;
+    window._filtrosAvisosInicializados = true;
+
+    const inputTitulo = document.getElementById('buscarAvisoTitulo');
+    const fechaDesde = document.getElementById('fechaDesdeAviso');
+    const fechaHasta = document.getElementById('fechaHastaAviso');
+    const btnLimpiar = document.getElementById('btnLimpiarFiltrosAvisos');
+
+    if (inputTitulo) inputTitulo.addEventListener('input', aplicarFiltrosYRender);
+    if (fechaDesde) fechaDesde.addEventListener('change', aplicarFiltrosYRender);
+    if (fechaHasta) fechaHasta.addEventListener('change', aplicarFiltrosYRender);
+
+    if (btnLimpiar) btnLimpiar.addEventListener('click', function () {
+        if (inputTitulo) inputTitulo.value = '';
+        if (fechaDesde) fechaDesde.value = '';
+        if (fechaHasta) fechaHasta.value = '';
+        aplicarFiltrosYRender();
+    });
+}
+
+function aplicarFiltrosYRender() {
+    if (!_avisosCache.length) {
+        renderizarAvisos([]);
+        return;
+    }
+
+    const term = document.getElementById('buscarAvisoTitulo')?.value.toLowerCase() || '';
+    const desdeValue = document.getElementById('fechaDesdeAviso')?.value;
+    const hastaValue = document.getElementById('fechaHastaAviso')?.value;
+
+    const desde = desdeValue ? new Date(desdeValue + "T00:00:00") : null;
+    const hasta = hastaValue ? new Date(hastaValue + "T23:59:59") : null;
+
+    const filtrados = _avisosCache.filter(a => {
+
+        //Filtro por título
+        if (term && !(a.Titulo || '').toLowerCase().includes(term))
+            return false;
+
+        // Fecha
+        if (desde || hasta) {
+
+            if (!a.FechaCreacionIso) return false;
+
+            const fechaAviso = new Date(a.FechaCreacionIso);
+            if (isNaN(fechaAviso)) return false;
+
+            if (desde && fechaAviso < desde)
+                return false;
+
+            if (hasta && fechaAviso > hasta)
+                return false;
+        }
+
+        return true;
+    });
+
+    renderizarAvisos(filtrados);
+}
+
+
 
 async function eliminarAviso(avisoId) {
     // Mostrar una confirmación antes de proceder con la eliminación
@@ -351,7 +389,10 @@ async function editarAviso(avisoId) {
 
         if (!updateResponse.ok) throw new Error("No se pudo actualizar el aviso.");
 
-        Swal.fire("Actualizado", "El aviso ha sido editado correctamente.", "success");
+        Swal.fire("Actualizado",
+            "El aviso ha sido editado correctamente.",
+            "success"
+        );
 
         // Recargar avisos para reflejar los cambios
         cargarAvisosDeMateria();

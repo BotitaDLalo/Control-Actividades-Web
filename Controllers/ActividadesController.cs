@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
@@ -150,7 +150,7 @@ namespace ControlActividades.Controllers
             try
             {
                 var actividad = await ActividadesService.ObtenerActividadPorId(actividadId);
-
+                
                 return Json(actividad, JsonRequestBehavior.AllowGet);
             }
             catch (KeyNotFoundException ex)
@@ -483,7 +483,7 @@ namespace ControlActividades.Controllers
 
                 return Json(new { mensaje = "Actividad actualizada correctamente." }, JsonRequestBehavior.AllowGet);
             }
-            catch (KeyNotFoundException ex)
+            catch(KeyNotFoundException ex)
             {
                 Response.StatusCode = 404; // Not Found
                 return Json(new { mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
@@ -502,12 +502,12 @@ namespace ControlActividades.Controllers
             try
             {
                 await ActividadesService.EliminarActividad(id);
-
-                return Json(new
-                {
-                    mensaje = "Actividad eliminada correctamente."
+            
+                return Json(new 
+                { 
+                    mensaje = "Actividad eliminada correctamente." 
                 }, JsonRequestBehavior.AllowGet);
-
+            
             }
             catch (KeyNotFoundException ex)
             {

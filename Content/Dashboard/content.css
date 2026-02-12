@@ -35,3 +35,11 @@ Gris casi blanco: #fafafa.
     /* grid-template-rows: repeat(auto-fill, minmax(150px, 1fr)); */
     padding: 20px;
 }
+
+.header-custom {
+    color: var(--txt-principal);
+}
+
+.label-custom {
+    color: var(--txt-principal);
+}

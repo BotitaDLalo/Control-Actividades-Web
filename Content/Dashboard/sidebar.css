@@ -31,6 +31,26 @@
             color: #fff;
         }
 
+.logo-titulo {
+    position: fixed; /* esquina fija */
+    top: 15px;
+    left: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logoesquina {
+    width: 55px;
+    height: 55px;
+}
+
+.logo-texto {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--txt-secundario);
+}
+
 div .sub-item {
     /* font-size: 14px; */
     padding-left: 25px;

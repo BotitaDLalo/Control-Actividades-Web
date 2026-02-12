@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -71,7 +71,7 @@ namespace ControlActividades.Services.Actividades
 
         public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)
         {
-
+            
             try
             {
                 // Cargar la entidad y mapear a DTO en memoria para evitar errores de traducción de EF
@@ -91,13 +91,12 @@ namespace ControlActividades.Services.Actividades
                     FechaLimite = entidad.FechaLimite,
                     Puntaje = entidad.Puntaje,
                     Enviado = entidad.Enviado,
-                    // PermitirEntregasTarde no está mapeado en la BD (NotMapped); devolver valor por defecto
                     PermitirEntregasTarde = entidad.PermitirEntregasTarde,
                     FechaProgramada = entidad.FechaProgramada
                 };
 
-            }
-            catch (Exception ex)
+            } 
+            catch(Exception ex)
             {
                 throw new Exception("Error al obtener la actividad: " + ex.Message);
             }
@@ -105,56 +104,54 @@ namespace ControlActividades.Services.Actividades
 
         public async Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividadDto)
         {
-            try
+            
+            var actividadEditar = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
+            if (actividadEditar == null)
             {
-                var actividadEditar = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
-                if (actividadEditar == null)
-                {
-                    throw new KeyNotFoundException("Actividad no encontrada.");
-                }
+                throw new KeyNotFoundException("Actividad no encontrada.");
+            }
 
-                if (!string.IsNullOrWhiteSpace(actividadDto.NombreActividad))
-                {
-                    actividadEditar.NombreActividad = actividadDto.NombreActividad;
-                }
-                if (!string.IsNullOrWhiteSpace(actividadDto.Descripcion))
-                {
-                    actividadEditar.Descripcion = actividadDto.Descripcion;
-                }
+            if (!string.IsNullOrWhiteSpace(actividadDto.NombreActividad))
+            {
+                actividadEditar.NombreActividad = actividadDto.NombreActividad;
+            }
+            if (!string.IsNullOrWhiteSpace(actividadDto.Descripcion))
+            {
+                actividadEditar.Descripcion = actividadDto.Descripcion;
+            }
 
-                if (actividadDto.FechaLimite != default(DateTime))
-                {
-                    actividadEditar.FechaLimite = actividadDto.FechaLimite;
-                }
+            if(actividadDto.FechaLimite != default(DateTime))
+            {
+                actividadEditar.FechaLimite = actividadDto.FechaLimite;
+            }
 
                 if (actividadDto.Puntaje > 0)
                 {
                     actividadEditar.Puntaje = actividadDto.Puntaje;
                 }
 
-                actividadEditar.Enviado = actividadDto.Enviado;
-                actividadEditar.FechaProgramada = actividadDto.FechaProgramada;
+                actividadEditar.Puntaje = actividadDto.Puntaje;
+            
 
-                await Db.SaveChangesAsync();
+            actividadEditar.Enviado = actividadDto.Enviado;
+            actividadEditar.FechaProgramada = actividadDto.FechaProgramada;
 
-                return new ActividadRes
-                {
-                    ActividadId = actividadEditar.ActividadId,
-                    NombreActividad = actividadEditar.NombreActividad,
-                    Descripcion = actividadEditar.Descripcion,
-                    FechaCreacion = actividadEditar.FechaCreacion,
-                    FechaLimite = actividadEditar.FechaLimite,
-                    Puntaje = actividadEditar.Puntaje
-                };
-            }
-            catch (Exception ex)
+            await Db.SaveChangesAsync();
+
+            return new ActividadRes
             {
-                throw new Exception("Error al actualizar la actividad: " + ex.Message);
-            }
+                ActividadId = actividadEditar.ActividadId,
+                NombreActividad = actividadEditar.NombreActividad,
+                Descripcion = actividadEditar.Descripcion,
+                FechaCreacion = actividadEditar.FechaCreacion,
+                FechaLimite = actividadEditar.FechaLimite,
+                Puntaje = actividadEditar.Puntaje
+            };
+            
         }
         public async Task EliminarActividad(int id)
         {
-
+            
             var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
             if (activity == null)
             {
