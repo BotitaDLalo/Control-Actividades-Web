@@ -478,17 +478,9 @@
     <Compile Include="Migrations\202601201645501_AddMatricula.Designer.cs">
       <DependentUpon>202601201645501_AddMatricula.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202601312203196_Campo_ST_usuarios.cs" />
-    <Compile Include="Migrations\202601312203196_Campo_ST_usuarios.Designer.cs">
-      <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202602111138426_SyncFix.cs" />
-    <Compile Include="Migrations\202602111138426_SyncFix.Designer.cs">
-      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.cs" />
-    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.Designer.cs">
-      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
+    <Compile Include="Migrations\202602121918097_migracionfinalfinal.cs" />
+    <Compile Include="Migrations\202602121918097_migracionfinalfinal.Designer.cs">
+      <DependentUpon>202602121918097_migracionfinalfinal.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Dtos\Migracion\MigracionUsuariosDto.cs" />
@@ -940,14 +932,8 @@
     <EmbeddedResource Include="Migrations\202601201645501_AddMatricula.resx">
       <DependentUpon>202601201645501_AddMatricula.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601312203196_Campo_ST_usuarios.resx">
-      <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202602111138426_SyncFix.resx">
-      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202602111144587_CreateTablaLogsAdministrador.resx">
-      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202602121918097_migracionfinalfinal.resx">
+      <DependentUpon>202602121918097_migracionfinalfinal.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

@@ -7,18 +7,18 @@ namespace ControlActividades.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.4.4")]
-    public sealed partial class SyncFix : IMigrationMetadata
+    public sealed partial class migracionfinalfinal : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(SyncFix));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(migracionfinalfinal));
         
         string IMigrationMetadata.Id
         {
-            get { return "202602111138426_SyncFix"; }
+            get { return "202602121918097_migracionfinalfinal"; }
         }
         
         string IMigrationMetadata.Source
         {
-            get { return Resources.GetString("Source"); }
+            get { return null; }
         }
         
         string IMigrationMetadata.Target

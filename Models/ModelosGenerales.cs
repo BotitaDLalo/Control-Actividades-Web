@@ -12,7 +12,7 @@ namespace ControlActividades.Models
     {
         public int EntregableId { get; set; }
 
-        public int Calificacion { get; set; }
+        public decimal Calificacion { get; set; }
     }
     public class ProblemDetails
     {
