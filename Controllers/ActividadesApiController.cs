@@ -500,7 +500,7 @@ namespace ControlActividades.Controllers
                     .Include(a => a.tbEntregables)
                     .ToListAsync();
 
-                int puntaje = await Db.tbActividades.Where(a => a.ActividadId == actividadId).Select(a => a.Puntaje).FirstOrDefaultAsync();
+                var puntaje = await Db.tbActividades.Where(a => a.ActividadId == actividadId).Select(a => a.Puntaje).FirstOrDefaultAsync();
 
                 int totalEntregados = lsAlumnosActividades.Count;
 
@@ -611,14 +611,17 @@ namespace ControlActividades.Controllers
                 var calificacion = asignarCalificacion.Calificacion;
 
 
-                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == entregableId);
+                //var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == entregableId);
 
-                if (entregable == null) return BadRequest();
+                //if (entregable == null) return BadRequest();
 
-                entregable.Calificacion = calificacion;
-                entregable.FechaCalificado = DateTime.Now;
+                var entregaAlumno = Db.tbEntregaActividadAlumno.FirstOrDefault(a=>a.EntregaActividadAlumnoId == entregableId);
+                if (entregaAlumno == null) return BadRequest();
 
-                Db.Entry(entregable).State = EntityState.Modified;
+                entregaAlumno.Calificacion = calificacion;
+                entregaAlumno.FechaCalificado = DateTime.Now;
+
+                Db.Entry(entregaAlumno).State = EntityState.Modified;
                 await Db.SaveChangesAsync();
 
                 return Ok();
