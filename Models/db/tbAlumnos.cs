@@ -23,6 +23,8 @@ namespace ControlActividades.Models.db
         [Required]
         public string Nombre { get; set; }
 
+        public string Matricula {  get; set; }
+
         public virtual ApplicationUser IdentityUser { get; set; }
 
         [ForeignKey("IdentityUser")]
