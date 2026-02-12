@@ -14,6 +14,12 @@ namespace ControlActividades.Models
 
         public int Calificacion { get; set; }
     }
+
+    public class QuitarCalificacionPeticion
+    {
+        public int EntregableId { get; set; }
+    }
+
     public class ProblemDetails
     {
         public int Status { get; set; }
@@ -281,7 +287,14 @@ namespace ControlActividades.Models
         public string ApellidoMaterno { get; set; }
         public DateTime FechaEntrega { get; set; }
         public string Respuesta { get; set; }
-        public int? Calificacion { get; set; }
+        public int Calificacion { get; set; }
+        public DateTime? FechaCalificado { get; set; }
+        public string Texto { get; set; }
+        public List<string> Enlaces { get; set; }
+        public List<object> Archivos { get; set; }
+        public DateTime? FechaEntregaContenido { get; set; }
+        public int TotalArchivos { get; set; }
+        public int TotalEnlaces { get; set; }
     }
 
 
@@ -631,7 +644,10 @@ namespace ControlActividades.Models
 
         public int Calificacion { get; set; }
 
-        public int EstadoEntregaId { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public DateTime? FechaCalificado { get; set; }
+
+        public int EstadoEntregaId { get; set; }    
     }
 
     public class EliminarAlumnoClase
@@ -654,6 +670,10 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
     }
 
+    /*public class AlumnoEliminarRequest
+    {
+        public int AlumnoMateriaId { get; set; }
+    }*/
 
     public class AlumnoCorreo
     {

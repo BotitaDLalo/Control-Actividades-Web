@@ -7,7 +7,7 @@ namespace ControlActividades.Models.db
 {
     // Mapear al nombre efectivo de la tabla en la base de datos
     // Nombre real en la base (sin pluralización extra)
-    [Table("tbEntregaActividadAlumno")]
+    [Table("tbEntregableActividadAlumno")]
     public class tbEntregaActividadAlumno
     {
         [Key]
