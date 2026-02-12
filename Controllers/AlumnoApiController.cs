@@ -1696,7 +1696,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a=>a.ActividadId == ActividadId && a.AlumnoId==AlumnoId);
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a=>a.ActividadId == ActividadId && a.AlumnoId==AlumnoId && a.Estatus);
 
                 if (datosAlumnoActividad != null)
                 {
@@ -1713,20 +1713,6 @@ namespace ControlActividades.Controllers
                     {
                         foreach (var entrega in lsEntregas)
                         {
-                            //EnvioRes envio = new EnvioRes()
-                            //{
-                            //    EntregaActividadAlumnoId = entregaActividadId,
-                            //    EntregableId = entrega.EntregableId,
-                            //    Contenido = entrega.Contenido,
-                            //    EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
-                            //    FechaEntrega = fechaEntrega ?? new DateTime(),
-                            //    Calificacion = entrega.Calificacion.ToString() ?? "",
-                            //    EstadoEntrega = datosAlumnoActividad.EstadoEntregaId == 1 ? true : false
-                            //};
-
-
-                            //lsEnvios.Add(envio);
-
                             EnvioActividadAlumnoResponse envio = new EnvioActividadAlumnoResponse()
                             {
                                 AlumnoId = datosAlumnoActividad.AlumnoId,
@@ -1735,8 +1721,8 @@ namespace ControlActividades.Controllers
                                 ActividadId = datosAlumnoActividad.ActividadId,
                                 FechaEntrega = datosAlumnoActividad.FechaEntrega,
                                 Contenido = entrega.Contenido,
-                                Calificacion = entrega.Calificacion ?? 0,
-                                FechaCalificado = entrega.FechaCalificado,
+                                //Calificacion = entrega.Calificacion ?? 0,
+                                //FechaCalificado = entrega.FechaCalificado,
                                 EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId
                             };
 
