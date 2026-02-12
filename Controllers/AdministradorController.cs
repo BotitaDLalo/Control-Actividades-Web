@@ -150,23 +150,21 @@ namespace ControlActividades.Controllers
             return View(docentes);
         }
 
-        public ActionResult VerDocentes()
+        public async Task <ActionResult> VerDocentes()
         {
-            List<DocentesValidacion> lsDocentesAdministrar = new List<DocentesValidacion>();
-            var lsDocentes = Db.tbDocentes.ToList();
-            foreach (var d in lsDocentes)
+            
+                    var docentes = await Db.tbDocentes
+            .Select(d => new DocentesValidacion
             {
-                DocentesValidacion docente = new DocentesValidacion()
-                {
-                    DocenteId = d.DocenteId,
-                    ApellidoPaterno = d.ApellidoPaterno,
-                    ApellidoMaterno = d.ApellidoMaterno,
-                    Nombre = d.Nombre,
-                    UserId = d.UserId
-                };
-                lsDocentesAdministrar.Add(docente);
-            }
-            return View(lsDocentesAdministrar);
+                DocenteId = d.DocenteId,
+                ApellidoPaterno = d.ApellidoPaterno,
+                ApellidoMaterno = d.ApellidoMaterno,
+                Nombre = d.Nombre,
+                UserId = d.UserId
+            })
+            .ToListAsync();
+
+                    return View(docentes);
         }
         #region Metodos de la tabla
         private static string EstadoAutorizado(bool? status)
