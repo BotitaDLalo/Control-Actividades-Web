@@ -47,6 +47,7 @@ namespace ControlActividades.Models
         public DbSet<cTipoEntrega> cTipoEntrega { get; set; }
         public DbSet<cEstadoEntrega> cEstadoEntrega { get; set; }
         public DbSet<cTipoNotificacion> cTipoNotificacion { get; set; }
+        public DbSet<cEstadoEntregas> cEstadoEntregas { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

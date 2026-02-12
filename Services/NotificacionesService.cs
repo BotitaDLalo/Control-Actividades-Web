@@ -261,7 +261,7 @@ namespace ControlActividades.Services
 
         }
 
-        
+
         // Notificación cuando el docente registra un alumno(s)
         public async Task NotificacionRegistrarAlumnoClase(
             List<int> lsAlumnosId,
@@ -297,7 +297,7 @@ namespace ControlActividades.Services
             int? materiaRef = null;
             int? grupoRef = null;
 
-            if (materiaId > 0)
+            if (grupoId != -1)
             {
                 nombreClase = await Db.tbGrupos
                     .Where(g => g.GrupoId == grupoId)
@@ -308,7 +308,7 @@ namespace ControlActividades.Services
                 grupoRef = grupoId;
                 mensaje = $"al grupo {nombreClase}";
             }
-            else
+            else if (materiaId != -1)
             {
                 nombreClase = await Db.tbMaterias
                     .Where(m => m.MateriaId == materiaId)
@@ -318,9 +318,13 @@ namespace ControlActividades.Services
                 tipoNotificacion = TiposNotificaciones.MateriaAsignada;
                 materiaRef = materiaId;
                 mensaje = $"a la materia {nombreClase}";
-
             }
-            
+            else
+            {
+                // Nada que notificar
+                return;
+            }
+
             string nombreDocente = await Db.tbDocentes
                 .Where(d => d.DocenteId == docenteId)
                 .Select(d =>
@@ -339,6 +343,7 @@ namespace ControlActividades.Services
                 grupoRef
             );
         }
+
 
 
         // Notificación cuando el docente crea un evento
