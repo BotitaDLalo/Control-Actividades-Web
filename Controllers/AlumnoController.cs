@@ -522,16 +522,29 @@ namespace ControlActividades.Controllers
                             EstadoEntregaId = estadoResolved
                         };
 
-                        Db.Set<tbEntregaActividadAlumno>().Add(entregaAlumno);
+                        Db.tbEntregaActividadAlumno.Add(entregaAlumno);
                         await Db.SaveChangesAsync();
                         entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
                     }
                     else
                     {
-                        entregaAlumnoExistente.FechaEntrega = fechaEnt;
-                        entregaAlumnoExistente.EstadoEntregaId = estadoResolved;
+                        int entregaIdExistente = entregaAlumnoExistente.EntregaActividadAlumnoId;
+                        //var lsEntregablesExistentes = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaIdExistente).ToList();
+                        //Db.tbEntregables.RemoveRange(lsEntregablesExistentes);
+
+
+                        tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
+                        {
+                            ActividadId = actividadId,
+                            AlumnoId = alumnoId,
+                            FechaEntrega = fechaEnt,
+                            EstadoEntregaId = 1,
+                            Estatus = true
+                        };
+
+                        Db.tbEntregaActividadAlumno.Add(entregaAlumno);
                         await Db.SaveChangesAsync();
-                        entregaAlumnoId = entregaAlumnoExistente.EntregaActividadAlumnoId;
+                        entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
                     }
 
                     int preferido = (savedUrls.Count > 0) ? 2 : 1;
@@ -557,16 +570,16 @@ namespace ControlActividades.Controllers
                 // Notificar al docente que un alumno entregó (FCM + persistir notificación)
                 try
                 {
-                    var docenteUserId = await Db.tbMaterias.Where(m => m.MateriaId == actividad.MateriaId).Select(m => m.DocenteId).FirstOrDefaultAsync();
-                    var docenteUid = await Db.tbDocentes.Where(d => d.DocenteId == docenteUserId).Select(d => d.UserId).FirstOrDefaultAsync();
-                    if (!string.IsNullOrEmpty(docenteUid))
-                    {
-                        var ns = new NotificacionesService(Db, new FCMService());
-                        string titulo = "Nueva entrega recibida";
-                        string cuerpo = $"El alumno ha entregado la actividad {actividad.NombreActividad}.";
-                        var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == docenteUid).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
-                        await ns.ProcesarNotificacion(new List<string> { docenteUid }, tokens, titulo, cuerpo, TiposNotificaciones.ActividadEntregada, actividad.MateriaId);
-                    }
+                    //var docenteUserId = await Db.tbMaterias.Where(m => m.MateriaId == actividad.MateriaId).Select(m => m.DocenteId).FirstOrDefaultAsync();
+                    //var docenteUid = await Db.tbDocentes.Where(d => d.DocenteId == docenteUserId).Select(d => d.UserId).FirstOrDefaultAsync();
+                    //if (!string.IsNullOrEmpty(docenteUid))
+                    //{
+                    //    var ns = new NotificacionesService(Db, new FCMService());
+                    //    string titulo = "Nueva entrega recibida";
+                    //    string cuerpo = $"El alumno ha entregado la actividad {actividad.NombreActividad}.";
+                    //    var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == docenteUid).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
+                    //    await ns.ProcesarNotificacion(new List<string> { docenteUid }, tokens, titulo, cuerpo, TiposNotificaciones.ActividadEntregada, actividad.MateriaId);
+                    //}
                 }
                 catch { }
 
@@ -684,19 +697,19 @@ namespace ControlActividades.Controllers
             try
             {
                 var httpRequest = Request;
-                if (httpRequest == null || httpRequest.Files.Count ==0)
+                if (httpRequest == null || httpRequest.Files.Count == 0)
                     return Json(new { mensaje = "No se recibió archivo." }, JsonRequestBehavior.AllowGet);
 
                 var file = httpRequest.Files[0];
-                if (file == null || file.ContentLength ==0)
+                if (file == null || file.ContentLength == 0)
                     return Json(new { mensaje = "Archivo vacío." }, JsonRequestBehavior.AllowGet);
 
-                int grupoId =0;
-                int materiaId =0;
+                int grupoId = 0;
+                int materiaId = 0;
                 int.TryParse(httpRequest.Form["GrupoId"], out grupoId);
                 int.TryParse(httpRequest.Form["MateriaId"], out materiaId);
 
-                if (grupoId ==0 && materiaId ==0)
+                if (grupoId == 0 && materiaId == 0)
                     return Json(new { mensaje = "Debe enviar GrupoId o MateriaId." }, JsonRequestBehavior.AllowGet);
 
                 IWorkbook workbook;
@@ -717,8 +730,8 @@ namespace ControlActividades.Controllers
                 bool hasHeader = false;
                 if (headerRow != null)
                 {
-                    var headerCells = headerRow.LastCellNum >0 ? headerRow.LastCellNum :1;
-                    for (int hc =0; hc < headerCells; hc++)
+                    var headerCells = headerRow.LastCellNum > 0 ? headerRow.LastCellNum : 1;
+                    for (int hc = 0; hc < headerCells; hc++)
                     {
                         var hCell = headerRow.GetCell(hc);
                         var hText = hCell != null ? new DataFormatter().FormatCellValue(hCell)?.ToString()?.ToLower() : null;
@@ -732,14 +745,14 @@ namespace ControlActividades.Controllers
 
                 var emails = new List<string>();
                 var formatter = new DataFormatter();
-                for (int r = hasHeader ? startRow +1 : startRow; r <= sheet.LastRowNum; r++)
+                for (int r = hasHeader ? startRow + 1 : startRow; r <= sheet.LastRowNum; r++)
                 {
                     var row = sheet.GetRow(r);
                     if (row == null) continue;
 
                     string found = null;
-                    var lastCell = row.LastCellNum >0 ? row.LastCellNum :1;
-                    for (int c =0; c < lastCell; c++)
+                    var lastCell = row.LastCellNum > 0 ? row.LastCellNum : 1;
+                    for (int c = 0; c < lastCell; c++)
                     {
                         var cell = row.GetCell(c);
                         if (cell == null) continue;
@@ -774,7 +787,7 @@ namespace ControlActividades.Controllers
                     {
                         try
                         {
-                            var password = "Tmp#" + Guid.NewGuid().ToString("N").Substring(0,8);
+                            var password = "Tmp#" + Guid.NewGuid().ToString("N").Substring(0, 8);
                             var newUser = new ApplicationUser { UserName = email, Email = email };
                             var createResult = await UserManager.CreateAsync(newUser, password);
                             if (createResult.Succeeded)
@@ -806,7 +819,7 @@ namespace ControlActividades.Controllers
                     }
 
                     var alumnoId = await Db.tbAlumnos.Where(a => a.UserId == user.Id).Select(a => a.AlumnoId).FirstOrDefaultAsync();
-                    if (alumnoId ==0)
+                    if (alumnoId == 0)
                     {
                         try
                         {
@@ -835,7 +848,7 @@ namespace ControlActividades.Controllers
                                         Console.WriteLine("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage);
                                     }
                                 }
-                                alumnoId =0;
+                                alumnoId = 0;
                             }
                         }
                         catch (Exception ex)
@@ -844,7 +857,7 @@ namespace ControlActividades.Controllers
                         }
                     }
 
-                    if (alumnoId ==0)
+                    if (alumnoId == 0)
                     {
                         notFound.Add(email);
                         continue;
@@ -852,7 +865,7 @@ namespace ControlActividades.Controllers
 
                     lsAlumnosId.Add(alumnoId);
 
-                    if (grupoId >0)
+                    if (grupoId > 0)
                     {
                         bool existe = Db.tbAlumnosGrupos.Any(a => a.GrupoId == grupoId && a.AlumnoId == alumnoId);
                         if (!existe)
@@ -865,7 +878,7 @@ namespace ControlActividades.Controllers
                             skipped.Add(email);
                         }
                     }
-                    else if (materiaId >0)
+                    else if (materiaId > 0)
                     {
                         bool existe = Db.tbAlumnosMaterias.Any(a => a.MateriaId == materiaId && a.AlumnoId == alumnoId);
                         if (!existe)
@@ -898,18 +911,18 @@ namespace ControlActividades.Controllers
                 }
 
                 var alumnos = (from a in Db.tbAlumnos
-                                where lsAlumnosId.Contains(a.AlumnoId)
-                                join u in Db.Users on a.UserId equals u.Id into uj
-                                from u in uj.DefaultIfEmpty()
-                                select new EmailVerificadoAlumno
-                                {
-                                    AlumnoId = a.AlumnoId,
-                                    Email = u.Email ?? "",
-                                    UserName = u.UserName ?? "",
-                                    Nombre = a.Nombre,
-                                    ApellidoPaterno = a.ApellidoPaterno,
-                                    ApellidoMaterno = a.ApellidoMaterno
-                                }).ToList();
+                               where lsAlumnosId.Contains(a.AlumnoId)
+                               join u in Db.Users on a.UserId equals u.Id into uj
+                               from u in uj.DefaultIfEmpty()
+                               select new EmailVerificadoAlumno
+                               {
+                                   AlumnoId = a.AlumnoId,
+                                   Email = u.Email ?? "",
+                                   UserName = u.UserName ?? "",
+                                   Nombre = a.Nombre,
+                                   ApellidoPaterno = a.ApellidoPaterno,
+                                   ApellidoMaterno = a.ApellidoMaterno
+                               }).ToList();
 
                 return Json(new
                 {

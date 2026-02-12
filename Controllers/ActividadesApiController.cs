@@ -615,9 +615,8 @@ namespace ControlActividades.Controllers
 
                 //if (entregable == null) return BadRequest();
 
-                var entregaAlumno = Db.tbEntregaActividadAlumno.FirstOrDefault(a => a.EntregaActividadAlumnoId == entregableId);
-               
-                if(entregaAlumno == null ) return BadRequest();
+                var entregaAlumno = Db.tbEntregaActividadAlumno.FirstOrDefault(a=>a.EntregaActividadAlumnoId == entregableId);
+                if (entregaAlumno == null) return BadRequest();
 
                 entregaAlumno.Calificacion = calificacion;
                 entregaAlumno.FechaCalificado = DateTime.Now;

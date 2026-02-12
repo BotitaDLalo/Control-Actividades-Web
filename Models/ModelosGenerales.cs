@@ -56,7 +56,6 @@ namespace ControlActividades.Models
 
     public class CancelarEnvioActividadAlumno
     {
-        [Required]
         public int AlumnoActividadId { get; set; }
 
         [Required]
