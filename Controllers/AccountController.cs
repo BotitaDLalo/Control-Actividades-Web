@@ -290,6 +290,12 @@ namespace ControlActividades.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    if (model.Role == Role.Administrador)
+                    {
+                        ModelState.AddModelError("", "Rol no permitido.");
+                        return View(model);
+                    }
+
                     string email = Session["Email"] as string ?? "";
 
                     if (email == "")
@@ -301,14 +307,14 @@ namespace ControlActividades.Controllers
                     var apellidoPaterno = model.ApellidoPaterno;
                     var apellidoMaterno = model.ApellidoMaterno;
                     var password = model.Password;
-                    var role = model.Role;
-
+                    var role = model.Role.Value;
 
                     var user = new ApplicationUser { UserName = email, Email = email };
                     var result = await UserManager.CreateAsync(user, model.Password);
+
                     if (result.Succeeded)
                     {
-                        string roleStr = model.Role.ToString();
+                        string roleStr = role.ToString();
 
                         //Si el rol no existe, este es creado
                         if (!await RoleManager.RoleExistsAsync(roleStr))
@@ -355,7 +361,7 @@ namespace ControlActividades.Controllers
                                 tbAlumnos alumno = new tbAlumnos()
                                 {
                                     ApellidoPaterno = apellidoPaterno,
-                                    ApellidoMaterno = apellidoPaterno,
+                                    ApellidoMaterno = apellidoMaterno,
                                     Nombre = nombre,
                                     UserId = user.Id,
                                 };
