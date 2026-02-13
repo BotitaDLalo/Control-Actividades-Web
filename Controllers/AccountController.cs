@@ -324,11 +324,11 @@ namespace ControlActividades.Controllers
                         }
 
 
-                        string controller;
+                        string controller = "Grupos";
                         switch (role)
                         {
                             case Role.Docente:
-                                controller = Role.Docente.ToString();
+                                //controller = Role.Docente.ToString();
                                 DateTime fechaExpiracionCodigo = DateTime.UtcNow.AddMinutes(59);
                                 string codigo = Fg.GenerarCodigoAleatorio();
 
@@ -351,7 +351,7 @@ namespace ControlActividades.Controllers
                                 return RedirectToAction("ConfirmEmail");
 
                             case Role.Alumno:
-                                controller = Role.Alumno.ToString();
+                                //controller = Role.Alumno.ToString();
                                 tbAlumnos alumno = new tbAlumnos()
                                 {
                                     ApellidoPaterno = apellidoPaterno,
@@ -375,8 +375,9 @@ namespace ControlActividades.Controllers
                         // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
                         // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                         //await UserManager.SendEmailAsync(user.Id, "Confirmar la cuenta", "Para confirmar su cuenta, haga clic <a href=\"" + callbackUrl + "\">aquí</a>");
-
-                        return RedirectToAction("Index", controller);
+                        
+                        TempData["RedirectUrl"] = Url.Action("Index", controller);
+                        return RedirectToAction("MensajeExito");
                     }
                     AddErrors(result);
                 }
@@ -385,8 +386,16 @@ namespace ControlActividades.Controllers
             catch (Exception)
             {
                 // Si llegamos a este punto, es que se ha producido un error y volvemos a mostrar el formulario
+                TempData["Error"] = "Ocurrió un error inesperado.";
                 return View(model);
             }
+        }
+
+        public ActionResult MensajeExito()
+        {
+            if (TempData["RedirectUrl"] == null)
+                return RedirectToAction("Index", "Home");
+            return View();
         }
 
         [AllowAnonymous]

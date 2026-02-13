@@ -15,7 +15,9 @@
     </div>
     <div class="verify-box">
         <div class="login-header">
-            <header>Verificar Código</header>
+            <h2>Se ha enviado su solicitud para registrarse como docente</h2>
+            <h3>Si es aprobado se le enviará un código de verificación a su correo electrónico</h3>
+            <header>Ingresar código:</header>
         </div>
         @using (Html.BeginForm("ConfirmEmail", "Account", FormMethod.Post, new { @class = "form-signin" }))
         {
