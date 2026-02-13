@@ -450,7 +450,9 @@ namespace ControlActividades.Controllers
 
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
 
-                    return RedirectToAction("Index", "Docente");
+                    TempData["RedirectUrl"] = Url.Action("Index", "Docente");
+                    TempData["Mensaje"] = "Cuenta verificada correctamente.";
+                    return RedirectToAction("MensajeExito");
                 }
 
                 return View();

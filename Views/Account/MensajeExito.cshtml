@@ -1,6 +1,7 @@
 ﻿@{
     Layout = null;
     var redirectUrl = TempData["RedirectUrl"] as string;
+    var mensaje = TempData["Mensaje"] as string ?? "Operación realizada correctamente.";
 }
 
 <!DOCTYPE html>
@@ -43,7 +44,7 @@
 <body>
 
     <div class="box">
-        <h2>Registrado correctamente</h2>
+        <h2>@mensaje</h2>
         <p>Redirigiendo...</p>
         <div class="spinner"></div>
     </div>
