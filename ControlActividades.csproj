@@ -490,7 +490,6 @@
     <Compile Include="Models\ApiResponse.cs" />
     <Compile Include="Models\ControlActividadesDTO.cs" />
     <Compile Include="Models\db\cEstadoEntrega.cs" />
-    <Compile Include="Models\db\cEstadoEntregas.cs" />
     <Compile Include="Models\db\cTipoEntrega.cs" />
     <Compile Include="Models\db\cTipoNotificacion.cs" />
     <Compile Include="Models\db\cTiposActividades.cs" />
