@@ -25,11 +25,21 @@
             <div class="verificarCodigo-form">
                 <div class="input-box-code">
                     <label for="email"></label>
-                    <input type="number" class="input-field" id="Code1" name="Code1" autocomplete="off" required>
-                    <input type="number" class="input-field" id="Code2" name="Code2" autocomplete="off" required>
-                    <input type="number" class="input-field" id="Code3" name="Code3" autocomplete="off" required>
-                    <input type="number" class="input-field" id="Code4" name="Code4" autocomplete="off" required>
-                    <input type="number" class="input-field" id="Code5" name="Code5" autocomplete="off" required>
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                           class="input-field code-input" id="Code1" name="Code1" required>
+
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                           class="input-field code-input" id="Code2" name="Code2" required>
+
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                           class="input-field code-input" id="Code3" name="Code3" required>
+
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                           class="input-field code-input" id="Code4" name="Code4" required>
+
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                           class="input-field code-input" id="Code5" name="Code5" required>
+
                 </div>
                 <div class="input-box">
                     <input type="submit" class="input-submit" value="Verificar">
@@ -37,6 +47,31 @@
             </div>
         }
     </div>
+
+    <script>
+    const inputs = document.querySelectorAll(".code-input");
+
+    inputs.forEach((input, index) => {
+
+        // Solo permitir números
+        input.addEventListener("input", function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+
+            if (this.value.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+        });
+
+        // Manejar Backspace
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Backspace" && this.value === '' && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+    });
+    </script>
+
 </body>
 
 </html>
