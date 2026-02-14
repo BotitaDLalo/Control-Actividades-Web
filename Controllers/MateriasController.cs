@@ -333,7 +333,19 @@ namespace ControlMaterias.Controllers
             if (avisos == null)
             {
                 Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Datos inválidos." });
+            }
+
+            if (avisos.FechaFin < avisos.FechaInicio)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "La fecha de fin debe ser mayor a la fecha de inicio." });
+            }
+
+            if (avisos.FrecuenciaDias < 1)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "Frecuencia inválida." });
             }
 
             try
@@ -347,24 +359,25 @@ namespace ControlMaterias.Controllers
                     Descripcion = avisos.Descripcion,
                     GrupoId = avisos.GrupoId == 0 ? null : avisos.GrupoId,
                     MateriaId = avisos.MateriaId,
-                    FechaCreacion = DateTime.Now
+                    FechaCreacion = DateTime.Now,
+                    FechaInicio = avisos.FechaInicio,
+                    FechaFin = avisos.FechaFin,
+                    FrecuenciaDias = avisos.FrecuenciaDias
                 };
 
                 Db.tbAvisos.Add(nuevoAviso);
                 await Db.SaveChangesAsync();
 
-                await Ns.NotificacionCrearAviso(
-                    nuevoAviso,
-                    nuevoAviso.GrupoId,
-                    nuevoAviso.MateriaId
-                );
 
-                return Json(new { mensaje = "Aviso creado con éxito" }, JsonRequestBehavior.AllowGet);
+                /*YA NO SE ENVÍA NOTIFICACIÓN INMEDIATA*/
+                /*SE ENVIARÁ CON HANGFIRE*/
+
+                return Json(new { mensaje = "Aviso creado con éxito" });
             }
             catch (Exception ex)
             {
                 Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al crear el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Error al crear el aviso", error = ex.Message });
             }
         }
 

@@ -628,6 +628,9 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
         public int? GrupoId { get; set; }
         public int MateriaId { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public int FrecuenciaDias { get; set; }
     }
 
     public class EnvioActividadAlumnoResponse

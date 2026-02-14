@@ -50,13 +50,16 @@ async function publicarAviso() {
     // Obtener valores de los inputs
     let titulo = document.getElementById("titulo").value.trim();
     let descripcion = document.getElementById("descripcionAviso").value.trim();
+    let fechaInicio = document.getElementById("fechaInicioAviso").value;
+    let fechaFin = document.getElementById("fechaFinAviso").value;
+    let frecuenciaDias = parseInt(document.getElementById("frecuenciaDias").value);
 
     // Validar que los campos no estén vacíos
-    if (!titulo || !descripcion) {
+    if (!titulo || !descripcion || !fechaInicio || !fechaFin) {
         Swal.fire({
             position: "top-end",
-            title: "Campos vacíos",
-            text: "Por favor, completa todos los campos.",
+            title: "Campos incompletos",
+            text: "Por favor completa todos los campos.",
             icon: "warning",
             timer: 2500,
             showConfirmButton: false
@@ -64,18 +67,44 @@ async function publicarAviso() {
         return;
     }
 
-    // Variables globales que ya tienes en tu archivo .js
-    let docenteId = docenteIdGlobal;
-    let grupoId = grupoIdGlobal;
-    let materiaId = materiaIdGlobal;
+    let hoy = new Date().toISOString().split("T")[0];
+
+    if (fechaInicio < hoy) {
+        Swal.fire({
+            icon: "warning",
+            title: "Fecha inválida",
+            text: "La fecha de inicio no puede ser menor a hoy."
+        });
+        return;
+    }
+
+    if (fechaFin < fechaInicio) {
+        Swal.fire({
+            icon: "warning",
+            title: "Fechas inválidas",
+            text: "La fecha de fin debe ser mayor o igual a la fecha de inicio."
+        });
+        return;
+    }
+
+    if (frecuenciaDias < 1) {
+        Swal.fire({
+            icon: "warning",
+            title: "Frecuencia inválida",
+            text: "La frecuencia debe ser al menos 1 día."
+        });
+        return;
+    }
 
     // Crear objeto con los datos a enviar
     let avisoData = {
-        DocenteId: docenteId,
         Titulo: titulo,
         Descripcion: descripcion,
-        GrupoId: grupoId,
-        MateriaId: materiaId
+        GrupoId: grupoIdGlobal,
+        MateriaId: materiaIdGlobal,
+        FechaInicio: fechaInicio,
+        FechaFin: fechaFin,
+        FrecuenciaDias: frecuenciaDias
     };
 
     try {
@@ -107,21 +136,19 @@ async function publicarAviso() {
 
         } else {
             Swal.fire({
-                position: "top-end",
+                icon: "error",
                 title: "Error",
                 text: result.mensaje || "Error al crear el aviso.",
-                icon: "error",
                 timer: 3000,
                 showConfirmButton: false
             });
         }
     } catch (error) {
         console.error("Error:", error);
-        Swal.fire({
-            position: "top-end",
+        Swal.fire({            
+            icon: "error",
             title: "Error",
             text: "Hubo un problema al enviar el aviso.",
-            icon: "error",
             timer: 3000,
             showConfirmButton: false
         });
