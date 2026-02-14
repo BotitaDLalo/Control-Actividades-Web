@@ -790,7 +790,7 @@ namespace ControlActividades.Controllers
                                     Descripcion = a.Descripcion,
                                     FechaCreacion = a.FechaCreacion,
                                     FechaLimite = a.FechaLimite,
-                                    Puntaje = a.Puntaje
+                                    //Puntaje = a.Puntaje
                                 })
                                 .ToList()
                         })
@@ -877,7 +877,7 @@ namespace ControlActividades.Controllers
                                 Descripcion = a.Descripcion,
                                 FechaCreacion = a.FechaCreacion,
                                 FechaLimite = a.FechaLimite,
-                                Puntaje = a.Puntaje
+                                //Puntaje = a.Puntaje
                             })
                             .ToListAsync()
                     };
@@ -1292,14 +1292,10 @@ namespace ControlActividades.Controllers
                     ActividadId = actividadId,
                     AlumnoId = alumnoId,
                     FechaEntrega = fechaEntregaParsed,
-                    EstadoEntregaId = 1
+                    EstadoEntregaId = 1,
+                    EntregaTardia = (entregaActiva.FechaEntrega > fechaLimite)
                 };
 
-
-                if (entregaActiva.FechaEntrega > fechaLimite)
-                {
-                    entregaActiva.EntregaTardia = true;
-                }
 
                 Db.tbEntregaActividadAlumno.Add(entregaActividad);
                 await Db.SaveChangesAsync();
@@ -2746,7 +2742,7 @@ namespace ControlActividades.Controllers
                                 Nombre = string.IsNullOrWhiteSpace(nombrePart) ? "Alumno" : nombrePart,
                                 ApellidoPaterno = "N/A",
                                 ApellidoMaterno = "N/D",
-                                Matricula = user.Email ?? Guid.NewGuid().ToString()
+                                //Matricula = user.Email ?? Guid.NewGuid().ToString()
                             };
                             Db.tbAlumnos.Add(nuevoAlumno);
                             try
