@@ -204,6 +204,24 @@ namespace ControlActividades.Recursos
             return usuarioId;
         }
 
+        public int ObtenerSTUsuarioIdPorCAUsuarioId(int ca_usuarioId, string role)
+        {
+            int st_usuarioId = 0;
+            if (role == Roles.DOCENTE)
+            {
+                var st_usuarioIdAlumno = Db.tbAlumnos.Where(a => a.AlumnoId == ca_usuarioId).Select(a => a.ST_UsuarioId).FirstOrDefault();
+                if (st_usuarioIdAlumno != null)
+                    st_usuarioId = st_usuarioIdAlumno.Value;
+            }
+            else if (role == Roles.ALUMNO)
+            {
+                var st_usuarioIdDocente = Db.tbDocentes.Where(a => a.DocenteId == ca_usuarioId).Select(a => a.ST_UsuarioId).FirstOrDefault();
+                if(st_usuarioIdDocente != null)
+                    st_usuarioId = st_usuarioIdDocente.Value;
+            }
+            return st_usuarioId;
+        }
+
         public string ObtenerRolUsuario(IPrincipal User)
         {
             var identity = User.Identity as ClaimsIdentity;

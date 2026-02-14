@@ -216,7 +216,8 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                int st_docenteId = 0;
+                var role = Roles.DOCENTE;
+                int st_docenteId = Fg.ObtenerSTUsuarioIdPorCAUsuarioId(docenteId, role);
 
                 var lsGrupos = await GruposApiService.ObtenerGruposCreados(docenteId, st_docenteId);
 
@@ -275,9 +276,9 @@ namespace ControlActividades.Controllers
                 //        Materias = lsMaterias
                 //    });
                 //}
-                int st_docenteId = 0;
-
                 string role = Roles.DOCENTE;
+                int st_docenteId = Fg.ObtenerSTUsuarioIdPorCAUsuarioId(docenteId, role);
+
 
                 var lsGrupos = await GruposApiService.ObtenerGruposMaterias(docenteId, st_docenteId, role);
 
@@ -705,8 +706,8 @@ namespace ControlActividades.Controllers
                 //        Materias = lsMaterias
                 //    });
                 //}
-                int st_alumnoId = 0;
                 string role = Roles.ALUMNO;
+                int st_alumnoId = Fg.ObtenerSTUsuarioIdPorCAUsuarioId(alumnoId, role);
 
                 var listaGruposMaterias = await GruposApiService.ObtenerGruposMaterias(alumnoId, st_alumnoId, role);
 

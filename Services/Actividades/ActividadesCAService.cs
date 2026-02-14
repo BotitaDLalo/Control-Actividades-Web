@@ -10,9 +10,11 @@ using System.Web.Mvc;
 
 namespace ControlActividades.Services.Actividades
 {
-    public class ActividadesCAService : IActividadesService
+    public class ActividadesCAService : IActividadesService, IDisposable
     {
+        #region Propiedades
         private ApplicationDbContext _db;
+        private bool _disposed = false;
 
         public ApplicationDbContext Db
         {
@@ -26,6 +28,24 @@ namespace ControlActividades.Services.Actividades
             }
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _db?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+#endregion
         public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
         {
             try

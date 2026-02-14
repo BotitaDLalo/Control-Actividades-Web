@@ -14,10 +14,12 @@ using Microsoft.AspNet.Identity.Owin;
 
 namespace ControlActividades.Services.Actividades
 {
-    public class ActividadesApiCAService : IActividadesApiService
+    public class ActividadesApiCAService : IActividadesApiService, IDisposable
     {
+        #region Propiedades
         private ApplicationUserManager _userManager;
         private ApplicationDbContext _db;
+        private bool _disposed = false;
 
         public ApplicationDbContext Db
         {
@@ -42,6 +44,25 @@ namespace ControlActividades.Services.Actividades
             }
         }
 
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _db?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+        #endregion
         public async Task<ActividadesDTO> ActualizarActividad(int id, tbActividades updatedActivity)
         {
             var actividad = await Db.tbActividades.FindAsync(id);
