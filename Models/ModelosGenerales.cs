@@ -12,7 +12,7 @@ namespace ControlActividades.Models
     {
         public int EntregableId { get; set; }
 
-        public Decimal Calificacion { get; set; }
+        public decimal Calificacion { get; set; }
     }
 
     public class QuitarCalificacionPeticion
@@ -626,8 +626,12 @@ namespace ControlActividades.Models
         public int? AvisoId { get; set; }
         public string Titulo { get; set; }
         public string Descripcion { get; set; }
+        public string Enlaces { get; set; }
         public int? GrupoId { get; set; }
         public int MateriaId { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public int FrecuenciaDias { get; set; }
     }
 
     public class EnvioActividadAlumnoResponse

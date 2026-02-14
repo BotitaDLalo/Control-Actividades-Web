@@ -130,11 +130,11 @@ namespace ControlActividades.Models
 
     public class RegisterViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
         [Display(Name = "Nombres")]
         public string Nombres { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El apellido paterno es obligatorio.")]
         [Display(Name = "Apellido Paterno")]
         public string ApellidoPaterno { get; set; }
 
@@ -146,15 +146,21 @@ namespace ControlActividades.Models
         //[Display(Name = "Correo electrónico")]
         //public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [StringLength(100, ErrorMessage = "El número de caracteres de {0} debe ser al menos {2}.", MinimumLength = 6)]
+        [RegularExpression(
+            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$",
+            ErrorMessage = "La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial."
+            )
+        ]
         [DataType(DataType.Password)]
         [Display(Name = "Contraseña")]
         public string Password { get; set; }
 
-        [Required]
+
+        [Required(ErrorMessage = "Debes seleccionar un rol.")]
         [Display(Name = "Tipo usuario")]
-        public Role Role { get; set; }
+        public Role? Role { get; set; }
         //[DataType(DataType.Password)]
         //[Display(Name = "Confirmar contraseña")]
         //[Compare("Password", ErrorMessage = "La contraseña y la contraseña de confirmación no coinciden.")]

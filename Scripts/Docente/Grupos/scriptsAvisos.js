@@ -50,13 +50,17 @@ async function publicarAviso() {
     // Obtener valores de los inputs
     let titulo = document.getElementById("titulo").value.trim();
     let descripcion = document.getElementById("descripcionAviso").value.trim();
+    let enlaces = document.getElementById("enlacesAviso").value.trim();
+    let fechaInicio = document.getElementById("fechaInicioAviso").value;
+    let fechaFin = document.getElementById("fechaFinAviso").value;
+    let frecuenciaDias = parseInt(document.getElementById("frecuenciaDias").value);
 
     // Validar que los campos no estén vacíos
-    if (!titulo || !descripcion) {
+    if (!titulo || !descripcion || !fechaInicio || !fechaFin) {
         Swal.fire({
             position: "top-end",
-            title: "Campos vacíos",
-            text: "Por favor, completa todos los campos.",
+            title: "Campos incompletos",
+            text: "Por favor completa todos los campos.",
             icon: "warning",
             timer: 2500,
             showConfirmButton: false
@@ -64,18 +68,61 @@ async function publicarAviso() {
         return;
     }
 
-    // Variables globales que ya tienes en tu archivo .js
-    let docenteId = docenteIdGlobal;
-    let grupoId = grupoIdGlobal;
-    let materiaId = materiaIdGlobal;
+    let hoy = new Date().toISOString().split("T")[0];
+
+    if (fechaInicio < hoy) {
+        Swal.fire({
+            icon: "warning",
+            title: "Fecha inválida",
+            text: "La fecha de inicio no puede ser menor a hoy."
+        });
+        return;
+    }
+
+    if (fechaFin < fechaInicio) {
+        Swal.fire({
+            icon: "warning",
+            title: "Fechas inválidas",
+            text: "La fecha de fin debe ser mayor o igual a la fecha de inicio."
+        });
+        return;
+    }
+
+    if (frecuenciaDias < 1) {
+        Swal.fire({
+            icon: "warning",
+            title: "Frecuencia inválida",
+            text: "La frecuencia debe ser al menos 1 día."
+        });
+        return;
+    }
+
+    if (enlaces) {
+        let linksArray = enlaces.split("\n");
+
+        for (let link of linksArray) {
+            link = link.trim();
+            if (link && !link.startsWith("https")) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Enlace inválido",
+                    text: "Todos los enlaces deben comenzar con https."
+                });
+                return;
+            }
+        }
+    }
 
     // Crear objeto con los datos a enviar
     let avisoData = {
-        DocenteId: docenteId,
         Titulo: titulo,
         Descripcion: descripcion,
-        GrupoId: grupoId,
-        MateriaId: materiaId
+        Enlaces: enlaces,
+        GrupoId: grupoIdGlobal,
+        MateriaId: materiaIdGlobal,
+        FechaInicio: fechaInicio,
+        FechaFin: fechaFin,
+        FrecuenciaDias: frecuenciaDias
     };
 
     try {
@@ -94,7 +141,7 @@ async function publicarAviso() {
             Swal.fire({
                 position: "top-end",
                 title: "Aviso creado",
-                text: "El aviso ha sido publicado correctamente.",
+                text: "El aviso ha creado correctamente.",
                 icon: "success",
                 timer: 3000,
                 showConfirmButton: false
@@ -107,21 +154,19 @@ async function publicarAviso() {
 
         } else {
             Swal.fire({
-                position: "top-end",
+                icon: "error",
                 title: "Error",
                 text: result.mensaje || "Error al crear el aviso.",
-                icon: "error",
                 timer: 3000,
                 showConfirmButton: false
             });
         }
     } catch (error) {
         console.error("Error:", error);
-        Swal.fire({
-            position: "top-end",
+        Swal.fire({            
+            icon: "error",
             title: "Error",
             text: "Hubo un problema al enviar el aviso.",
-            icon: "error",
             timer: 3000,
             showConfirmButton: false
         });
@@ -163,6 +208,51 @@ async function cargarAvisosDeMateria() {
     }
 }
 
+/* --- ENLACES --- */
+function renderizarEnlaces(enlaces) {
+    if (!enlaces) return '';
+
+    const lineas = enlaces.split('\n')
+        .map(l => l.trim())
+        .filter(l => l);
+
+    if (lineas.length === 0) return '';
+
+    let html = '<div class="aviso-enlaces mt-2"><strong>Recursos:</strong><ul>';
+
+    lineas.forEach(link => {
+        const safeLink = escapeHtml(link);
+        html += `
+            <li>
+                <a href="${safeLink}" target="_blank" rel="noopener noreferrer">
+                    ${safeLink}
+                </a>
+            </li>`;
+    });
+
+    html += '</ul></div>';
+
+    return html;
+}
+
+/*ACTIVO | PROGRAMADO | FINALIZADO*/
+function obtenerBadgeEstado(estado) {
+
+    switch (estado) {
+        case "Activo":
+            return `<span class="badge bg-success">Activo</span>`;
+
+        case "Programado":
+            return `<span class="badge bg-warning text-dark">Programado</span>`;
+
+        case "Finalizado":
+            return `<span class="badge bg-secondary">Finalizado</span>`;
+
+        default:
+            return '';
+    }
+}
+
 function renderizarAvisos(avisos) {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
     if (!listaAvisos) return;
@@ -181,34 +271,69 @@ function renderizarAvisos(avisos) {
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
 
         const avisoItem = document.createElement('div');
+        const enlacesHtml = renderizarEnlaces(aviso.Enlaces);
+        const badgeEstado = window.esDocente
+            ? obtenerBadgeEstado(aviso.Estado)
+            : '';
+
         avisoItem.className = 'aviso-item';
+
         const botonesHtml = window.esDocente
             ? `
-        <div class="aviso-botones-lateral">
-            <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">
-                Editar
-            </button>
-            <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">
-                Eliminar
-            </button>
-        </div>
-      `
+                <div class="aviso-botones-lateral">
+                    <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">
+                        Editar
+                    </button>
+                    <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">
+                        Eliminar
+                    </button>
+                </div>
+              `
             : '';
+
+        const fechaCreacionDocente = window.esDocente 
+            ? `
+                 <div class="aviso-fecha-publicado">
+                    <small>
+                        Creado: ${aviso.FechaCreacion}
+                    </small>
+                </div>
+              `
+            : '';
+           
         // Crear card
         avisoItem.innerHTML = `
-    <div class="aviso-info">
-        <div class="aviso-icono">
-            📢 <strong>${escapeHtml(aviso.Titulo)}</strong>
-        </div>
-        <div class="aviso-descripcion visible">
-            ${escapeHtml(aviso.Descripcion)}
-        </div>
-        <div class="aviso-fecha-publicado">
-            Publicado: ${aviso.FechaCreacion}
-        </div>
-    </div>
-    ${botonesHtml}
-`;
+                                <div class="aviso-info">
+                                    <div class="aviso-icono d-flex justify-content-between align-items-center">
+                                        <div>
+                                            📢 <strong>${escapeHtml(aviso.Titulo)}</strong>
+                                        </div>
+                                        ${badgeEstado}
+                                    </div>
+
+                                    <div class="aviso-descripcion visible">
+                                        ${escapeHtml(aviso.Descripcion)}
+                                    </div>
+
+                                    ${enlacesHtml}
+
+                                    <div class="aviso-fechas mt-2">
+                                        <small>
+                                            <strong>Inicio:</strong> ${aviso.FechaInicio || '-'} |
+                                            <strong>Fin:</strong> ${aviso.FechaFin || '-'}
+                                        </small>
+                                    </div>
+
+                                    <div class="aviso-frecuencia">
+                                        <small>
+                                            Recordatorio cada ${aviso.FrecuenciaDias} día(s)
+                                        </small>
+                                    </div>
+
+                                    ${fechaCreacionDocente}
+                                </div>
+                                ${botonesHtml}
+                            `;
 
         // botones
         if (window.esDocente) {
@@ -343,58 +468,64 @@ async function eliminarAviso(avisoId) {
     }
 }
 
-//Edita un aviso desde su id
+//Obtiene los datos de un aviso desde su id
 async function editarAviso(avisoId) {
+
     try {
-        // Obtener datos actuales del aviso
         const response = await fetch(`/Materias/ObtenerAvisoPorId?avisoId=${avisoId}`);
         if (!response.ok) throw new Error("No se pudo obtener el aviso.");
 
         const aviso = await response.json();
 
-        // Mostrar SweetAlert con los datos actuales
-        const { value: formValues } = await Swal.fire({
-            title: "Editar Aviso",
-            html: `
-                <input id="swal-titulo" class="swal2-input" placeholder="Título" value="${aviso.Titulo}">
-                <textarea id="swal-descripcion" class="swal2-textarea" placeholder="Descripción">${aviso.Descripcion}</textarea>
-            `,
-            focusConfirm: false,
-            showCancelButton: true,
-            confirmButtonText: "Guardar Cambios",
-            cancelButtonText: "Cancelar",
-            preConfirm: () => {
-                return {
-                    titulo: document.getElementById("swal-titulo").value.trim(),
-                    descripcion: document.getElementById("swal-descripcion").value.trim()
-                };
-            }
-        });
+        // llenar campos del modal
+        document.getElementById("editarAvisoId").value = aviso.AvisoId;
+        document.getElementById("editarTituloAviso").value = aviso.Titulo;
+        document.getElementById("editarDescripcionAviso").value = aviso.Descripcion;
+        document.getElementById("editarEnlacesAviso").value = aviso.Enlaces || '';
+        document.getElementById("editarFechaInicioAviso").value = aviso.FechaInicio;
+        document.getElementById("editarFechaFinAviso").value = aviso.FechaFin;
+        document.getElementById("editarFrecuenciaDiasAviso").value = aviso.FrecuenciaDias;
 
-        if (!formValues) return; // Si el usuario cancela, no hacer nada
+        // mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById("editarAvisoModal"));
+        modal.show();
 
-        // Enviar los cambios al backend
-        const updateResponse = await fetch(`/Materias/EditarAviso`, {
+    } catch (error) {
+        Swal.fire("Error", error.message, "error");
+    }
+}
+
+// Edita el aviso
+async function guardarEdicionAviso() {
+
+    const avisoId = document.getElementById("editarAvisoId").value;
+
+    const data = {
+        AvisoId: avisoId,
+        Titulo: document.getElementById("editarTituloAviso").value.trim(),
+        Descripcion: document.getElementById("editarDescripcionAviso").value.trim(),
+        Enlaces: document.getElementById("editarEnlacesAviso").value.trim(),
+        FechaInicio: document.getElementById("editarFechaInicioAviso").value,
+        FechaFin: document.getElementById("editarFechaFinAviso").value,
+        FrecuenciaDias: parseInt(document.getElementById("editarFrecuenciaDiasAviso").value)
+    };
+
+    if (!data.Titulo || !data.Descripcion)
+        return Swal.fire("Campos incompletos", "Completa título y descripción", "warning");
+
+    try {
+        const response = await fetch("/Materias/EditarAviso", {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                avisoId,
-                titulo: formValues.titulo,
-                descripcion: formValues.descripcion,
-                docenteId: docenteIdGlobal
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
         });
 
-        if (!updateResponse.ok) throw new Error("No se pudo actualizar el aviso.");
+        if (!response.ok)
+            throw new Error("No se pudo actualizar el aviso.");
 
-        Swal.fire("Actualizado",
-            "El aviso ha sido editado correctamente.",
-            "success"
-        );
+        Swal.fire("Actualizado", "Aviso editado correctamente", "success");
 
-        // Recargar avisos para reflejar los cambios
+        bootstrap.Modal.getInstance(document.getElementById("editarAvisoModal")).hide();
         cargarAvisosDeMateria();
 
     } catch (error) {

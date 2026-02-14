@@ -333,7 +333,19 @@ namespace ControlMaterias.Controllers
             if (avisos == null)
             {
                 Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Datos inválidos." });
+            }
+
+            if (avisos.FechaFin < avisos.FechaInicio)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "La fecha de fin debe ser mayor a la fecha de inicio." });
+            }
+
+            if (avisos.FrecuenciaDias < 1)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "Frecuencia inválida." });
             }
 
             try
@@ -345,26 +357,30 @@ namespace ControlMaterias.Controllers
                     DocenteId = usuarioId,
                     Titulo = avisos.Titulo,
                     Descripcion = avisos.Descripcion,
+                    Enlaces = string.IsNullOrWhiteSpace(avisos.Enlaces)
+                                ? null
+                                : avisos.Enlaces.Trim(),
                     GrupoId = avisos.GrupoId == 0 ? null : avisos.GrupoId,
                     MateriaId = avisos.MateriaId,
-                    FechaCreacion = DateTime.Now
+                    FechaCreacion = DateTime.Now,
+                    FechaInicio = avisos.FechaInicio,
+                    FechaFin = avisos.FechaFin,
+                    FrecuenciaDias = avisos.FrecuenciaDias
                 };
 
                 Db.tbAvisos.Add(nuevoAviso);
                 await Db.SaveChangesAsync();
 
-                await Ns.NotificacionCrearAviso(
-                    nuevoAviso,
-                    nuevoAviso.GrupoId,
-                    nuevoAviso.MateriaId
-                );
 
-                return Json(new { mensaje = "Aviso creado con éxito" }, JsonRequestBehavior.AllowGet);
+                /*YA NO SE ENVÍA NOTIFICACIÓN INMEDIATA*/
+                /*SE ENVIARÁ CON HANGFIRE*/
+
+                return Json(new { mensaje = "Aviso creado con éxito" });
             }
             catch (Exception ex)
             {
                 Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al crear el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Error al crear el aviso", error = ex.Message });
             }
         }
 
@@ -424,10 +440,18 @@ namespace ControlMaterias.Controllers
         [HttpDelete]
         public async Task<ActionResult> EliminarAviso(int id)
         {
+            var rol = Fg.ObtenerRolUsuario(User);
+
+            if (rol != "Docente")
+            {
+                Response.StatusCode = 403;
+                return Json(new { mensaje = "No autorizado" });
+            }
+
             if (id <= 0)
             {
                 Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "ID de aviso inválido." }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "ID de aviso inválido." });
             }
 
             try
@@ -439,19 +463,19 @@ namespace ControlMaterias.Controllers
                 if (aviso == null)
                 {
                     Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "Aviso no encontrado." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { mensaje = "Aviso no encontrado." });
                 }
 
                 // Eliminar el aviso
                 Db.tbAvisos.Remove(aviso);
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Aviso eliminado con éxito" }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Aviso eliminado con éxito" });
             }
             catch (Exception ex)
             {
                 Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al eliminar el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Error al eliminar el aviso", error = ex.Message });
             }
         }
 
@@ -463,8 +487,22 @@ namespace ControlMaterias.Controllers
         {
             try
             {
-                var avisosDb = await Db.tbAvisos
-                    .Where(a => a.MateriaId == IdMateria)
+                var ahora = DateTime.Now;
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+
+                var query = Db.tbAvisos
+                    .Where(a => a.MateriaId == IdMateria);
+
+                //Si es alumno solo activos
+                if (rolUsuario == "Alumno")
+                {
+                    query = query.Where(a =>
+                        ahora >= a.FechaInicio &&
+                        ahora <= a.FechaFin);
+                }
+
+                var avisosDb = await query
+                    .OrderByDescending(a => a.FechaCreacion)
                     .ToListAsync();
 
                 var avisos = avisosDb.Select(a => new
@@ -472,13 +510,21 @@ namespace ControlMaterias.Controllers
                     a.AvisoId,
                     a.Titulo,
                     a.Descripcion,
-                    // Campo legible para mostrar en la UI
-                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss"),
-                    // Campo ISO para que el cliente pueda parsear la fecha de forma fiable al filtrar
-                    FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss")
-                });
+                    a.Enlaces,
+                    a.FrecuenciaDias,
 
-                var rolUsuario = Fg.ObtenerRolUsuario(User);
+                    FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss"),
+                    FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+
+                    FechaInicio = a.FechaInicio.ToString("dd/MM/yyyy"),
+                    FechaFin = a.FechaFin.ToString("dd/MM/yyyy"),
+
+                    Estado = ahora < a.FechaInicio
+                                ? "Programado"
+                                : (ahora > a.FechaFin
+                                    ? "Finalizado"
+                                    : "Activo")
+                });
 
                 return Json(new
                 {
@@ -488,38 +534,46 @@ namespace ControlMaterias.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener los avisos", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new
+                {
+                    mensaje = "Error al obtener los avisos",
+                    error = ex.Message
+                }, JsonRequestBehavior.AllowGet);
             }
         }
 
-        //Controlador para obtener informacion de un aviso para despeus editar
+        //Método para obtener informacion de un aviso para despeus editar
         [HttpGet]
         public async Task<ActionResult> ObtenerAvisoPorId(int avisoId)
         {
             try
             {
-                var aviso = await Db.tbAvisos
-                    .Where(a => a.AvisoId == avisoId)
-                    .Select(a => new
-                    {
-                        a.AvisoId,
-                        a.Titulo,
-                        a.Descripcion
-                    })
-                    .FirstOrDefaultAsync();
+                var avisoDb = await Db.tbAvisos
+                    .FirstOrDefaultAsync(a => a.AvisoId == avisoId);
 
-                if (aviso == null)
+                if (avisoDb == null)
                 {
-                    Response.StatusCode = 404; // Not Found
+                    Response.StatusCode = 404;
                     return Json(new { mensaje = "Aviso no encontrado" }, JsonRequestBehavior.AllowGet);
                 }
+
+                var aviso = new
+                {
+                    avisoDb.AvisoId,
+                    avisoDb.Titulo,
+                    avisoDb.Descripcion,
+                    avisoDb.Enlaces,
+                    FechaInicio = avisoDb.FechaInicio.ToString("yyyy-MM-dd"),
+                    FechaFin = avisoDb.FechaFin.ToString("yyyy-MM-dd"),
+                    avisoDb.FrecuenciaDias
+                };
 
                 return Json(aviso, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
+                Response.StatusCode = 500;
                 return Json(new { mensaje = "Error al obtener el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -531,23 +585,37 @@ namespace ControlMaterias.Controllers
             try
             {
                 var aviso = await Db.tbAvisos.FindAsync(model.AvisoId);
+
                 if (aviso == null)
                 {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "Aviso no encontrado" }, JsonRequestBehavior.AllowGet);
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "Aviso no encontrado" });
                 }
 
                 aviso.Titulo = model.Titulo;
                 aviso.Descripcion = model.Descripcion;
+                aviso.Enlaces = string.IsNullOrWhiteSpace(model.Enlaces)
+                                    ? null
+                                    : model.Enlaces.Trim();
+
+                aviso.FechaInicio = model.FechaInicio;
+                aviso.FechaFin = model.FechaFin;
+                aviso.FrecuenciaDias = model.FrecuenciaDias;
+
+                if (model.FechaFin < model.FechaInicio)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "La fecha de fin no puede ser menor que la fecha de inicio" });
+                }
 
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Aviso actualizado correctamente" }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Aviso actualizado correctamente" });
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al actualizar el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar el aviso", error = ex.Message });
             }
         }
         #endregion
