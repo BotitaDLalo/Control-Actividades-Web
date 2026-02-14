@@ -208,6 +208,51 @@ async function cargarAvisosDeMateria() {
     }
 }
 
+/* --- ENLACES --- */
+function renderizarEnlaces(enlaces) {
+    if (!enlaces) return '';
+
+    const lineas = enlaces.split('\n')
+        .map(l => l.trim())
+        .filter(l => l);
+
+    if (lineas.length === 0) return '';
+
+    let html = '<div class="aviso-enlaces mt-2"><strong>Recursos:</strong><ul>';
+
+    lineas.forEach(link => {
+        const safeLink = escapeHtml(link);
+        html += `
+            <li>
+                <a href="${safeLink}" target="_blank" rel="noopener noreferrer">
+                    ${safeLink}
+                </a>
+            </li>`;
+    });
+
+    html += '</ul></div>';
+
+    return html;
+}
+
+/*ACTIVO | PROGRAMADO | FINALIZADO*/
+function obtenerBadgeEstado(estado) {
+
+    switch (estado) {
+        case "Activo":
+            return `<span class="badge bg-success">Activo</span>`;
+
+        case "Programado":
+            return `<span class="badge bg-warning text-dark">Programado</span>`;
+
+        case "Finalizado":
+            return `<span class="badge bg-secondary">Finalizado</span>`;
+
+        default:
+            return '';
+    }
+}
+
 function renderizarAvisos(avisos) {
     const listaAvisos = document.getElementById("listaDeAvisosDeMateria");
     if (!listaAvisos) return;
@@ -226,34 +271,61 @@ function renderizarAvisos(avisos) {
         //const descripcionAvisoConEnlace = convertirUrlsEnEnlaces(aviso.Descripcion);
 
         const avisoItem = document.createElement('div');
+        const enlacesHtml = renderizarEnlaces(aviso.Enlaces);
+        const badgeEstado = obtenerBadgeEstado(aviso.Estado);
+
         avisoItem.className = 'aviso-item';
+
         const botonesHtml = window.esDocente
             ? `
-        <div class="aviso-botones-lateral">
-            <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">
-                Editar
-            </button>
-            <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">
-                Eliminar
-            </button>
-        </div>
-      `
+                <div class="aviso-botones-lateral">
+                    <button class="btn btn-warning btn-editar" data-id="${aviso.AvisoId}">
+                        Editar
+                    </button>
+                    <button class="btn btn-danger btn-eliminar" data-id="${aviso.AvisoId}">
+                        Eliminar
+                    </button>
+                </div>
+              `
             : '';
+
         // Crear card
         avisoItem.innerHTML = `
-    <div class="aviso-info">
-        <div class="aviso-icono">
-            📢 <strong>${escapeHtml(aviso.Titulo)}</strong>
-        </div>
-        <div class="aviso-descripcion visible">
-            ${escapeHtml(aviso.Descripcion)}
-        </div>
-        <div class="aviso-fecha-publicado">
-            Publicado: ${aviso.FechaCreacion}
-        </div>
-    </div>
-    ${botonesHtml}
-`;
+                                <div class="aviso-info">
+                                    <div class="aviso-icono d-flex justify-content-between align-items-center">
+                                        <div>
+                                            📢 <strong>${escapeHtml(aviso.Titulo)}</strong>
+                                        </div>
+                                        ${badgeEstado}
+                                    </div>
+
+                                    <div class="aviso-descripcion visible">
+                                        ${escapeHtml(aviso.Descripcion)}
+                                    </div>
+
+                                    ${enlacesHtml}
+
+                                    <div class="aviso-fechas mt-2">
+                                        <small>
+                                            <strong>Inicio:</strong> ${aviso.FechaInicio || '-'} |
+                                            <strong>Fin:</strong> ${aviso.FechaFin || '-'}
+                                        </small>
+                                    </div>
+
+                                    <div class="aviso-frecuencia">
+                                        <small>
+                                            Recordatorio cada ${aviso.FrecuenciaDias} día(s)
+                                        </small>
+                                    </div>
+
+                                    <div class="aviso-fecha-publicado">
+                                        <small>
+                                            Creado: ${aviso.FechaCreacion}
+                                        </small>
+                                    </div>
+                                </div>
+                                ${botonesHtml}
+                            `;
 
         // botones
         if (window.esDocente) {

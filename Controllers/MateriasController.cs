@@ -481,17 +481,34 @@ namespace ControlMaterias.Controllers
             {
                 var avisosDb = await Db.tbAvisos
                     .Where(a => a.MateriaId == IdMateria)
+                    .OrderByDescending(a => a.FechaCreacion)
                     .ToListAsync();
+
+                var ahora = DateTime.Now;
 
                 var avisos = avisosDb.Select(a => new
                 {
                     a.AvisoId,
                     a.Titulo,
                     a.Descripcion,
-                    // Campo legible para mostrar en la UI
+                    a.Enlaces,
+                    a.FrecuenciaDias,
+
                     FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss"),
-                    // Campo ISO para que el cliente pueda parsear la fecha de forma fiable al filtrar
-                    FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss")
+                    FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
+
+                    // Fechas de vigencia
+                    FechaInicio = a.FechaInicio.ToString("dd/MM/yyyy"),
+                    FechaFin = a.FechaFin.ToString("dd/MM/yyyy"),
+
+                    FechaInicioIso = a.FechaInicio.ToString("yyyy-MM-dd"),
+                    FechaFinIso = a.FechaFin.ToString("yyyy-MM-dd"),
+
+                    Estado = ahora < a.FechaInicio
+                                ? "Programado"
+                                : (ahora > a.FechaFin
+                                    ? "Finalizado"
+                                    : "Activo")
                 });
 
                 var rolUsuario = Fg.ObtenerRolUsuario(User);
@@ -504,8 +521,12 @@ namespace ControlMaterias.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener los avisos", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new
+                {
+                    mensaje = "Error al obtener los avisos",
+                    error = ex.Message
+                }, JsonRequestBehavior.AllowGet);
             }
         }
 
