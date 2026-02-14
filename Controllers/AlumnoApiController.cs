@@ -1017,7 +1017,8 @@ namespace ControlActividades.Controllers
                     AlumnoId = alumnoId,
                     FechaEntrega = fechaEntregaParsed,
                     EstadoEntregaId = 1,
-                    EntregaTardia = (entregaActiva.FechaEntrega > fechaLimite)
+                    EntregaTardia = (entregaActiva.FechaEntrega > fechaLimite),
+                    Estatus = true
                 };
 
 
