@@ -271,7 +271,7 @@ namespace ControlActividades.Models
     public class RespuestaAlumnosEntregables
     {
         public int ActividadId { get; set; }
-        public int Puntaje { get; set; }
+        public decimal Puntaje { get; set; }
         public int TotalEntregados { get; set; }
         public List<AlumnoEntregable> AlumnosEntregables { get; set; }
     }
@@ -422,7 +422,7 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaLimite { get; set; }
-        public int Puntaje { get; set; }
+        public decimal Puntaje { get; set; }
     }
 
     public class MateriaRes

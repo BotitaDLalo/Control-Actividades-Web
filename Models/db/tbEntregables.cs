@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -20,7 +20,7 @@ namespace ControlActividades.Models.db
 
         public int? Calificacion {  get; set; }
         //[NotMapped]
-        //public DateTime? FechaCalificado { get; set; }
+        public DateTime? FechaCalificado { get; set; }
         public string Comentario { get; set; }
 
         public tbEntregaActividadAlumno tbEntregaActividadAlumno { get; set; }
