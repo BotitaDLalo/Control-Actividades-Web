@@ -357,6 +357,9 @@ namespace ControlMaterias.Controllers
                     DocenteId = usuarioId,
                     Titulo = avisos.Titulo,
                     Descripcion = avisos.Descripcion,
+                    Enlaces = string.IsNullOrWhiteSpace(avisos.Enlaces)
+                                ? null
+                                : avisos.Enlaces.Trim(),
                     GrupoId = avisos.GrupoId == 0 ? null : avisos.GrupoId,
                     MateriaId = avisos.MateriaId,
                     FechaCreacion = DateTime.Now,

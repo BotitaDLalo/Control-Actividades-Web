@@ -626,6 +626,7 @@ namespace ControlActividades.Models
         public int? AvisoId { get; set; }
         public string Titulo { get; set; }
         public string Descripcion { get; set; }
+        public string Enlaces { get; set; }
         public int? GrupoId { get; set; }
         public int MateriaId { get; set; }
         public DateTime FechaInicio { get; set; }

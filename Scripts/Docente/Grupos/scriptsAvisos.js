@@ -50,6 +50,7 @@ async function publicarAviso() {
     // Obtener valores de los inputs
     let titulo = document.getElementById("titulo").value.trim();
     let descripcion = document.getElementById("descripcionAviso").value.trim();
+    let enlaces = document.getElementById("enlacesAviso").value.trim();
     let fechaInicio = document.getElementById("fechaInicioAviso").value;
     let fechaFin = document.getElementById("fechaFinAviso").value;
     let frecuenciaDias = parseInt(document.getElementById("frecuenciaDias").value);
@@ -96,10 +97,27 @@ async function publicarAviso() {
         return;
     }
 
+    if (enlaces) {
+        let linksArray = enlaces.split("\n");
+
+        for (let link of linksArray) {
+            link = link.trim();
+            if (link && !link.startsWith("https")) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Enlace inválido",
+                    text: "Todos los enlaces deben comenzar con https."
+                });
+                return;
+            }
+        }
+    }
+
     // Crear objeto con los datos a enviar
     let avisoData = {
         Titulo: titulo,
         Descripcion: descripcion,
+        Enlaces: enlaces,
         GrupoId: grupoIdGlobal,
         MateriaId: materiaIdGlobal,
         FechaInicio: fechaInicio,
@@ -123,7 +141,7 @@ async function publicarAviso() {
             Swal.fire({
                 position: "top-end",
                 title: "Aviso creado",
-                text: "El aviso ha sido publicado correctamente.",
+                text: "El aviso ha creado correctamente.",
                 icon: "success",
                 timer: 3000,
                 showConfirmButton: false
