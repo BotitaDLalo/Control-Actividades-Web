@@ -524,6 +524,7 @@
     <Compile Include="Services\Materias\MateriasService.cs" />
     <Compile Include="Services\Materias\MateriasSTService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
+    <Compile Include="Services\RecordatorioAvisosService.cs" />
     <Compile Include="Services\ScheduledPublishingService.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>

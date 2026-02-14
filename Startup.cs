@@ -24,6 +24,11 @@ namespace ControlActividades
 
             // Activar servidor
             app.UseHangfireServer();
+            RecurringJob.AddOrUpdate<RecordatorioAvisosService>(
+                "recordatorio-avisos-diarios",
+                x => x.EjecutarRecordatoriosDiarios(),
+                "* * * * *" // cada minuto para probar
+            );
 
             // Activar dashboard (panel visual)
             app.UseHangfireDashboard("/hangfire");
