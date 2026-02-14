@@ -4,21 +4,95 @@
 
 
 <div class="modal fade" id="crearAvisoMateriaModal" tabindex="-1" aria-labelledby="crearAvisoMateriaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content modal-content-custom">
             <div class="modal-header modal-header-custom">
-                <h5 class="modal-title modal-title-custom" id="crearAvisoMateriaModalLabel">Crear Aviso</h5>
+                <h5 class="modal-title modal-title-custom" id="crearAvisoMateriaModalLabel">
+                    Crear Aviso
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
+
             <div class="modal-body modal-body-custom">
                 <form id="avisosForm">
-                    <label for="titulo">Título del Aviso:</label>
-                    <input type="text" id="titulo" class="form-control" autocomplete="off" autocorrect="off" spellcheck="false">
 
-                    <label for="descripcion">Descripción del Aviso:</label>
-                    <textarea id="descripcionAviso" class="form-control" rows="4"></textarea>
+                    <!-- TÍTULO -->
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título del Aviso</label>
+                        <input type="text"
+                               id="titulo"
+                               name="Titulo"
+                               class="form-control"
+                               required
+                               maxlength="200"
+                               autocomplete="off">
+                    </div>
+
+                    <!-- DESCRIPCIÓN -->
+                    <div class="mb-3">
+                        <label for="descripcionAviso" class="form-label">Descripción</label>
+                        <textarea id="descripcionAviso"
+                                  name="Descripcion"
+                                  class="form-control"
+                                  rows="2"
+                                  required></textarea>
+                    </div>
+
+                    <div class="row">
+                    <!-- FECHA INICIO -->
+                        <div class="col-md-6 mb-3">
+                            <label for="fechaInicioAviso" class="form-label">
+                                Fecha de inicio
+                            </label>
+                            <input type="date"
+                                   id="fechaInicioAviso"
+                                   name="FechaInicio"
+                                   class="form-control"
+                                   required>
+                            <small class="text-muted">
+                                El aviso será visible para los alumnos a partir de esta fecha.
+                            </small>
+                        </div>
+
+                        <!-- FECHA FIN -->
+                        <div class="col-md-6 mb-3">
+                            <label for="fechaFinAviso" class="form-label">
+                                Fecha de fin
+                            </label>
+                            <input type="date"
+                                   id="fechaFinAviso"
+                                   name="FechaFin"
+                                   class="form-control"
+                                   required>
+                            <small class="text-muted">
+                                El aviso dejará de mostrarse a los alumnos después de esta fecha.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- FRECUENCIA -->
+                    <div class="mb-3 d-flex align-items-center gap-2">
+                        <label for="frecuenciaDias" class="form-label mb-0">
+                            Recordar cada
+                        </label>
+                        <input type="number"
+                               id="frecuenciaDias"
+                               name="FrecuenciaDias"
+                               class="form-control w-auto"
+                               min="1"
+                               value="1"
+                               required>
+                        <span>días</span>
+                    </div>
+                    <small class="text-muted d-block">
+                        1 = diario.
+                        2 = cada 2 días.
+                        7 = semanal.
+                    </small>
+
                 </form>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="publicarAviso()">Publicar</button>
