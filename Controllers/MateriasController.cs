@@ -440,10 +440,18 @@ namespace ControlMaterias.Controllers
         [HttpDelete]
         public async Task<ActionResult> EliminarAviso(int id)
         {
+            var rol = Fg.ObtenerRolUsuario(User);
+
+            if (rol != "Docente")
+            {
+                Response.StatusCode = 403;
+                return Json(new { mensaje = "No autorizado" });
+            }
+
             if (id <= 0)
             {
                 Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "ID de aviso inválido." }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "ID de aviso inválido." });
             }
 
             try
@@ -455,19 +463,19 @@ namespace ControlMaterias.Controllers
                 if (aviso == null)
                 {
                     Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "Aviso no encontrado." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { mensaje = "Aviso no encontrado." });
                 }
 
                 // Eliminar el aviso
                 Db.tbAvisos.Remove(aviso);
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Aviso eliminado con éxito" }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Aviso eliminado con éxito" });
             }
             catch (Exception ex)
             {
                 Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al eliminar el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Error al eliminar el aviso", error = ex.Message });
             }
         }
 
