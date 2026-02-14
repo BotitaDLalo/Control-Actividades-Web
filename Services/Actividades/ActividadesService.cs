@@ -104,5 +104,16 @@ namespace ControlActividades.Services
             }
             await ActividadesCAService.EliminarActividad(id);
         }
+
+        public async Task<DetallesActividadRes> ObtenerDetallesActividad(int actividadId)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await ActividadesSTService.ObtenerDetallesActividad(actividadId);
+            }
+            return await ActividadesCAService.ObtenerDetallesActividad(actividadId);
+        }
     }
 }

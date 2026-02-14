@@ -12,7 +12,7 @@ namespace ControlActividades.Models
     {
         public int EntregableId { get; set; }
 
-        public int Calificacion { get; set; }
+        public Decimal Calificacion { get; set; }
     }
 
     public class QuitarCalificacionPeticion
@@ -271,7 +271,7 @@ namespace ControlActividades.Models
     public class RespuestaAlumnosEntregables
     {
         public int ActividadId { get; set; }
-        public int Puntaje { get; set; }
+        public Decimal  Puntaje { get; set; }
         public int TotalEntregados { get; set; }
         public List<AlumnoEntregable> AlumnosEntregables { get; set; }
     }
@@ -704,6 +704,7 @@ namespace ControlActividades.Models
 
         public int MateriaId { get; set; }
     }
+
 
 
 

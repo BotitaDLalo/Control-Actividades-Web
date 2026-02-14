@@ -14,6 +14,8 @@ namespace ControlActividades.Interfaces.Actividades
         
         Task EliminarActividad(int id);
 
+        Task<DetallesActividadRes> ObtenerDetallesActividad(int actividadId);
+
         //Task<List<AlumnoDTO>> AlumnosParaCalificarActividad(int materiaId);
     }
 }

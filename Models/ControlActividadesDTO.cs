@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 
@@ -84,7 +86,7 @@ namespace ControlActividades.Models
 
     public class ObtenerActividadPorIdRequest
     {
-        public int ActividadId { get; set;}
+        public int ActividadId { get; set; }
         public string View { get; set; }
     }
 
@@ -137,5 +139,90 @@ namespace ControlActividades.Models
         public bool? Enviado { get; set; }
         public DateTime? FechaProgramada { get; set; }
     }
+
+
+
+    #region Actividades
+    public class ObtenerEnviosActividadesAlumnoReq
+    {
+        public int AlumnoId { get; set; }
+        public int ActividadId { get; set; }
+    }
+    public class ObtenerEnviosActividadesAlumnoRes
+    {
+        public int EntregaActividadAlumnoId { get; set; }
+
+        public DateTime? FechaEntrega {  get; set; }
+
+        public int EstadoEntregaId { get; set; }
+
+        public List<Entregables> Entregables { get; set; }
+    }
+
+    public class Entregables
+    {
+        public int EntregableId { get; set; }
+
+        public int TipoEntregaId { get; set; }
+
+        public string Contenido { get; set; }
+
+        public decimal Calificacion {  get; set; }
+
+        public string Comentario { get; set; }
+    }
+
+    public class ObtenerActividadesPorMateriaReq
+    {
+        public int MateriaId { get; set; }
+    }
+    public class ObtenerActividadesPorMateriaRes
+    {
+        public int ActividadId { get; set; }
+
+        public string NombreActividad { get; set; }
+
+        public string DescripcionActividad { get; set; }
+
+        public string FechaCreacionActividad { get; set; }
+
+        public string FechaLimiteActividad { get; set; }
+
+        public decimal Puntaje { get; set; }
+
+        public bool? Enviado { get; set; }
+
+        public DateTime? FechaProgramada { get; set; }
+
+        public int MateriaId { get; set; }
+    }
+
+    public class ActividadesDTO
+    {
+        public int ActividadId { get; set; }
+
+        public string NombreActividad { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public DateTime FechaCreacion { get; set; }
+
+        public DateTime FechaLimite { get; set; }
+
+        public Decimal Puntaje { get; set; }
+
+        public int MateriaId { get; set; }
+
+        public bool PermitirEntregasTarde { get; set; }
+
+        public bool? Enviado { get; set; }
+
+        public DateTime? FechaProgramada { get; set; }
+
+        public int LimiteEntregasPorAlumno { get; set; }
+
+        public bool TieneLimiteEntregas { get; set; }
+    }
+    #endregion
 
 }
