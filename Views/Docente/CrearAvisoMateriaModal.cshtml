@@ -2,7 +2,7 @@
     ViewData["Title"] = "CrearAvisoMateriaModal";
 }
 
-
+<!--MODAL DE CREACIÓN-->
 <div class="modal fade" id="crearAvisoMateriaModal" tabindex="-1" aria-labelledby="crearAvisoMateriaModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content modal-content-custom">
@@ -118,3 +118,121 @@
         </div>
     </div>
 </div>
+
+<!--MODAL DE EDICIÓN-->
+<div class="modal fade" id="editarAvisoModal" tabindex="-1" aria-labelledby="editarAvisoMateriaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title modal-title-custom" id="editarAvisoMateriaModalLabel">
+                    Editar Aviso
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body modal-body-custom">
+                <form id="editarAvisosForm">
+                    <input type="hidden" id="editarAvisoId" />
+                    <!-- TÍTULO -->
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título del Aviso</label>
+                        <input type="text"
+                               id="editarTituloAviso"
+                               name="Titulo"
+                               class="form-control"
+                               required
+                               maxlength="200"
+                               autocomplete="off">
+                    </div>
+
+                    <!-- DESCRIPCIÓN -->
+                    <div class="mb-3">
+                        <label for="descripcionAviso" class="form-label">Descripción</label>
+                        <textarea id="editarDescripcionAviso"
+                                  name="Descripcion"
+                                  class="form-control"
+                                  rows="2"
+                                  required></textarea>
+                    </div>
+
+                    <!-- ENLACES -->
+                    <div class="mb-3">
+                        <label for="enlacesAviso" class="form-label">
+                            Enlaces (opcional)
+                        </label>
+                        <textarea id="editarEnlacesAviso"
+                                  name="Enlaces"
+                                  class="form-control"
+                                  rows="2"
+                                  placeholder="https://youtube.com/...https://drive.google.com/...">
+
+                        </textarea>
+
+                        <small class="text-muted">
+                            Puedes agregar uno o varios enlaces (uno por línea).
+                        </small>
+                    </div>
+
+                    <div class="row">
+                        <!-- FECHA INICIO -->
+                        <div class="col-md-6 mb-3">
+                            <label for="fechaInicioAviso" class="form-label">
+                                Fecha de inicio
+                            </label>
+                            <input type="date"
+                                   id="editarFechaInicioAviso"
+                                   name="FechaInicio"
+                                   class="form-control"
+                                   required>
+                            <small class="text-muted">
+                                El aviso será visible para los alumnos a partir de esta fecha.
+                            </small>
+                        </div>
+
+                        <!-- FECHA FIN -->
+                        <div class="col-md-6 mb-3">
+                            <label for="fechaFinAviso" class="form-label">
+                                Fecha de fin
+                            </label>
+                            <input type="date"
+                                   id="editarFechaFinAviso"
+                                   name="FechaFin"
+                                   class="form-control"
+                                   required>
+                            <small class="text-muted">
+                                El aviso dejará de mostrarse a los alumnos después de esta fecha.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- FRECUENCIA -->
+                    <div class="mb-3 d-flex align-items-center gap-2">
+                        <label for="frecuenciaDias" class="form-label mb-0">
+                            Recordar cada
+                        </label>
+                        <input type="number"
+                               id="editarFrecuenciaDiasAviso"
+                               name="FrecuenciaDias"
+                               class="form-control w-auto"
+                               min="1"
+                               value="1"
+                               required>
+                        <span>días</span>
+                    </div>
+                    <small class="text-muted d-block">
+                        1 = diario.
+                        2 = cada 2 días.
+                        7 = semanal.
+                    </small>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarEdicionAviso()">Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+

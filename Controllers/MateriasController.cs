@@ -534,33 +534,38 @@ namespace ControlMaterias.Controllers
                 }, JsonRequestBehavior.AllowGet);
             }
         }
-        //Controlador para obtener informacion de un aviso para despeus editar
+
+        //Método para obtener informacion de un aviso para despeus editar
         [HttpGet]
         public async Task<ActionResult> ObtenerAvisoPorId(int avisoId)
         {
             try
             {
-                var aviso = await Db.tbAvisos
-                    .Where(a => a.AvisoId == avisoId)
-                    .Select(a => new
-                    {
-                        a.AvisoId,
-                        a.Titulo,
-                        a.Descripcion
-                    })
-                    .FirstOrDefaultAsync();
+                var avisoDb = await Db.tbAvisos
+                    .FirstOrDefaultAsync(a => a.AvisoId == avisoId);
 
-                if (aviso == null)
+                if (avisoDb == null)
                 {
-                    Response.StatusCode = 404; // Not Found
+                    Response.StatusCode = 404;
                     return Json(new { mensaje = "Aviso no encontrado" }, JsonRequestBehavior.AllowGet);
                 }
+
+                var aviso = new
+                {
+                    avisoDb.AvisoId,
+                    avisoDb.Titulo,
+                    avisoDb.Descripcion,
+                    avisoDb.Enlaces,
+                    FechaInicio = avisoDb.FechaInicio.ToString("yyyy-MM-dd"),
+                    FechaFin = avisoDb.FechaFin.ToString("yyyy-MM-dd"),
+                    avisoDb.FrecuenciaDias
+                };
 
                 return Json(aviso, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
+                Response.StatusCode = 500;
                 return Json(new { mensaje = "Error al obtener el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -572,23 +577,37 @@ namespace ControlMaterias.Controllers
             try
             {
                 var aviso = await Db.tbAvisos.FindAsync(model.AvisoId);
+
                 if (aviso == null)
                 {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "Aviso no encontrado" }, JsonRequestBehavior.AllowGet);
+                    Response.StatusCode = 404;
+                    return Json(new { mensaje = "Aviso no encontrado" });
                 }
 
                 aviso.Titulo = model.Titulo;
                 aviso.Descripcion = model.Descripcion;
+                aviso.Enlaces = string.IsNullOrWhiteSpace(model.Enlaces)
+                                    ? null
+                                    : model.Enlaces.Trim();
+
+                aviso.FechaInicio = model.FechaInicio;
+                aviso.FechaFin = model.FechaFin;
+                aviso.FrecuenciaDias = model.FrecuenciaDias;
+
+                if (model.FechaFin < model.FechaInicio)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "La fecha de fin no puede ser menor que la fecha de inicio" });
+                }
 
                 await Db.SaveChangesAsync();
 
-                return Json(new { mensaje = "Aviso actualizado correctamente" }, JsonRequestBehavior.AllowGet);
+                return Json(new { mensaje = "Aviso actualizado correctamente" });
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al actualizar el aviso", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode = 500;
+                return Json(new { mensaje = "Error al actualizar el aviso", error = ex.Message });
             }
         }
         #endregion

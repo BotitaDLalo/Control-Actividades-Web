@@ -468,58 +468,64 @@ async function eliminarAviso(avisoId) {
     }
 }
 
-//Edita un aviso desde su id
+//Obtiene los datos de un aviso desde su id
 async function editarAviso(avisoId) {
+
     try {
-        // Obtener datos actuales del aviso
         const response = await fetch(`/Materias/ObtenerAvisoPorId?avisoId=${avisoId}`);
         if (!response.ok) throw new Error("No se pudo obtener el aviso.");
 
         const aviso = await response.json();
 
-        // Mostrar SweetAlert con los datos actuales
-        const { value: formValues } = await Swal.fire({
-            title: "Editar Aviso",
-            html: `
-                <input id="swal-titulo" class="swal2-input" placeholder="Título" value="${aviso.Titulo}">
-                <textarea id="swal-descripcion" class="swal2-textarea" placeholder="Descripción">${aviso.Descripcion}</textarea>
-            `,
-            focusConfirm: false,
-            showCancelButton: true,
-            confirmButtonText: "Guardar Cambios",
-            cancelButtonText: "Cancelar",
-            preConfirm: () => {
-                return {
-                    titulo: document.getElementById("swal-titulo").value.trim(),
-                    descripcion: document.getElementById("swal-descripcion").value.trim()
-                };
-            }
-        });
+        // llenar campos del modal
+        document.getElementById("editarAvisoId").value = aviso.AvisoId;
+        document.getElementById("editarTituloAviso").value = aviso.Titulo;
+        document.getElementById("editarDescripcionAviso").value = aviso.Descripcion;
+        document.getElementById("editarEnlacesAviso").value = aviso.Enlaces || '';
+        document.getElementById("editarFechaInicioAviso").value = aviso.FechaInicio;
+        document.getElementById("editarFechaFinAviso").value = aviso.FechaFin;
+        document.getElementById("editarFrecuenciaDiasAviso").value = aviso.FrecuenciaDias;
 
-        if (!formValues) return; // Si el usuario cancela, no hacer nada
+        // mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById("editarAvisoModal"));
+        modal.show();
 
-        // Enviar los cambios al backend
-        const updateResponse = await fetch(`/Materias/EditarAviso`, {
+    } catch (error) {
+        Swal.fire("Error", error.message, "error");
+    }
+}
+
+// Edita el aviso
+async function guardarEdicionAviso() {
+
+    const avisoId = document.getElementById("editarAvisoId").value;
+
+    const data = {
+        AvisoId: avisoId,
+        Titulo: document.getElementById("editarTituloAviso").value.trim(),
+        Descripcion: document.getElementById("editarDescripcionAviso").value.trim(),
+        Enlaces: document.getElementById("editarEnlacesAviso").value.trim(),
+        FechaInicio: document.getElementById("editarFechaInicioAviso").value,
+        FechaFin: document.getElementById("editarFechaFinAviso").value,
+        FrecuenciaDias: parseInt(document.getElementById("editarFrecuenciaDiasAviso").value)
+    };
+
+    if (!data.Titulo || !data.Descripcion)
+        return Swal.fire("Campos incompletos", "Completa título y descripción", "warning");
+
+    try {
+        const response = await fetch("/Materias/EditarAviso", {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                avisoId,
-                titulo: formValues.titulo,
-                descripcion: formValues.descripcion,
-                docenteId: docenteIdGlobal
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
         });
 
-        if (!updateResponse.ok) throw new Error("No se pudo actualizar el aviso.");
+        if (!response.ok)
+            throw new Error("No se pudo actualizar el aviso.");
 
-        Swal.fire("Actualizado",
-            "El aviso ha sido editado correctamente.",
-            "success"
-        );
+        Swal.fire("Actualizado", "Aviso editado correctamente", "success");
 
-        // Recargar avisos para reflejar los cambios
+        bootstrap.Modal.getInstance(document.getElementById("editarAvisoModal")).hide();
         cargarAvisosDeMateria();
 
     } catch (error) {
