@@ -302,6 +302,7 @@
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.0\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Security.Cryptography.Xml, Version=8.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Security.Cryptography.Xml.8.0.2\lib\net462\System.Security.Cryptography.Xml.dll</HintPath>
@@ -462,6 +463,10 @@
     <Compile Include="Migrations\202602131617299_InitialCreate.Designer.cs">
       <DependentUpon>202602131617299_InitialCreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202602142051287_CreacionTablaAvisosEnvios.cs" />
+    <Compile Include="Migrations\202602142051287_CreacionTablaAvisosEnvios.Designer.cs">
+      <DependentUpon>202602142051287_CreacionTablaAvisosEnvios.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApiResponse.cs" />
@@ -476,6 +481,7 @@
     <Compile Include="Models\db\tbAlumnosMaterias.cs" />
     <Compile Include="Models\db\tbAuditoria.cs" />
     <Compile Include="Models\db\tbAvisos.cs" />
+    <Compile Include="Models\db\tbAvisosEnvios.cs" />
     <Compile Include="Models\db\tbDocentes.cs" />
     <Compile Include="Models\db\tbEntregaActividadAlumno.cs" />
     <Compile Include="Models\db\tbEntregables.cs" />
@@ -911,6 +917,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202602131617299_InitialCreate.resx">
       <DependentUpon>202602131617299_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202602142051287_CreacionTablaAvisosEnvios.resx">
+      <DependentUpon>202602142051287_CreacionTablaAvisosEnvios.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

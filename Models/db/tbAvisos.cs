@@ -36,5 +36,7 @@ namespace ControlActividades.Models.db
         public int FrecuenciaDias { get; set; }
 
         public virtual tbDocentes Docentes { get; set; }
+        public virtual ICollection<tbAvisosEnvios> AvisosEnvios { get; set; }
+
     }
 }
