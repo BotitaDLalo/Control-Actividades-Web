@@ -34,7 +34,7 @@ public class RecordatorioAvisosService
                     continue;
 
                 // IMPLEMENTACIÓN DE NOTIFICACIONES(Después)
-                System.Diagnostics.Debug.WriteLine($"ENVIANDO recordatorio aviso {aviso.AvisoId}");
+                Debug.WriteLine($"ENVIANDO recordatorio aviso {aviso.AvisoId}");
 
                 // Registrar envío
                 db.tbAvisosEnvios.Add(new tbAvisosEnvios
@@ -43,8 +43,9 @@ public class RecordatorioAvisosService
                     FechaEnvio = hoy
                 });
 
-                await db.SaveChangesAsync();
             }
+
+            await db.SaveChangesAsync();
         }
     }
 }
