@@ -52,7 +52,10 @@ namespace ControlActividades.Services.Actividades
                         Descripcion = a.Descripcion,
                         FechaCreacion = a.FechaCreacion,
                         FechaLimite = a.FechaLimite,
-                        Puntaje = a.Puntaje
+                        Puntaje = a.Puntaje,
+                        PermitirEntregasTarde = a.PermitirEntregasTarde,
+                        TieneLimiteEntregas = a.TieneLimiteEntregas,
+                        LimiteEntregasPorAlumno = a.LimiteEntregasPorAlumno
                     })
                     .ToListAsync();
 

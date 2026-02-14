@@ -1428,8 +1428,7 @@ namespace ControlActividades.Controllers
                 {
                     EntregaActividadAlumnoId = entregaActividadAlumnoId,
                     TipoEntregaId = tipoEntregaDeterminado,
-                    Contenido = JsonConvert.SerializeObject(contenidoEstructurado),
-                    Calificacion = null
+                    Contenido = JsonConvert.SerializeObject(contenidoEstructurado)
                 };
 
                 Db.tbEntregables.Add(entregable);

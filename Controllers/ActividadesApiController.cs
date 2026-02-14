@@ -226,7 +226,10 @@ namespace ControlActividades.Controllers
                     Puntaje = a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,
-                    MateriaId = a.MateriaId
+                    MateriaId = a.MateriaId,
+                    PermitirEntregasTarde = a.PermitirEntregasTarde,
+                    TieneLimiteEntregas = a.TieneLimiteEntregas,
+                    LimiteEntregasPorAlumno = a.LimiteEntregasPorAlumno
                 }).ToList();
 
 

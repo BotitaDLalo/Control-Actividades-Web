@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -83,6 +83,9 @@ namespace ControlActividades.Services.Grupos
                             //b.TipoActividadId,
                             Puntaje = b.Puntaje,
                             MateriaId = b.MateriaId,
+                            PermitirEntregasTarde = b.PermitirEntregasTarde,
+                            TieneLimiteEntregas = b.TieneLimiteEntregas,
+                            LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
                         }).ToList()
                     }).ToListAsync();
 
