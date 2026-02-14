@@ -479,12 +479,23 @@ namespace ControlMaterias.Controllers
         {
             try
             {
-                var avisosDb = await Db.tbAvisos
-                    .Where(a => a.MateriaId == IdMateria)
+                var ahora = DateTime.Now;
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+
+                var query = Db.tbAvisos
+                    .Where(a => a.MateriaId == IdMateria);
+
+                //Si es alumno solo activos
+                if (rolUsuario == "Alumno")
+                {
+                    query = query.Where(a =>
+                        ahora >= a.FechaInicio &&
+                        ahora <= a.FechaFin);
+                }
+
+                var avisosDb = await query
                     .OrderByDescending(a => a.FechaCreacion)
                     .ToListAsync();
-
-                var ahora = DateTime.Now;
 
                 var avisos = avisosDb.Select(a => new
                 {
@@ -497,12 +508,8 @@ namespace ControlMaterias.Controllers
                     FechaCreacion = a.FechaCreacion.ToString("dddd, d 'de' MMMM 'de' yyyy HH:mm:ss"),
                     FechaCreacionIso = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
 
-                    // Fechas de vigencia
                     FechaInicio = a.FechaInicio.ToString("dd/MM/yyyy"),
                     FechaFin = a.FechaFin.ToString("dd/MM/yyyy"),
-
-                    FechaInicioIso = a.FechaInicio.ToString("yyyy-MM-dd"),
-                    FechaFinIso = a.FechaFin.ToString("yyyy-MM-dd"),
 
                     Estado = ahora < a.FechaInicio
                                 ? "Programado"
@@ -510,8 +517,6 @@ namespace ControlMaterias.Controllers
                                     ? "Finalizado"
                                     : "Activo")
                 });
-
-                var rolUsuario = Fg.ObtenerRolUsuario(User);
 
                 return Json(new
                 {
@@ -529,7 +534,6 @@ namespace ControlMaterias.Controllers
                 }, JsonRequestBehavior.AllowGet);
             }
         }
-
         //Controlador para obtener informacion de un aviso para despeus editar
         [HttpGet]
         public async Task<ActionResult> ObtenerAvisoPorId(int avisoId)

@@ -272,7 +272,9 @@ function renderizarAvisos(avisos) {
 
         const avisoItem = document.createElement('div');
         const enlacesHtml = renderizarEnlaces(aviso.Enlaces);
-        const badgeEstado = obtenerBadgeEstado(aviso.Estado);
+        const badgeEstado = window.esDocente
+            ? obtenerBadgeEstado(aviso.Estado)
+            : '';
 
         avisoItem.className = 'aviso-item';
 
@@ -289,6 +291,16 @@ function renderizarAvisos(avisos) {
               `
             : '';
 
+        const fechaCreacionDocente = window.esDocente 
+            ? `
+                 <div class="aviso-fecha-publicado">
+                    <small>
+                        Creado: ${aviso.FechaCreacion}
+                    </small>
+                </div>
+              `
+            : '';
+           
         // Crear card
         avisoItem.innerHTML = `
                                 <div class="aviso-info">
@@ -318,11 +330,7 @@ function renderizarAvisos(avisos) {
                                         </small>
                                     </div>
 
-                                    <div class="aviso-fecha-publicado">
-                                        <small>
-                                            Creado: ${aviso.FechaCreacion}
-                                        </small>
-                                    </div>
+                                    ${fechaCreacionDocente}
                                 </div>
                                 ${botonesHtml}
                             `;
