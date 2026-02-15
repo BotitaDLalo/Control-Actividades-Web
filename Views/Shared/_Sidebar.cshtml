@@ -15,13 +15,7 @@
 <div class="sidebar" id="sidebar">
 
     <div style="height: 50px"></div>
-    @if (isImpersonating)
-    {
-        <div>
-            ESTÁS VIENDO EL SISTEMA COMO DOCENTE - 
-            <a href="@Url.Action("SalirImpersonacion", "Administrador")">Salir</a>
-        </div>
-    }
+
     @if (esAdmin && !isImpersonating)
     {
         <a class="sidebar-menu" href="@Url.Action("Index", "Administrador")">
