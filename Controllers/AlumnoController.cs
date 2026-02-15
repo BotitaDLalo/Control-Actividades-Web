@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
@@ -18,6 +18,7 @@ using Newtonsoft.Json;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System.Net.Mail;
 
 namespace ControlActividades.Controllers
 {
@@ -425,183 +426,7 @@ namespace ControlActividades.Controllers
             base.Dispose(disposing);
         }
 
-        #region SubirEntrega moved from API
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<ActionResult> SubirEntrega()
-        //{
-        //    try
-        //    {
-        //        var httpRequest = Request;
-        //        if (httpRequest == null)
-        //        {
-        //            Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-        //            return Json(new { mensaje = "No se recibió la solicitud." });
-        //        }
-
-        //        string respuesta = httpRequest.Form["Respuesta"] ?? string.Empty;
-
-        //        int.TryParse(httpRequest.Form["ActividadId"], out int actividadId);
-        //        int.TryParse(httpRequest.Form["AlumnoId"], out int alumnoId);
-
-        //        if (actividadId == 0 || alumnoId == 0)
-        //        {
-        //            Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-        //            return Json(new { mensaje = "Faltan datos: AlumnoId o ActividadId." });
-        //        }
-
-        //        // Guardar archivos (si los hay)
-        //        var savedUrls = new List<string>();
-        //        var files = httpRequest.Files;
-        //        var uploadRoot = Server.MapPath("~/Uploads/Entregas/");
-        //        var destFolder = Path.Combine(uploadRoot, actividadId.ToString(), alumnoId.ToString());
-        //        if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
-
-        //        for (int i = 0; i < files.Count; i++)
-        //        {
-        //            var file = files[i];
-        //            if (file == null || file.ContentLength == 0) continue;
-        //            var safeName = Path.GetFileName(file.FileName);
-        //            var destPath = Path.Combine(destFolder, safeName);
-        //            // evitar sobreescribir: agregar timestamp
-        //            if (System.IO.File.Exists(destPath))
-        //            {
-        //                var ts = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-        //                destPath = Path.Combine(destFolder, ts + "_" + safeName);
-        //            }
-        //            file.SaveAs(destPath);
-        //            var relative = "/Uploads/Entregas/" + actividadId + "/" + alumnoId + "/" + Path.GetFileName(destPath);
-        //            savedUrls.Add(relative);
-        //        }
-
-        //        // Preparar contenido: si hay archivos, guardar JSON con respuesta + archivos, si no sólo texto
-        //        string contenidoGuardar = respuesta ?? string.Empty;
-        //        if (savedUrls.Count > 0)
-        //        {
-        //            contenidoGuardar = BuildRespuestaWithFiles(respuesta, savedUrls);
-        //        }
-
-        //        // Fecha de entrega (usar campo enviado o ahora)
-        //        DateTime fechaEnt = DateTime.Now;
-        //        DateTime parsedFecha;
-        //        if (DateTime.TryParse(httpRequest.Form["FechaEntrega"], out parsedFecha)) fechaEnt = parsedFecha;
-
-        //        // Asegurar que exista un EstadoEntrega válido (evitar violación de FK)
-        //        int estadoResolved = await ResolveEstadoEntregaIdAsync(1);
-
-        //        // Verificar permisos: el alumno debe pertenecer a la materia o a un grupo que la contiene
-        //        if (!await AlumnoPuedeAccederActividadAsync(alumnoId, actividadId))
-        //        {
-        //            Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-        //            return Json(new { mensaje = "No tienes permiso para entregar esta actividad." });
-        //        }
-
-        //        // Bloquear entregas fuera de la fecha límite si la actividad no permite entregas tarde
-        //        var actividad = await Db.tbActividades.FindAsync(actividadId);
-        //        if (actividad != null && DateTime.Now > actividad.FechaLimite && !actividad.PermitirEntregasTarde)
-        //        {
-        //            Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-        //            return Json(new { mensaje = "La fecha límite ya pasó y no se permiten entregas tardías para esta actividad." });
-        //        }
-
-        //        int entregaAlumnoId = 0;
-        //        tbEntregables entregables = null;
-        //        // tbEntregableAlumno entregableLegacy = null; // legacy handling kept minimal here
-
-        //        try
-        //        {
-        //            var entregaAlumnoExistente = await Db.Set<tbEntregaActividadAlumno>().FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
-        //            if (entregaAlumnoExistente == null)
-        //            {
-        //                tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
-        //                {
-        //                    ActividadId = actividadId,
-        //                    AlumnoId = alumnoId,
-        //                    FechaEntrega = fechaEnt,
-        //                    EstadoEntregaId = estadoResolved
-        //                };
-
-        //                Db.tbEntregaActividadAlumno.Add(entregaAlumno);
-        //                await Db.SaveChangesAsync();
-        //                entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
-        //            }
-        //            else
-        //            {
-        //                int entregaIdExistente = entregaAlumnoExistente.EntregaActividadAlumnoId;
-        //                //var lsEntregablesExistentes = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == entregaIdExistente).ToList();
-        //                //Db.tbEntregables.RemoveRange(lsEntregablesExistentes);
-
-
-        //                tbEntregaActividadAlumno entregaAlumno = new tbEntregaActividadAlumno()
-        //                {
-        //                    ActividadId = actividadId,
-        //                    AlumnoId = alumnoId,
-        //                    FechaEntrega = fechaEnt,
-        //                    EstadoEntregaId = 1,
-        //                    Estatus = true
-        //                };
-
-        //                Db.tbEntregaActividadAlumno.Add(entregaAlumno);
-        //                await Db.SaveChangesAsync();
-        //                entregaAlumnoId = entregaAlumno.EntregaActividadAlumnoId;
-        //            }
-
-        //            int preferido = (savedUrls.Count > 0) ? 2 : 1;
-        //            int tipoId = await ResolveTipoEntregaIdAsync(preferido);
-
-        //            entregables = new tbEntregables()
-        //            {
-        //                EntregaActividadAlumnoId = entregaAlumnoId,
-        //                TipoEntregaId = tipoId,
-        //                Contenido = contenidoGuardar
-        //            };
-        //            Db.tbEntregables.Add(entregables);
-        //            await Db.SaveChangesAsync();
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            // intentar fallback legacy si es necesario
-        //            // Por simplicidad aquí devolvemos error con detalle
-        //            Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-        //            return Json(new { mensaje = "Error al guardar entregable.", detalle = ex.Message });
-        //        }
-
-        //        // Notificar al docente que un alumno entregó (FCM + persistir notificación)
-        //        //try
-        //        //{
-        //            //var docenteUserId = await Db.tbMaterias.Where(m => m.MateriaId == actividad.MateriaId).Select(m => m.DocenteId).FirstOrDefaultAsync();
-        //            //var docenteUid = await Db.tbDocentes.Where(d => d.DocenteId == docenteUserId).Select(d => d.UserId).FirstOrDefaultAsync();
-        //            //if (!string.IsNullOrEmpty(docenteUid))
-        //            //{
-        //            //    var ns = new NotificacionesService(Db, new FCMService());
-        //            //    string titulo = "Nueva entrega recibida";
-        //            //    string cuerpo = $"El alumno ha entregado la actividad {actividad.NombreActividad}.";
-        //            //    var tokens = await Db.tbUsuariosFcmTokens.Where(t => t.UserId == docenteUid).Select(t => new Models.UsuarioFcmToken { UserId = t.UserId, FcmToken = t.Token }).ToListAsync();
-        //            //    await ns.ProcesarNotificacion(new List<string> { docenteUid }, tokens, titulo, cuerpo, TiposNotificaciones.ActividadEntregada, actividad.MateriaId);
-        //            //}
-        //        //}
-        //        //catch { }
-
-        //        if (entregables != null)
-        //        {
-        //            return Json(new
-        //            {
-        //                EntregaActividadAlumnoId = entregaAlumnoId,
-        //                EntregableId = entregables.EntregableId,
-        //                Contenido = entregables.Contenido
-        //            });
-        //        }
-
-        //        return Json(new { EntregaActividadAlumnoId = entregaAlumnoId });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-        //        return Json(new { mensaje = ex.Message, detalle = ex.ToString() });
-        //    }
-        //}
-
-
+        #region SubirEntrega 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SubirEntrega()
@@ -1041,26 +866,34 @@ namespace ControlActividades.Controllers
 
         #region ImportarAlumnosExcel
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult> ImportarAlumnosExcel()
         {
             try
             {
-                var httpRequest = Request;
-                if (httpRequest == null || httpRequest.Files.Count == 0)
-                    return Json(new { mensaje = "No se recibió archivo." }, JsonRequestBehavior.AllowGet);
+                var httpRequest = System.Web.HttpContext.Current.Request;
+                if (httpRequest == null || httpRequest.Files.Count ==0)
+                {
+                    Response.StatusCode =400;
+                    return Json(new { mensaje = "No se recibió archivo." });
+                }
 
                 var file = httpRequest.Files[0];
-                if (file == null || file.ContentLength == 0)
-                    return Json(new { mensaje = "Archivo vacío." }, JsonRequestBehavior.AllowGet);
+                if (file == null || file.ContentLength ==0)
+                {
+                    Response.StatusCode =400;
+                    return Json(new { mensaje = "Archivo vacío." });
+                }
 
-                int grupoId = 0;
-                int materiaId = 0;
+                int grupoId =0;
+                int materiaId =0;
                 int.TryParse(httpRequest.Form["GrupoId"], out grupoId);
                 int.TryParse(httpRequest.Form["MateriaId"], out materiaId);
 
-                if (grupoId == 0 && materiaId == 0)
-                    return Json(new { mensaje = "Debe enviar GrupoId o MateriaId." }, JsonRequestBehavior.AllowGet);
+                if (grupoId ==0 && materiaId ==0)
+                {
+                    Response.StatusCode =400;
+                    return Json(new { mensaje = "Debe enviar GrupoId o MateriaId." });
+                }
 
                 IWorkbook workbook;
                 using (var stream = file.InputStream)
@@ -1073,220 +906,244 @@ namespace ControlActividades.Controllers
 
                 var sheet = workbook.GetSheetAt(0);
                 if (sheet == null)
-                    return Json(new { mensaje = "Hoja no encontrada en el archivo." }, JsonRequestBehavior.AllowGet);
+                {
+                    Response.StatusCode =400;
+                    return Json(new { mensaje = "Hoja no encontrada en el archivo." });
+                }
 
                 int startRow = sheet.FirstRowNum;
                 var headerRow = sheet.GetRow(startRow);
                 bool hasHeader = false;
+                var headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                var formatter = new NPOI.SS.UserModel.DataFormatter();
+
                 if (headerRow != null)
                 {
-                    var headerCells = headerRow.LastCellNum > 0 ? headerRow.LastCellNum : 1;
-                    for (int hc = 0; hc < headerCells; hc++)
+                    var headerCells = headerRow.LastCellNum >0 ? headerRow.LastCellNum :1;
+                    for (int hc =0; hc < headerCells; hc++)
                     {
                         var hCell = headerRow.GetCell(hc);
-                        var hText = hCell != null ? new DataFormatter().FormatCellValue(hCell)?.ToString()?.ToLower() : null;
-                        if (!string.IsNullOrEmpty(hText) && hText.Contains("email"))
-                        {
-                            hasHeader = true;
-                            break;
-                        }
+                        var raw = hCell != null ? formatter.FormatCellValue(hCell) : null;
+                        if (string.IsNullOrWhiteSpace(raw)) continue;
+                        var hText = raw.Trim().ToLowerInvariant();
+                        var norm = hText.Replace(" ", "").Replace("_", "");
+                        if (norm.Contains("email") || norm.Contains("correo")) headerMap["email"] = hc;
+                        else if (norm.Contains("nombre") || norm.Contains("nombres") || norm == "name") headerMap["nombre"] = hc;
+                        else if (norm.Contains("apellidopaterno") || norm.Contains("paterno")) headerMap["apellidopaterno"] = hc;
+                        else if (norm.Contains("apellidomaterno") || norm.Contains("materno")) headerMap["apellidomaterno"] = hc;
                     }
+
+                    if (headerMap.ContainsKey("email") || headerMap.ContainsKey("nombre")) hasHeader = true;
                 }
 
-                var emails = new List<string>();
-                var formatter = new DataFormatter();
-                for (int r = hasHeader ? startRow + 1 : startRow; r <= sheet.LastRowNum; r++)
+                var parsedRows = new List<Tuple<string, string, string, string>>(); // email,nombre,apeP,apeM
+
+                for (int r = hasHeader ? startRow +1 : startRow; r <= sheet.LastRowNum; r++)
                 {
                     var row = sheet.GetRow(r);
                     if (row == null) continue;
 
-                    string found = null;
-                    var lastCell = row.LastCellNum > 0 ? row.LastCellNum : 1;
-                    for (int c = 0; c < lastCell; c++)
+                    string emailFound = null;
+                    string nombreVal = null;
+                    string apePVal = null;
+                    string apeMVal = null;
+
+                    if (hasHeader)
                     {
-                        var cell = row.GetCell(c);
-                        if (cell == null) continue;
-                        var cellText = formatter.FormatCellValue(cell)?.Trim();
-                        if (string.IsNullOrWhiteSpace(cellText)) continue;
-                        if (cellText.Contains("@"))
+                        if (headerMap.TryGetValue("email", out int eIdx))
                         {
-                            found = cellText;
-                            break;
+                            var c = row.GetCell(eIdx);
+                            emailFound = c != null ? formatter.FormatCellValue(c)?.Trim() : null;
+                        }
+                        if (headerMap.TryGetValue("nombre", out int nIdx))
+                        {
+                            var c = row.GetCell(nIdx);
+                            nombreVal = c != null ? formatter.FormatCellValue(c)?.Trim() : null;
+                        }
+                        if (headerMap.TryGetValue("apellidopaterno", out int pIdx))
+                        {
+                            var c = row.GetCell(pIdx);
+                            apePVal = c != null ? formatter.FormatCellValue(c)?.Trim() : null;
+                        }
+                        if (headerMap.TryGetValue("apellidomaterno", out int mIdx))
+                        {
+                            var c = row.GetCell(mIdx);
+                            apeMVal = c != null ? formatter.FormatCellValue(c)?.Trim() : null;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(emailFound))
+                        {
+                            var lastCell = row.LastCellNum >0 ? row.LastCellNum :1;
+                            for (int c =0; c < lastCell; c++)
+                            {
+                                var cell = row.GetCell(c);
+                                if (cell == null) continue;
+                                var cellText = formatter.FormatCellValue(cell)?.Trim();
+                                if (string.IsNullOrWhiteSpace(cellText)) continue;
+                                if (cellText.Contains("@"))
+                                {
+                                    emailFound = cellText;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var lastCell = row.LastCellNum >0 ? row.LastCellNum :1;
+                        for (int c =0; c < lastCell; c++)
+                        {
+                            var cell = row.GetCell(c);
+                            if (cell == null) continue;
+                            var cellText = formatter.FormatCellValue(cell)?.Trim();
+                            if (string.IsNullOrWhiteSpace(cellText)) continue;
+                            if (cellText.Contains("@"))
+                            {
+                                emailFound = cellText;
+                                break;
+                            }
+                            // if no email, try to set nombre from first non-empty cell
+                            if (string.IsNullOrWhiteSpace(nombreVal)) nombreVal = cellText;
+                            else if (string.IsNullOrWhiteSpace(apePVal)) apePVal = cellText;
+                            else if (string.IsNullOrWhiteSpace(apeMVal)) apeMVal = cellText;
                         }
                     }
 
-                    if (string.IsNullOrWhiteSpace(found)) continue;
-                    var emailNormalized = found.Trim().ToLowerInvariant();
-                    if (!emailNormalized.Contains("@")) continue;
-                    emails.Add(emailNormalized);
-                }
+                    // normalize
+                    emailFound = string.IsNullOrWhiteSpace(emailFound) ? null : emailFound.Trim().ToLowerInvariant();
+                    if (emailFound != null && !emailFound.Contains("@")) emailFound = null;
 
-                if (!emails.Any())
-                    return Json(new { mensaje = "No se encontraron emails en el archivo." }, JsonRequestBehavior.AllowGet);
+                    // accept rows with either an email or at least a name
+                    if (string.IsNullOrWhiteSpace(emailFound) && string.IsNullOrWhiteSpace(nombreVal) && string.IsNullOrWhiteSpace(apePVal) && string.IsNullOrWhiteSpace(apeMVal)) continue;
+
+                    parsedRows.Add(Tuple.Create(emailFound ?? string.Empty, nombreVal ?? string.Empty, apePVal ?? string.Empty, apeMVal ?? string.Empty));
+                }
 
                 var added = new List<string>();
                 var skipped = new List<string>();
                 var notFound = new List<string>();
+                var ambiguous = new List<string>();
                 var lsAlumnosId = new List<int>();
+                var processedAlumnoIds = new HashSet<int>();
 
-                foreach (var email in emails.Distinct(StringComparer.OrdinalIgnoreCase))
+                foreach (var row in parsedRows)
                 {
-                    var user = await UserManager.FindByEmailAsync(email);
+                    string email = string.IsNullOrWhiteSpace(row.Item1) ? null : row.Item1;
+                    string nombre = string.IsNullOrWhiteSpace(row.Item2) ? null : row.Item2;
+                    string apeP = string.IsNullOrWhiteSpace(row.Item3) ? null : row.Item3;
+                    string apeM = string.IsNullOrWhiteSpace(row.Item4) ? null : row.Item4;
 
-                    if (user == null)
+                    int alumnoId =0;
+
+                    if (!string.IsNullOrWhiteSpace(email))
                     {
-                        try
+                        var user = await UserManager.FindByEmailAsync(email);
+                        if (user != null)
                         {
-                            var password = "Tmp#" + Guid.NewGuid().ToString("N").Substring(0, 8);
-                            var newUser = new ApplicationUser { UserName = email, Email = email };
-                            var createResult = await UserManager.CreateAsync(newUser, password);
-                            if (createResult.Succeeded)
-                            {
-                                var roleName = ControlActividades.Models.Role.Alumno.ToString();
-                                if (!await RoleManager.RoleExistsAsync(roleName))
-                                {
-                                    await RoleManager.CreateAsync(new IdentityRole(roleName));
-                                }
-                                await UserManager.AddToRoleAsync(newUser.Id, roleName);
-                                user = await UserManager.FindByEmailAsync(email);
-                            }
-                            else
-                            {
-                                // log errors and treat as not found
-                                Console.WriteLine($"Crear usuario falló para {email}: {string.Join(";", createResult.Errors)}");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("Error creando usuario para email " + email + ": " + ex.Message);
+                            alumnoId = await Db.tbAlumnos.Where(a => a.UserId == user.Id).Select(a => a.AlumnoId).FirstOrDefaultAsync();
                         }
                     }
 
-                    if (user == null)
+                    // if not found by email, attempt lookup by name/apellidos
+                    if (alumnoId ==0 && (!string.IsNullOrWhiteSpace(nombre) || !string.IsNullOrWhiteSpace(apeP) || !string.IsNullOrWhiteSpace(apeM)))
                     {
-                        notFound.Add(email);
+                        // If full name provided, try to match exactly first
+                        IQueryable<tbAlumnos> query = Db.tbAlumnos;
+                        if (!string.IsNullOrWhiteSpace(nombre))
+                        {
+                            var nm = nombre.Trim();
+                            query = query.Where(a => a.Nombre.ToLower().Contains(nm.ToLower()));
+                        }
+                        if (!string.IsNullOrWhiteSpace(apeP))
+                        {
+                            var ap = apeP.Trim();
+                            query = query.Where(a => a.ApellidoPaterno.ToLower().Contains(ap.ToLower()));
+                        }
+                        if (!string.IsNullOrWhiteSpace(apeM))
+                        {
+                            var am = apeM.Trim();
+                            query = query.Where(a => a.ApellidoMaterno.ToLower().Contains(am.ToLower()));
+                        }
+
+                        var matches = await query.Take(10).ToListAsync();
+                        if (matches.Count ==1)
+                        {
+                            alumnoId = matches[0].AlumnoId;
+                        }
+                        else if (matches.Count >1)
+                        {
+                            // ambiguous: pick first but record ambiguity
+                            alumnoId = matches[0].AlumnoId;
+                            ambiguous.Add($"{nombre ?? ""} {apeP ?? ""} {apeM ?? ""} (coincidencias: {matches.Count})");
+                        }
+                    }
+
+                    if (alumnoId ==0)
+                    {
+                        notFound.Add(email ?? (nombre + " " + apeP + " " + apeM).Trim());
                         continue;
                     }
 
-                    var alumnoId = await Db.tbAlumnos.Where(a => a.UserId == user.Id).Select(a => a.AlumnoId).FirstOrDefaultAsync();
-                    if (alumnoId == 0)
+                    if (processedAlumnoIds.Contains(alumnoId))
                     {
-                        try
-                        {
-                            var nombrePart = (user.Email ?? "Alumno").Split('@')[0];
-                            var nuevoAlumno = new tbAlumnos
-                            {
-                                UserId = user.Id,
-                                Nombre = string.IsNullOrWhiteSpace(nombrePart) ? "Alumno" : nombrePart,
-                                ApellidoPaterno = "N/A",
-                                ApellidoMaterno = "N/D",
-                                Matricula = user.Email ?? Guid.NewGuid().ToString()
-                            };
-                            Db.tbAlumnos.Add(nuevoAlumno);
-                            try
-                            {
-                                await Db.SaveChangesAsync();
-                                alumnoId = nuevoAlumno.AlumnoId;
-                            }
-                            catch (System.Data.Entity.Validation.DbEntityValidationException dbValEx)
-                            {
-                                foreach (var eve in dbValEx.EntityValidationErrors)
-                                {
-                                    Console.WriteLine("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:", eve.Entry.Entity.GetType().Name, eve.Entry.State);
-                                    foreach (var ve in eve.ValidationErrors)
-                                    {
-                                        Console.WriteLine("- Property: \"{0}\", Error: \"{1}\"", ve.PropertyName, ve.ErrorMessage);
-                                    }
-                                }
-                                alumnoId = 0;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("Error creando tbAlumnos para " + email + ": " + ex.Message);
-                        }
-                    }
-
-                    if (alumnoId == 0)
-                    {
-                        notFound.Add(email);
+                        skipped.Add(alumnoId.ToString());
                         continue;
                     }
 
                     lsAlumnosId.Add(alumnoId);
+                    processedAlumnoIds.Add(alumnoId);
 
-                    if (grupoId > 0)
+                    if (grupoId >0)
                     {
                         bool existe = Db.tbAlumnosGrupos.Any(a => a.GrupoId == grupoId && a.AlumnoId == alumnoId);
                         if (!existe)
                         {
                             Db.tbAlumnosGrupos.Add(new tbAlumnosGrupos { AlumnoId = alumnoId, GrupoId = grupoId });
-                            added.Add(email);
+                            added.Add(email ?? (nombre + " " + apeP).Trim());
                         }
-                        else
-                        {
-                            skipped.Add(email);
-                        }
+                        else skipped.Add(email ?? (nombre + " " + apeP).Trim());
                     }
-                    else if (materiaId > 0)
+                    else if (materiaId >0)
                     {
                         bool existe = Db.tbAlumnosMaterias.Any(a => a.MateriaId == materiaId && a.AlumnoId == alumnoId);
                         if (!existe)
                         {
                             Db.tbAlumnosMaterias.Add(new tbAlumnosMaterias { AlumnoId = alumnoId, MateriaId = materiaId });
-                            added.Add(email);
+                            added.Add(email ?? (nombre + " " + apeP).Trim());
                         }
-                        else
-                        {
-                            skipped.Add(email);
-                        }
+                        else skipped.Add(email ?? (nombre + " " + apeP).Trim());
                     }
                 }
 
-                try
-                {
-                    await Db.SaveChangesAsync();
-                }
-                catch (System.Data.Entity.Validation.DbEntityValidationException dbValEx)
-                {
-                    var detalles = new List<string>();
-                    foreach (var eve in dbValEx.EntityValidationErrors)
-                    {
-                        foreach (var ve in eve.ValidationErrors)
-                        {
-                            detalles.Add($"{eve.Entry.Entity.GetType().Name}.{ve.PropertyName}: {ve.ErrorMessage}");
-                        }
-                    }
-                    return Json(new { mensaje = "Validation failed", detalles }, JsonRequestBehavior.AllowGet);
-                }
+                await Db.SaveChangesAsync();
 
-                var alumnos = (from a in Db.tbAlumnos
-                               where lsAlumnosId.Contains(a.AlumnoId)
-                               join u in Db.Users on a.UserId equals u.Id into uj
-                               from u in uj.DefaultIfEmpty()
-                               select new EmailVerificadoAlumno
-                               {
-                                   AlumnoId = a.AlumnoId,
-                                   Email = u.Email ?? "",
-                                   UserName = u.UserName ?? "",
-                                   Nombre = a.Nombre,
-                                   ApellidoPaterno = a.ApellidoPaterno,
-                                   ApellidoMaterno = a.ApellidoMaterno
-                               }).ToList();
+                var alumnos = await (from a in Db.tbAlumnos
+                where lsAlumnosId.Contains(a.AlumnoId)
+                join u in Db.Users on a.UserId equals u.Id into uj
+                from u in uj.DefaultIfEmpty()
+                select new EmailVerificadoAlumno
+                {
+                    Email = u.Email ?? "",
+                    UserName = u.UserName ?? "",
+                    Nombre = a.Nombre,
+                    ApellidoPaterno = a.ApellidoPaterno,
+                    ApellidoMaterno = a.ApellidoMaterno
+                }).ToListAsync();
 
                 return Json(new
                 {
-                    TotalLeidos = emails.Count,
+                    TotalLeidos = parsedRows.Count,
                     Agregados = added,
                     Omitidos = skipped,
                     NoEncontrados = notFound,
+                    Ambiguos = ambiguous,
                     Alumnos = alumnos
-                }, JsonRequestBehavior.AllowGet);
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ImportarAlumnosExcel MVC error: " + ex.Message + "\n" + ex.StackTrace);
-                return Json(new { mensaje = "Error al importar: " + ex.Message }, JsonRequestBehavior.AllowGet);
+                Response.StatusCode =400;
+                return Json(new { mensaje = ex.Message });
             }
         }
         #endregion
