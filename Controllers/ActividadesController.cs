@@ -19,6 +19,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using Newtonsoft.Json;
 
 
 namespace ControlActividades.Controllers
@@ -275,8 +276,8 @@ namespace ControlActividades.Controllers
         //                aa.AlumnoActividadId,
         //                aa.Alumnos.AlumnoId,
         //                aa.Alumnos.Nombre,
-        //                aa.Alumnos.ApellidoPaterno,
-        //                aa.Alumnos.ApellidoMaterno
+        //                aa.Alunos.ApellidoPaterno,
+        //                aa.Alunos.ApellidoMaterno
         //            })
         //            .ToList();
 
@@ -495,7 +496,7 @@ namespace ControlActividades.Controllers
             }
         }
 
-        // Nuevo: eliminar actividad (compatible con fetch DELETE desde JS)
+        // Nuevo: eliminar actividad (compatible with fetch DELETE desde JS)
         [HttpDelete]
         public async Task<ActionResult> EliminarActividad(int id)
         {
@@ -525,6 +526,170 @@ namespace ControlActividades.Controllers
                 return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message },
                     JsonRequestBehavior.AllowGet);
             }
+        }
+
+        // POST: /Actividades/EnviarEntrega (recibe multipart/form-data desde la web)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EnviarEntrega()
+        {
+        try
+        {
+        var req = System.Web.HttpContext.Current.Request;
+        int actividadId =0;
+        int alumnoId =0;
+        DateTime fechaEntrega = DateTime.Now;
+        string respuestaRaw = null;
+
+        int.TryParse(req.Form["ActividadId"], out actividadId);
+        int.TryParse(req.Form["AlumnoId"], out alumnoId);
+        DateTime.TryParse(req.Form["FechaEntrega"], out fechaEntrega);
+        respuestaRaw = req.Form["Respuesta"];
+
+        if (actividadId <=0 || alumnoId <=0)
+        {
+        Response.StatusCode = (int)HttpStatusCode.BadRequest;
+        return Json(new { mensaje = "Actividad o alumno inválido." });
+        }
+
+        var actividad = await Db.tbActividades.FindAsync(actividadId);
+        if (actividad == null)
+        {
+        Response.StatusCode = (int)HttpStatusCode.NotFound;
+        return Json(new { mensaje = "Actividad no encontrada." });
+        }
+
+        // Verificar que el alumno pertenezca a la materia o grupo
+        var pertenece = await Db.tbAlumnosMaterias.AnyAsync(am => am.AlumnoId == alumnoId && am.MateriaId == actividad.MateriaId);
+        if (!pertenece)
+        {
+        // también comprobar por grupo (si aplica)
+        var gruposIds = await Db.tbGruposMaterias.Where(gm => gm.MateriaId == actividad.MateriaId).Select(gm => gm.GrupoId).ToListAsync();
+        if (!(gruposIds != null && gruposIds.Count >0 && await Db.tbAlumnosGrupos.AnyAsync(ag => ag.AlumnoId == alumnoId && gruposIds.Contains(ag.GrupoId))))
+        {
+        Response.StatusCode = (int)HttpStatusCode.Forbidden;
+        return Json(new { mensaje = "No tienes permiso para entregar esta actividad." });
+        }
+        }
+
+        // Obtener o crear registro de entrega del alumno
+        var entrega = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(e => e.ActividadId == actividadId && e.AlumnoId == alumnoId);
+        if (entrega == null)
+        {
+        entrega = new tbEntregaActividadAlumno
+        {
+        ActividadId = actividadId,
+        AlumnoId = alumnoId,
+        FechaEntrega = fechaEntrega,
+        EstadoEntregaId =1
+        };
+        Db.tbEntregaActividadAlumno.Add(entrega);
+        await Db.SaveChangesAsync();
+        }
+
+        // No permitir reenvío si ya fue calificada
+        if (entrega.Calificacion != null)
+        {
+        Response.StatusCode = (int)HttpStatusCode.Conflict;
+        return Json(new { mensaje = "No puedes volver a entregar porque la entrega ya fue calificada." });
+        }
+
+        // Verificar límite de entregas por alumno
+        if (actividad.LimiteEntregasPorAlumno >0)
+        {
+        var existentes = await Db.tbEntregables.CountAsync(t => t.EntregaActividadAlumnoId == entrega.EntregaActividadAlumnoId);
+        if (existentes >= actividad.LimiteEntregasPorAlumno)
+        {
+        Response.StatusCode = (int)HttpStatusCode.Conflict;
+        return Json(new { mensaje = $"Has alcanzado el límite de {actividad.LimiteEntregasPorAlumno} envíos para esta actividad." });
+        }
+        }
+
+        // Procesar archivos subidos y construir lista de URLs
+        var archivosUrls = new List<string>();
+        try
+        {
+        if (req.Files != null && req.Files.Count >0)
+        {
+        var uploadRoot = Server.MapPath($"~/Uploads/Actividades/{actividadId}/{alumnoId}");
+        if (!System.IO.Directory.Exists(uploadRoot)) System.IO.Directory.CreateDirectory(uploadRoot);
+        for (int i =0; i < req.Files.Count; i++)
+        {
+        var f = req.Files[i];
+        var safeName = System.IO.Path.GetFileName(f.FileName);
+        var savePath = System.IO.Path.Combine(uploadRoot, DateTime.Now.Ticks + "_" + safeName);
+        f.SaveAs(savePath);
+        var publicUrl = Url.Content($"~/Uploads/Actividades/{actividadId}/{alumnoId}/" + System.IO.Path.GetFileName(savePath));
+        archivosUrls.Add(publicUrl);
+        }
+        }
+        }
+        catch (Exception ex)
+        {
+        // no bloquear la entrega por errores menores en archivos
+        System.Diagnostics.Trace.WriteLine("Error guardando archivos: " + ex.Message);
+        }
+
+        // Crear registro tbEntregables con contenido JSON
+        var contenidoObj = new
+        {
+        Respuesta = (respuestaRaw != null && respuestaRaw.StartsWith("{") ? (object)JsonConvert.DeserializeObject(respuestaRaw) : (object)new { Respuesta = respuestaRaw }),
+        Archivos = archivosUrls,
+        fechaEntrega = DateTime.UtcNow,
+        totalArchivos = archivosUrls.Count
+        };
+
+        var ent = new tbEntregables
+        {
+        EntregaActividadAlumnoId = entrega.EntregaActividadAlumnoId,
+        TipoEntregaId =1, // texto/archivo
+        Contenido = JsonConvert.SerializeObject(contenidoObj)
+        };
+        Db.tbEntregables.Add(ent);
+        await Db.SaveChangesAsync();
+
+        return Json(new { mensaje = "Entrega registrada correctamente." });
+        }
+        catch (Exception ex)
+        {
+        Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        return Json(new { mensaje = "Ocurrió un error al guardar la entrega. Intenta nuevamente más tarde." });
+        }
+        }
+
+        // POST: /Actividades/QuitarCalificacion
+        [HttpPost]
+        public async Task<ActionResult> QuitarCalificacion(int entregableId)
+        {
+        try
+        {
+        // buscar el entregable y su entrega principal
+        var entregable = await Db.tbEntregables.FirstOrDefaultAsync(e => e.EntregableId == entregableId);
+        if (entregable == null)
+        {
+        Response.StatusCode = (int)HttpStatusCode.NotFound;
+        return Json(new { mensaje = "Entrega no encontrada." });
+        }
+
+        var entregaAlumno = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(e => e.EntregaActividadAlumnoId == entregable.EntregaActividadAlumnoId);
+        if (entregaAlumno == null)
+        {
+        Response.StatusCode = (int)HttpStatusCode.NotFound;
+        return Json(new { mensaje = "Registro de entrega no encontrado." });
+        }
+
+        entregaAlumno.Calificacion = null;
+        entregaAlumno.FechaCalificado = null;
+        Db.Entry(entregaAlumno).State = EntityState.Modified;
+        await Db.SaveChangesAsync();
+
+        return Json(new { mensaje = "Calificación removida." });
+        }
+        catch (Exception ex)
+        {
+        Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        return Json(new { mensaje = "No se pudo quitar la calificación." });
+        }
         }
 
         protected override void Dispose(bool disposing)

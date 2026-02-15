@@ -12,7 +12,7 @@ function parseServerDateFlexible(val) {
     // Handle /Date(123456789)/
     try {
         var s = String(val).trim();
-        var msMatch = s.match(/\/(?:Date)?\((-?\d+)(?:[-+]\d+)?\)\//);
+        var msMatch = s.match(/\/\(?:Date)?\((-?\d+)(?:[-+]\d+)?\)\//);
         if (msMatch) return new Date(parseInt(msMatch[1],10));
         // plain number
         if (/^-?\d+$/.test(s)) return new Date(parseInt(s,10));
@@ -93,7 +93,10 @@ async function verificarEnvio() {
             document.getElementById('estadoEntrega').innerHTML = estadoHtml;
             var ef = document.getElementById('entregaForm'); if (ef) ef.style.display = 'none';
             if (envio.Calificacion !== null && envio.Calificacion !== undefined) {
-                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: <strong>' + envio.Calificacion + '</strong></p>';
+                // format score without .0
+                var score = envio.Calificacion;
+                if (typeof score === 'number' && Number.isInteger(score) === false && String(score).endsWith('.0')) score = parseInt(score,10);
+                document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: <strong>' + score + '</strong></p>';
             } else {
                 document.getElementById('calificacionAlumno').innerHTML = '<p>Calificación: <em>Pendiente de calificar</em></p>';
             }
@@ -108,7 +111,7 @@ async function enviarEntrega() {
     const respuesta = (document.getElementById('respuesta') || {}).value.trim();
     const respuestaLink = (document.getElementById('respuestaLink') || {}).value || '';
     const fileInput = document.getElementById('fileEntrega');
-    if (!respuesta && !respuestaLink && (!fileInput || !fileInput.files || fileInput.files.length ===0)) { alert('Agrega una respuesta, un link o un archivo.'); return; }
+    if (!respuesta && !respuestaLink && (!fileInput || !fileInput.files || fileInput.files.length ===0)) { Swal.fire('Atención','Agrega una respuesta, un link o un archivo.','warning'); return; }
 
     const form = new FormData();
     form.append('ActividadId', actividadIdGlobal);
@@ -116,7 +119,7 @@ async function enviarEntrega() {
     const payload = { Respuesta: respuesta };
     if (respuestaLink) payload.Link = respuestaLink;
     form.append('Respuesta', JSON.stringify(payload));
-    form.append('FechaEntrega', new Date().toISOString());
+    form.append('FechaEntrega', new Date().ToString ? new Date().toISOString() : new Date().toString());
 
     if (fileInput && fileInput.files && fileInput.files.length >0) {
         for (let i =0; i < fileInput.files.length; i++) {
@@ -125,15 +128,18 @@ async function enviarEntrega() {
     }
 
     try {
-        const resp = await fetch('/api/Alumnos/SubirEntrega', { method: 'POST', body: form });
+        const resp = await fetch('/Actividades/EnviarEntrega', { method: 'POST', body: form, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        let data = null;
+        const contentType = resp.headers.get('content-type') || '';
+        if (contentType.indexOf('application/json') !== -1) data = await resp.json().catch(()=>null);
         if (!resp.ok) {
-            const txt = await resp.text().catch(() => '');
-            throw new Error(txt || 'Error al subir entrega');
+            const msg = (data && data.mensaje) ? data.mensaje : (data && data.Message) ? data.Message : 'Error al subir entrega.';
+            Swal.fire('Error', msg, 'error');
+            return;
         }
-        const data = await resp.json().catch(() => null);
         Swal.fire('Enviado', (data && data.mensaje) ? data.mensaje : 'Entrega registrada', 'success');
         verificarEnvio();
-    } catch (e) { Swal.fire('Error', e.message || 'No se pudo enviar', 'error'); }
+    } catch (e) { console.error(e); Swal.fire('Error', e.message || 'No se pudo enviar', 'error'); }
 }
 
 function escapeHtml(unsafe) {
