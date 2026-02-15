@@ -405,6 +405,140 @@ namespace ControlActividades.Controllers
             {
                 var respuestaAlumnos = await ActividadesApiService.ObtenerAlumnosEntregables(actividadId);
 
+                //var lsAlumnosActividades = await Db.tbAlumnosActividades
+                //    .Where(a => a.ActividadId == actividadId && a.EstatusEntrega == true)
+                //    .Include(a => a.EntregablesAlumno)
+                //    .Include(a => a.Actividades)
+                //    .Include(a => a.Alumnos).ToListAsync();
+
+                var lsAlumnosActividades = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.EstadoEntregaId == 1)
+                    .Include(a => a.tbAlumnos)
+                    .Include(a => a.tbEntregables)
+                    .ToListAsync();
+
+                var puntaje = await Db.tbActividades.Where(a => a.ActividadId == actividadId).Select(a => a.Puntaje).FirstOrDefaultAsync();
+
+                int totalEntregados = lsAlumnosActividades.Count;
+
+                respuestaAlumnos.ActividadId = actividadId;
+              //  respuestaAlumnos.Puntaje = puntaje;
+                respuestaAlumnos.TotalEntregados = totalEntregados;
+
+                foreach (var alumnoActividad in lsAlumnosActividades)
+                {
+                    AlumnoEntregable alumnoEntregable = new AlumnoEntregable();
+
+                    //var alumno = alumnoActividad.Alumnos;
+                    //var entregableAlumno = alumnoActividad.EntregablesAlumno;
+
+                    var alumno = alumnoActividad.tbAlumnos;
+                    var entregableAlumno = alumnoActividad.tbEntregables;
+
+
+                    //if (alumno != null && entregableAlumno != null)
+                    //{
+                    //    var entregaId = entregableAlumno.EntregableId;
+
+                    //    var alumnoId = alumno.AlumnoId;
+                    //    var userId = alumno.UserId;
+                    //    var nombres = alumno.Nombre;
+                    //    var apellidoPaterno = alumno.ApellidoPaterno;
+                    //    var apellidoMaterno = alumno.ApellidoMaterno;
+                    //    var user = await UserManager.FindByIdAsync(userId ?? "");
+
+                    //    if (user != null)
+                    //    {
+                    //        var userName = user.UserName;
+                    //        alumnoEntregable.AlumnoId = alumnoId;
+                    //        alumnoEntregable.NombreUsuario = userName ?? "";
+                    //        alumnoEntregable.Nombres = nombres ?? "";
+                    //        alumnoEntregable.ApellidoPaterno = apellidoPaterno ?? "";
+                    //        alumnoEntregable.ApellidoMaterno = apellidoMaterno ?? "";
+                    //    }
+
+                    //    alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
+
+                    //    alumnoEntregable.EntregaId = entregableAlumno.EntregaId;
+                    //    alumnoEntregable.Respuesta = entregableAlumno.Respuesta ?? "";
+
+                    //    var calificacion = await Db.tbCalificaciones.Where(a => a.EntregaId == entregaId).FirstOrDefaultAsync();
+
+                    //    alumnoEntregable.Calificacion = calificacion?.Calificacion ?? -1;
+
+                    //    lsEntregables.Add(alumnoEntregable);
+                    //}
+
+                    var alumnoId = alumno.AlumnoId;
+                    var userId = alumno.UserId;
+                    var nombres = alumno.Nombre;
+                    var apellidoPaterno = alumno.ApellidoPaterno;
+                    var apellidoMaterno = alumno.ApellidoMaterno;
+                    var user = await UserManager.FindByIdAsync(userId ?? "");
+
+
+
+
+                        foreach (var entregable in entregableAlumno.ToList())
+                        {
+                            var userName = user.UserName;
+                            alumnoEntregable.AlumnoId = alumnoId;
+                            alumnoEntregable.NombreUsuario = userName ?? "";
+                            alumnoEntregable.Nombres = nombres ?? "";
+                            alumnoEntregable.ApellidoPaterno = apellidoPaterno ?? "";
+                            alumnoEntregable.ApellidoMaterno = apellidoMaterno ?? "";
+                            alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
+                            alumnoEntregable.EntregaId = entregable.EntregableId;
+                            alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                            //alumnoEntregable.FechaCalificado = entregable.FechaCalificado;
+
+                            string contenidoRaw = entregable.Contenido ?? "";
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(contenidoRaw))
+                                {
+                                    contenidoRaw = contenidoRaw.Replace("\\\"", "\"");
+                                    var contenidoObj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(contenidoRaw);
+
+                                    string texto = contenidoObj?.texto ?? "";
+                                    var enlaces = contenidoObj?.enlaces != null ? Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(contenidoObj.enlaces.ToString()) : new List<string>();
+                                    var archivos = contenidoObj?.archivos != null ? Newtonsoft.Json.JsonConvert.DeserializeObject<List<object>>(contenidoObj.archivos.ToString()) : new List<object>();
+
+                                    alumnoEntregable.Texto = texto;
+                                    alumnoEntregable.Enlaces = enlaces;
+                                    alumnoEntregable.Archivos = archivos;
+                                    alumnoEntregable.FechaEntregaContenido = contenidoObj?.fechaEntrega != null ? DateTime.Parse(contenidoObj.fechaEntrega.ToString()) : (DateTime?)null;
+                                    alumnoEntregable.TotalArchivos = contenidoObj?.totalArchivos ?? 0;
+                                    alumnoEntregable.TotalEnlaces = contenidoObj?.totalEnlaces ?? 0;
+                                    alumnoEntregable.Respuesta = contenidoRaw;
+                                }
+                                else
+                                {
+                                    alumnoEntregable.Respuesta = "";
+                                    alumnoEntregable.Texto = "";
+                                    alumnoEntregable.Enlaces = new List<string>();
+                                    alumnoEntregable.Archivos = new List<object>();
+                                    alumnoEntregable.TotalArchivos = 0;
+                                    alumnoEntregable.TotalEnlaces = 0;
+                                }
+                            }
+                            catch
+                            {
+                                alumnoEntregable.Respuesta = contenidoRaw;
+                                alumnoEntregable.Texto = "";
+                                alumnoEntregable.Enlaces = new List<string>();
+                                alumnoEntregable.Archivos = new List<object>();
+                                alumnoEntregable.TotalArchivos = 0;
+                                alumnoEntregable.TotalEnlaces = 0;
+                            }
+
+                            lsEntregables.Add(alumnoEntregable);
+                        }
+
+                }
+
+                respuestaAlumnos.AlumnosEntregables = lsEntregables;
+
+
                 return Ok(respuestaAlumnos);
             }
             catch (Exception e)
@@ -444,6 +578,14 @@ namespace ControlActividades.Controllers
             try
             {
                 await ActividadesApiService.QuitarCalificacion(peticion.EntregableId);
+
+                if (entregable == null) return BadRequest("Entregable no encontrado");
+
+                entregable.Calificacion = null;
+//                entregable.FechaCalificado = null;
+
+                Db.Entry(entregable).State = EntityState.Modified;
+                await Db.SaveChangesAsync();
 
                 return Ok();
             }

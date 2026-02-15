@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -103,7 +103,7 @@ namespace ControlActividades.Services.Grupos
                             FechaCreacion = b.FechaCreacion,
                             FechaLimite = b.FechaLimite,
                             //b.TipoActividadId,
-                            //Puntaje = b.Puntaje,
+                          //  Puntaje = b.Puntaje,
                             MateriaId = b.MateriaId,
                         }).ToList()
                     }).ToListAsync();

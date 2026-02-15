@@ -511,7 +511,7 @@ namespace ControlActividades.Controllers
                                     Descripcion = a.Descripcion,
                                     FechaCreacion = a.FechaCreacion,
                                     FechaLimite = a.FechaLimite,
-                                    //Puntaje = a.Puntaje
+                                 //   Puntaje = a.Puntaje
                                 })
                                 .ToList()
                         })
@@ -598,7 +598,7 @@ namespace ControlActividades.Controllers
                                 Descripcion = a.Descripcion,
                                 FechaCreacion = a.FechaCreacion,
                                 FechaLimite = a.FechaLimite,
-                                //Puntaje = a.Puntaje
+                            //    Puntaje = a.Puntaje
                             })
                             .ToListAsync()
                     };

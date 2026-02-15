@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -79,7 +79,7 @@ namespace ControlActividades.Services.Materias
                     Descripcion = b.Descripcion,
                     FechaCreacion = b.FechaCreacion,
                     FechaLimite = b.FechaLimite,
-                    //Puntaje = b.Puntaje,
+                  //  Puntaje = b.Puntaje,
                     MateriaId = b.MateriaId
                 }).ToList()
             }).ToList();
