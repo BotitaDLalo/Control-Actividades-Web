@@ -1,7 +1,7 @@
 ﻿using ControlActividades.Models;
 using ControlActividades.Models.db;
+using ControlActividades.Services;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -26,27 +26,30 @@ public class RecordatorioAvisosService
                 if (diasDesdeInicio % aviso.FrecuenciaDias != 0)
                     continue;
 
-                // Verificar si ya se envió hoy
                 bool yaEnviado = db.tbAvisosEnvios
                     .Any(e => e.AvisoId == aviso.AvisoId && e.FechaEnvio == hoy);
 
                 if (yaEnviado)
                     continue;
 
-                // IMPLEMENTACIÓN DE NOTIFICACIONES(Después)
-                Debug.WriteLine($"ENVIANDO recordatorio aviso {aviso.AvisoId}");
+                
+                var notiService = new NotificacionesService();
 
-                // Registrar envío
+                await notiService.NotificacionCrearAviso(
+                    aviso,
+                    null,
+                    aviso.MateriaId
+                );
+
+
                 db.tbAvisosEnvios.Add(new tbAvisosEnvios
                 {
                     AvisoId = aviso.AvisoId,
                     FechaEnvio = hoy
                 });
-
             }
 
             await db.SaveChangesAsync();
         }
     }
 }
-
