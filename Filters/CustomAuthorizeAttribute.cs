@@ -1,5 +1,6 @@
 ﻿using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 
 namespace ControlActividades.Filters
 {
@@ -9,21 +10,16 @@ namespace ControlActividades.Filters
         {
             if (filterContext.HttpContext.User.Identity.IsAuthenticated)
             {
-                // Está logueado pero no tiene permiso = 403
                 filterContext.Result = new ViewResult
                 {
-                    ViewName = "~/Views/Shared/Error403.cshtml"
+                    ViewName = "~/Views/Error/Error403.cshtml"
                 };
 
-                filterContext.Result = new RedirectToRouteResult(
-                    new System.Web.Routing.RouteValueDictionary(
-                        new { controller = "Error", action = "Forbidden" }
-                    )
-                );
+                filterContext.HttpContext.Response.StatusCode = 403;
+                filterContext.HttpContext.Response.TrySkipIisCustomErrors = true;
             }
             else
             {
-                // No está logueado = login normal
                 base.HandleUnauthorizedRequest(filterContext);
             }
         }
