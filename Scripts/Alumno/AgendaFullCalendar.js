@@ -22,10 +22,67 @@
             abrirModal(info.dateStr);
         },
 
-        events: []
+        events: async function (fetchInfo, successCallback, failureCallback) {
+            try {
+                const res = await fetch(
+                    `/EventosAgenda/ObtenerEventosAlumnoCalendario` +
+                    `?alumnoId=${alumnoIdGlobal}` +
+                    `&start=${fetchInfo.startStr}` +
+                    `&end=${fetchInfo.endStr}`
+                );
+
+                const data = await res.json();
+                
+                if (!Array.isArray(data)) {
+                    successCallback([]);
+                    return;
+                }
+                
+                const eventos = data.map(e => {
+                    const inicio = convertirFechaNetAInput(e.start);
+                    const final = ajustarFechaFin(
+                        convertirFechaNetAInput(e.end)
+                    );
+
+                    return {
+                        id: e.id,
+                        title: e.title,
+                        start: inicio,
+                        end: final,
+                        allDay: true,
+                        color: e.color === "azul" ? "#007bff" : "#6c757d",
+                        borderColor: "transparent"
+                    };
+                });
+
+                successCallback(eventos);
+
+            } catch (err) {
+                console.error("Error cargando eventos alumno:", err);
+                failureCallback(err);
+            }
+        }
+
     });
 
     calendar.render();
+
+    function convertirFechaNetAInput(fechaNet) {
+        const timestamp = parseInt(fechaNet.replace("/Date(", "").replace(")/", ""));
+        const fechaUTC = new Date(timestamp);
+
+        // Convertir a hora local sin que el navegador lo cambie
+        const fechaLocal = new Date(fechaUTC.getTime() - fechaUTC.getTimezoneOffset() * 60000);
+
+        return fechaLocal.toISOString().slice(0, 16);
+    }
+
+    function ajustarFechaFin(fecha) {
+        const f = new Date(fecha);
+        f.setDate(f.getDate() + 1); // end exclusivo
+        return f.toISOString().split("T")[0];
+    }
+
 
     // ---- MODAL ----
 

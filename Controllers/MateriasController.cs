@@ -8,8 +8,10 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
+using NPOI.SS.Formula.Eval;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
@@ -216,28 +218,100 @@ namespace ControlMaterias.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> CrearMateria(tbMaterias materia)
+        public async Task<ActionResult> CrearMateria(MateriasP materia)
         {
             if (!ModelState.IsValid)
             {
-                return Json(new { error = "Datos de materia inválidos." }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = "Datos de materia inválidos." });
             }
-
+            
             var usuarioId = Fg.ObtenerCAUsuarioId(User);
+            var codigoAcceso = ObtenerClaveMateria();
 
-            materia.DocenteId = usuarioId;
-            materia.CodigoAcceso = ObtenerClaveMateria();
-            Db.tbMaterias.Add(materia);
+            var materiadb = new tbMaterias
+            {
+                NombreMateria = materia.NombreMateria,
+                Descripcion = materia.Descripcion,
+                CodigoColor = materia.Color,
+                CodigoAcceso = codigoAcceso,
+                DocenteId = usuarioId,
+            };
+
+            Db.tbMaterias.Add(materiadb);
             await Db.SaveChangesAsync();
 
             return Json(new
             {
                 mensaje = "Materia creada con éxito.",
-                materiaId = materia.MateriaId
+                materiaId = materiadb.MateriaId
             }, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
+        private async Task<tbMaterias>CrearMateriaInterna(string nombre, string descripcion, string color, int docenteId)
+        {
+            var codigoAcceso = ObtenerClaveMateria();
 
+            var materiaDb = new tbMaterias
+            {
+                NombreMateria = nombre,
+                Descripcion = descripcion,
+                CodigoColor = color,
+                CodigoAcceso = codigoAcceso,
+                DocenteId = docenteId,
+            };
+
+            Db.tbMaterias.Add(materiaDb);
+            await Db.SaveChangesAsync();
+
+            return materiaDb;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CrearMateriaConGrupo(CrearMateriaConGrupoRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = "Datos inválidos." });
+            }
+
+            var docenteId = Fg.ObtenerCAUsuarioId(User);
+
+            // Validar que el grupo exista y pertenezca al docente
+            var grupo = await Db.tbGrupos
+                .FirstOrDefaultAsync(g => g.GrupoId == request.GrupoId && g.DocenteId == docenteId);
+
+            if (grupo == null)
+            {
+                Response.StatusCode = 404;
+                return Json(new { mensaje = "Grupo no encontrado o no autorizado." });
+            }
+
+            // Crear materia reutilizando lógica
+            var nuevaMateria = await CrearMateriaInterna(
+                request.NombreMateria,
+                request.Descripcion,
+                request.Color,
+                docenteId
+            );
+
+            // Crear relación
+            var relacion = new tbGruposMaterias
+            {
+                GrupoId = request.GrupoId,
+                MateriaId = nuevaMateria.MateriaId
+            };
+
+            Db.tbGruposMaterias.Add(relacion);
+            await Db.SaveChangesAsync();
+
+            return Json(new
+            {
+                mensaje = "Materia creada y asociada correctamente.",
+                materiaId = nuevaMateria.MateriaId
+            });
+        }
         private string ObtenerClaveMateria()
         {
             var random = new Random();
@@ -481,7 +555,7 @@ namespace ControlMaterias.Controllers
         #region Actividades
         // Controlador api que crea actividades y asigna a los alumnos
         [HttpPost]
-        public async Task<ActionResult> CrearActividad(tbActividades actividadDto)
+        public async Task<ActionResult> CrearActividad(ActividadDTO actividadDto)
         {
             if (actividadDto == null)
             {
@@ -496,87 +570,24 @@ namespace ControlMaterias.Controllers
                 return Json(new { mensaje = "La fecha límite debe ser en el futuro." }, JsonRequestBehavior.AllowGet);
             }
 
-            // Verificar que la materia exista en la base de datos
-            var materiaExiste = await Db.tbMaterias.AnyAsync(m => m.MateriaId == actividadDto.MateriaId);
-            if (!materiaExiste)
-            {
-                Response.StatusCode = 400; // Bad Request
-                return Json(new { mensaje = "La materia especificada no existe." }, JsonRequestBehavior.AllowGet);
-            }
-
-            // Verificar que el tipo de actividad exista en la base de datos
-            //var tipoActividadExiste = await Db.cTiposActividades.AnyAsync(t => t.TipoActividadId == actividadDto.TipoActividadId);
-            //if (!tipoActividadExiste)
-            //{
-            //    Response.StatusCode = 400; // Bad Request
-            //    return Json(new { mensaje = "El tipo de actividad especificado no existe." }, JsonRequestBehavior.AllowGet);
-            //}
-
             try
             {
-                // Crear la nueva actividad
-                var nuevaActividad = new tbActividades
-                {
-                    NombreActividad = actividadDto.NombreActividad,
-                    Descripcion = actividadDto.Descripcion,
-                    FechaCreacion = DateTime.Now,
-                    FechaLimite = actividadDto.FechaLimite,
-                    //TipoActividadId = actividadDto.TipoActividadId,
-                    Puntaje = actividadDto.Puntaje,
-                    MateriaId = actividadDto.MateriaId,
-                    Enviado = actividadDto.Enviado,
-                    FechaProgramada = actividadDto.FechaProgramada
-                };
 
-                Db.tbActividades.Add(nuevaActividad);
-                await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID
-
-                // Solo asignar a alumnos si la actividad está publicada inmediatamente
-                // o si está programada y la fecha programada ya pasó
-                bool publicarAhora = nuevaActividad.Enviado == true;
-                bool programadaYA = nuevaActividad.Enviado == null && nuevaActividad.FechaProgramada.HasValue && nuevaActividad.FechaProgramada.Value <= DateTime.Now;
-
-                if (publicarAhora || programadaYA)
-                {
-                    // Obtener los alumnos que pertenecen a la materia
-                    var alumnosMateria = await Db.tbAlumnosMaterias
-                        .Where(am => am.MateriaId == actividadDto.MateriaId)
-                        .Select(am => am.AlumnoId)
-                        .ToListAsync();
-
-                    // Crear registros en la tabla AlumnoActividad para cada alumno
-                    foreach (var alumnoId in alumnosMateria)
-                    {
-                        //var alumnoActividad = new tbAlumnosActividades
-                        //{
-                        //    ActividadId = nuevaActividad.ActividadId,
-                        //    AlumnoId = alumnoId,
-                        //    FechaEntrega = DateTime.Now, // Inicialmente la fecha de creación
-                        //    EstatusEntrega = false
-                        //};
-
-                        //Db.tbAlumnosActividades.Add(alumnoActividad);
-                    }
-
-                    // Guardar los cambios en la tabla AlumnoActividad
-                    //await Db.SaveChangesAsync();
-                }
-
-                // Guardar los cambios en la tabla AlumnoActividad
-                await Db.SaveChangesAsync();
-
+                var actividad = await MateriasService.CrearActividadAsync(actividadDto);
                 //Envío de notificación a los alumnos dentro de la materia
-                /*await Ns.NotificacionCrearActividad(
-                    nuevaActividad,
-                    nuevaActividad.MateriaId
-                    );*/
-
-                return Json(new { mensaje = "Actividad creada y asignada a los alumnos con éxito", actividadId = nuevaActividad.ActividadId }, JsonRequestBehavior.AllowGet);
+                /*
+                await Ns.NotificacionCreaActividad(
+                    actividadDto
+                );*/
+                
+                return Json(new
+                {   mensaje = "Actividad creada y asignada a los alumnos con éxito",
+                    actividadId = actividad.ActividadId
+                }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al crear la actividad", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return new HttpStatusCodeResult(500, ex.Message);
             }
         }
 
@@ -631,35 +642,10 @@ namespace ControlMaterias.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("api/Actividades/EliminarActividad/{id}")]
-        public async Task<ActionResult> EliminarActividad(int id)
-        {
-            try
-            {
-                // Buscar el registro en la tabla tbActividades
-                var actividad = await Db.tbActividades
-                    .FirstOrDefaultAsync(a => a.ActividadId == id);
+        #endregion
 
-                if (actividad == null)
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontró el registro en Actividades." }, JsonRequestBehavior.AllowGet);
-                }
-
-                // Eliminar el registro
-                Db.tbActividades.Remove(actividad);
-                await Db.SaveChangesAsync();
-
-                return Json(new { mensaje = "Actividad eliminada correctamente." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al eliminar la actividad.", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
+        #region Avisos
+        //Controlador para crear un aviso funciona desde dentro de la materia
         [HttpPost]
         public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
         {
@@ -874,6 +860,25 @@ namespace ControlMaterias.Controllers
 
         #region Configuracion
 
+        [HttpGet]
+        public async Task<ActionResult> ObtenerMateriaEditar(int materiaId)
+        {
+            var materia = await Db.tbMaterias.FindAsync(materiaId);
+
+            if (materia == null)
+            {
+                Response.StatusCode = 404;
+                return Json(new { mensaje = "Materia no encontrada." }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new
+            {
+                MateriaId = materia.MateriaId,
+                NombreMateria = materia.NombreMateria,
+                Descripcion = materia.Descripcion
+            }, JsonRequestBehavior.AllowGet);
+        }
+
         [HttpDelete]
         public async Task<ActionResult> EliminarMateria(int id)
         {
@@ -920,44 +925,57 @@ namespace ControlMaterias.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ActualizarMateria(int materiaId, tbMaterias materiaDto)
+        public async Task<ActionResult> ActualizarMateria(int materiaId, MateriasP materiaDto)
         {
             try
             {
+                if (materiaDto == null)
+                {
+                    return Json(new { mensaje = "Datos no envidados correctamente." });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "Datos inválidos" });
+                }
+
                 var materiaExistente = await Db.tbMaterias.FindAsync(materiaId);
                 if (materiaExistente == null)
                 {
                     Response.StatusCode = 404;
-                    return Json(new { mensaje = "Materia no encontrada." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { mensaje = "Materia no encontrada." });
                 }
 
+                if (!string.IsNullOrWhiteSpace(materiaDto.NombreMateria))
+                {
+                    materiaExistente.NombreMateria = materiaDto.NombreMateria;
+                }
 
-                materiaExistente.NombreMateria = string.IsNullOrWhiteSpace(materiaDto.NombreMateria)
-                    ? materiaExistente.NombreMateria : materiaDto.NombreMateria;
-
-                materiaExistente.Descripcion = string.IsNullOrWhiteSpace(materiaDto.Descripcion)
-                    ? materiaExistente.Descripcion : materiaDto.Descripcion;
-
+                materiaExistente.Descripcion = materiaDto.Descripcion;
+                if (!string.IsNullOrWhiteSpace(materiaDto.Descripcion))
+                {
+                    materiaExistente.Descripcion = materiaDto.Descripcion;
+                }
 
                 await Db.SaveChangesAsync();
-                if (materiaDto == null)
-                {
-                    return Json(new { mensaje = "El objeto materiaDto llegó nulo." }, JsonRequestBehavior.AllowGet);
-                }
 
                 return Json(new
                 {
                     MateriaId = materiaExistente.MateriaId,
                     NombreMateria = materiaExistente.NombreMateria,
                     Descripcion = materiaExistente.Descripcion
-                }, JsonRequestBehavior.AllowGet);
+                });
 
-                //return Json(materiaExistente, JsonRequestBehavior.AllowGet);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al actualizar la materia", error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new 
+                { 
+                    mensaje = "Error al actualizar la materia", 
+                    error = ex.Message 
+                });
             }
         }
 

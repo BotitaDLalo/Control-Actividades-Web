@@ -1,4 +1,11 @@
-﻿const PanelMateria = Object.freeze({
+﻿document.addEventListener("DOMContentLoaded", function () {
+    const btnActivo = document.querySelector(".tab-button.active");
+    if (btnActivo) {
+        cambiarPanel(btnActivo);
+    }
+});
+
+const PanelMateria = Object.freeze({
     Avisos: "AvisosPartialView",
     Actividades: "ActividadesPartialView",
     Entregables: "EntregablesPartialView",
@@ -10,10 +17,8 @@ function cambiarPanel(btn) {
     document.querySelectorAll(".tab-button")
         .forEach(b => b.classList.remove("active"));
 
-
     // activar el actual
     btn.classList.add("active");
-
 
     // obtener panel desde enum
     const panelKey = btn.dataset.panel;
@@ -21,5 +26,32 @@ function cambiarPanel(btn) {
 
 
     // cargar partial view
-    $("#contenedor-dinamico").load(`/Materias/${partial}`);
+    $("#contenedor-dinamico").load(
+        `/Materias/${partial}`,
+        { materiaId: window.materiaIdGlobal },
+        function () {
+            if (panelKey === "Avisos") {
+                cargarAvisosDeMateria(); 
+            }
+            if (panelKey === "Actividades") {
+                cargarActividadesDeMateria();
+            }
+            if (panelKey === "Alumnos") {
+                cargarAlumnosAsignados();
+            }
+            if (panelKey === "Entregables") {
+                if (typeof cargarActividadesParaEntregables === "function") {
+                    cargarActividadesParaEntregables();
+                }
+            }
+            if (panelKey === "Configuracion") {
+                cargarMateriaEditar();
+                const btn = document.getElementById("btnGuardarMateriaEditada");
+
+                if (btn) {
+                    btn.addEventListener("click", guardarConfig);
+                }
+            }
+        }
+    );
 }

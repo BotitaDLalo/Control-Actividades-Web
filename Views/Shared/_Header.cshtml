@@ -14,7 +14,22 @@
     <div class="header-icons d-flex align-items-center">
         <!--Botón modo oscuro-->
         <button id="cambiarModo" class="btn btn-link p-2" type="button" title="ModoColor" aria-label="Cambiar tema">
-            <img id="iconoModo" src="~/Content/Iconos/icono-modo-claro.svg" alt="Cambiar tema">
+            <svg id="iconoModo" xmlns="http://www.w3.org/2000/svg"
+                 width="20" height="20"
+                 viewBox="0 0 16 16"
+                 fill="currentColor">
+                <!-- icono sol por defecto -->
+                <path id="icono-path"
+                      d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" +
+                        "M8 0a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 8 0z" +
+                        "M8 13.5a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5z" +
+                        "M2.343 2.343a.5.5 0 0 1 .707 0l.708.708a.5.5 0 0 1-.708.708l-.707-.708a.5.5 0 0 1 0-.708z" +
+                        "M11.95 11.95a.5.5 0 0 1 .707 0l.708.708a.5.5 0 1 1-.708.708l-.707-.707a.5.5 0 0 1 0-.708z" +
+                        "M0 8a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1A.5.5 0 0 1 0 8z" +
+                        "M13.5 8a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5z" +
+                        "M2.343 13.657a.5.5 0 0 1 0-.707l.708-.708a.5.5 0 1 1 .707.708l-.707.707a.5.5 0 0 1-.708 0z" +
+                        "M11.95 4.05a.5.5 0 0 1 0-.707l.708-.708a.5.5 0 1 1 .707.708l-.707.707a.5.5 0 0 1-.708 0z" />
+            </svg>
         </button>
 
         <!-- Notifications button -->

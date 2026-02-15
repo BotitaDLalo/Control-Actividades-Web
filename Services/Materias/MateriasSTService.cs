@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -107,5 +107,10 @@ namespace ControlActividades.Services.Materias
             }
         }
 
+
+        public Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

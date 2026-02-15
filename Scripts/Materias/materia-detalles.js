@@ -1,21 +1,11 @@
-﻿function cambiarSeccion(seccion) {
-    const params = new URLSearchParams(window.location.search);
-
-    const materiaId = params.get('materiaId');
-    if (!materiaId) return;
-
-    document.querySelectorAll('.seccion').forEach(div => div.style.display = 'none');
-    const seccionMostrar = document.getElementById(`seccion-${seccion}`);
-    if (seccionMostrar) {
-        seccionMostrar.style.display = 'block';
-    }
-
-// Formatea la respuesta para mostrarla en el modal: intenta parsear JSON con campos comunes y mostrar en HTML limpio.
+﻿// Formatea la respuesta para mostrarla en el modal: intenta parsear JSON con campos comunes y mostrar en HTML limpio.
 window.formatRespuestaForModal = function (respuestaRaw) {
     if (!respuestaRaw) return '<div class="text-muted"><em>Sin respuesta</em></div>';
     var r = respuestaRaw;
     // Si viene codificado con encodeURIComponent en dataset, decodificar
-    try { r = decodeURIComponent(r); } catch (e) { /* noop */ }
+    try {
+        r = decodeURIComponent(r);
+    } catch (e) { /* noop */ }
 
     // Intentar parsear JSON
     try {
@@ -120,34 +110,12 @@ function createAndOpenFileInputForMateria(grupoId) {
 function initImportButtonOnMateria() {
     var btn = document.getElementById('btnImportarAlumnos');
     if (!btn) return;
-    btn.addEventListener('click', function (e) { e.preventDefault(); createAndOpenFileInputForMateria(); });
+    btn.addEventListener('click',
+        function (e)
+        {
+            e.preventDefault(); createAndOpenFileInputForMateria();
+        });
 }
-
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initImportButtonOnMateria);
-else initImportButtonOnMateria();
-    // Fin de la función cambiarSeccion
-
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`button[onclick="cambiarSeccion('${seccion}')"]`).classList.add('active');
-
-    // Cargar datos si se seleccionan secciones dinámicas
-    if (seccion === "actividades") {
-        cargarActividadesDeMateria(materiaId);
-    }
-    else if (seccion === "alumnos") {
-        cargarAlumnosAsignados(materiaId);
-    }
-    else if (seccion === "avisos") {
-        cargarAvisosDeMateria(materiaId);
-    }
-    else if (seccion === "entregables") {
-        cargarEntregablesDeMateria(materiaId);
-    }
-}
-
-
-
-
 
 // Carga entregables: lista de actividades y un botón para ver entregables por actividad
 var actividadesCache = [];
@@ -259,7 +227,9 @@ async function cargarEntregablesDeMateria(materiaId) {
         }
         cont.innerHTML = '<p class="text-muted">Selecciona una actividad para ver los entregables.</p>';
         // Mostrar todos los entregables agrupados por actividad por defecto
-        try { cargarTodosEntregables(actividades); } catch (e) { /* noop */ }
+        try {
+            cargarTodosEntregables(actividades);
+        } catch (e) { /* noop */ }
     } catch (err) {
         console.error(err);
         cont.innerHTML = '<p class="text-danger">Error al cargar actividades.</p>';
@@ -332,21 +302,39 @@ function renderEntregablesGrouped(resultsMap, actividades, container) {
         actDiv.appendChild(h);
 
         if (!r || !r.data || !r.data.AlumnosEntregables || r.data.AlumnosEntregables.length === 0) {
-            const p = document.createElement('p'); p.className = 'text-muted'; p.textContent = 'No hay entregables.'; actDiv.appendChild(p);
+            const p = document.createElement('p');
+            p.className = 'text-muted';
+            p.textContent = 'No hay entregables.';
+            actDiv.appendChild(p);
         } else {
-            const list = document.createElement('div'); list.className = 'list-group';
+            const list = document.createElement('div');
+            list.className = 'list-group';
             (r.data.AlumnosEntregables || []).forEach(ent => {
-                const item = document.createElement('div'); item.className = 'list-group-item d-flex justify-content-between align-items-start';
+                const item = document.createElement('div');
+                item.className = 'list-group-item d-flex justify-content-between align-items-start';
+
                 const left = document.createElement('div');
                 left.innerHTML = `<div><strong>${ent.NombreUsuario || (ent.Nombres + ' ' + ent.ApellidoPaterno)}</strong></div><div class="small text-muted">Entregado: ${ent.FechaEntrega ? new Date(ent.FechaEntrega).toLocaleString() : '—'}</div>`;
-                const right = document.createElement('div'); right.className = 'd-flex gap-2 align-items-center';
-                const btn = document.createElement('button'); btn.className = 'btn btn-sm btn-success btn-evaluar-entrega';
+
+                const right = document.createElement('div');
+                right.className = 'd-flex gap-2 align-items-center';
+
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-success btn-evaluar-entrega';
+
                 // Mostrar 'Editar' si ya existe calificación, sino 'Evaluar'
                 btn.textContent = (typeof ent.Calificacion !== 'undefined' && ent.Calificacion !== null) ? 'Editar' : 'Evaluar';
-                btn.dataset.entregaid = ent.EntregaId || 0; btn.dataset.respuesta = ent.Respuesta || ''; btn.dataset.alumnoid = ent.AlumnoId || 0;
-                const badge = document.createElement('span'); badge.className = 'badge bg-secondary'; badge.textContent = (typeof ent.Calificacion !== 'undefined' && ent.Calificacion !== null) ? ent.Calificacion : '—';
-                right.appendChild(btn); right.appendChild(badge);
-                item.appendChild(left); item.appendChild(right);
+                btn.dataset.entregaid = ent.EntregaId || 0;
+                btn.dataset.respuesta = ent.Respuesta || '';
+                btn.dataset.alumnoid = ent.AlumnoId || 0;
+
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-secondary';
+                badge.textContent = (typeof ent.Calificacion !== 'undefined' && ent.Calificacion !== null) ? ent.Calificacion : '—';
+                right.appendChild(btn);
+                right.appendChild(badge);
+                item.appendChild(left);
+                item.appendChild(right);
                 list.appendChild(item);
             });
             // attach evaluate listeners
@@ -360,6 +348,7 @@ function renderEntregablesGrouped(resultsMap, actividades, container) {
                     var modalBody = document.querySelector('#entregablesModal .modal-body');
                     // puntaje por actividad si disponible
                     var puntos = (r.data && typeof r.data.Puntaje !== 'undefined') ? r.data.Puntaje : 100;
+
                     // Formatear respuesta para mostrarla bonita (quitar corchetes/JSON cuando aplique)
                     var formattedRespuestaHtml = formatRespuestaForModal(respuesta);
                     modalBody.innerHTML = `<div><strong>Respuesta completa de ${escapeHtml(nombre)}:</strong>${formattedRespuestaHtml}</div><div class="mt-3"><label>Calificación</label><input id="modalCalificacion" type="number" min="0" max="${puntos}" class="form-control"/></div><div class="mt-2"><label>Comentario</label><textarea id="modalComentario" class="form-control"></textarea></div><div class="mt-3 text-end"><button id="modalGuardarCalificacionGrouped" class="btn btn-success">Guardar</button></div>`;
@@ -369,17 +358,48 @@ function renderEntregablesGrouped(resultsMap, actividades, container) {
                         var calVal = parseInt(document.getElementById('modalCalificacion').value || '0', 10);
                         var coment = document.getElementById('modalComentario').value || '';
                         try {
-                            const payload = { EntregableId: entregaId, Calificacion: calVal, Comentario: coment };
-                            const resp = await fetch('/api/Actividades/AsignarCalificacion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                            if (!resp.ok) { alert('No se pudo guardar la calificación'); return; }
+                            const payload = {
+                                EntregableId: entregaId,
+                                Calificacion: calVal,
+                                Comentario: coment
+                            };
+
+                            const resp = await fetch('/api/Actividades/AsignarCalificacion',
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(payload)
+                                });
+
+                            if (!resp.ok) {
+                                alert('No se pudo guardar la calificación');
+                                return;
+                            }
+
                             // update badge in UI and change button text to 'Editar'
                             var badgeCell = b.nextSibling; // the badge element
+
                             if (badgeCell) badgeCell.innerText = String(calVal);
-                            try { b.innerText = 'Editar'; } catch (e) { }
+
+                            try {
+                                b.innerText = 'Editar';
+                            }
+                            catch (e) {
+                            }
                             modal.hide();
                             // trigger global event
-                            window.dispatchEvent(new CustomEvent('entregableCalificado', { detail: { entregaId: entregaId, calificacion: calVal } }));
-                        } catch (e) { console.error(e); alert('Error al guardar calificación'); }
+                            window.dispatchEvent(new CustomEvent('entregableCalificado', {
+                                detail: {
+                                    entregaId: entregaId,
+                                    calificacion: calVal
+                                }
+                            }));
+                        } catch (e) {
+                            console.error(e);
+                            alert('Error al guardar calificación');
+                        }
                     });
                 });
             });
@@ -389,3 +409,4 @@ function renderEntregablesGrouped(resultsMap, actividades, container) {
         container.appendChild(actDiv);
     });
 }
+

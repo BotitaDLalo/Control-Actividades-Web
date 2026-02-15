@@ -33,6 +33,8 @@ namespace ControlActividades.Models.db
 
         public int LimiteEntregasPorAlumno { get; set; }
 
+        public bool TieneLimiteEntregas { get; set; }
+
         public virtual ICollection<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set; }
         
         public virtual tbMaterias Materias { get; set; }

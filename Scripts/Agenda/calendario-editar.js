@@ -132,13 +132,9 @@ async function cargarGruposMateriasEditar(evento) {
         });
 
         activarExpandibles();
-        activarLogicaCheckBoxes();
-        
-
+        activarLogicaEditar();
         // Materias y grupos seleccionados
         marcarSeleccionadosEditar(evento);
-
-        activarLogicaEditar();
 
     } catch (error) {
         console.error("Error al cargar grupos/materias para editar:", error);
@@ -181,16 +177,45 @@ function activarLogicaCheckBoxes() {
 
 function marcarSeleccionadosEditar(evento) {
 
-    // Marcar grupos
-    evento.gruposSeleccionados.forEach(idGrupo => {
-        const chkGrupo = document.querySelector(`.editar-chk-grupo[data-grupo="${idGrupo}"]`);
-        if (chkGrupo) chkGrupo.checked = true;
-    });
-
     // Marcar materias de grupo y que no pertenecen a ningún grupo
     evento.materiasSeleccionadas.forEach(idMat => {
-        const chkMat = document.querySelector(`input[data-materia="${idMat}"]`);
+        const chkMat = document.querySelector(
+            `.editar-chk-materia[data-materia="${idMat}"],
+            .editar-chk-materia-suelta[data-materia="${idMat}"]`
+        );
         if (chkMat) chkMat.checked = true;
+    });
+
+    // Sincronizar grupos según materias
+    document.querySelectorAll(".editar-chk-grupo").forEach(chkGrupo => {
+        const grupoId = chkGrupo.dataset.grupo;
+
+        const materias = document.querySelectorAll(
+            `.editar-chk-materia[data-grupo="${grupoId}"]`
+        );
+
+        if (materias.length === 0) return;
+
+        const marcadas = Array.from(materias).filter(m => m.checked);
+
+        if (marcadas.length === materias.length) {
+            chkGrupo.checked = true;
+        }
+
+        //Expandir grupo si tiene alguna materia marcada
+        if (marcadas.length > 0) {
+            const contenedor = chkGrupo
+                .closest(".grupo-item")
+                .querySelector(".editar-materias-del-grupo");
+
+            contenedor.classList.remove("hidden");
+
+            const btn = chkGrupo
+                .closest(".grupo-item")
+                .querySelector(".btn-expandir");
+
+            if (btn) btn.textContent = "▼";
+        }
     });
 }
 
@@ -268,7 +293,7 @@ if (_formEditarEvento) {
 
             // Notificar al sistema
             document.dispatchEvent(new CustomEvent("eventoEditado"));
-
+            
         } catch (err) {
             console.error(err);
             Swal.fire("Error", "No se pudo editar el evento", "error");

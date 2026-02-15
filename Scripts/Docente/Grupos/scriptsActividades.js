@@ -21,20 +21,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 function aplicarFiltroDesdeSelectExistente() {
                     console.debug('Filtro existente cambiado a', existing.value);
-                    try { localStorage.setItem('filtroActividades', existing.value); } catch(e){}
+                    try {
+                        localStorage.setItem('filtroActividades', existing.value);
+                    } catch (e) {
+                    }
 
                     if (actividadesCacheGlobal && Array.isArray(actividadesCacheGlobal) && actividadesCacheGlobal.length>0) {
                         renderizarActividades(actividadesCacheGlobal);
                     }
 
                     var midToUse = window.materiaIdGlobal || materiaIdGlobal || null;
-                    setTimeout(function(){ cargarActividadesDeMateria(midToUse, true); }, 0);
+                    setTimeout(function () {
+                                cargarActividadesDeMateria(midToUse, true);
+                              },
+                    0);
                 }
 
                 existing.addEventListener('change', aplicarFiltroDesdeSelectExistente);
                 existing.addEventListener('input', aplicarFiltroDesdeSelectExistente);
                 existing.addEventListener('click', function(){ setTimeout(aplicarFiltroDesdeSelectExistente, 0); });
                 try { setTimeout(aplicarFiltroDesdeSelectExistente, 10); } catch(e){}
+
             } else {
                 var container = document.createElement('div');
                 container.style.marginTop = '10px';
@@ -42,15 +49,34 @@ document.addEventListener("DOMContentLoaded", function () {
                 container.style.gap = '8px';
                 container.style.alignItems = 'center';
 
-                var label = document.createElement('label'); label.style.margin = '0'; label.textContent = 'Filtro: ';
-                var select = document.createElement('select'); select.id = 'filtroActividades'; select.className = 'form-select'; select.style.width = 'auto'; select.style.display = 'inline-block';
-                [['all','Todas'], ['borrador','Borradores'], ['publicada','Publicadas'], ['programada','Programadas'] ].forEach(function(opt){
-                    var o = document.createElement('option'); o.value = opt[0]; o.textContent = opt[1]; select.appendChild(o);
-                });
+                var label = document.createElement('label');
+                label.style.margin = '0';
+                label.textContent = 'Filtro: ';
+
+                var select = document.createElement('select');
+                select.id = 'filtroActividades';
+                select.className = 'form-select';
+                select.style.width = 'auto';
+                select.style.display = 'inline-block';
+                [
+                    ['all', 'Todas'],
+                    ['borrador', 'Borradores'],
+                    ['publicada', 'Publicadas'],
+                    ['programada', 'Programadas']
+                ].forEach(
+                    function (opt)
+                    {
+                        var o = document.createElement('option');
+                        o.value = opt[0];
+                        o.textContent = opt[1];
+                        select.appendChild(o);
+                    }
+                );
                 container.appendChild(label); container.appendChild(select);
                 // try to insert before divider if present, otherwise append
                 var ref = seccionAct.querySelector('.divider');
-                if (ref) seccionAct.insertBefore(container, ref); else seccionAct.appendChild(container);
+                if (ref) seccionAct.insertBefore(container, ref);
+                else seccionAct.appendChild(container);
 
                 // restore previous selection if any
                 try {
@@ -60,7 +86,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 function aplicarFiltroDesdeSelect() {
                     console.debug('Filtro cambiado a', select.value);
-                    try { localStorage.setItem('filtroActividades', select.value); } catch(e){}
+                    try
+                    {
+                        localStorage.setItem('filtroActividades', select.value);
+                    } catch (e) { }
 
                     // If we have cached activities, render them immediately for snappy UX
                     if (actividadesCacheGlobal && Array.isArray(actividadesCacheGlobal) && actividadesCacheGlobal.length>0) {
@@ -77,144 +106,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 select.addEventListener('change', aplicarFiltroDesdeSelect);
                 // also listen to 'input' and 'click' for scenarios where change may not fire
                 select.addEventListener('input', aplicarFiltroDesdeSelect);
-                select.addEventListener('click', function(){ setTimeout(aplicarFiltroDesdeSelect, 0); });
+                select.addEventListener('click', function ()
+                                                {
+                                                    setTimeout(aplicarFiltroDesdeSelect, 0);
+                                                });
                 // trigger once to apply restored selection
-                try { setTimeout(aplicarFiltroDesdeSelect, 10); } catch(e){}
+                try {
+                    setTimeout(aplicarFiltroDesdeSelect, 10);
+                } catch (e) { }
             }
         }
-    } catch(e){ console.warn('No se pudo inyectar o inicializar filtroActividades', e); }
+    } catch (e) {
+        console.warn('No se pudo inyectar o inicializar filtroActividades', e);
+    }
 
     cargarActividadesDeMateria();
-    
 
 });
-
-    // Función que registra una nueva actividad
-async function registrarActividad(enviarAhora) {
-    let nombre = document.getElementById("nombre").value.trim();
-    let descripcion = document.getElementById("descripcion").value.trim();
-        // ahora fecha y hora se seleccionan por separado
-        let fechaInput = document.getElementById('fechaLimite');
-        let horaInput = document.getElementById('horaLimite');
-        let fechaHoraLimite = '';
-        if (fechaInput && horaInput) {
-            fechaHoraLimite = fechaInput.value && horaInput.value ? `${fechaInput.value}T${horaInput.value}` : '';
-        }
-    let puntajeInput = document.getElementById("puntaje");
-    let puntaje = null;
-    if (puntajeInput && puntajeInput.value !== '') {
-        puntaje = parseInt(puntajeInput.value, 10);
-        if (isNaN(puntaje)) puntaje = null;
-    }
-
-    // Referencia al botón para mostrar estado
-    var btn = document.querySelector('#crearActividadModal .btn-primary');
-    var originalBtnHtml = btn ? btn.innerHTML : null;
-
-    // Validaciones básicas
-    if (!nombre || !descripcion || !fechaHoraLimite) {
-        Swal.fire({
-            icon: "warning",
-            title: "Campos incompletos",
-            text: "Por favor, completa todos los campos antes de continuar. Si la actividad no tiene puntaje marca 'Sin puntaje'."
-        });
-        return;
-    }
-
-    // Validar que la fecha límite sea mayor a la fecha actual
-    let fechaActual = new Date();
-    let fechaLimite = new Date(fechaHoraLimite);
-    if (fechaLimite <= fechaActual) {
-        Swal.fire({
-            icon: "warning",
-            title: "Fecha inválida",
-            text: "La fecha límite debe ser posterior a la fecha actual."
-        });
-        return;
-    }
-
-    // Validar materiaIdGlobal
-    if (typeof materiaIdGlobal === 'undefined' || !materiaIdGlobal) {
-        Swal.fire({ icon: 'error', title: 'Error en materia', text: 'No se ha identificado la materia seleccionada.' });
-        return;
-    }
-
-    let actividad = {
-        NombreActividad: nombre,
-        Descripcion: descripcion,
-        FechaLimite: fechaHoraLimite,
-        Puntaje: (puntaje === null || puntaje === 0) ? 0 : puntaje,
-        MateriaId: parseInt(materiaIdGlobal, 10)
-    };
-    // enviarAhora = true => publicar; false => borrador; undefined/null => publicar (por compatibilidad)
-    actividad.Enviado = (typeof enviarAhora === 'boolean') ? enviarAhora : true;
-    // publicar ahora / despues / borrador
-    try {
-        // previously we used estatus/fecha programada; modal now compact => nothing to read
-    } catch (e) { }
-
-    try {
-        // Deshabilitar botón y mostrar spinner
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Publicando...';
-        }
-
-        let response = await fetch("/Materias/CrearActividad", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(actividad)
-        });
-
-        // Leer respuesta como texto y tratar de parsear JSON (más robusto ante respuestas HTML)
-        const text = await response.text();
-        let data = null;
-        try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
-
-        if (!response.ok) {
-            const mensaje = data && data.mensaje ? data.mensaje : (text || `Error HTTP: ${response.status}`);
-            throw new Error(mensaje);
-        }
-
-        Swal.fire({ position: "top-end", title: "Actividad creada", text: actividad.Enviado ? "La actividad ha sido publicada correctamente." : "La actividad fue guardada como borrador.", icon: "success", timer: 1500, showConfirmButton: false });
-
-        // Cerrar modal si está abierto (Bootstrap 4/5)
-        try {
-            if (window.jQuery && $('#crearActividadModal').modal) {
-                $('#crearActividadModal').modal('hide');
-            } else if (window.bootstrap) {
-                var modalEl = document.getElementById('crearActividadModal');
-                var modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-            }
-        } catch (e) { console.warn('No se pudo cerrar el modal:', e); }
-
-        // limpiar formulario
-        try { document.getElementById("actividadesForm").reset(); } catch (e) { }
-
-        // recargar lista de actividades
-        setTimeout(function () { cargarActividadesDeMateria(); }, 300);
-
-    } catch (error) {
-        console.error("Error:", error);
-        Swal.fire({
-            position: "top-end",
-            title: "Error al crear la actividad",
-            text: error.message || "Ocurrió un problema al crear la actividad.",
-            icon: "error",
-            timer: 4000,
-            showConfirmButton: true
-        });
-    } finally {
-        // Rehabilitar botón
-        if (btn) {
-            btn.disabled = false;
-            if (originalBtnHtml) btn.innerHTML = originalBtnHtml;
-        }
-    }
-}
-
-
 
 // Funcion que carga las actividades a la vista.
 async function cargarActividadesDeMateria(midParam, forceReload) {
@@ -260,7 +168,11 @@ async function cargarActividadesDeMateria(midParam, forceReload) {
 
         const text = await response.text();
         let payload = null;
-        try { payload = text ? JSON.parse(text) : null; } catch (e) { payload = null; }
+        try {
+            payload = text ? JSON.parse(text) : null;
+        } catch (e) {
+            payload = null;
+        }
 
         if (!response.ok) {
             const mensaje = payload && (payload.mensaje || payload.message) ? (payload.mensaje || payload.message) : (text || `Error HTTP: ${response.status}`);
@@ -285,7 +197,7 @@ async function cargarActividadesDeMateria(midParam, forceReload) {
                 actividadesCacheGlobal = payload.resultado;
                 console.debug('cargarActividadesDeMateria: usando payload.resultado length=', actividadesCacheGlobal.length);
                 renderizarActividades(payload.resultado);
-                requestAnimationFrame(function(){ try{ renderizarActividades(actividadesCacheGlobal); }catch(e){} });
+                requestAnimationFrame(function () { try { renderizarActividades(actividadesCacheGlobal); } catch (e) { } });
                 return;
             }
             const arr = Object.keys(payload).map(k => payload[k]).find(v => Array.isArray(v));
@@ -293,7 +205,11 @@ async function cargarActividadesDeMateria(midParam, forceReload) {
                 actividadesCacheGlobal = arr;
                 console.debug('cargarActividadesDeMateria: found array in payload keys, length=', actividadesCacheGlobal.length);
                 renderizarActividades(arr);
-                requestAnimationFrame(function(){ try{ renderizarActividades(actividadesCacheGlobal); }catch(e){} });
+                requestAnimationFrame(function () {
+                    try {
+                        renderizarActividades(actividadesCacheGlobal);
+                    } catch (e) { }
+                });
                 return;
             }
 
@@ -306,12 +222,163 @@ async function cargarActividadesDeMateria(midParam, forceReload) {
         actividadesCacheGlobal = Array.isArray(payload) ? payload : [];
         console.debug('cargarActividadesDeMateria: received array payload length=', actividadesCacheGlobal.length);
         renderizarActividades(actividadesCacheGlobal);
-        requestAnimationFrame(function(){ try{ renderizarActividades(actividadesCacheGlobal); }catch(e){} });
+        requestAnimationFrame(function () {
+            try {
+                renderizarActividades(actividadesCacheGlobal);
+            } catch (e) { }
+        });
     } catch (error) {
         console.error('Error en cargarActividadesDeMateria:', error);
         listaActividades.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
     }
 }
+
+
+    // Función que registra una nueva actividad
+async function registrarActividad(enviarAhora) {
+    let nombre = document.getElementById("nombre").value.trim();
+    let descripcion = document.getElementById("descripcion").value.trim();
+    // ahora fecha y hora se seleccionan por separado
+    let fechaInput = document.getElementById('fechaLimite');
+    let horaInput = document.getElementById('horaLimite');
+    let fechaHoraLimite = '';
+    if (fechaInput && horaInput) {
+        fechaHoraLimite = fechaInput.value && horaInput.value ? `${fechaInput.value}T${horaInput.value}` : '';
+    }
+    let puntajeInput = document.getElementById("puntaje");
+    let puntaje = null;
+    if (puntajeInput && puntajeInput.value !== '') {
+        puntaje = parseInt(puntajeInput.value, 10);
+        if (isNaN(puntaje)) puntaje = null;
+    }
+
+    // Referencia al botón para mostrar estado
+    var btn = document.querySelector('#crearActividadModal .btn-primary');
+    var originalBtnHtml = btn ? btn.innerHTML : null;
+
+    // Validaciones básicas
+    if (!nombre || !descripcion || !fechaHoraLimite) {
+        Swal.fire({
+            icon: "warning",
+            title: "Campos incompletos",
+            text: "Por favor, completa todos los campos antes de continuar. Si la actividad no tiene puntaje marca 'Sin puntaje'."
+        });
+        return;
+    }
+
+    // Validar que la fecha límite sea mayor a la fecha actual
+    let fechaActual = new Date();
+    let fechaLimite = new Date(fechaHoraLimite);
+    if (fechaLimite <= fechaActual) {
+        Swal.fire({
+            icon: "warning",
+            title: "Fecha inválida",
+            text: "La fecha límite debe ser posterior a la fecha actual."
+        });
+        return;
+    }
+
+    // Validar materiaIdGlobal
+    if (typeof materiaIdGlobal === 'undefined' || !materiaIdGlobal) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error en materia',
+            text: 'No se ha identificado la materia seleccionada.'
+        });
+        return;
+    }
+
+    let actividad = {
+        NombreActividad: nombre,
+        Descripcion: descripcion,
+        FechaLimite: fechaHoraLimite,
+        Puntaje: (puntaje === null || puntaje === 0) ? 0 : puntaje,
+        MateriaId: parseInt(materiaIdGlobal, 10)
+    };
+    // enviarAhora = true => publicar; false => borrador; undefined/null => publicar (por compatibilidad)
+    actividad.Enviado = (typeof enviarAhora === 'boolean') ? enviarAhora : true;
+    // publicar ahora / despues / borrador
+    try {
+        // previously we used estatus/fecha programada; modal now compact => nothing to read
+    } catch (e) { }
+
+    try {
+        // Deshabilitar botón y mostrar spinner
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Publicando...';
+        }
+
+        let response = await fetch("/Materias/CrearActividad", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(actividad)
+        });
+
+        // Leer respuesta como texto y tratar de parsear JSON (más robusto ante respuestas HTML)
+        const text = await response.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+
+        if (!response.ok) {
+            const mensaje = data && data.mensaje ? data.mensaje : (text || `Error HTTP: ${response.status}`);
+            throw new Error(mensaje);
+        }
+
+        Swal.fire(
+            {
+                position: "top-end",
+                title: "Actividad creada",
+                text: actividad.Enviado ? "La actividad ha sido publicada correctamente." : "La actividad fue guardada como borrador.",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+        // Cerrar modal si está abierto (Bootstrap 4/5)
+        try {
+            if (window.jQuery && $('#crearActividadModal').modal) {
+                $('#crearActividadModal').modal('hide');
+            } else if (window.bootstrap) {
+                var modalEl = document.getElementById('crearActividadModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+        } catch (e) {
+            console.warn('No se pudo cerrar el modal:', e);
+        }
+
+        // limpiar formulario
+        try {
+            document.getElementById("actividadesForm").reset();
+        } catch (e) { }
+
+        // recargar lista de actividades
+        setTimeout(function () {
+            cargarActividadesDeMateria();
+        }, 300);
+
+    } catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+            position: "top-end",
+            title: "Error al crear la actividad",
+            text: error.message || "Ocurrió un problema al crear la actividad.",
+            icon: "error",
+            timer: 4000,
+            showConfirmButton: true
+        });
+    } finally {
+        // Rehabilitar botón
+        if (btn) {
+            btn.disabled = false;
+            if (originalBtnHtml) btn.innerHTML = originalBtnHtml;
+        }
+    }
+}
+
+
+
 
 //Renderiza actividades despues de confirmar existencia
 function renderizarActividades(actividades) {
@@ -336,14 +403,21 @@ function renderizarActividades(actividades) {
     const filteredActividades = actividadesToRender.filter(actividad => {
         // Normalize 'Enviado' value (may come as boolean, string or number)
         let enviadoVal = actividad.Enviado;
+
         if (typeof enviadoVal === 'undefined' && actividad.enviado !== undefined) enviadoVal = actividad.enviado;
+
         const enviadoBool = (enviadoVal === true) || (String(enviadoVal).toLowerCase() === 'true') || (String(enviadoVal) === '1') || (enviadoVal === 1);
         const fechaProgVal = actividad.FechaProgramada || actividad.fechaProgramada || actividad.FechaProgramada;
         const estadoKey = enviadoBool ? 'publicada' : (fechaProgVal ? 'programada' : 'borrador');
-        if (filtroNorm === 'all') return true;
-        if (filtroNorm === 'borrador') return estadoKey === 'borrador';
-        if (filtroNorm === 'publicada') return estadoKey === 'publicada';
-        if (filtroNorm === 'programada') return estadoKey === 'programada';
+
+        if (filtroNorm === 'all')
+            return true;
+        if (filtroNorm === 'borrador')
+            return estadoKey === 'borrador';
+        if (filtroNorm === 'publicada')
+            return estadoKey === 'publicada';
+        if (filtroNorm === 'programada')
+            return estadoKey === 'programada';
         return true;
     });
 
@@ -381,38 +455,59 @@ function renderActividadesDirect(listado) {
 
         const actividadItem = document.createElement('div');
         actividadItem.classList.add('actividad-item');
+
         actividadItem.innerHTML = `
-            <div class="icono">📋</div>
-            <div class="info">
-                <strong>${escapeHtml(actividad.NombreActividad)}</strong>
-                <p class="fecha-publicado">Publicado: ${formatearFecha(actividad.FechaCreacion)}</p>
-                <p class="puntaje" style="font-weight: bold; color: #d35400;">Puntaje: ${actividad.Puntaje}</p>
-                <p class="actividad-descripcion oculto">${descripcionActividadConEnlace}</p>
-                <p class="ver-completo">Ver completo</p>
+            <div class="actividad-info">
+                <div class="icono">
+                    📋 <strong>${escapeHtml(actividad.NombreActividad)}</strong>
+                </div>
+
+                <p class="fecha-publicado">
+                    Publicado: ${formatearFecha(actividad.FechaCreacion)}
+                </p>
+
+                <p class="puntaje">
+                    Puntaje: ${actividad.Puntaje}
+                </p>
+
+                <p class="actividad-descripcion visible">
+                    ${descripcionActividadConEnlace}
+                </p>
+
+                <div class="fecha-entrega">
+                    <strong>Fecha de entrega:</strong>
+                    ${formatearFecha(actividad.FechaLimite)}
+                </div>
             </div>
-            <div class="fecha-entrega">
-                <strong>Fecha de entrega:</strong><br>
-                ${formatearFecha(actividad.FechaLimite)}
-            </div>
-            <div class="botones-container">
-                <button class="btn btn-sm btn-primary btn-ir-actividades" data-id="${actividad.ActividadId}">Ver / Entregar</button>
-                <button class="btn btn-sm btn-warning editar-btn" data-id="${actividad.ActividadId}">Editar</button>
-                <button class="btn btn-sm btn-danger eliminar-btn" data-id="${actividad.ActividadId}">Eliminar</button>
+
+            <div class="actividad-botones-lateral">
+                <button class="btn btn-sm btn-primary btn-ir-actividades" 
+                        data-id="${actividad.ActividadId}">
+                    Ver actividad
+                </button>
+
+                ${window.esDocente ? `
+                    <button class="btn btn-sm btn-warning editar-btn" 
+                            data-id="${actividad.ActividadId}">
+                        Editar
+                    </button>
+
+                    <button class="btn btn-sm btn-danger eliminar-btn" 
+                            data-id="${actividad.ActividadId}">
+                        Eliminar
+                    </button>
+                ` : ''}
             </div>
         `;
 
-        const verCompleto = actividadItem.querySelector(".ver-completo");
-        const descripcion = actividadItem.querySelector(".actividad-descripcion");
-        if (verCompleto && descripcion) {
-            verCompleto.addEventListener("click", () => {
-                if (descripcion.classList.contains("oculto")) {
-                    descripcion.classList.remove("oculto");
-                    descripcion.classList.add("visible");
-                } else {
-                    descripcion.classList.remove("visible");
-                    descripcion.classList.add("oculto");
-                }
-            });
+
+        // botones
+        if (window.esDocente) {
+            actividadItem.querySelectorAll('.eliminar-btn')
+                .forEach(b => b.addEventListener('click', () => eliminarActividad(actividad.ActividadId)));
+
+            actividadItem.querySelectorAll('.editar-btn')
+                .forEach(b => b.addEventListener('click', () => editarActividad(actividad.ActividadId)));
         }
 
         const btnEliminar = actividadItem.querySelector(".eliminar-btn");
@@ -421,6 +516,8 @@ function renderActividadesDirect(listado) {
         if (btnEliminar) btnEliminar.addEventListener("click", () => eliminarActividad(actividad.ActividadId));
         if (btnEditar) btnEditar.addEventListener("click", () => editarActividad(actividad.ActividadId));
         if (btnIrActividad) btnIrActividad.addEventListener("click", () => IrAActividad(actividad.ActividadId));
+
+
 
         listaActividades.appendChild(actividadItem);
     });
@@ -463,30 +560,35 @@ async function eliminarActividad(id) {
     });
 
     if (!result.isConfirmed) {
-        Swal.fire({ title: 'Cancelado', text: 'La actividad no fue eliminada.', icon: 'info', timer: 1500, showConfirmButton: false });
         return;
     }
 
-    Swal.fire({ title: 'Eliminando...', text: `Eliminando actividad ${id}`, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-    const endpoints = [
-        `/api/Actividades/EliminarActividad?id=${id}`,
-        `/api/Actividades/EliminarActividad/${id}`,
-        `/Materias/EliminarActividad?id=${id}`,
-        `/Materias/EliminarActividad/${id}`
-    ];
-
+    Swal.fire({
+        title: 'Eliminando...',
+        text: `Eliminando actividad`,
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
     try {
-        const resp = await tryEndpoints(endpoints, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
-        const text = await resp.text();
-        let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
-        Swal.close();
-        Swal.fire('Eliminado!', data && data.mensaje ? data.mensaje : `La actividad ${id} fue eliminada.`, 'success');
+        const resp = await fetch(`/Actividades/EliminarActividad?id=${id}`, {
+            method: 'DELETE'
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            throw new Error(data?.mensaje || "Error al eliminar");
+        }
+ 
+        Swal.fire('Eliminado!', data.mensaje, 'success');
         cargarActividadesDeMateria();
+
     } catch (error) {
         console.error('Error al eliminar la actividad:', error);
-        Swal.close();
-        Swal.fire('Error', 'No se pudo eliminar la actividad. Revisa la consola para más detalles.', 'error');
+        Swal.fire('Error', error.message, 'error');
     }
 }
 
@@ -524,7 +626,7 @@ async function editarActividad(id) {
         const resp = await fetch(`/Actividades/ObtenerActividadPorId?actividadId=${id}`);
         if (!resp.ok) throw new Error('No se pudo obtener la actividad');
         const data = await resp.json();
-
+        
         // llenar formulario
         document.getElementById('nombre').value = data.NombreActividad || '';
         document.getElementById('descripcion').value = data.Descripcion || '';
@@ -532,17 +634,33 @@ async function editarActividad(id) {
         try {
             var d = document.getElementById('fechaLimite');
             var h = document.getElementById('horaLimite');
+
             var fechaISO = data.FechaLimite || data.FechaCreacion;
             if (fechaISO) {
-                var dt = new Date(fechaISO);
-                if (!isNaN(dt)) {
-                    if (d) d.value = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-                    if (h) h.value = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
-                    // store for modal show handler
-                    window._editarFechaISO = fechaISO;
+
+                let timestamp;
+
+                // Detectar formato /Date(123456789)/
+                const match = /\/Date\((\d+)\)\//.exec(fechaISO);
+                if (match) {
+                    timestamp = parseInt(match[1], 10);
+                }
+
+                if (timestamp) {
+                    const dt = new Date(timestamp);
+
+                    if (d) d.value = dt.toISOString().substring(0, 10);
+
+                    if (h) {
+                        const hours = String(dt.getHours()).padStart(2, '0');
+                        const minutes = String(dt.getMinutes()).padStart(2, '0');
+                        h.value = `${hours}:${minutes}`;
+                    }
                 }
             }
-        } catch (e) { console.warn(e); }
+        } catch (e) {
+            console.warn(e);
+        }
         document.getElementById('puntaje').value = (data.Puntaje === 0 || data.Puntaje == null) ? '' : data.Puntaje;
 
         // establecer materia global si no existe
@@ -550,7 +668,10 @@ async function editarActividad(id) {
 
         // marcar que estamos editando
         window.editingActividadId = id;
-
+        var titulo = document.getElementById('crearActividadModalLabel');
+        if (titulo) {
+            titulo.textContent = 'Editar actividad';
+        }
         // preparar botón publicar para actualizar
         var btn = document.getElementById('btnPublicarActividad');
         if (btn) {
@@ -572,11 +693,15 @@ async function editarActividad(id) {
             } else if (window.jQuery && $('#crearActividadModal').modal) {
                 $('#crearActividadModal').modal('show');
             }
-        } catch (e) { console.warn(e); }
+        } catch (e) {
+            console.warn(e);
+        }
 
     } catch (err) {
         console.error(err);
-        Swal.fire('Error', 'No se pudo cargar la actividad para edición', 'error');
+        Swal.fire('Error',
+            'No se pudo cargar la actividad para edición',
+            'error');
     }
 }
 
@@ -586,16 +711,33 @@ async function actualizarActividad(id) {
     // leer campos
     let nombre = document.getElementById('nombre').value.trim();
     let descripcion = document.getElementById('descripcion').value.trim();
-    let fechaHoraLimite = document.getElementById('fechaHoraLimite').value;
+    let fecha = document.getElementById('fechaLimite').value;
+    let hora = document.getElementById('horaLimite').value;
     let puntajeInput = document.getElementById("puntaje");
     let sinPuntajeCheckbox = document.getElementById("sinPuntaje");
     let puntaje = null;
+
+    if (!fecha || !hora) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: 'Completa fecha y hora.'
+        });
+        return;
+    }
+
+    let fechaHoraLimite = `${fecha}T${hora}:00`;
+
     if (puntajeInput && !puntajeInput.disabled && puntajeInput.value !== '') {
         puntaje = parseInt(puntajeInput.value, 10);
     }
 
     if (!nombre || !descripcion || !fechaHoraLimite) {
-        Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Completa todos los campos.' });
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: 'Completa todos los campos.'
+        });
         return;
     }
 
@@ -608,25 +750,32 @@ async function actualizarActividad(id) {
 
     // incluir estatus y fecha programada si aplica
     // modal ya no contiene estatus/fecha programada
-
-    const endpoints = [
-        `/api/Actividades/ActualizarActividad?id=${id}`,
-        `/api/Actividades/ActualizarActividad/${id}`,
-        `/Actividades/ActualizarActividad?id=${id}`,
-        `/Actividades/ActualizarActividad/${id}`
-    ];
-
-    Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    Swal.fire({
+        title: 'Guardando...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
 
     try {
-        const resp = await tryEndpoints(endpoints, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        const text = await resp.text();
-        let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+        const resp = await fetch(`/Actividades/ActualizarActividad?id=${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
 
-        Swal.close();
-        Swal.fire({ icon: 'success', title: 'Actividad actualizada' });
+        const data = await resp.json();
 
-        // cerrar modal
+        if (!resp.ok) {
+            throw new Error(data?.mensaje || 'Error al actualizar');
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Actividad actualizada'
+        });
+
         try {
             if (window.jQuery && $('#crearActividadModal').modal) {
                 $('#crearActividadModal').modal('hide');
@@ -639,14 +788,15 @@ async function actualizarActividad(id) {
 
         // limpiar estado
         window.editingActividadId = null;
-        try { document.getElementById('actividadesForm').reset(); } catch (e) { }
+        try {
+            document.getElementById('actividadesForm').reset();
+        } catch (e) { }
 
         // recargar lista
         setTimeout(cargarActividadesDeMateria, 300);
 
     } catch (e) {
         console.error(e);
-        Swal.close();
         Swal.fire('Error', e.message || 'No se pudo actualizar la actividad', 'error');
     }
 }
@@ -656,7 +806,9 @@ document.addEventListener('change', function (e) {
     try {
         var t = e.target || e.srcElement;
         if (t && t.id === 'filtroActividades') {
-            try { localStorage.setItem('filtroActividades', t.value); } catch (err) { }
+            try {
+                localStorage.setItem('filtroActividades', t.value);
+            } catch (err) { }
             var mid = window.materiaIdGlobal || (typeof materiaIdGlobal !== 'undefined' ? materiaIdGlobal : null);
             cargarActividadesDeMateria(mid, true);
         }

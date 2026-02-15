@@ -321,10 +321,9 @@ function renderizarAlumnos(data) {
 
     if (data.entregados && listaEntregados) {
         data.entregados.forEach(function (alumno) {
-            // soportar dos formas: antiguo (AlumnoActividadId + Entrega) o nuevo (EntregaId, AlumnoId, Respuesta)
             var nombre = alumno.Nombre || alumno.Nombres || '';
-            var apeP = alumno.ApellidoPaterno || alumno.ApellidoPaterno || alumno.ApellidoMaterno ? (alumno.ApellidoPaterno || '') : '';
-            var apeM = alumno.ApellidoMaterno || alumno.ApellidoMaterno || '';
+            var apeP = alumno.ApellidoPaterno || '';
+            var apeM = alumno.ApellidoMaterno || '';
             var fechaEntrega = alumno.FechaEntrega ? (parseServerDate(alumno.FechaEntrega) ? parseServerDate(alumno.FechaEntrega).toLocaleDateString('es-ES') : 'Sin entregar') : 'Sin entregar';
             var fechaCalificacion = (alumno.FechaCalificacionAsignada || alumno.FechaCalificacionAsignada) ? (parseServerDate(alumno.FechaCalificacionAsignada).toLocaleDateString('es-ES')) : (alumno.FechaCalificacionAsignada ? parseServerDate(alumno.FechaCalificacionAsignada).toLocaleDateString('es-ES') : 'Sin calificar');
 
@@ -335,17 +334,16 @@ function renderizarAlumnos(data) {
 
             var fechaCalifMostrar = 'Sin calificar';
             if (alumno.FechaCalificado) fechaCalifMostrar = formatDateToLocale(alumno.FechaCalificado);
-            var comentarioMostrar = alumno.Comentario ? ('Comentario: ' + escapeHtml(alumno.Comentario)) : '';
 
             var alumnoHTML =
                 '<div class="list-group-item d-flex justify-content-between align-items-center">' +
                 '<div style="flex:1"><h5 class="mb-1" style="font-weight: bold; color: #333;">' + (nombre + ' ' + (alumno.ApellidoPaterno || '') + ' ' + (alumno.ApellidoMaterno || '')).trim() + '</h5>' +
                 '<p class="mb-1" style="color: #777;">Entregó: ' + fechaEntrega + '</p>' +
                 '<p class="mb-1" style="color: #777;">Calificado: ' + fechaCalifMostrar + '</p>' +
-                '<p class="mb-1" style="color: #777;">' + comentarioMostrar + '</p></div>' +
+                '</div>' +
                 '<div style="display:flex;gap:8px">' +
-                '<button class="btn btn-primary btn-sm" onclick="verRespuesta(' + (idParaVer || 0) + ',' + (alumno.AlumnoId || 0) + ')">Ver Respuesta</button>' +
-                '<button class="btn btn-warning btn-sm" onclick="abrirModalCalificar(' + (entregableId || 0) + ', ' + puntajeMaximo + ')">Calificar</button>' +
+                '<button class="btn btn-primary btn-sm" onclick="verRespuesta(' + (idParaVer ||0) + ',' + (alumno.AlumnoId ||0) + ')">Ver Respuesta</button>' +
+                '<button class="btn btn-warning btn-sm" onclick="abrirModalCalificar(' + (entregableId ||0) + ', ' + puntajeMaximo + ')">Calificar</button>' +
                 '</div>' +
                 '</div>';
 
@@ -495,15 +493,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!form) return;
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        var entregaId = parseInt(document.getElementById('entregaId').value || '0', 10);
-        var cal = parseInt(document.getElementById('calificacion').value || '0', 10);
+        var entregaId = parseInt(document.getElementById('entregaId').value || '0',10);
+        var cal = parseInt(document.getElementById('calificacion').value || '0',10);
         if (!entregaId || isNaN(cal)) { alert('Entrega o calificación inválida'); return; }
         try {
-            var comentario = (document.getElementById('comentario') || {}).value || '';
+            // No enviar comentario al API
             const resp = await fetch('/api/Actividades/AsignarCalificacion', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ EntregaId: entregaId, Calificacion: cal, Comentario: comentario })
+                body: JSON.stringify({ EntregableId: entregaId, Calificacion: cal })
             });
             if (!resp.ok) throw new Error('Error al guardar la calificación');
             // cerrar modal
@@ -511,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
 
-            Swal.fire({ icon: 'success', title: 'Calificación guardada', timer: 1200, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'Calificación guardada', timer:1200, showConfirmButton: false });
             // recargar lista
             prepararAlumnosYActividades();
         } catch (err) {

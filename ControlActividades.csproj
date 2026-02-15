@@ -214,6 +214,9 @@
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json.Bson, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll</HintPath>
+    </Reference>
     <Reference Include="NPOI.Core, Version=2.7.5.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
       <HintPath>packages\NPOI.2.7.5\lib\net472\NPOI.Core.dll</HintPath>
       <Private>True</Private>
@@ -278,9 +281,8 @@
       <HintPath>packages\System.Memory.4.6.0\lib\net462\System.Memory.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Net.Http.Formatting, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.WebApi.Client.5.2.9\lib\net45\System.Net.Http.Formatting.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Net.Http.Formatting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Client.6.0.0\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -326,9 +328,8 @@
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web.Http, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.WebApi.Core.5.2.9\lib\net45\System.Web.Http.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Http, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Core.5.3.0\lib\net45\System.Web.Http.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Http.Owin, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebApi.Owin.5.3.0\lib\net45\System.Web.Http.Owin.dll</HintPath>
@@ -429,7 +430,9 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MateriasApiController.cs" />
     <Compile Include="Controllers\MateriasController.cs" />
+    <Compile Include="Controllers\MigracionUsuariosController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
+    <Compile Include="Filters\AdminAuditLogAttribute.cs" />
     <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
     <Compile Include="Filters\NoCacheAttribute.cs" />
     <Compile Include="Global.asax.cs">
@@ -437,6 +440,10 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\Actividades\IActividadesService.cs" />
+    <Compile Include="Interfaces\Docente\IDocentesService.cs" />
+    <Compile Include="Migracion\BulkIdentityMigrator.cs" />
+    <Compile Include="Migracion\MigradorUsuariosRunner.cs" />
     <Compile Include="Interfaces\Actividades\IActividadesService.cs" />
     <Compile Include="Interfaces\Grupos\IGruposApiService.cs" />
     <Compile Include="Interfaces\IFuenteDatos.cs" />
@@ -475,7 +482,17 @@
     <Compile Include="Migrations\202602121917033_ModificacionActividades.Designer.cs">
       <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202602111138426_SyncFix.cs" />
+    <Compile Include="Migrations\202602111138426_SyncFix.Designer.cs">
+      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.cs" />
+    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.Designer.cs">
+      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Dtos\Migracion\MigracionUsuariosDto.cs" />
+    <Compile Include="Dtos\Migracion\UsuarioMigracionDto.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApiResponse.cs" />
     <Compile Include="Models\ControlActividadesDTO.cs" />
@@ -488,6 +505,7 @@
     <Compile Include="Models\db\tbAlumnos.cs" />
     <Compile Include="Models\db\tbAlumnosGrupos.cs" />
     <Compile Include="Models\db\tbAlumnosMaterias.cs" />
+    <Compile Include="Models\db\tbAuditoria.cs" />
     <Compile Include="Models\db\tbAvisos.cs" />
     <Compile Include="Models\db\tbDocentes.cs" />
     <Compile Include="Models\db\tbEntregaActividadAlumno.cs" />
@@ -569,6 +587,8 @@
     <Content Include="Content\dataTables.dataTables.css" />
     <Content Include="Content\dataTables.dataTables.min.css" />
     <Content Include="Content\Docente\calendarioDocente.css" />
+    <Content Include="Content\Iconos\bote-eliminar.svg" />
+    <Content Include="Content\Iconos\lapiz-editar.svg" />
     <Content Include="Content\Iconos\notiGrupoAsignado.svg" />
     <Content Include="Content\Iconos\notiActividadCalificada.svg" />
     <Content Include="Content\Iconos\notiActividadEntregada.svg" />
@@ -648,7 +668,7 @@
     <Content Include="Content\site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <Content Include="Scripts\Actividades\actividades.js" />
+    <Content Include="Scripts\Papelera_Scripts\actividades.js" />
     <Content Include="Scripts\Actividades\entregables.js" />
     <Content Include="Scripts\Administrador\Autorizar.js" />
     <Content Include="Scripts\Agenda\calendario-detalles.js" />
@@ -659,33 +679,33 @@
     <Content Include="Scripts\Alumno\actividadDetalle.js" />
     <Content Include="Scripts\Alumno\actividades.js" />
     <Content Include="Scripts\Alumno\AgendaFullCalendar.js" />
-    <Content Include="Scripts\Alumno\alumno.js" />
-    <Content Include="Scripts\Alumno\Avisos.js" />
+    <Content Include="Scripts\Papelera_Scripts\alumno.js" />
+    <Content Include="Scripts\Papelera_Scripts\AvisosA.js" />
     <Content Include="Scripts\Materias\paneles.js" />
     <Content Include="Scripts\Papelera_Scripts\Calendario.js" />
-    <Content Include="Scripts\Alumno\Clases.js" />
-    <Content Include="Scripts\Alumno\layout.js" />
-    <Content Include="Scripts\Alumno\materias.js" />
-    <Content Include="Scripts\Papelera_Scripts\Notificaciones.js" />
+    <Content Include="Scripts\Papelera_Scripts\Clases.js" />
+    <Content Include="Scripts\Papelera_Scripts\layout.js" />
+    <Content Include="Scripts\Papelera_Scripts\materias.js" />
+    <Content Include="Scripts\Papelera_Scripts\DNotificaciones.js" />
     <Content Include="Scripts\Alumno\UnirseClase.js" />
-    <Content Include="Scripts\Alumno\VentanasDi.js" />
-    <Content Include="Scripts\Alumno\Vistamaterias.js" />
-    <Content Include="Scripts\Avisos\avisos.js" />
+    <Content Include="Scripts\Papelera_Scripts\VentanasDi.js" />
+    <Content Include="Scripts\Papelera_Scripts\Vistamaterias.js" />
+    <Content Include="Scripts\Papelera_Scripts\avisos.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Scripts\Componentes\FullCalendarGeneral.js" />
-    <Content Include="Scripts\Componentes\componenteAvisos.js" />
+    <Content Include="Scripts\Papelera_Scripts\FullCalendarGeneral.js" />
+    <Content Include="Scripts\Papelera_Scripts\componenteAvisos.js" />
     <Content Include="Scripts\Componentes\PantallaCarga.js" />
     <Content Include="Scripts\dataTables.dataTables.js" />
     <Content Include="Scripts\dataTables.dataTables.min.js" />
     <Content Include="Scripts\dev\measureCardSize.js" />
-    <Content Include="Scripts\Docente\Agenda.js" />
-    <Content Include="Scripts\Docente\AgendaFullCalendar.js" />
-    <Content Include="Scripts\Docente\Confirmacion.js" />
+    <Content Include="Scripts\Papelera_Scripts\Agenda.js" />
+    <Content Include="Scripts\Papelera_Scripts\AgendaFullCalendar.js" />
+    <Content Include="Scripts\Papelera_Scripts\Confirmacion.js" />
     <Content Include="Scripts\Docente\footer.js" />
     <Content Include="Scripts\Docente\Grupos\ActividadIA.js" />
     <Content Include="Scripts\Docente\Grupos\cambiarCodigoMateria.js" />
@@ -693,19 +713,19 @@
     <Content Include="Scripts\Docente\Grupos\DetalleMateria.js" />
     <Content Include="Scripts\Docente\Grupos\DetalleMateriaIconos.js" />
     <Content Include="Scripts\Docente\Grupos\docente.js" />
-    <Content Include="Scripts\Docente\Grupos\docenteErrores.js" />
+    <Content Include="Scripts\Papelera_Scripts\docenteErrores.js" />
     <Content Include="Scripts\Docente\Grupos\docenteGrupos.js" />
     <Content Include="Scripts\Docente\Grupos\docenteMaterias.js" />
-    <Content Include="Scripts\Docente\Grupos\mostrarMateriasGrupo.js" />
-    <Content Include="Scripts\Docente\Grupos\Notificaciones.js" />
-    <Content Include="Scripts\Docente\Grupos\PrincipalMG.js" />
+    <Content Include="Scripts\Papelera_Scripts\mostrarMateriasGrupo.js" />
+    <Content Include="Scripts\Papelera_Scripts\ANotificaciones.js" />
+    <Content Include="Scripts\Papelera_Scripts\PrincipalMG.js" />
     <Content Include="Scripts\Docente\Grupos\scriptsActividades.js" />
     <Content Include="Scripts\Docente\Grupos\scriptsAlumnos.js" />
     <Content Include="Scripts\Docente\Grupos\scriptsAvisos.js" />
-    <Content Include="Scripts\Docente\Grupos\VistaMateriasD.js" />
+    <Content Include="Scripts\Papelera_Scripts\VistaMateriasD.js" />
     <Content Include="Scripts\Docente\IA.js" />
     <Content Include="Scripts\Docente\IAChat.js" />
-    <Content Include="Scripts\Docente\layout.js" />
+    <Content Include="Scripts\Papelera_Scripts\layoutd.js" />
     <Content Include="Content\Iconos\correo.webp" />
     <Content Include="App_Data\README.md" />
     <Content Include="README.md" />
@@ -757,6 +777,7 @@
     <Content Include="Scripts\Shared\common-helpers.js" />
     <Content Include="Scripts\Shared\modoColor.js" />
     <Content Include="Scripts\Shared\headerNotifications.js" />
+    <Content Include="Templates\Emails\CodigoDocente.html" />
     <Content Include="Templates\Emails\ResetPassword.html" />
     <Content Include="Views\Alumno\Grupos.cshtml.txt" />
     <Content Include="Views\Alumno\Materias.cshtml.txt" />
@@ -815,7 +836,7 @@
     <Content Include="Views\Materias\Index.cshtml" />
     <Content Include="Views\Grupos\GrupoMaterias.cshtml" />
     <Content Include="Views\Materias\MateriasModal.cshtml" />
-    <Content Include="Views\Materias\CrearActividadModal.cshtml" />
+    <Content Include="Scripts\Papelera_Scripts\CrearActividadModal.cshtml" />
     <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
     <Content Include="SOLUCION_PROBLEMA_ALUMNO_REAPARECE.md" />
     <Content Include="SIMPLIFICACION_METODOS_ELIMINACION.md" />
@@ -830,6 +851,7 @@
     <Content Include="Views\Materias\_Configuracion.cshtml" />
     <Content Include="Views\Materias\_Actividades.cshtml" />
     <Content Include="Views\Materias\_Entregables.cshtml" />
+    <Content Include="Views\Grupos\MateriasGrupoModal.cshtml" />
     <Content Include="SIGUIENTE_PASO_FLUTTER.md" />
     <Content Include="SOLUCION_ERROR_FOREIGN_KEY.md" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
@@ -855,10 +877,15 @@
     <Folder Include="Content\Images\" />
     <Folder Include="Dashboard\" />
     <Folder Include="Interfaces\Alumnos\" />
+    <Folder Include="Scripts\Papelera_Scripts\Avisos\" />
+    <Folder Include="Services\Docente\" />
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Eventos\" />
+    <Folder Include="Views\MigracionTest\" />
+    <Folder Include="Views\MigracionUsuarios\" />
+    <Folder Include="Views\Migracion\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Account\ConfirmEmail.cshtml" />
@@ -926,6 +953,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202602121917033_ModificacionActividades.resx">
       <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202602111138426_SyncFix.resx">
+      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202602111144587_CreateTablaLogsAdministrador.resx">
+      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

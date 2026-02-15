@@ -1,127 +1,127 @@
-document.addEventListener('DOMContentLoaded', function () {
-    cargarActividadesAlumno();
-});
+//document.addEventListener('DOMContentLoaded', function () {
+//    cargarActividadesAlumno();
+//});
 
-async function cargarActividadesAlumno() {
-    const cont = document.getElementById('listaActividadesAlumno');
-    if (!cont) {
-        console.error('Elemento listaActividadesAlumno no encontrado en el DOM.');
-        return;
-    }
-    cont.innerHTML = '<p>Cargando...</p>';
-    try {
-        if (typeof materiaIdGlobal === 'undefined' || materiaIdGlobal === 0 || materiaIdGlobal === null) {
-            throw new Error('ID de materia no definido.');
-        }
-        const url = `/Actividades/ObtenerActividadesPorMateria?materiaId=${materiaIdGlobal}`;
-        console.debug('Cargando actividades desde:', url);
-        const resp = await fetch(url);
-        const text = await resp.text();
-        let data = null;
-        try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
-        if (!resp.ok) {
-            const msg = (data && data.mensaje) ? data.mensaje : (typeof data === 'string' ? data : `HTTP ${resp.status}`);
-            throw new Error(msg || 'No se pudieron obtener las actividades');
-        }
-        // data puede venir como objeto con clave o como arreglo
-        let actividades = data;
-        if (!Array.isArray(actividades)) {
-            // buscar primer array dentro del objeto
-            const arr = Array.isArray(data) ? data : (data && typeof data === 'object' ? Object.keys(data).map(k => data[k]).find(v => Array.isArray(v)) : null);
-            actividades = arr || [];
-        }
+//async function cargarActividadesAlumno() {
+//    const cont = document.getElementById('listaActividadesAlumno');
+//    if (!cont) {
+//        console.error('Elemento listaActividadesAlumno no encontrado en el DOM.');
+//        return;
+//    }
+//    cont.innerHTML = '<p>Cargando...</p>';
+//    try {
+//        if (typeof materiaIdGlobal === 'undefined' || materiaIdGlobal === 0 || materiaIdGlobal === null) {
+//            throw new Error('ID de materia no definido.');
+//        }
+//        const url = `/Actividades/ObtenerActividadesPorMateria?materiaId=${materiaIdGlobal}`;
+//        console.debug('Cargando actividades desde:', url);
+//        const resp = await fetch(url);
+//        const text = await resp.text();
+//        let data = null;
+//        try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+//        if (!resp.ok) {
+//            const msg = (data && data.mensaje) ? data.mensaje : (typeof data === 'string' ? data : `HTTP ${resp.status}`);
+//            throw new Error(msg || 'No se pudieron obtener las actividades');
+//        }
+//        // data puede venir como objeto con clave o como arreglo
+//        let actividades = data;
+//        if (!Array.isArray(actividades)) {
+//            // buscar primer array dentro del objeto
+//            const arr = Array.isArray(data) ? data : (data && typeof data === 'object' ? Object.keys(data).map(k => data[k]).find(v => Array.isArray(v)) : null);
+//            actividades = arr || [];
+//        }
 
-        if (!actividades || actividades.length === 0) {
-            cont.innerHTML = '<p>No hay actividades.</p>';
-            return;
-        }
-        cont.innerHTML = '';
-        actividades.forEach(act => {
-            const actividadItem = document.createElement('div');
-            actividadItem.className = 'actividad-item';
+//        if (!actividades || actividades.length === 0) {
+//            cont.innerHTML = '<p>No hay actividades.</p>';
+//            return;
+//        }
+//        cont.innerHTML = '';
+//        actividades.forEach(act => {
+//            const actividadItem = document.createElement('div');
+//            actividadItem.className = 'actividad-item';
 
-            // convert description urls to links if any
-            const descripcionConEnlaces = (act.Descripcion || '').toString().replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+//            // convert description urls to links if any
+//            const descripcionConEnlaces = (act.Descripcion || '').toString().replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
 
-            // estado: for alumnos we assume published since controller filters
-            const fechaCreacion = act.FechaCreacion || act.FechaCreacionActividad || '';
-            const fechaLimite = act.FechaLimite || act.FechaLimiteActividad || act.FechaLimite;
+//            // estado: for alumnos we assume published since controller filters
+//            const fechaCreacion = act.FechaCreacion || act.FechaCreacionActividad || '';
+//            const fechaLimite = act.FechaLimite || act.FechaLimiteActividad || act.FechaLimite;
 
-            actividadItem.innerHTML = `
-                <div class="actividad-header">
-                    <div class="icono">??</div>
-                    <div class="info">
-                        <strong>${act.NombreActividad || act.Nombre || ''}</strong>
-                        <p class="fecha-publicado">Publicado: ${fechaCreacion ? new Date(fechaCreacion).toLocaleString() : ''}</p>
-                        <p class="puntaje" style="font-weight:bold; color:#d35400">Puntaje: ${act.Puntaje || act.puntaje || 0}</p>
-                        <p class="actividad-descripcion oculto">${descripcionConEnlaces}</p>
-                        <p class="ver-completo">Ver completo</p>
-                    </div>
-                    <div class="fecha-entrega">
-                        <strong>Fecha de entrega:</strong><br>
-                        ${fechaLimite ? new Date(fechaLimite).toLocaleString() : 'No disponible'}
-                    </div>
-                    <div class="botones-container">
-                        <div class="estado-entrega me-2" data-actividad-id="${act.ActividadId || act.actividadId || 0}"></div>
-                        <button class="btn-ir-actividades btn btn-primary" data-id="${act.ActividadId || act.actividadId || 0}">Ver / Entregar</button>
-                    </div>
-                </div>
-            `;
+//            actividadItem.innerHTML = `
+//                <div class="actividad-header">
+//                    <div class="icono">??</div>
+//                    <div class="info">
+//                        <strong>${act.NombreActividad || act.Nombre || ''}</strong>
+//                        <p class="fecha-publicado">Publicado: ${fechaCreacion ? new Date(fechaCreacion).toLocaleString() : ''}</p>
+//                        <p class="puntaje" style="font-weight:bold; color:#d35400">Puntaje: ${act.Puntaje || act.puntaje || 0}</p>
+//                        <p class="actividad-descripcion oculto">${descripcionConEnlaces}</p>
+//                        <p class="ver-completo">Ver completo</p>
+//                    </div>
+//                    <div class="fecha-entrega">
+//                        <strong>Fecha de entrega:</strong><br>
+//                        ${fechaLimite ? new Date(fechaLimite).toLocaleString() : 'No disponible'}
+//                    </div>
+//                    <div class="botones-container">
+//                        <div class="estado-entrega me-2" data-actividad-id="${act.ActividadId || act.actividadId || 0}"></div>
+//                        <button class="btn-ir-actividades btn btn-primary" data-id="${act.ActividadId || act.actividadId || 0}">Ver / Entregar</button>
+//                    </div>
+//                </div>
+//            `;
 
-            // toggle description
-            const verCompleto = actividadItem.querySelector('.ver-completo');
-            const descripcion = actividadItem.querySelector('.actividad-descripcion');
-            if (verCompleto && descripcion) {
-                verCompleto.addEventListener('click', () => {
-                    if (descripcion.classList.contains('oculto')) {
-                        descripcion.classList.remove('oculto');
-                        descripcion.classList.add('visible');
-                    } else {
-                        descripcion.classList.remove('visible');
-                        descripcion.classList.add('oculto');
-                    }
-                });
-            }
+//            // toggle description
+//            const verCompleto = actividadItem.querySelector('.ver-completo');
+//            const descripcion = actividadItem.querySelector('.actividad-descripcion');
+//            if (verCompleto && descripcion) {
+//                verCompleto.addEventListener('click', () => {
+//                    if (descripcion.classList.contains('oculto')) {
+//                        descripcion.classList.remove('oculto');
+//                        descripcion.classList.add('visible');
+//                    } else {
+//                        descripcion.classList.remove('visible');
+//                        descripcion.classList.add('oculto');
+//                    }
+//                });
+//            }
 
-            // attach button event
-            const btn = actividadItem.querySelector('.btn-ir-actividades');
-            if (btn) btn.addEventListener('click', function () {
-                const id = this.dataset.id || this.getAttribute('data-id');
-                irAActividad(id);
-            });
+//            // attach button event
+//            const btn = actividadItem.querySelector('.btn-ir-actividades');
+//            if (btn) btn.addEventListener('click', function () {
+//                const id = this.dataset.id || this.getAttribute('data-id');
+//                irAActividad(id);
+//            });
 
-            // revisar si el alumno ya entregó / fue calificado
-            (async function marcarEstadoEntrega(actividadId, nodo) {
-                try {
-                    if (!actividadId || !alumnoIdGlobal) return;
-                    const urlEnvios = `/api/Alumnos/ObtenerEnviosActividadesAlumno?ActividadId=${encodeURIComponent(actividadId)}&AlumnoId=${encodeURIComponent(alumnoIdGlobal)}`;
-                    const r = await fetch(urlEnvios);
-                    if (!r.ok) return;
-                    const envios = await r.json();
-                    if (!envios || !Array.isArray(envios) || envios.length === 0) return;
-                    // Si hay envíos, buscar si alguno tiene calificación (>0)
-                    const tieneCalif = envios.some(e => (e.Calificacion || e.calificacion) > 0);
-                    const estadoCont = nodo.querySelector('.estado-entrega');
-                    if (!estadoCont) return;
-                    if (tieneCalif) {
-                        estadoCont.innerHTML = '<span class="badge bg-success">Calificado</span>';
-                    } else {
-                        estadoCont.innerHTML = '<span class="badge bg-info text-dark">Entregado y esperando calificación</span>';
-                    }
-                } catch (e) {
-                    console.warn('No se pudo obtener estado de entrega', e);
-                }
-            })(act.ActividadId || act.actividadId || 0, actividadItem);
+//            // revisar si el alumno ya entregï¿½ / fue calificado
+//            (async function marcarEstadoEntrega(actividadId, nodo) {
+//                try {
+//                    if (!actividadId || !alumnoIdGlobal) return;
+//                    const urlEnvios = `/api/Alumnos/ObtenerEnviosActividadesAlumno?ActividadId=${encodeURIComponent(actividadId)}&AlumnoId=${encodeURIComponent(alumnoIdGlobal)}`;
+//                    const r = await fetch(urlEnvios);
+//                    if (!r.ok) return;
+//                    const envios = await r.json();
+//                    if (!envios || !Array.isArray(envios) || envios.length === 0) return;
+//                    // Si hay envï¿½os, buscar si alguno tiene calificaciï¿½n (>0)
+//                    const tieneCalif = envios.some(e => (e.Calificacion || e.calificacion) > 0);
+//                    const estadoCont = nodo.querySelector('.estado-entrega');
+//                    if (!estadoCont) return;
+//                    if (tieneCalif) {
+//                        estadoCont.innerHTML = '<span class="badge bg-success">Calificado</span>';
+//                    } else {
+//                        estadoCont.innerHTML = '<span class="badge bg-info text-dark">Entregado y esperando calificaciï¿½n</span>';
+//                    }
+//                } catch (e) {
+//                    console.warn('No se pudo obtener estado de entrega', e);
+//                }
+//            })(act.ActividadId || act.actividadId || 0, actividadItem);
 
-            cont.appendChild(actividadItem);
-        });
-    } catch (e) {
-        console.error('Error cargarActividadesAlumno:', e);
-        cont.innerHTML = `<p>Error: ${e.message || 'No se pudieron mostrar las actividades'}</p>`;
-    }
-}
+//            cont.appendChild(actividadItem);
+//        });
+//    } catch (e) {
+//        console.error('Error cargarActividadesAlumno:', e);
+//        cont.innerHTML = `<p>Error: ${e.message || 'No se pudieron mostrar las actividades'}</p>`;
+//    }
+//}
 
-function irAActividad(id) {
-    localStorage.setItem('actividadSeleccionada', id);
-    window.location.href = `/Alumno/ActividadDetalle?actividadId=${id}`;
-}
+//function irAActividad(id) {
+//    localStorage.setItem('actividadSeleccionada', id);
+//    window.location.href = `/Alumno/ActividadDetalle?actividadId=${id}`;
+//}

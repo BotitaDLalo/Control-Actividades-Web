@@ -80,21 +80,5 @@
 }
 
 @section Scripts{
-    @*<script>
-            document.addEventListener('DOMContentLoaded', function () {
-                if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
-
-                const input = document.getElementById('buscarMateria');
-                input.addEventListener('input', function () {
-                    const q = this.value.trim().toLowerCase();
-                    document.querySelectorAll('#listaMateriasSinGrupo .card-layout').forEach(card => {
-                        const title = (card.textContent || '').toLowerCase();
-                        card.style.display = q === '' || title.indexOf(q) !== -1 ? '' : 'none';
-                    });
-                });
-            });
-        </script>
-
-        <script src="~/Scripts/Materias/materias-sin-grupo.js"></script>*@
-    @*<script src="~/Scripts/Docente/Grupos/docenteMaterias.js"></script>*@
+    @Scripts.Render("~/bundles/materiasCreacion")
 }

@@ -1,7 +1,28 @@
-﻿
-@{
-    ViewBag.Title = "_Alumnos";
+﻿@using Rol = ControlActividades.Roles;
+
+<script>
+    window.esDocente = @User.IsInRole(Rol.DOCENTE).ToString().ToLower();
+</script>
+
+@if (User != null && User.IsInRole("Docente"))
+{
+    <div class="container mt-3">
+        <div class="row" style="align-items:center;">
+            <div class="col-md-6">
+                <label for="buscarAlumno" class="form-label">Buscar alumno por correo:</label>
+                <div class="input-group" style="position:relative;">
+                    <input type="text" id="buscarAlumno" class="form-control" placeholder="Escribe correo o nombre..." autocomplete="off" aria-autocomplete="list" aria-controls="sugerenciasAlumnos" />
+                    <button id="btnAsignarAlumno" class="btn btn-primary" type="button">Asignar Alumno</button>
+                    <ul id="sugerenciasAlumnos" class="list-group" style="position:absolute; top:100%; left:0; right:0; width:100%; z-index:2000; display:none; max-height:220px; overflow:auto; margin-top:4px;"></ul>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+
+                <button type="button" id="btnImportarAlumnos" class="btn btn-success" title="Importar desde Excel"><i class="fas fa-file-excel" style="margin-right:8px"></i>Importar Alumnos</button>
+                <input type="file" id="fileImportarAlumnos" accept=".xlsx,.xls" style="display:none" />
+
+            </div>
+        </div>
+    </div>
+    <div id="listaAlumnosAsignados" class="mt-3"></div>
 }
-
-<h2>_Alumnos</h2>
-

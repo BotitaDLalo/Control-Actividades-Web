@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using ControlActividades.Interfaces;
@@ -62,7 +61,15 @@ namespace ControlActividades.Services
             return await MateriasCAService.BuscarAlumnosPorCorreo(query);
         }
 
-
+        public async Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await MateriasSTService.CrearActividadAsync(actividad);
+            }
+            return await MateriasCAService.CrearActividadAsync(actividad);
+        }
         #region Propiedades
         public FuenteDatosService FuenteDatosService
         {
