@@ -1063,7 +1063,7 @@ namespace ControlActividades.Controllers
         [HttpPost]
         [Route("RegistrarEnvioActividadAlumnoConEnlaces")]
         public async Task<IHttpActionResult> RegistrarEnvioActividadAlumnoConEnlaces()
-        {
+        {   
             try
             {
                 var httpRequest = HttpContext.Current.Request;
@@ -1098,7 +1098,9 @@ namespace ControlActividades.Controllers
 
                 var tieneLimiteEntregas = actividad.TieneLimiteEntregas;
 
-                var entregasAlumno = Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).ToList();
+                var entregasAlumno = Db.tbEntregaActividadAlumno
+                    .Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId && a.Estatus)
+                    .ToList();
                 if (tieneLimiteEntregas)
                 {
                     var totalEntregasPorAlumno = entregasAlumno.Count;
@@ -1291,6 +1293,30 @@ namespace ControlActividades.Controllers
 
                 //    entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
                 //}
+
+                // 1. Buscar entregas anteriores con Estatus = true
+                var entregasAnteriores = Db.tbEntregaActividadAlumno
+                    .Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId && a.Estatus)
+                    .ToList();
+
+                // 2. Verificar si ya está calificada (no permitir nueva entrega si ya está calificada)
+                bool estaCalificada = entregasAnteriores.Any(e => e.Calificacion > 0);
+                if (estaCalificada)
+                {
+                    return Content(HttpStatusCode.BadRequest, new ErrorResponse
+                    {
+                        Mensaje = "La entrega ya ha sido calificada",
+                        Codigo = "ENTREGA_CALIFICADA",
+                        Detalles = "No puedes modificar una entrega que ya ha sido calificada"
+                    });
+                }
+
+                // 3. Marcar entregas anteriores como false
+                foreach (var entrega in entregasAnteriores)
+                {
+                    entrega.Estatus = false;
+                    Db.Entry(entrega).State = EntityState.Modified;
+                }
 
                 // ✅ NUEVA ENTREGA - CREAR
                 entregaActividad = new tbEntregaActividadAlumno()
