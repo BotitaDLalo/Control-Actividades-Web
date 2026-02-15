@@ -130,7 +130,10 @@ namespace ControlActividades.Services.Actividades
                     FechaLimite = actividadmodelo.FechaLimite,
                     Puntaje = actividadmodelo.Puntaje,
                     Enviado = actividadmodelo.Enviado,
-                    FechaProgramada = actividadmodelo.FechaProgramada
+                    FechaProgramada = actividadmodelo.FechaProgramada,
+                    PermitirEntregasTarde = actividadmodelo.PermitirEntregasTarde,
+                    TieneLimiteEntregas = actividadmodelo.TieneLimiteEntregas,
+                    LimiteEntregasPorAlumno = actividadmodelo.LimiteEntregasPorAlumno
                 };
 
                 var json = JsonConvert.SerializeObject(model);

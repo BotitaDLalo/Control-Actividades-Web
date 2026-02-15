@@ -217,7 +217,8 @@ namespace ControlActividades.Controllers
                             ActividadId = actividadId,
                             AlumnoId = alumnoId,
                             FechaEntrega = fechaEnt,
-                            EstadoEntregaId = estadoResolved
+                            EstadoEntregaId = estadoResolved,
+                            Estatus = true
                         };
 
                         Db.Set<tbEntregaActividadAlumno>().Add(entregaAlumno);
@@ -965,7 +966,8 @@ namespace ControlActividades.Controllers
                         ActividadId = actividadId,
                         AlumnoId = alumnoId,
                         FechaEntrega = fechaEntParsed,
-                        EstadoEntregaId = 1
+                        EstadoEntregaId = 1,
+                        Estatus = true
                     };
 
                     Db.tbEntregaActividadAlumno.Add(entregaAlumno);
@@ -1100,7 +1102,7 @@ namespace ControlActividades.Controllers
                 if (tieneLimiteEntregas)
                 {
                     var totalEntregasPorAlumno = entregasAlumno.Count;
-                    if (totalEntregasPorAlumno > limiteEntrega)
+                    if (totalEntregasPorAlumno >= limiteEntrega)
                     {
                         return Content(HttpStatusCode.BadRequest, new ErrorResponse
                         {
@@ -1215,8 +1217,12 @@ namespace ControlActividades.Controllers
 
                 var entregaActiva = entregasAlumno.FirstOrDefault(a => a.Estatus);
 
-                var entregaExistente = await Db.tbEntregaActividadAlumno
-                    .FirstOrDefaultAsync(e => e.EntregaActividadAlumnoId == entregaActiva.EntregaActividadAlumnoId);
+                tbEntregaActividadAlumno entregaExistente = null;
+                if (entregaActiva != null)
+                {
+                    entregaExistente = await Db.tbEntregaActividadAlumno
+                        .FirstOrDefaultAsync(e => e.EntregaActividadAlumnoId == entregaActiva.EntregaActividadAlumnoId);
+                }
 
 
                 tbEntregaActividadAlumno entregaActividad;
@@ -1226,7 +1232,7 @@ namespace ControlActividades.Controllers
                 var fechaLimite = actividad.FechaLimite;
                 var permiteEntregaTardia = actividad.PermitirEntregasTarde;
 
-                if (entregaActiva.FechaEntrega > fechaLimite && !actividad.PermitirEntregasTarde)
+                if (fechaEntregaParsed > fechaLimite && !permiteEntregaTardia)
                 {
                     return Content(HttpStatusCode.BadRequest, new ErrorResponse
                     {
@@ -1292,13 +1298,14 @@ namespace ControlActividades.Controllers
                     ActividadId = actividadId,
                     AlumnoId = alumnoId,
                     FechaEntrega = fechaEntregaParsed,
-                    EstadoEntregaId = 1
+                    EstadoEntregaId = 1,
+                    Estatus = true
                 };
 
 
-                if (entregaActiva.FechaEntrega > fechaLimite)
+                if (fechaEntregaParsed > fechaLimite)
                 {
-                    entregaActiva.EntregaTardia = true;
+                    entregaActividad.EntregaTardia = true;
                 }
 
                 Db.tbEntregaActividadAlumno.Add(entregaActividad);
@@ -1584,7 +1591,8 @@ namespace ControlActividades.Controllers
                     ActividadId = actividadId,
                     AlumnoId = alumnoId,
                     FechaEntrega = fechaEntregaParsed,
-                    EstadoEntregaId = 1
+                    EstadoEntregaId = 1,
+                    Estatus = true
                 };
 
                 Db.tbEntregaActividadAlumno.Add(entregaActividad);

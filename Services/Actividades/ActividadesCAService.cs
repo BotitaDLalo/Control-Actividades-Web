@@ -139,6 +139,10 @@ namespace ControlActividades.Services.Actividades
             actividadEditar.Enviado = actividadDto.Enviado;
             actividadEditar.FechaProgramada = actividadDto.FechaProgramada;
 
+            actividadEditar.PermitirEntregasTarde = actividadDto.PermitirEntregasTarde;
+            actividadEditar.TieneLimiteEntregas = actividadDto.TieneLimiteEntregas;
+            actividadEditar.LimiteEntregasPorAlumno = actividadDto.LimiteEntregasPorAlumno;
+
             await Db.SaveChangesAsync();
 
             return new ActividadRes

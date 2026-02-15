@@ -136,6 +136,9 @@ namespace ControlActividades.Models
         public int MateriaId { get; set; }
         public bool? Enviado { get; set; }
         public DateTime? FechaProgramada { get; set; }
+        public bool PermitirEntregasTarde { get; set; }
+        public bool TieneLimiteEntregas { get; set; }
+        public int LimiteEntregasPorAlumno { get; set; }
     }
 
 }

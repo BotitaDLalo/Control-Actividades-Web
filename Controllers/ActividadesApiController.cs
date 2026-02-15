@@ -368,6 +368,11 @@ namespace ControlActividades.Controllers
             dbActivity.Enviado = updatedActivity.Enviado ?? dbActivity.Enviado;
             dbActivity.FechaProgramada = updatedActivity.FechaProgramada ?? dbActivity.FechaProgramada;
 
+            // Nuevos campos para límites de entrega
+            dbActivity.PermitirEntregasTarde = updatedActivity.PermitirEntregasTarde;
+            dbActivity.TieneLimiteEntregas = updatedActivity.TieneLimiteEntregas;
+            dbActivity.LimiteEntregasPorAlumno = updatedActivity.LimiteEntregasPorAlumno;
+
             await Db.SaveChangesAsync();
 
             // si cambió a publicado ahora -> asignar alumnos

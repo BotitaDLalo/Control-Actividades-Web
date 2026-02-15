@@ -1,4 +1,4 @@
-﻿using ControlActividades.Models;
+using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
@@ -519,7 +519,8 @@ namespace ControlActividades.Controllers
                             ActividadId = actividadId,
                             AlumnoId = alumnoId,
                             FechaEntrega = fechaEnt,
-                            EstadoEntregaId = estadoResolved
+                            EstadoEntregaId = estadoResolved,
+                            Estatus = true
                         };
 
                         Db.tbEntregaActividadAlumno.Add(entregaAlumno);
