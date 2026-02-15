@@ -97,7 +97,7 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
         public int MateriaId { get; set; }
         public DateTime FechaCreacion { get; set; }
-        public DateTime FechaLimite { get; set; }
+        public DateTime? FechaLimite { get; set; }
         public int Puntaje { get; set; }
         public bool? Enviado { get; set; }
         public bool PermitirEntregasTarde { get; set; }
@@ -207,7 +207,7 @@ namespace ControlActividades.Models
 
         public DateTime FechaCreacion { get; set; }
 
-        public DateTime FechaLimite { get; set; }
+        public DateTime? FechaLimite { get; set; }
 
         public Decimal Puntaje { get; set; }
 
@@ -256,5 +256,23 @@ namespace ControlActividades.Models
         public List<EmailVerificadoAlumno> Alumnos { get; set; }
     }
 
+    #endregion
+
+
+    #region Actividades
+    public class ActividadDetalleViewModel
+    {
+        public string NombreActividad { get; set; }
+
+        public decimal Puntaje { get; set; }
+
+        public DateTime? FechaLimite { get; set; }
+
+        List<string> Enlaces { get; set; }
+
+        public decimal Calificacion { get; set; }
+
+
+    }
     #endregion
 }

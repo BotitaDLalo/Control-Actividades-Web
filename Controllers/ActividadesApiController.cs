@@ -176,7 +176,10 @@ namespace ControlActividades.Controllers
                         nombreActividad = a.NombreActividad,
                         descripcionActividad = a.Descripcion,
                         fechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        fechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        //fechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        fechaLimiteActividad = a.FechaLimite.HasValue
+                            ? a.FechaLimite.Value.ToString("yyyy-MM-ddTHH:mm:ss")
+                            : null,
                         //tipoActividadId = a.TipoActividadId,
                         puntaje = a.Puntaje,
                         materiaId = a.MateriaId
@@ -225,7 +228,10 @@ namespace ControlActividades.Controllers
                     NombreActividad = a.NombreActividad,
                     DescripcionActividad = a.Descripcion,
                     FechaCreacionActividad = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    //FechaLimiteActividad = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimiteActividad = a.FechaLimite.HasValue
+                        ? a.FechaLimite.Value.ToString("yyyy-MM-ddTHH:mm:ss")
+                        : null,
                     Puntaje = a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,

@@ -29,6 +29,8 @@ namespace ControlActividades.Models
         public decimal Calificacion { get; set; }
 
         public int ActividadId { get; set; }
+
+        public bool SinPuntaje { get; set; }
     }
     #endregion
 }

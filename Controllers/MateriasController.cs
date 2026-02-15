@@ -689,7 +689,10 @@ namespace ControlMaterias.Controllers
                     a.NombreActividad,
                     a.Descripcion,
                     FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    //FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    FechaLimite = a.FechaLimite.HasValue
+                        ? a.FechaLimite.Value.ToString("yyyy-MM-ddTHH:mm:ss")
+                        : null,
                     a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,
