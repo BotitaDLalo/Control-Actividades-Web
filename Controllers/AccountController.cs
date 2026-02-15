@@ -185,6 +185,25 @@ namespace ControlActividades.Controllers
             {
                 string email = model.Email;
 
+
+                Role role;
+
+                var usuario = await UserManager.FindByEmailAsync(model.Email);
+                var getRole = await UserManager.GetRolesAsync(usuario.Id);
+                if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                {
+                    return View(model);
+                }
+
+                role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+
+                if (role == Role.Docente && !usuario.EmailConfirmed)
+                {
+                    Session[SessionKeys.Email.ToString()] = email;
+                    return RedirectToAction("ConfirmEmail");
+                }
+
+
                 var emailEsValido = await UserManager.FindByEmailAsync(email);
 
                 if (emailEsValido == null)
