@@ -440,6 +440,8 @@
     <Compile Include="Controllers\MigracionUsuariosController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
     <Compile Include="Exceptions\ActividadException.cs" />
+    <Compile Include="Exceptions\AlumnosException.cs" />
+    <Compile Include="Exceptions\EntregaAlumnoException.cs" />
     <Compile Include="Exceptions\EntregableNoEncontradoException.cs" />
     <Compile Include="Filters\AdminAuditLogAttribute.cs" />
     <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
