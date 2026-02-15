@@ -240,7 +240,7 @@ namespace ControlActividades.Models
 
         public string Contenido { get; set; }
 
-        public decimal Calificacion { get; set; };
+        public decimal Calificacion { get; set; }
 
         public int EstadoEntregaId { get; set; }
 
