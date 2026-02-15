@@ -463,10 +463,6 @@
     <Compile Include="Migrations\202602131617299_InitialCreate.Designer.cs">
       <DependentUpon>202602131617299_InitialCreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202602142051287_CreacionTablaAvisosEnvios.cs" />
-    <Compile Include="Migrations\202602142051287_CreacionTablaAvisosEnvios.Designer.cs">
-      <DependentUpon>202602142051287_CreacionTablaAvisosEnvios.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApiResponse.cs" />
@@ -918,9 +914,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202602131617299_InitialCreate.resx">
       <DependentUpon>202602131617299_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202602142051287_CreacionTablaAvisosEnvios.resx">
-      <DependentUpon>202602142051287_CreacionTablaAvisosEnvios.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
