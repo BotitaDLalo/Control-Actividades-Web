@@ -32,6 +32,7 @@ namespace ControlActividades.Services
             if (role == Roles.DOCENTE)
             {
                 grupos = Db.tbGrupos.Where(g => g.DocenteId == ca_usuarioId)
+                        .OrderByDescending(g => g.GrupoId) // mostrar primero los grupos más recientes
                         .Select(g => new GruposCARes
                         {
                             GrupoId = g.GrupoId,
@@ -56,6 +57,7 @@ namespace ControlActividades.Services
                 lsAlumnoGruposId.AddRange(lsMateriasGrupoId);
 
                 grupos = Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
+                        .OrderByDescending(g => g.GrupoId) // mostrar primero los grupos más recientes
                         .Select(g => new GruposCARes
                         {
                             GrupoId = g.GrupoId,
@@ -95,7 +97,7 @@ namespace ControlActividades.Services
 
             var lsMaterias = Db.tbMaterias
                 .Where(m => materiasIds.Contains(m.MateriaId))
-                .Select(m => new  MateriaCARes
+                .Select(m => new MateriaCARes
                 {
                     MateriaId = m.MateriaId,
                     GrupoId = grupoId,

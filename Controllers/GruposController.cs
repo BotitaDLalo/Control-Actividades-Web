@@ -194,6 +194,7 @@ namespace ControlActividades.Controllers
         {
             var grupos = Db.tbGrupos
                 .Where(g => g.DocenteId == docenteId)
+                .OrderByDescending(g => g.GrupoId) // mostrar grupos creados más recientemente primero
                 .Select(a => new { a.GrupoId, a.Descripcion, a.NombreGrupo, a.CodigoColor, a.CodigoAcceso })
                 .ToList();
 
@@ -447,7 +448,7 @@ namespace ControlActividades.Controllers
             var grupo = Db.tbGrupos.Find(grupoId);
             if (grupo == null)
             {
-                Response.StatusCode = 404; // NotFound
+                Response.StatusCode =404; // NotFound
                 return Json(new { mensaje = "El grupo no existe." });
             }
 
@@ -460,6 +461,26 @@ namespace ControlActividades.Controllers
             if (relacionesAlumnosGrupos.Any())
             {
                 Db.tbAlumnosGrupos.RemoveRange(relacionesAlumnosGrupos);
+            }
+
+            // If there are avisos that reference this group, detach them by nulling GrupoId
+            try
+            {
+                var avisosGrupo = Db.tbAvisos.Where(av => av.GrupoId == grupoId).ToList();
+                if (avisosGrupo.Any())
+                {
+                    foreach (var av in avisosGrupo)
+                    {
+                        av.GrupoId = null; // preserve the aviso but remove group association
+                    }
+                    // save the changes for avisos updated before removing the group
+                    Db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                // log and continue with deletion attempt
+                try { Console.WriteLine("[WARN] No se pudieron desvincular avisos del grupo: " + ex.Message); } catch { }
             }
 
             Db.tbGrupos.Remove(grupo);
@@ -511,6 +532,30 @@ namespace ControlActividades.Controllers
             return Json(new { mensaje = "Grupo, materias, actividades y avisos eliminados correctamente" });
         }
 
+
+        [HttpPost]
+        public JsonResult DesvincularMateria(int grupoId, int materiaId)
+        {
+            try
+            {
+                var relacion = Db.tbGruposMaterias.FirstOrDefault(gm => gm.GrupoId == grupoId && gm.MateriaId == materiaId);
+                if (relacion == null)
+                {
+                    Response.StatusCode =404;
+                    return Json(new { mensaje = "La relación grupo-materia no existe." });
+                }
+
+                Db.tbGruposMaterias.Remove(relacion);
+                Db.SaveChanges();
+
+                return Json(new { mensaje = "Materia desvinculada correctamente." });
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode =500;
+                return Json(new { mensaje = "Error al desvincular materia.", detalle = ex.Message });
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {

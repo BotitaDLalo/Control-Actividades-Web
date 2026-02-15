@@ -9,6 +9,8 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
 using NPOI.SS.Formula.Eval;
+using NPOI.XSSF.UserModel;
+using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -278,7 +280,7 @@ namespace ControlMaterias.Controllers
 
             var docenteId = Fg.ObtenerCAUsuarioId(User);
 
-            // Validar que el grupo exista y pertenezca al docente
+            // Validar que el grupo exista y pertenzca al docente
             var grupo = await Db.tbGrupos
                 .FirstOrDefaultAsync(g => g.GrupoId == request.GrupoId && g.DocenteId == docenteId);
 
@@ -332,7 +334,7 @@ namespace ControlMaterias.Controllers
         {
             if (avisos == null)
             {
-                Response.StatusCode = 400; // Bad Request
+                Response.StatusCode =400; // Bad Request
                 return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
             }
 
@@ -375,7 +377,7 @@ namespace ControlMaterias.Controllers
         {
             if (datos == null || datos.GrupoId == null || string.IsNullOrWhiteSpace(datos.Titulo) || string.IsNullOrWhiteSpace(datos.Descripcion))
             {
-                Response.StatusCode = 400; // Bad Request
+                Response.StatusCode =400; // Bad Request
                 return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
             }
 
@@ -385,22 +387,38 @@ namespace ControlMaterias.Controllers
                 string titulo = datos.Titulo;
                 string descripcion = datos.Descripcion;
 
+                // Ensure we have a DocenteId; fallback to current user if not provided
+                int docenteIdToUse = datos.DocenteId !=0 ? datos.DocenteId : Fg.ObtenerCAUsuarioId(User);
+
                 // Buscar todas las materias asociadas a ese GrupoId en la tabla tbGruposMaterias
                 var materiasRelacionadas = await Db.tbGruposMaterias
                     .Where(gm => gm.GrupoId == grupoId)
                     .Select(gm => gm.MateriaId)
                     .ToListAsync();
 
+                // Si no hay materias relacionadas, crear un aviso a nivel de grupo (MateriaId = null)
                 if (!materiasRelacionadas.Any())
                 {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontraron materias asociadas a este grupo." }, JsonRequestBehavior.AllowGet);
+                    var aviso = new tbAvisos
+                    {
+                        DocenteId = docenteIdToUse,
+                        Titulo = titulo,
+                        Descripcion = descripcion,
+                        GrupoId = grupoId,
+                        MateriaId = null,
+                        FechaCreacion = DateTime.Now
+                    };
+
+                    Db.tbAvisos.Add(aviso);
+                    await Db.SaveChangesAsync();
+
+                    return Json(new { mensaje = "Aviso grupal creado (sin materias asociadas)", cantidad =1 }, JsonRequestBehavior.AllowGet);
                 }
 
                 // Crear un aviso para cada materia relacionada con el grupo
                 var avisos = materiasRelacionadas.Select(materiaId => new tbAvisos
                 {
-                    DocenteId = datos.DocenteId, // Asegurar que venga en los datos
+                    DocenteId = docenteIdToUse,
                     Titulo = titulo,
                     Descripcion = descripcion,
                     GrupoId = grupoId,
@@ -415,7 +433,7 @@ namespace ControlMaterias.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500; // Internal Server Error
+                Response.StatusCode =500; // Internal Server Error
                 return Json(new { mensaje = "Error al crear los avisos", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -559,14 +577,14 @@ namespace ControlMaterias.Controllers
         {
             if (actividadDto == null)
             {
-                Response.StatusCode = 400; // Bad Request
+                Response.StatusCode =400; // Bad Request
                 return Json(new { mensaje = "Datos inválidos." }, JsonRequestBehavior.AllowGet);
             }
 
             // Validar que la fecha límite sea en el futuro
             if (actividadDto.FechaLimite <= DateTime.Now)
             {
-                Response.StatusCode = 400; // Bad Request
+                Response.StatusCode =400; // Bad Request
                 return Json(new { mensaje = "La fecha límite debe ser en el futuro." }, JsonRequestBehavior.AllowGet);
             }
 
@@ -581,7 +599,7 @@ namespace ControlMaterias.Controllers
                 );*/
                 
                 return Json(new
-                {   mensaje = "Actividad creada y asignada a los alumnos con éxito",
+                { mensaje = "Actividad creada y asignada a los alumnos con éxito",
                     actividadId = actividad.ActividadId
                 }, JsonRequestBehavior.AllowGet);
             }
@@ -591,74 +609,21 @@ namespace ControlMaterias.Controllers
             }
         }
 
-        //Controlador que obtiene  todo lo de actividades que pertecenen a esa materia
-        [HttpGet]
-        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
-        {
-            try
-            {
-                // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
-                //bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
-                var query = Db.tbActividades.Where(a => a.MateriaId == materiaId).ToList();
-                if (User.IsInRole(Roles.ALUMNO))
-                {
-                    // para alumnos mostrar actividades publicadas o programadas cuyo horario ya se cumplió
-                    query = query.Where(a => a.Enviado == true || (a.Enviado == null && a.FechaProgramada.HasValue && a.FechaProgramada.Value <= DateTime.Now)).ToList();
-                }
-                var actividadesEntities = query;
-
-                //if (actividadesEntities == null || actividadesEntities.Count == 0)
-                //{
-                //    Response.StatusCode = 404; // Not Found
-                //    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
-                //}
-                var rolUsuario = Fg.ObtenerRolUsuario(User);
-
-                var resultado = actividadesEntities.Select(a => new
-                {
-                    a.ActividadId,
-                    a.NombreActividad,
-                    a.Descripcion,
-                    FechaCreacion = a.FechaCreacion.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    FechaLimite = a.FechaLimite.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    a.Puntaje,
-                    Enviado = a.Enviado,
-                    FechaProgramada = a.FechaProgramada,
-                    Rol = rolUsuario
-                }).ToList();
-
-
-
-                return Json(new
-                {
-                    Actividades = resultado,
-                    RolUsuario = rolUsuario
-                }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-        #endregion
-
-        #region Avisos
-        //Controlador para crear un aviso funciona desde dentro de la materia
+        // Controlador para copiar actividades - FEATURE DISABLED
+        /*
         [HttpPost]
         public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
         {
-            if (req == null || req.origenMateriaId <= 0 || req.nuevoMateriaId <= 0)
+            if (req == null || req.origenMateriaId <=0 || req.nuevoMateriaId <=0)
             {
-                Response.StatusCode = 400;
+                Response.StatusCode =400;
                 return Json(new { mensaje = "Parámetros inválidos" }, JsonRequestBehavior.AllowGet);
             }
 
             try
             {
                 var actividades = await Db.tbActividades.Where(a => a.MateriaId == req.origenMateriaId).ToListAsync();
-                if (actividades == null || actividades.Count == 0)
+                if (actividades == null || actividades.Count ==0)
                 {
                     return Json(new { mensaje = "No hay actividades para copiar" }, JsonRequestBehavior.AllowGet);
                 }
@@ -683,10 +648,11 @@ namespace ControlMaterias.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500;
+                Response.StatusCode =500;
                 return Json(new { mensaje = "Error al copiar actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+        */
 
         #endregion
 
@@ -1174,6 +1140,116 @@ namespace ControlMaterias.Controllers
             }
 
             base.Dispose(disposing);
+        }
+
+        [HttpGet]
+        public ActionResult DescargarPlantillaAlumnos()
+        {
+            try
+            {
+                // Crear libro y hoja
+                IWorkbook workbook = new XSSFWorkbook();
+                ICreationHelper helper = workbook.GetCreationHelper();
+                ISheet sheet = workbook.CreateSheet("Alumnos");
+
+                // Encabezado style: bold + background
+                ICellStyle headerStyle = workbook.CreateCellStyle();
+                IFont headerFont = workbook.CreateFont();
+                headerFont.IsBold = true;
+                headerStyle.SetFont(headerFont);
+                headerStyle.FillForegroundColor = IndexedColors.LightGreen.Index;
+                headerStyle.FillPattern = FillPattern.SolidForeground;
+
+                // Encabezados
+                var header = sheet.CreateRow(0);
+                string[] headers = new[] { "Email", "Nombre", "ApellidoPaterno", "ApellidoMaterno" };
+
+                // Añadir comentarios de ayuda a cabeceras
+                var drawing = sheet.CreateDrawingPatriarch();
+
+                for (int i =0; i < headers.Length; i++)
+                {
+                    var cell = header.CreateCell(i);
+                    cell.SetCellValue(headers[i]);
+                    cell.CellStyle = headerStyle;
+
+                    // Comentario con instrucciones por columna
+                    var anchor = helper.CreateClientAnchor();
+                    anchor.Col1 = i;
+                    anchor.Col2 = i +3;
+                    anchor.Row1 =0;
+                    anchor.Row2 =4;
+                    var comment = drawing.CreateCellComment(anchor);
+                    string commentText;
+                    switch (headers[i])
+                    {
+                        case "Email":
+                            commentText = "Email obligatorio. Formato: usuario@dominio.com";
+                            break;
+                        case "Nombre":
+                            commentText = "Nombre(s) del alumno (opcional).";
+                            break;
+                        case "ApellidoPaterno":
+                            commentText = "Apellido paterno (recomendado).";
+                            break;
+                        case "ApellidoMaterno":
+                            commentText = "Apellido materno (opcional).";
+                            break;
+                        default:
+                            commentText = string.Empty;
+                            break;
+                    }
+                    comment.String = helper.CreateRichTextString(commentText);
+                    comment.Author = "Sistema";
+                    cell.CellComment = comment;
+                }
+
+                // Ejemplo de filas (estilo de ejemplo)
+                ICellStyle ejemploStyle = workbook.CreateCellStyle();
+                IFont ejemploFont = workbook.CreateFont();
+                ejemploFont.IsItalic = true;
+                ejemploStyle.SetFont(ejemploFont);
+
+                var row1 = sheet.CreateRow(1);
+                row1.CreateCell(0).SetCellValue("alumno1@ejemplo.com");
+                row1.CreateCell(1).SetCellValue("Juan");
+                row1.CreateCell(2).SetCellValue("Perez");
+                row1.CreateCell(3).SetCellValue("Gomez");
+                for (int c =0; c <4; c++) row1.GetCell(c).CellStyle = ejemploStyle;
+
+                var row2 = sheet.CreateRow(2);
+                row2.CreateCell(0).SetCellValue("alumno2@ejemplo.com");
+                row2.CreateCell(1).SetCellValue("Ana");
+                row2.CreateCell(2).SetCellValue("Lopez");
+                row2.CreateCell(3).SetCellValue("Martinez");
+                for (int c =0; c <4; c++) row2.GetCell(c).CellStyle = ejemploStyle;
+
+                // Nota superior como fila de ayuda (fusionar celdas)
+                var notaRow = sheet.CreateRow(4);
+                var notaCell = notaRow.CreateCell(0);
+                notaCell.SetCellValue("INSTRUCCIONES: La columna 'Email' es obligatoria. Guarda el archivo en formato .xlsx antes de subir.");
+                ICellStyle notaStyle = workbook.CreateCellStyle();
+                IFont notaFont = workbook.CreateFont();
+                notaFont.IsItalic = true;
+                notaStyle.SetFont(notaFont);
+                notaCell.CellStyle = notaStyle;
+                try { sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(4,4,0,3)); } catch { }
+
+                // Autosize columnas
+                for (int i =0; i < headers.Length; i++) sheet.AutoSizeColumn(i);
+
+                using (var ms = new System.IO.MemoryStream())
+                {
+                    workbook.Write(ms);
+                    var content = ms.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "plantilla_alumnos.xlsx");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error generando plantilla XLSX: " + ex.Message);
+                return new HttpStatusCodeResult(500, "Error generando plantilla");
+            }
         }
     }
 }
