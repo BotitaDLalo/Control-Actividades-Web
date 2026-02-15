@@ -94,7 +94,6 @@ namespace ControlActividades
             ));
             
             bundles.Add(new Bundle("~/bundles/iachat").Include(
-                "~/Scripts/Docente/IA.js",
                 "~/Scripts/Docente/IAChat.js"
                 )
             );

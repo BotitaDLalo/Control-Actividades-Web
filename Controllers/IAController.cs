@@ -1,5 +1,3 @@
-using NPOI.POIFS.Crypt;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Configuration;
 using System.Net;
@@ -19,18 +17,16 @@ namespace ControlActividades.Controllers
                    ?? ConfigurationManager.AppSettings["GenerativeApiKey"];
         }
 
+        private static readonly HttpClient _http = new HttpClient();
+
+        static IAController()
+        {
+            _http.Timeout = TimeSpan.FromSeconds(60);
+        }
+
         private string GetForwardUrl()
         {
             return ConfigurationManager.AppSettings["AIService_ForwardUrl"];
-        }
-
-        private bool UseApiKeyInHeader()
-        {
-            var v = ConfigurationManager.AppSettings["AIService_UseApiKeyInHeader"];
-            if (string.IsNullOrEmpty(v))
-                return true; // default to header
-
-            return v.Trim().ToLower() == "true";
         }
 
         // Stub para el chat: /api/IA/GenerarContenido
@@ -45,7 +41,7 @@ namespace ControlActividades.Controllers
         {
             var forwardUrl = GetForwardUrl();
             var apiKey = GetApiKey();
-            var useHeader = UseApiKeyInHeader();
+          
 
             if (string.IsNullOrEmpty(forwardUrl))
             {
@@ -59,67 +55,34 @@ namespace ControlActividades.Controllers
                     new { mensaje = "AIService_ApiKey no configurada." });
             }
 
-            string body;
 
             try
             {
-                body = await Request.Content.ReadAsStringAsync();
-            }
-            catch (Exception ex)
-            {
-                return Content(System.Net.HttpStatusCode.BadRequest,
-                    new
-                    {
-                        mensaje = "Error leyendo el cuerpo de la petición",
-                        detalle = ex.Message
-                    });
-            }
+                var body = await Request.Content.ReadAsStringAsync();
 
-            try
-            {
-                using (var client = new HttpClient())
+                // Siempre agregar API key como query param
+                var separator = forwardUrl.Contains("?") ? "&" : "?";
+                var target = forwardUrl + separator + "key=" + WebUtility.UrlEncode(apiKey);
+
+                var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+
+                var resp = await _http.PostAsync(target, content);
+                var respText = await resp.Content.ReadAsStringAsync();
+
+                return ResponseMessage(new HttpResponseMessage(resp.StatusCode)
                 {
-                    var target = forwardUrl;
-
-                    if (!useHeader)
-                    {
-                        var separator = target.Contains("?") ? "&" : "?";
-                        target = target + separator + "key=" + WebUtility.UrlEncode(apiKey);
-                    }
-                    else
-                    {
-                        client.DefaultRequestHeaders.Authorization =
-                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-                    }
-
-                    var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
-                    var resp = await client.PostAsync(target, content);
-                    var respText = await resp.Content.ReadAsStringAsync();
-
-                    // return raw response preserving status code
-                    return ResponseMessage(new HttpResponseMessage(resp.StatusCode)
-                    {
-                        Content = new StringContent(respText, System.Text.Encoding.UTF8, "application/json")
-                    });
-                }
+                    Content = new StringContent(respText, System.Text.Encoding.UTF8, "application/json")
+                });
             }
             catch (HttpRequestException hre)
             {
-                return Content(System.Net.HttpStatusCode.BadGateway,
-                    new
-                    {
-                        mensaje = "Error al comunicarse con el servicio AI externo",
-                        detalle = hre.Message
-                    });
+                return Content(HttpStatusCode.BadGateway,
+                    new { mensaje = "Error comunicándose con Gemini", detalle = hre.Message });
             }
             catch (Exception ex)
             {
-                return Content(System.Net.HttpStatusCode.InternalServerError,
-                    new
-                    {
-                        mensaje = "Error interno al procesar la petición AI",
-                        detalle = ex.Message
-                    });
+                return Content(HttpStatusCode.InternalServerError,
+                    new { mensaje = "Error interno", detalle = ex.Message });
             }
         }
 
