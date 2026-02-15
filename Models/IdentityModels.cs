@@ -231,9 +231,9 @@ namespace ControlActividades.Models
                 .HasForeignKey(a => a.EstadoEntregaId)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<tbEntregaActividadAlumno>()
-                .HasIndex(e => new { e.AlumnoId, e.ActividadId })
-                .IsUnique();
+            //modelBuilder.Entity<tbEntregaActividadAlumno>()
+            //    .HasIndex(e => new { e.AlumnoId, e.ActividadId })
+            //    .IsUnique();
             #endregion
 
 
