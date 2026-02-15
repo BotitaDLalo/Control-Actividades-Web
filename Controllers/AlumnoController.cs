@@ -31,6 +31,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using ControlActividades.Filters;
 
 namespace ControlActividades.Controllers
 {
@@ -140,16 +141,7 @@ namespace ControlActividades.Controllers
                 _alumnoApiService = value;
             }
         }
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (_userManager != null)
-                {
-                    _userManager.Dispose();
-                    _userManager = null;
-                }
-        
+
         private AlumnoService AlumnoService
         {
             get
@@ -161,6 +153,18 @@ namespace ControlActividades.Controllers
                 _alumnoService = value;
             }
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_userManager != null)
+                {
+                    _userManager.Dispose();
+                    _userManager = null;
+                }
+        
+
 
                 if (_signInManager != null)
                 {
