@@ -66,3 +66,7 @@ Gris casi blanco: #fafafa.
         text-decoration: underline;
         font-weight: 600;
     }
+
+.swal2-container {
+    z-index: 4000 !important;
+}

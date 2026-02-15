@@ -53,18 +53,11 @@ async function publicarAviso() {
     let enlaces = document.getElementById("enlacesAviso").value.trim();
     let fechaInicio = document.getElementById("fechaInicioAviso").value;
     let fechaFin = document.getElementById("fechaFinAviso").value;
-    let frecuenciaDias = parseInt(document.getElementById("frecuenciaDias").value);
+    let frecuenciaDias = parseInt(document.getElementById("frecuenciaDias").value || 0);
 
     // Validar que los campos no estén vacíos
     if (!titulo || !descripcion || !fechaInicio || !fechaFin) {
-        Swal.fire({
-            position: "top-end",
-            title: "Campos incompletos",
-            text: "Por favor completa todos los campos.",
-            icon: "warning",
-            timer: 2500,
-            showConfirmButton: false
-        });
+        document.getElementById("avisosForm").classList.add("was-validated");
         return;
     }
 
@@ -498,20 +491,67 @@ async function editarAviso(avisoId) {
 // Edita el aviso
 async function guardarEdicionAviso() {
 
-    const avisoId = document.getElementById("editarAvisoId").value;
+    const form = document.getElementById("editarAvisosForm");
+
+    if (!form.checkValidity()) {
+        form.classList.add("was-validated");
+        return;
+    }
 
     const data = {
-        AvisoId: avisoId,
+        AvisoId: document.getElementById("editarAvisoId").value,
         Titulo: document.getElementById("editarTituloAviso").value.trim(),
         Descripcion: document.getElementById("editarDescripcionAviso").value.trim(),
         Enlaces: document.getElementById("editarEnlacesAviso").value.trim(),
         FechaInicio: document.getElementById("editarFechaInicioAviso").value,
         FechaFin: document.getElementById("editarFechaFinAviso").value,
-        FrecuenciaDias: parseInt(document.getElementById("editarFrecuenciaDiasAviso").value)
+        FrecuenciaDias: parseInt(document.getElementById("editarFrecuenciaDiasAviso").value) || 0
     };
 
-    if (!data.Titulo || !data.Descripcion)
-        return Swal.fire("Campos incompletos", "Completa título y descripción", "warning");
+    let hoy = new Date().toISOString().split("T")[0];
+
+    if (data.FechaInicio < hoy) {
+        Swal.fire({
+            icon: "warning",
+            title: "Fecha inválida",
+            text: "La fecha de inicio no puede ser menor a hoy."
+        });
+        return;
+    }
+
+    if (data.FechaFin < data.FechaInicio) {
+        Swal.fire({
+            icon: "warning",
+            title: "Fechas inválidas",
+            text: "La fecha de fin debe ser mayor o igual a la fecha de inicio."
+        });
+        return;
+    }
+
+    if (data.FrecuenciaDias < 1) {
+        Swal.fire({
+            icon: "warning",
+            title: "Frecuencia inválida",
+            text: "La frecuencia debe ser al menos 1 día."
+        });
+        return;
+    }
+
+    if (data.Enlaces) {
+        let linksArray = data.Enlaces.split("\n");
+
+        for (let link of linksArray) {
+            link = link.trim();
+            if (link && !link.startsWith("https")) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Enlace inválido",
+                    text: "Todos los enlaces deben comenzar con https."
+                });
+                return;
+            }
+        }
+    }
 
     try {
         const response = await fetch("/Materias/EditarAviso", {
@@ -523,9 +563,22 @@ async function guardarEdicionAviso() {
         if (!response.ok)
             throw new Error("No se pudo actualizar el aviso.");
 
-        Swal.fire("Actualizado", "Aviso editado correctamente", "success");
+        Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "Aviso editado correctamente",
+            showConfirmButton: false,
+            timer: 3000
+        });
 
-        bootstrap.Modal.getInstance(document.getElementById("editarAvisoModal")).hide();
+        bootstrap.Modal
+            .getInstance(document.getElementById("editarAvisoModal"))
+            .hide();
+
+        form.classList.remove("was-validated");
+        form.reset();
+
         cargarAvisosDeMateria();
 
     } catch (error) {
