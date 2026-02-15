@@ -121,6 +121,8 @@ namespace ControlActividades.Services.Alumno
 
         public async Task<List<RegistrarEnvioActividadRes>> RegistrarEnvioActividadAlumnoConEnlaces(HttpRequest httpRequest, int actividadId, int alumnoId, int tipoEntrega, string fechaEntrega, string respuestaRaw, string enlacesJson)
         {
+            var lsFiles = httpRequest.Files;
+
             #region Validaciones entrega
             var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
 
@@ -129,7 +131,7 @@ namespace ControlActividades.Services.Alumno
             var tieneLimiteEntregas = actividad.TieneLimiteEntregas;
 
             var entregasAlumno = Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).ToList();
-            if (tieneLimiteEntregas)
+            if (tieneLimiteEntregas && entregasAlumno.Count > 0)
             {
                 var totalEntregasPorAlumno = entregasAlumno.Count;
                 if (totalEntregasPorAlumno > limiteEntrega)
@@ -245,20 +247,19 @@ namespace ControlActividades.Services.Alumno
 
             #region 4. VERIFICAR SI YA EXISTE ENTREGA
 
-            var entregaActiva = entregasAlumno.FirstOrDefault(a => a.Estatus);
+            //tbEntregaActividadAlumno entregaActiva = entregasAlumno.FirstOrDefault(a => a.Estatus);
 
-            var entregaExistente = await Db.tbEntregaActividadAlumno
-                .FirstOrDefaultAsync(e => e.EntregaActividadAlumnoId == entregaActiva.EntregaActividadAlumnoId);
+            //var entregaExistente = await Db.tbEntregaActividadAlumno
+            //    .FirstOrDefaultAsync(e => e.EntregaActividadAlumnoId == entregaActiva.EntregaActividadAlumnoId);
+
 
 
             tbEntregaActividadAlumno entregaActividad;
             int entregaActividadAlumnoId = 0;
-
-
             var fechaLimite = actividad.FechaLimite;
             var permiteEntregaTardia = actividad.PermitirEntregasTarde;
 
-            if (entregaActiva.FechaEntrega > fechaLimite && !actividad.PermitirEntregasTarde)
+            if (fechaEntregaParsed > fechaLimite && !actividad.PermitirEntregasTarde)
             {
                 //return Content(HttpStatusCode.BadRequest, new ErrorResponse
                 //{
@@ -326,7 +327,7 @@ namespace ControlActividades.Services.Alumno
                 AlumnoId = alumnoId,
                 FechaEntrega = fechaEntregaParsed,
                 EstadoEntregaId = 1,
-                EntregaTardia = (entregaActiva.FechaEntrega > fechaLimite),
+                EntregaTardia = (fechaEntregaParsed > fechaLimite),
                 Estatus = true
             };
 
@@ -462,7 +463,7 @@ namespace ControlActividades.Services.Alumno
             var entregable = new tbEntregables()
             {
                 EntregaActividadAlumnoId = entregaActividadAlumnoId,
-                TipoEntregaId = tipoEntregaDeterminado,
+                TipoEntregaId = 1,
                 Contenido = JsonConvert.SerializeObject(contenidoEstructurado),
                 Calificacion = null
             };
@@ -711,7 +712,7 @@ namespace ControlActividades.Services.Alumno
                     //    mensaje = "Docente no encontrado. La materia no tiene un docente asociado válido."
                     //});
 
-                    throw new AlumnosException("Docente no encontrado. La materia no tiene un docente asociado válido.","");
+                    throw new AlumnosException("Docente no encontrado. La materia no tiene un docente asociado válido.", "");
                 }
 
                 // 12. ✅ VALIDAR si el alumno YA ESTÁ registrado en esta materia
@@ -729,7 +730,7 @@ namespace ControlActividades.Services.Alumno
                     //    esGrupo = false
                     //});
 
-                    throw new AlumnosException($"Ya estás registrado en la materia '{materia.NombreMateria}'. No puedes unirte nuevamente.","");
+                    throw new AlumnosException($"Ya estás registrado en la materia '{materia.NombreMateria}'. No puedes unirte nuevamente.", "");
                 }
 
                 // 13. Crear respuesta de la materia
@@ -772,7 +773,7 @@ namespace ControlActividades.Services.Alumno
                 return respuesta;
             }
 
-            throw new AlumnosException("Código de acceso inválido o inexistente. Verifica que el código sea correcto.","");
+            throw new AlumnosException("Código de acceso inválido o inexistente. Verifica que el código sea correcto.", "");
         }
 
         public async Task<RegistrarAlumnoGrupoMateriaDocenteRes> RegistrarAlumnoGrupoMateriaDocente(List<string> lsEmails, int grupoId, int materiaId)
@@ -803,7 +804,7 @@ namespace ControlActividades.Services.Alumno
                 docenteId = await Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => a.DocenteId).FirstOrDefaultAsync();
 
                 var lsMateriasGrupo = Db.tbGruposMaterias.Where(a => a.GrupoId == grupoId).Select(a => a.MateriaId).ToList();
-                
+
                 foreach (var aluId in lsAlumnosId)
                 {
                     bool alumnoYaRegistrado = Db.tbAlumnosGrupos.Any(a => a.GrupoId == grupoId && a.AlumnoId == aluId);
@@ -840,7 +841,7 @@ namespace ControlActividades.Services.Alumno
                 alumnoRegistradoGrupo = true;
                 //var lsAlumnos = await ObtenerListaAlumnos(lsAlumnosId);
             }
-            
+
             if (materiaId != 0)
             {
                 docenteId = await Db.tbMaterias.Where(a => a.MateriaId == materiaId).Select(a => a.DocenteId).FirstOrDefaultAsync();
@@ -864,11 +865,11 @@ namespace ControlActividades.Services.Alumno
                 await Db.SaveChangesAsync();
                 alumnoRegistradoMateria = true;
             }
-            
-            
-            
+
+
+
             var lsAlumnos = await ObtenerListaAlumnos(lsAlumnosId);
-            
+
             var res = new RegistrarAlumnoGrupoMateriaDocenteRes()
             {
                 AlumnoRegistradoGrupo = alumnoRegistradoGrupo,
@@ -939,12 +940,12 @@ namespace ControlActividades.Services.Alumno
 
             if (alumnoTieneEntregas)
             {
-                throw new AlumnosException("El alumno ya ha realizado una entrega.","");
+                throw new AlumnosException("El alumno ya ha realizado una entrega.", "");
             }
 
             Db.tbAlumnosGrupos.Remove(relacionAEliminar);
             Db.tbAlumnosMaterias.RemoveRange(lsMateriasAlumno);
-            
+
             await Db.SaveChangesAsync();
 
 

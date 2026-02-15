@@ -434,7 +434,7 @@ namespace ControlActividades.Controllers
                 //if (entregable == null) return BadRequest();
                 await ActividadesApiService.AsignarCalificacion(entregableId, calificacion);
 
-                return Ok();
+                return Ok(new { Exito = true});
 
             }
             catch (Exception e)

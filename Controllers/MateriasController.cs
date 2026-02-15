@@ -1179,13 +1179,28 @@ namespace ControlMaterias.Controllers
 
             var lsActividadesMateriaId = lsActividadesMateria.Select(a => a.ActividadId).ToList();
 
-            var lsAlumnosCalificar = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateriaId.Contains(a.ActividadId))
+            var lsAlumnosCalificar = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateriaId.Contains(a.ActividadId) && a.Estatus)
                 .Select(a => new AlumnosCalificar
                 {
+                    EntregableId = a.EntregaActividadAlumnoId,
+                    AlumnoId = a.AlumnoId,
                     NombreCompletoAlumno = a.tbAlumnos.ApellidoPaterno + " " + a.tbAlumnos.ApellidoMaterno + " " + a.tbAlumnos.Nombre,
                     Calificacion = a.Calificacion,
-                    ActividadId = a.tbActividades.ActividadId
+                    ActividadId = a.tbActividades.ActividadId,
+                    EntregaTardia = a.EntregaTardia
+                    //SinPuntaje = 
                 }).ToList();
+
+            lsAlumnosCalificar = lsAlumnosCalificar.Select(a => new AlumnosCalificar
+            {
+                EntregableId = a.EntregableId,
+                AlumnoId = a.AlumnoId,
+                NombreCompletoAlumno = a.NombreCompletoAlumno,
+                Calificacion = a.Calificacion,
+                ActividadId = a.ActividadId,
+                EntregaTardia = a.EntregaTardia,
+                SinPuntaje = lsActividadesMateria.Where(act => act.ActividadId == a.ActividadId).Select(act => act.Puntaje).FirstOrDefault() == 0
+            }).ToList();
 
             EntregablesPartialViewModel model = new EntregablesPartialViewModel()
             {

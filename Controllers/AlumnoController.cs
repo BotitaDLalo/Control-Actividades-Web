@@ -7,10 +7,13 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using ControlActividades.Exceptions;
+using ControlActividades.Interfaces.Alumnos;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
+using ControlActividades.Services.Alumno;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -31,6 +34,8 @@ namespace ControlActividades.Controllers
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
         private FCMService _fCMService;
+        private AlumnoApiService _alumnoApiService;
+
 
         public AlumnoController()
         {
@@ -112,6 +117,48 @@ namespace ControlActividades.Controllers
             {
                 _fg = value;
             }
+        }
+        public AlumnoApiService AlumnoApiService
+        {
+            get
+            {
+                return _alumnoApiService ?? (_alumnoApiService = new AlumnoApiService());
+            }
+            private set
+            {
+                _alumnoApiService = value;
+            }
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_userManager != null)
+                {
+                    _userManager.Dispose();
+                    _userManager = null;
+                }
+
+                if (_signInManager != null)
+                {
+                    _signInManager.Dispose();
+                    _signInManager = null;
+                }
+
+                if (_roleManager != null)
+                {
+                    _roleManager.Dispose();
+                    _roleManager = null;
+                }
+
+                if (_db != null)
+                {
+                    _db.Dispose();
+                    _db = null;
+                }
+            }
+
+            base.Dispose(disposing);
         }
 
         #endregion
@@ -313,15 +360,80 @@ namespace ControlActividades.Controllers
         }
 
         [HttpGet]
-        public ActionResult ActividadDetalle(int actividadId)
+        public ActionResult ActividadDetalle(int actividadId, int alumnoId = 0)
         {
             try
             {
-                string userId = User.Identity.GetUserId();
-                var alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
+                List<string> lsEnlaces = new List<string>();
+                List<string> lsEnlacesArchivo = new List<string>();
+                bool estaCalificado = false;
+                bool estaEntregado = false;
+                string respuesta = string.Empty;
+                decimal calificacion = 0;
+                int entregaId = 0;
+                EntregaContenidoModel entrega = new EntregaContenidoModel();
+
+
+                if (User.IsInRole(Roles.ALUMNO))
+                {
+                    string userId = User.Identity.GetUserId();
+                    alumnoId = Db.tbAlumnos.Where(a => a.UserId == userId).Select(a => a.AlumnoId).FirstOrDefault();
+                }
+
+
+
                 ViewBag.AlumnoId = alumnoId;
                 ViewBag.ActividadId = actividadId;
-                return View();
+
+                var datosActividad = Db.tbActividades.Where(a => a.ActividadId == actividadId).FirstOrDefault();
+                
+                ViewBag.Puntaje = datosActividad.Puntaje;
+
+                var datosEntregable = Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId && a.Estatus).FirstOrDefault();
+
+                if (datosEntregable != null)
+                {
+                    entregaId = datosEntregable.EntregaActividadAlumnoId;
+
+                    var entregables = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == datosEntregable.EntregaActividadAlumnoId).Select(a => a.Contenido).FirstOrDefault();
+
+
+                    entrega = JsonConvert.DeserializeObject<EntregaContenidoModel>(entregables);
+
+
+                    respuesta = entrega.Texto;
+
+                    lsEnlaces = entrega.Enlaces;
+
+                    lsEnlacesArchivo = entrega.Archivos.Select(a => a.Ruta).ToList();
+
+                    var fechaEntrega = entrega.FechaEntrega;
+
+                    lsEnlaces = lsEnlaces.Concat(lsEnlacesArchivo).ToList();
+
+                    estaCalificado = (datosEntregable.Calificacion > 0 && datosEntregable.FechaCalificado != null);
+
+                    calificacion = datosEntregable.Calificacion;
+
+                    estaEntregado = true;
+                }
+
+                ViewBag.EntregaId = entregaId;
+
+                ActividadDetalleViewModel model = new ActividadDetalleViewModel()
+                {
+                    NombreActividad = datosActividad.NombreActividad,
+                    Descripcion = datosActividad.Descripcion,
+                    Respuesta = respuesta,
+                    Puntaje = datosActividad.Puntaje,
+                    FechaLimite = datosActividad.FechaLimite,
+                    Calificacion = calificacion,
+                    Enlaces = lsEnlaces,
+                    EstaCalificado = estaCalificado,
+                    EstaEntregado = estaEntregado
+                };
+
+                return View(model);
             }
             catch (Exception)
             {
@@ -385,45 +497,14 @@ namespace ControlActividades.Controllers
             return View();
         }
 
-        public class ModeloNotif
-        {
-            public string targetToken { get; set; }
-            public string title { get; set; }
-            public string body { get; set; }
-        }
+        //public class ModeloNotif
+        //{
+        //    public string targetToken { get; set; }
+        //    public string title { get; set; }
+        //    public string body { get; set; }
+        //}
 
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (_userManager != null)
-                {
-                    _userManager.Dispose();
-                    _userManager = null;
-                }
-
-                if (_signInManager != null)
-                {
-                    _signInManager.Dispose();
-                    _signInManager = null;
-                }
-
-                if (_roleManager != null)
-                {
-                    _roleManager.Dispose();
-                    _roleManager = null;
-                }
-
-                if (_db != null)
-                {
-                    _db.Dispose();
-                    _db = null;
-                }
-            }
-
-            base.Dispose(disposing);
-        }
 
         #region SubirEntrega moved from API
         //[HttpPost]
@@ -602,441 +683,485 @@ namespace ControlActividades.Controllers
         //}
 
 
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<ActionResult> SubirEntrega()
+        //{
+        //    try
+        //    {
+        //        var httpRequest = Request;
+        //        if (httpRequest == null)
+        //        {
+        //            Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //            return Json(new { mensaje = "No se recibió la solicitud." });
+        //        }
+
+        //        string respuestaRaw = httpRequest.Form["Respuesta"] ?? string.Empty;
+        //        string enlacesJson = httpRequest.Form["Enlaces"] ?? "[]";
+        //        string fechaEntrega = httpRequest.Form["FechaEntrega"] ?? DateTime.Now.ToString("O");
+
+
+        //        int.TryParse(httpRequest.Form["ActividadId"], out int actividadId);
+        //        int.TryParse(httpRequest.Form["AlumnoId"], out int alumnoId);
+        //        int.TryParse(httpRequest.Form["TipoEntregaId"], out int tipoEntregaId);
+
+        //        #region Validaciones entrega
+        //        var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
+
+        //        var limiteEntrega = actividad.LimiteEntregasPorAlumno;
+
+        //        var tieneLimiteEntregas = actividad.TieneLimiteEntregas;
+
+        //        var entregasAlumno = Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).ToList();
+        //        if (tieneLimiteEntregas)
+        //        {
+        //            var totalEntregasPorAlumno = entregasAlumno.Count;
+        //            if (totalEntregasPorAlumno > limiteEntrega)
+        //            {
+        //                Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //                return Json(new { mensaje = "Has llegado a tu limite de entregas asignado por el docente." });
+        //            }
+
+        //        }
+
+        //        #endregion
+
+        //        // PROCESAR RESPUESTA: detectar si viene JSON stringifyado
+        //        string textoRespuesta = respuestaRaw;
+        //        List<string> enlacesValidos = new List<string>();
+        //        List<object> archivosExternos = new List<object>();
+
+        //        try
+        //        {
+        //            if (!string.IsNullOrEmpty(respuestaRaw) && respuestaRaw.TrimStart().StartsWith("{"))
+        //            {
+        //                var respuestaObj = JsonConvert.DeserializeObject<dynamic>(respuestaRaw);
+        //                textoRespuesta = respuestaObj.texto ?? respuestaObj.Respuesta ?? "";
+
+        //                // Procesar enlaces del JSON interno
+        //                if (respuestaObj.enlaces != null)
+        //                {
+        //                    var enlacesTemp = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(respuestaObj.enlaces));
+        //                    foreach (var enlace in enlacesTemp)
+        //                    {
+        //                        if (_validarURL(enlace))
+        //                            enlacesValidos.Add(enlace);
+        //                    }
+        //                }
+
+        //                // Procesar archivos del JSON interno (URLs de archivos subidos)
+        //                if (respuestaObj.archivos != null)
+        //                {
+        //                    var archivosTemp = JsonConvert.DeserializeObject<List<object>>(JsonConvert.SerializeObject(respuestaObj.archivos));
+        //                    foreach (var archivo in archivosTemp)
+        //                    {
+        //                        if (archivo != null)
+        //                            archivosExternos.Add(archivo);
+        //                    }
+        //                }
+
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            textoRespuesta = respuestaRaw;
+        //        }
+
+
+        //        if (actividadId == 0 || alumnoId == 0)
+        //        {
+        //            Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //            return Json(new { mensaje = "Faltan datos: AlumnoId o ActividadId." });
+        //        }
+
+        //        DateTime fechaEntregaParsed;
+        //        try
+        //        {
+        //            fechaEntregaParsed = DateTime.Parse(fechaEntrega);
+        //        }
+        //        catch
+        //        {
+        //            Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //            return Json(new { mensaje = "Formato de fecha inválido" });
+        //        }
+
+        //        try
+        //        {
+        //            var enlaces = JsonConvert.DeserializeObject<List<string>>(enlacesJson) ?? new List<string>();
+        //            foreach (var enlace in enlaces)
+        //            {
+        //                if (_validarURL(enlace))
+        //                {
+        //                    if (!enlacesValidos.Contains(enlace))
+        //                    {
+        //                        enlacesValidos.Add(enlace);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //        }
+
+
+        //        // 4. VERIFICAR SI YA EXISTE ENTREGA
+
+        //        var entregaActiva = entregasAlumno.FirstOrDefault(a => a.Estatus);
+
+        //        var entregaExistente = await Db.tbEntregaActividadAlumno
+        //            .FirstOrDefaultAsync(e => e.EntregaActividadAlumnoId == entregaActiva.EntregaActividadAlumnoId);
+
+
+        //        tbEntregaActividadAlumno entregaActividad;
+        //        int entregaActividadAlumnoId = 0;
+
+
+        //        var fechaLimite = actividad.FechaLimite;
+        //        var permiteEntregaTardia = actividad.PermitirEntregasTarde;
+
+        //        if (entregaActiva.FechaEntrega > fechaLimite && !actividad.PermitirEntregasTarde)
+        //        {
+        //            Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //            return Json(new { mensaje = $"La fecha de entrega es el {fechaEntrega:dd/MM/yyyy} a las {fechaEntrega:HH:mm}" });
+        //        }
+
+        //        entregaActividad = new tbEntregaActividadAlumno()
+        //        {
+        //            ActividadId = actividadId,
+        //            AlumnoId = alumnoId,
+        //            FechaEntrega = fechaEntregaParsed,
+        //            EstadoEntregaId = 1,
+        //            EntregaTardia = (entregaActiva.FechaEntrega > fechaLimite)
+        //        };
+
+
+        //        Db.tbEntregaActividadAlumno.Add(entregaActividad);
+        //        await Db.SaveChangesAsync();
+
+        //        entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
+
+        //        // Guardar archivos (si los hay)
+        //        var archivosMetadata = new List<object>();
+        //        var savedUrls = new List<string>();
+        //        var files = httpRequest.Files;
+        //        var uploadRoot = Server.MapPath("~/Uploads/Entregas/");
+        //        var destFolder = Path.Combine(uploadRoot, actividadId.ToString(), alumnoId.ToString());
+        //        if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
+
+
+
+        //        var extensionesPermitidas = new[]
+        //        {
+        //            ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+        //            ".jpg", ".jpeg", ".png", ".gif", ".txt", ".zip", ".rar", ".7z",
+        //            ".odt", ".ods", ".odp", ".rtf"
+        //        };
+
+        //        const long maxPorArchivo = 50 * 1024 * 1024;
+        //        const long maxTotal = 200 * 1024 * 1024;
+        //        long tamanoTotal = 0;
+
+
+        //        for (int i = 0; i < files.Count; i++)
+        //        {
+        //            var file = files[i];
+        //            if (file == null || file.ContentLength == 0)
+        //            {
+        //                Console.WriteLine($"[LOG] Archivo {i} vacío, se omite");
+        //                continue;
+        //            }
+
+        //            var extension = Path.GetExtension(file.FileName).ToLower();
+
+        //            // Validar extensión
+        //            if (!extensionesPermitidas.Contains(extension))
+        //            {
+        //                Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //                return Json(new { mensaje = $"Extensión no permitida: {extension}" });
+        //            }
+
+        //            // Validar tamaño individual
+        //            if (file.ContentLength > maxPorArchivo)
+        //            {
+        //                Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //                return Json(new { mensaje = $"Archivo excede 50MB" });
+        //            }
+
+        //            tamanoTotal += file.ContentLength;
+
+        //            // Validar tamaño total
+        //            if (tamanoTotal > maxTotal)
+        //            {
+        //                Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+        //                return Json(new { mensaje = $"Tamaño total excede 200MB" });
+
+        //            }
+
+        //            // Guardar archivo
+        //            var safeName = Path.GetFileName(file.FileName);
+        //            var destPath = Path.Combine(destFolder, safeName);
+
+        //            if (System.IO.File.Exists(destPath))
+        //            {
+        //                var ts = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+        //                safeName = $"{ts}_{safeName}";
+        //                destPath = Path.Combine(destFolder, safeName);
+        //            }
+
+
+        //            file.SaveAs(destPath);
+        //            var ruta = $"/Uploads/Entregas/{actividadId}/{alumnoId}/{safeName}";
+
+        //            archivosMetadata.Add(new
+        //            {
+        //                nombre = file.FileName,
+        //                nombreGuardado = safeName,
+        //                size = file.ContentLength,
+        //                ruta = ruta,
+        //                fechaGuardado = DateTime.Now
+        //            });
+
+        //        }
+        //        // 6. DETERMINAR TIPO DE ENTREGA
+        //        int tipoEntregaDeterminado = _determinarTipoEntrega(textoRespuesta, enlacesValidos, archivosMetadata);
+
+        //        // Combinar archivos subidos directamente con archivos del JSON (URLs)
+        //        var todosArchivos = new List<object>();
+        //        todosArchivos.AddRange(archivosMetadata);
+        //        todosArchivos.AddRange(archivosExternos);
+
+        //        // 7. CREAR ENTREGABLE CON TODO ESTRUCTURADO
+        //        var contenidoEstructurado = new
+        //        {
+        //            texto = textoRespuesta,
+        //            enlaces = enlacesValidos,
+        //            archivos = todosArchivos,
+        //            fechaEntrega = DateTime.Now,
+        //            totalArchivos = todosArchivos.Count,
+        //            totalEnlaces = enlacesValidos.Count
+        //        };
+
+        //        var entregable = new tbEntregables()
+        //        {
+        //            EntregaActividadAlumnoId = entregaActividadAlumnoId,
+        //            TipoEntregaId = tipoEntregaDeterminado,
+        //            Contenido = JsonConvert.SerializeObject(contenidoEstructurado),
+        //            Calificacion = null
+        //        };
+
+        //        Db.tbEntregables.Add(entregable);
+        //        await Db.SaveChangesAsync();
+
+        //        Console.WriteLine($"[LOG] Entregable creado: {entregable.EntregableId}");
+
+        //        // 8. LIMPIAR CACHÉ
+        //        Db.ChangeTracker.Entries()
+        //            .Where(e => e.Entity is tbEntregables || e.Entity is tbEntregaActividadAlumno)
+        //            .ToList()
+        //            .ForEach(e => e.State = System.Data.Entity.EntityState.Detached);
+
+        //        // 9. RETORNAR RESPUESTA
+        //        var datosAlumnoActividad = await Db.tbEntregaActividadAlumno
+        //            .FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
+
+        //        var lsDatosEntregables = Db.tbEntregables
+        //            .Where(a => a.EntregaActividadAlumnoId == datosAlumnoActividad.EntregaActividadAlumnoId)
+        //            .ToList();
+
+        //        var lsEnvios = new List<object>();
+
+        //        foreach (var datoEntregable in lsDatosEntregables)
+        //        {
+        //            lsEnvios.Add(new
+        //            {
+        //                AlumnoId = alumnoId,
+        //                EntregaActividadAlumnoId = datoEntregable.EntregaActividadAlumnoId,
+        //                EntregableId = datoEntregable.EntregableId,
+        //                ActividadId = datosAlumnoActividad.ActividadId,
+        //                FechaEntrega = datosAlumnoActividad.FechaEntrega,
+        //                Contenido = datoEntregable.Contenido,
+        //                Calificacion = datoEntregable.Calificacion ?? 0,
+        //                EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
+        //                TipoEntrega = tipoEntregaDeterminado
+        //            });
+        //        }
+
+
+        //        Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+        //        return Json(new SuccessResponse
+        //        {
+        //            Mensaje = $"Entrega registrada correctamente ({archivosMetadata.Count} archivo(s), {enlacesValidos.Count} enlace(s))",
+        //            Codigo = "EXITO",
+        //            Datos = lsEnvios
+        //        }, JsonRequestBehavior.AllowGet);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+        //        return Json(new { mensaje = ex.Message, detalle = ex.ToString() });
+        //    }
+        //}
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SubirEntrega()
         {
             try
             {
-                var httpRequest = Request;
+                var httpRequest = System.Web.HttpContext.Current.Request;
+
                 if (httpRequest == null)
                 {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                    return Json(new { mensaje = "No se recibió la solicitud." });
+                    Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return Json(new ErrorResponse
+                    {
+                        Mensaje = "Solicitud vacía",
+                        Codigo = "SOLICITUD_VACIA",
+                        Detalles = "El servidor no recibió ninguna solicitud HTTP válida."
+                    });
                 }
 
-                string respuestaRaw = httpRequest.Form["Respuesta"] ?? string.Empty; 
+                // 1. EXTRAER PARÁMETROS
+                string respuestaRaw = httpRequest.Form["Respuesta"] ?? string.Empty;
                 string enlacesJson = httpRequest.Form["Enlaces"] ?? "[]";
                 string fechaEntrega = httpRequest.Form["FechaEntrega"] ?? DateTime.Now.ToString("O");
-
 
                 int.TryParse(httpRequest.Form["ActividadId"], out int actividadId);
                 int.TryParse(httpRequest.Form["AlumnoId"], out int alumnoId);
                 int.TryParse(httpRequest.Form["TipoEntregaId"], out int tipoEntregaId);
 
-                #region Validaciones entrega
-                var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
-
-                var limiteEntrega = actividad.LimiteEntregasPorAlumno;
-
-                var tieneLimiteEntregas = actividad.TieneLimiteEntregas;
-
-                var entregasAlumno = Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId).ToList();
-                if (tieneLimiteEntregas)
+                if (actividadId <= 0 || alumnoId <= 0)
                 {
-                    var totalEntregasPorAlumno = entregasAlumno.Count;
-                    if (totalEntregasPorAlumno > limiteEntrega)
+                    Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return Json(new ErrorResponse
                     {
-                        Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                        return Json(new { mensaje = "Has llegado a tu limite de entregas asignado por el docente." });
-                    }
-
-                }
-
-                #endregion
-
-                // PROCESAR RESPUESTA: detectar si viene JSON stringifyado
-                string textoRespuesta = respuestaRaw;
-                List<string> enlacesValidos = new List<string>();
-                List<object> archivosExternos = new List<object>();
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(respuestaRaw) && respuestaRaw.TrimStart().StartsWith("{"))
-                    {
-                        var respuestaObj = JsonConvert.DeserializeObject<dynamic>(respuestaRaw);
-                        textoRespuesta = respuestaObj.texto ?? respuestaObj.Respuesta ?? "";
-
-                        // Procesar enlaces del JSON interno
-                        if (respuestaObj.enlaces != null)
-                        {
-                            var enlacesTemp = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(respuestaObj.enlaces));
-                            foreach (var enlace in enlacesTemp)
-                            {
-                                if (_validarURL(enlace))
-                                    enlacesValidos.Add(enlace);
-                            }
-                        }
-
-                        // Procesar archivos del JSON interno (URLs de archivos subidos)
-                        if (respuestaObj.archivos != null)
-                        {
-                            var archivosTemp = JsonConvert.DeserializeObject<List<object>>(JsonConvert.SerializeObject(respuestaObj.archivos));
-                            foreach (var archivo in archivosTemp)
-                            {
-                                if (archivo != null)
-                                    archivosExternos.Add(archivo);
-                            }
-                        }
-
-                    }
-                }
-                catch (Exception ex)
-                {
-                    textoRespuesta = respuestaRaw;
-                }
-
-
-                if (actividadId == 0 || alumnoId == 0)
-                {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                    return Json(new { mensaje = "Faltan datos: AlumnoId o ActividadId." });
-                }
-
-                DateTime fechaEntregaParsed;
-                try
-                {
-                    fechaEntregaParsed = DateTime.Parse(fechaEntrega);
-                }
-                catch
-                {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                    return Json(new { mensaje = "Formato de fecha inválido" });
-                }
-
-                try
-                {
-                    var enlaces = JsonConvert.DeserializeObject<List<string>>(enlacesJson) ?? new List<string>();
-                    foreach (var enlace in enlaces)
-                    {
-                        if (_validarURL(enlace))
-                        {
-                            if (!enlacesValidos.Contains(enlace))
-                            {
-                                enlacesValidos.Add(enlace);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                }
-
-
-                // 4. VERIFICAR SI YA EXISTE ENTREGA
-
-                var entregaActiva = entregasAlumno.FirstOrDefault(a => a.Estatus);
-
-                var entregaExistente = await Db.tbEntregaActividadAlumno
-                    .FirstOrDefaultAsync(e => e.EntregaActividadAlumnoId == entregaActiva.EntregaActividadAlumnoId);
-
-
-                tbEntregaActividadAlumno entregaActividad;
-                int entregaActividadAlumnoId = 0;
-
-
-                var fechaLimite = actividad.FechaLimite;
-                var permiteEntregaTardia = actividad.PermitirEntregasTarde;
-
-                if (entregaActiva.FechaEntrega > fechaLimite && !actividad.PermitirEntregasTarde)
-                {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                    return Json(new { mensaje = $"La fecha de entrega es el {fechaEntrega:dd/MM/yyyy} a las {fechaEntrega:HH:mm}" });
-                }
-
-                entregaActividad = new tbEntregaActividadAlumno()
-                {
-                    ActividadId = actividadId,
-                    AlumnoId = alumnoId,
-                    FechaEntrega = fechaEntregaParsed,
-                    EstadoEntregaId = 1,
-                    EntregaTardia = (entregaActiva.FechaEntrega > fechaLimite)
-                };
-
-
-                Db.tbEntregaActividadAlumno.Add(entregaActividad);
-                await Db.SaveChangesAsync();
-
-                entregaActividadAlumnoId = entregaActividad.EntregaActividadAlumnoId;
-
-                // Guardar archivos (si los hay)
-                var archivosMetadata = new List<object>();
-                var savedUrls = new List<string>();
-                var files = httpRequest.Files;
-                var uploadRoot = Server.MapPath("~/Uploads/Entregas/");
-                var destFolder = Path.Combine(uploadRoot, actividadId.ToString(), alumnoId.ToString());
-                if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
-
-
-
-                var extensionesPermitidas = new[]
-                {
-                    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-                    ".jpg", ".jpeg", ".png", ".gif", ".txt", ".zip", ".rar", ".7z",
-                    ".odt", ".ods", ".odp", ".rtf"
-                };
-
-                const long maxPorArchivo = 50 * 1024 * 1024;
-                const long maxTotal = 200 * 1024 * 1024;
-                long tamanoTotal = 0;
-
-
-                for (int i = 0; i < files.Count; i++)
-                {
-                    var file = files[i];
-                    if (file == null || file.ContentLength == 0)
-                    {
-                        Console.WriteLine($"[LOG] Archivo {i} vacío, se omite");
-                        continue;
-                    }
-
-                    var extension = Path.GetExtension(file.FileName).ToLower();
-
-                    // Validar extensión
-                    if (!extensionesPermitidas.Contains(extension))
-                    {
-                        Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                        return Json(new { mensaje = $"Extensión no permitida: {extension}" });
-                    }
-
-                    // Validar tamaño individual
-                    if (file.ContentLength > maxPorArchivo)
-                    {
-                        Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                        return Json(new { mensaje = $"Archivo excede 50MB" });
-                    }
-
-                    tamanoTotal += file.ContentLength;
-
-                    // Validar tamaño total
-                    if (tamanoTotal > maxTotal)
-                    {
-                        Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                        return Json(new { mensaje = $"Tamaño total excede 200MB" });
-
-                    }
-
-                    // Guardar archivo
-                    var safeName = Path.GetFileName(file.FileName);
-                    var destPath = Path.Combine(destFolder, safeName);
-
-                    if (System.IO.File.Exists(destPath))
-                    {
-                        var ts = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-                        safeName = $"{ts}_{safeName}";
-                        destPath = Path.Combine(destFolder, safeName);
-                    }
-
-
-                    file.SaveAs(destPath);
-                    var ruta = $"/Uploads/Entregas/{actividadId}/{alumnoId}/{safeName}";
-
-                    archivosMetadata.Add(new
-                    {
-                        nombre = file.FileName,
-                        nombreGuardado = safeName,
-                        size = file.ContentLength,
-                        ruta = ruta,
-                        fechaGuardado = DateTime.Now
-                    });
-
-                }
-                // 6. DETERMINAR TIPO DE ENTREGA
-                int tipoEntregaDeterminado = _determinarTipoEntrega(textoRespuesta, enlacesValidos, archivosMetadata);
-
-                // Combinar archivos subidos directamente con archivos del JSON (URLs)
-                var todosArchivos = new List<object>();
-                todosArchivos.AddRange(archivosMetadata);
-                todosArchivos.AddRange(archivosExternos);
-
-                // 7. CREAR ENTREGABLE CON TODO ESTRUCTURADO
-                var contenidoEstructurado = new
-                {
-                    texto = textoRespuesta,
-                    enlaces = enlacesValidos,
-                    archivos = todosArchivos,
-                    fechaEntrega = DateTime.Now,
-                    totalArchivos = todosArchivos.Count,
-                    totalEnlaces = enlacesValidos.Count
-                };
-
-                var entregable = new tbEntregables()
-                {
-                    EntregaActividadAlumnoId = entregaActividadAlumnoId,
-                    TipoEntregaId = tipoEntregaDeterminado,
-                    Contenido = JsonConvert.SerializeObject(contenidoEstructurado),
-                    Calificacion = null
-                };
-
-                Db.tbEntregables.Add(entregable);
-                await Db.SaveChangesAsync();
-
-                Console.WriteLine($"[LOG] Entregable creado: {entregable.EntregableId}");
-
-                // 8. LIMPIAR CACHÉ
-                Db.ChangeTracker.Entries()
-                    .Where(e => e.Entity is tbEntregables || e.Entity is tbEntregaActividadAlumno)
-                    .ToList()
-                    .ForEach(e => e.State = System.Data.Entity.EntityState.Detached);
-
-                // 9. RETORNAR RESPUESTA
-                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno
-                    .FirstOrDefaultAsync(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId);
-
-                var lsDatosEntregables = Db.tbEntregables
-                    .Where(a => a.EntregaActividadAlumnoId == datosAlumnoActividad.EntregaActividadAlumnoId)
-                    .ToList();
-
-                var lsEnvios = new List<object>();
-
-                foreach (var datoEntregable in lsDatosEntregables)
-                {
-                    lsEnvios.Add(new
-                    {
-                        AlumnoId = alumnoId,
-                        EntregaActividadAlumnoId = datoEntregable.EntregaActividadAlumnoId,
-                        EntregableId = datoEntregable.EntregableId,
-                        ActividadId = datosAlumnoActividad.ActividadId,
-                        FechaEntrega = datosAlumnoActividad.FechaEntrega,
-                        Contenido = datoEntregable.Contenido,
-                        Calificacion = datoEntregable.Calificacion ?? 0,
-                        EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId,
-                        TipoEntrega = tipoEntregaDeterminado
+                        Mensaje = "Datos inválidos",
+                        Codigo = "DATOS_INVALIDOS",
+                        Detalles = "ActividadId y AlumnoId son obligatorios"
                     });
                 }
 
+                var lsEnvios = await AlumnoApiService.RegistrarEnvioActividadAlumnoConEnlaces(httpRequest, actividadId, alumnoId, tipoEntregaId, fechaEntrega, respuestaRaw, enlacesJson);
 
-                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                // 3. RESPUESTA EXITOSA
+                Response.StatusCode = (int)HttpStatusCode.OK;
                 return Json(new SuccessResponse
                 {
-                    Mensaje = $"Entrega registrada correctamente ({archivosMetadata.Count} archivo(s), {enlacesValidos.Count} enlace(s))",
+                    Mensaje = "Entrega registrada correctamente",
                     Codigo = "EXITO",
                     Datos = lsEnvios
-                }, JsonRequestBehavior.AllowGet);
-
+                });
+            }
+            catch (EntregaAlumnoException e)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(new ErrorResponse
+                {
+                    Mensaje = "Error en la entrega",
+                    Codigo = "ERROR_ENTREGA",
+                    Detalles = e.Message
+                });
             }
             catch (Exception ex)
             {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-                return Json(new { mensaje = ex.Message, detalle = ex.ToString() });
+                Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                return Json(new
+                {
+                    mensaje = "Error interno del servidor",
+                    detalle = ex.Message
+                });
             }
         }
 
 
-        private int _determinarTipoEntrega(string texto, List<string> enlaces, List<object> archivos)
-        {
-            bool tieneTexto = !string.IsNullOrEmpty(texto);
-            bool tieneEnlaces = enlaces != null && enlaces.Any();
-            bool tieneArchivos = archivos != null && archivos.Any();
 
-            if (tieneTexto && tieneEnlaces && tieneArchivos) return 4;      // Mixto
-            if (tieneArchivos) return 3;                                     // Archivo
-            if (tieneEnlaces) return 2;                                      // Enlace
-            if (tieneTexto) return 1;                                        // Texto
-            return 1;                                                         // Default: Texto
-        }
+        //private string BuildRespuestaWithFiles(string respuesta, List<string> files)
+        //{
+        //    try
+        //    {
+        //        var obj = new { Respuesta = respuesta ?? string.Empty, Archivos = files ?? new List<string>() };
+        //        return JsonConvert.SerializeObject(obj);
+        //    }
+        //    catch
+        //    {
+        //        return respuesta ?? string.Empty;
+        //    }
+        //}
 
-        private bool _validarURL(string url)
-        {
-            try
-            {
-                Uri result;
-                bool esValida = Uri.TryCreate(url, UriKind.Absolute, out result) &&
-                    (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps);
-                return esValida;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+        //private async Task<int> ResolveTipoEntregaIdAsync(int preferido)
+        //{
+        //    try
+        //    {
+        //        var existe = await Db.cTipoEntrega.AnyAsync(t => t.TipoActividadId == preferido);
+        //        if (existe) return preferido;
 
+        //        var anyId = await Db.cTipoEntrega.Select(t => (int?)t.TipoActividadId).FirstOrDefaultAsync();
+        //        if (anyId.HasValue) return anyId.Value;
 
-        private string BuildRespuestaWithFiles(string respuesta, List<string> files)
-        {
-            try
-            {
-                var obj = new { Respuesta = respuesta ?? string.Empty, Archivos = files ?? new List<string>() };
-                return JsonConvert.SerializeObject(obj);
-            }
-            catch
-            {
-                return respuesta ?? string.Empty;
-            }
-        }
+        //        var texto = new cTipoEntrega { Nombre = "Texto" };
+        //        var archivo = new cTipoEntrega { Nombre = "Archivo" };
+        //        Db.cTipoEntrega.Add(texto);
+        //        Db.cTipoEntrega.Add(archivo);
+        //        await Db.SaveChangesAsync();
 
-        private async Task<int> ResolveTipoEntregaIdAsync(int preferido)
-        {
-            try
-            {
-                var existe = await Db.cTipoEntrega.AnyAsync(t => t.TipoActividadId == preferido);
-                if (existe) return preferido;
+        //        if (preferido == 1) return texto.TipoActividadId;
+        //        if (preferido == 2) return archivo.TipoActividadId;
 
-                var anyId = await Db.cTipoEntrega.Select(t => (int?)t.TipoActividadId).FirstOrDefaultAsync();
-                if (anyId.HasValue) return anyId.Value;
+        //        return texto.TipoActividadId;
+        //    }
+        //    catch
+        //    {
+        //        return preferido > 0 ? preferido : 1;
+        //    }
+        //}
 
-                var texto = new cTipoEntrega { Nombre = "Texto" };
-                var archivo = new cTipoEntrega { Nombre = "Archivo" };
-                Db.cTipoEntrega.Add(texto);
-                Db.cTipoEntrega.Add(archivo);
-                await Db.SaveChangesAsync();
+        //private async Task<int> ResolveEstadoEntregaIdAsync(int preferido)
+        //{
+        //    try
+        //    {
+        //        var existe = await Db.cEstadoEntrega.AnyAsync(e => e.EstadoEntregaId == preferido);
+        //        if (existe) return preferido;
 
-                if (preferido == 1) return texto.TipoActividadId;
-                if (preferido == 2) return archivo.TipoActividadId;
+        //        var anyId = await Db.cEstadoEntrega.Select(e => (int?)e.EstadoEntregaId).FirstOrDefaultAsync();
+        //        if (anyId.HasValue) return anyId.Value;
 
-                return texto.TipoActividadId;
-            }
-            catch
-            {
-                return preferido > 0 ? preferido : 1;
-            }
-        }
+        //        var recibido = new cEstadoEntrega { Nombre = "Recibida" };
+        //        var pendiente = new cEstadoEntrega { Nombre = "Pendiente" };
+        //        Db.cEstadoEntrega.Add(recibido);
+        //        Db.cEstadoEntrega.Add(pendiente);
+        //        await Db.SaveChangesAsync();
 
-        private async Task<int> ResolveEstadoEntregaIdAsync(int preferido)
-        {
-            try
-            {
-                var existe = await Db.cEstadoEntrega.AnyAsync(e => e.EstadoEntregaId == preferido);
-                if (existe) return preferido;
+        //        return preferido == 1 ? recibido.EstadoEntregaId : recibido.EstadoEntregaId;
+        //    }
+        //    catch
+        //    {
+        //        return preferido > 0 ? preferido : 1;
+        //    }
+        //}
 
-                var anyId = await Db.cEstadoEntrega.Select(e => (int?)e.EstadoEntregaId).FirstOrDefaultAsync();
-                if (anyId.HasValue) return anyId.Value;
+        //private async Task<bool> AlumnoPuedeAccederActividadAsync(int alumnoId, int actividadId)
+        //{
+        //    var actividad = await Db.tbActividades.FindAsync(actividadId);
+        //    if (actividad == null) return false;
 
-                var recibido = new cEstadoEntrega { Nombre = "Recibida" };
-                var pendiente = new cEstadoEntrega { Nombre = "Pendiente" };
-                Db.cEstadoEntrega.Add(recibido);
-                Db.cEstadoEntrega.Add(pendiente);
-                await Db.SaveChangesAsync();
+        //    bool bloqueadaPorProgramacion = actividad.Enviado == null && actividad.FechaProgramada.HasValue && actividad.FechaProgramada.Value > DateTime.Now;
+        //    if (bloqueadaPorProgramacion) return false;
 
-                return preferido == 1 ? recibido.EstadoEntregaId : recibido.EstadoEntregaId;
-            }
-            catch
-            {
-                return preferido > 0 ? preferido : 1;
-            }
-        }
+        //    int materiaId = actividad.MateriaId;
+        //    var perteneceMateria = await Db.tbAlumnosMaterias.AnyAsync(am => am.AlumnoId == alumnoId && am.MateriaId == materiaId);
+        //    if (perteneceMateria) return true;
 
-        private async Task<bool> AlumnoPuedeAccederActividadAsync(int alumnoId, int actividadId)
-        {
-            var actividad = await Db.tbActividades.FindAsync(actividadId);
-            if (actividad == null) return false;
+        //    var gruposIds = await Db.tbGruposMaterias.Where(gm => gm.MateriaId == materiaId).Select(gm => gm.GrupoId).ToListAsync();
+        //    if (gruposIds != null && gruposIds.Count > 0)
+        //    {
+        //        var perteneceGrupo = await Db.tbAlumnosGrupos.AnyAsync(ag => ag.AlumnoId == alumnoId && gruposIds.Contains(ag.GrupoId));
+        //        if (perteneceGrupo) return true;
+        //    }
 
-            bool bloqueadaPorProgramacion = actividad.Enviado == null && actividad.FechaProgramada.HasValue && actividad.FechaProgramada.Value > DateTime.Now;
-            if (bloqueadaPorProgramacion) return false;
-
-            int materiaId = actividad.MateriaId;
-            var perteneceMateria = await Db.tbAlumnosMaterias.AnyAsync(am => am.AlumnoId == alumnoId && am.MateriaId == materiaId);
-            if (perteneceMateria) return true;
-
-            var gruposIds = await Db.tbGruposMaterias.Where(gm => gm.MateriaId == materiaId).Select(gm => gm.GrupoId).ToListAsync();
-            if (gruposIds != null && gruposIds.Count > 0)
-            {
-                var perteneceGrupo = await Db.tbAlumnosGrupos.AnyAsync(ag => ag.AlumnoId == alumnoId && gruposIds.Contains(ag.GrupoId));
-                if (perteneceGrupo) return true;
-            }
-
-            return false;
-        }
+        //    return false;
+        //}
         #endregion
 
         #region ImportarAlumnosExcel

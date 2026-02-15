@@ -1,23 +1,267 @@
-﻿
+﻿@model ControlActividades.Models.EntregablesPartialViewModel
 @{
     ViewBag.Title = "_Entregables";
+
+    var lsActividadesMateria = Model.ActividadesMateria;
+
+    var lsAlumnosCalificar = Model.AlumnosCalificar;
 }
 
 <!-- Filtro por actividad -->
-<div class="mb-3 entregables-filters">
-    <label for="buscarActividadEntregables" class="col-form-label label-custom">Buscar actividad:</label>
-    <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
+<div class="mb-3 entregablesfilters">
+    @*<label for="buscarActividadEntregables" class="col-form-label label-custom">Buscar actividad:</label>
+        <input id="buscarActividadEntregables" class="form-control" placeholder="Escribe para buscar actividad..." />
 
-    <label for="selectActividadEntregables" class="mb-0 label-custom">Filtrar por actividad:</label>
-    <div style="display:flex;gap:8px;align-items:center;">
-        <select id="selectActividadEntregables" class="form-select form-select-sm">
-            <option value="0">-- Seleccione una actividad --</option>
-        </select>
-    </div>
+        <label for="selectActividadEntregables" class="mb-0 label-custom">Filtrar por actividad:</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <select id="selectActividadEntregables" class="form-select form-select-sm">
+                <option value="0">-- Seleccione una actividad --</option>
+            </select>
+        </div>*@
+
+
+    <select id="selectActividadEntregables" class="form-select form-select-sm">
+        <option value="">-- Todas las actividades --</option>
+        @foreach (var act in lsActividadesMateria)
+        {
+            <option value="@act.ActividadId">
+                @act.NombreActividad
+            </option>
+        }
+    </select>
+
 </div>
-
 <!-- Contenedor donde se mostrarán los entregables en línea, similar a Avisos/Actividades -->
-<div id="listaEntregables" class="mt-2">
-    <p class="text-muted">Selecciona una actividad para ver los entregables.</p>
-</div>
+@*<div id="listaEntregables" class="mt-2">
+        <p class="text-muted">Selecciona una actividad para ver los entregables.</p>
+    </div>*@
 
+
+<div id="listaEntregables" class="mt-2">
+    <table id="tablaEntregables" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>ActividadId</th> <!-- OCULTA -->
+                <th>Nombre Completo</th>
+                <th>Puntaje</th>
+                <th>Estatus</th>
+                <th>Calificación</th>
+                <th>Entregas</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            @foreach (var alumno in lsAlumnosCalificar)
+            {
+                <tr>
+                    <td>@alumno.ActividadId.ToString().Trim()</td>
+                    <td>@alumno.NombreCompletoAlumno</td>
+                    <td>
+                        @{
+                            if (alumno.SinPuntaje)
+                            {
+                                var sinPuntaje = "Sin Puntaje";
+                                @sinPuntaje;
+                            }
+                            else
+                            {
+                                var puntaje = lsActividadesMateria.Where(a => a.ActividadId == alumno.ActividadId).Select(a => a.Puntaje).FirstOrDefault();
+                                @puntaje
+                            }
+
+
+                        }
+                    </td>
+
+                    <td>
+                        @if (alumno.EntregaTardia)
+                        {
+                            <span style="color:red;">Enviado Con Retraso</span>
+                        }
+                        else
+                        {
+                            <span>Enviado</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!alumno.SinPuntaje)
+                        {
+                            <input type="number" class="form-control input-calificacion auto-select"
+                                   min="0"
+                                   step="0.01"
+                                   inputmode="decimal"
+                                   placeholder="0.00"
+                                   value="@alumno.Calificacion"
+                                   onchange="AsignarCalificacion(@alumno.AlumnoId, @alumno.ActividadId, @alumno.EntregableId, @{ var puntaje = lsActividadesMateria.Where(a => a.ActividadId == alumno.ActividadId).Select(a => a.Puntaje).FirstOrDefault();
+                                                                                                                                @puntaje
+                                                                                                                                } ,this)" />
+                        }
+                    </td>
+
+                    <td>
+                        <button class="btn btn-primary"
+                                onclick="window.open('@Url.Action("ActividadDetalle", "Alumno", new { actividadId = alumno.ActividadId, alumnoId = alumno.AlumnoId })', '_blank')">
+                            Ver entrega
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+<style>
+    #tablaEntregables thead th {
+        text-align: center;
+    }
+
+    #tablaEntregables tbody td {
+        text-align: center;
+    }
+
+    #listaEntregables {
+        width: 1000px;
+    }
+
+    .input-calificacion {
+        width: 150px;
+    }
+</style>
+<script>
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+
+    let tablaEntregables;
+    $(document).ready(function () {
+
+        tablaEntregables = $('#tablaEntregables').DataTable({
+            destroy: true,
+            searching: true,
+            lengthChange: false,
+            info: false,
+            paging: false,
+            dom: 't',
+            columnDefs: [
+                { targets: 0, visible: false } // ocultar ActividadId
+            ],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            }
+        });
+
+
+        $('#selectActividadEntregables').on('change', function () {
+            let actividadId = $(this).val();
+            if (actividadId) {
+                tablaEntregables.column(0).search(actividadId).draw();
+            } else {
+                tablaEntregables.column(0).search('').draw();
+            }
+        });
+
+        $(document).on('keydown', '.input-calificacion', function (e) {
+
+            // Teclas permitidas siempre
+            const teclasPermitidas = [
+                'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                'ArrowLeft', 'ArrowRight', 'Home', 'End'
+            ];
+
+            if (teclasPermitidas.includes(e.key)) {
+                return;
+            }
+
+            // Permitir números (teclado normal y numérico)
+            if ((e.key >= '0' && e.key <= '9')) {
+                return;
+            }
+
+            // Permitir un solo punto decimal
+            if (e.key === '.') {
+                if ($(this).val().includes('.')) {
+                    e.preventDefault();
+                }
+                return;
+            }
+
+            // Bloquear todo lo demás (letras, -, +, e, etc.)
+            e.preventDefault();
+        });
+
+        document.addEventListener("focusin", function (e) {
+            if (e.target.classList.contains("auto-select")) {
+                e.target.select();
+            }
+        });
+    });
+
+function AsignarCalificacion(AlumnoId, ActividadId, EntregableId, Puntaje, inputDato) {
+    let calificacion = inputDato.value;
+
+    // 1. Validaciones básicas
+    if (calificacion === "" || calificacion < 0) return;
+
+    if (parseFloat(calificacion) > parseFloat(Puntaje)) {
+        //Swal.fire('Atención', 'La calificación no puede exceder el puntaje máximo (' + Puntaje + ')', 'warning');
+        Toast.fire({
+            icon: 'warning',
+            title: 'La calificación no puede exceder el puntaje máximo (' + Puntaje + ')'
+        });
+        inputDato.value = "";
+        return;
+    }
+
+    // 2. Feedback visual: ponemos el input en amarillo mientras guarda
+    $(inputDato).css("background-color", "#fff3cd");
+
+    $.ajax({
+        url: '@Url.Action("AsignarCalificacion", "api/Actividades")',
+        type: 'POST',
+        data: {
+            //alumnoId: AlumnoId,
+            //actividadId: ActividadId,
+            EntregableId: EntregableId,
+            Calificacion: calificacion
+        },
+        success: function (response) {
+            if (response.Exito) {
+                // Feedback visual en el input
+                $(inputDato).css("background-color", "#d4edda");
+                setTimeout(() => {
+                    $(inputDato).css("background-color", "#ffffff");
+                }, 1000);
+
+                // Notificación Toast de éxito
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Calificación guardada'
+                });
+
+            } else {
+                // Notificación Toast de error (si el servidor responde con error)
+                Toast.fire({
+                    icon: 'error',
+                    title: response.Mensaje || 'Error al guardar'
+                });
+                $(inputDato).css("background-color", "#f8d7da");
+            }
+        },
+        error: function () {
+            // Notificación Toast de fallo de conexión
+            Toast.fire({
+                icon: 'error',
+                title: 'Fallo de conexión con el servidor'
+            });
+            $(inputDato).css("background-color", "#f8d7da");
+        }
+    });
+}
+</script>

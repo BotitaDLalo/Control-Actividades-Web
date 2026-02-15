@@ -1,6 +1,6 @@
 @using Rol = ControlActividades.Roles;
 @{
-    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
     ViewBag.Title = "MateriasDetalles";
     Html.RenderPartial("~/Views/Docente/CrearActividadModal.cshtml");
     Html.RenderPartial("~/Views/Docente/crearAvisoMateriaModal.cshtml");
@@ -372,33 +372,35 @@
     <nav class="materia-nav">
         <button class="tab-button active"
                 data-panel="Avisos"
-                onclick="cambiarPanel(this)">
+                onclick="cambiarPanel(this,@materiaId)">
             Avisos
         </button>
 
         <button class="tab-button"
                 data-panel="Actividades"
-                onclick="cambiarPanel(this)">
+                onclick="cambiarPanel(this,@materiaId)">
             Actividades
         </button>
 
-        <button class="tab-button"
-                data-panel="Entregables"
-                onclick="cambiarPanel(this)">
-            Entregables
-        </button>
 
         @if (User.IsInRole(Rol.DOCENTE))
         {
+
+            <button class="tab-button"
+                    data-panel="Entregables"
+                    onclick="cambiarPanel(this,@materiaId)">
+                Entregables
+            </button>
+
             <button class="tab-button"
                     data-panel="Alumnos"
-                    onclick="cambiarPanel(this)">
+                    onclick="cambiarPanel(this,@materiaId)">
                 Alumnos
             </button>
 
             <button class="tab-button"
                     data-panel="Configuracion"
-                    onclick="cambiarPanel(this)">
+                    onclick="cambiarPanel(this,@materiaId)">
                 Configuración
             </button>
         }

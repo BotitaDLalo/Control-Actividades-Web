@@ -1582,7 +1582,7 @@ namespace ControlActividades.Controllers
 
                 await AlumnoApiService.CancelarEnvioActividad(alumnoId, actividadId);
 
-                return Ok();
+                return Ok(new {Exito = true});
             }
             catch (Exception)
             {
