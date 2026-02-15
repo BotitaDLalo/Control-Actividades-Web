@@ -499,6 +499,7 @@
     <Compile Include="Models\FormsViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
+    <Compile Include="Models\MateriaDetalles.cs" />
     <Compile Include="Models\ModelosApi.cs" />
     <Compile Include="Models\ModelosGenerales.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
