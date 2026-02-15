@@ -430,8 +430,13 @@ namespace ControlActividades.Controllers
                     Calificacion = calificacion,
                     Enlaces = lsEnlaces,
                     EstaCalificado = estaCalificado,
-                    EstaEntregado = estaEntregado
+                    EstaEntregado = estaEntregado,
                 };
+
+                if (datosEntregable.FechaCalificado != null)
+                {
+                    model.FechaCalificado = datosEntregable.FechaCalificado.Value;
+                }
 
                 return View(model);
             }

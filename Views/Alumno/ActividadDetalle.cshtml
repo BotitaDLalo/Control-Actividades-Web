@@ -33,10 +33,28 @@
     .fecha-limite-badge {
         background: linear-gradient(90deg,#f8d7da, #ffe8e8);
         color: #842029;
-        padding: 8px12px;
+        padding: 8px 12px;
         border-radius: 20px;
         font-weight: 600;
         font-size: 0.95rem;
+    }
+
+    .fecha-calificado-badge {
+        /* Gradiente suave verde esmeralda a verde pálido */
+        background: linear-gradient(90deg, #d1e7dd, #e2f3ea);
+        /* Texto verde oscuro para legibilidad (Bootstrap Success Dark) */
+        color: #0a58ca; /* O puedes usar #14502d para un verde bosque */
+        color: #0f5132;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        /* Opcional: un borde sutil para darle más definición */
+        border: 1px solid #badbcc;
+        /* Alineación si hay iconos */
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     #entregaForm .form-control {
@@ -60,6 +78,12 @@
             </div>
             <div style="text-align:right;">
                 <div class="fecha-limite-badge">Fecha límite: <span id="fechaLimite">@Model.FechaLimite</span></div>
+
+                @if (Model.EstaCalificado)
+                {
+                    <br />
+                    <div class="fecha-calificado-badge">Fecha calificado: <span id="fechaLimite">@Model.FechaCalificado</span></div>
+                }
             </div>
         </div>
 
@@ -71,16 +95,19 @@
             <input type="hidden" name="TipoEntregaId" value="1" />
             <div id="entregaForm">
                 <div class="mb-3">
+                    <label style="font-size:20px;"><span style="font-weight:bold;">Calificación: </span>@Model.Calificacion</label>
+                </div>
+                <div class="mb-3">
                     <label for="Respuesta" class="form-label">Respuesta</label>
                     <textarea id="Respuesta" name="Respuesta" class="form-control" rows="6" placeholder="Escribe tu respuesta para el docente..." @(Model.EstaEntregado ? "disabled" : "")>@Model.Respuesta</textarea>
                 </div>
 
 
                 @*<div class="mb-3">
-            <label for="Enlaces" class="form-label">Enlace (opcional)</label>
-            <input type="url" id="Enlaces" name="Enlaces" class="form-control" placeholder="https://ejemplo.com/album" />
-            <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
-        </div>*@
+                        <label for="Enlaces" class="form-label">Enlace (opcional)</label>
+                        <input type="url" id="Enlaces" name="Enlaces" class="form-control" placeholder="https://ejemplo.com/album" />
+                        <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
+                    </div>*@
 
                 <div class="mb-3">
                     <label class="form-label font-weight-bold">Enlaces (opcional)</label>
@@ -121,11 +148,26 @@
                 }
                 else
                 {
-                    if (User.IsInRole(roles.ALUMNO) && !Model.EstaCalificado)
+                    if (User.IsInRole(roles.ALUMNO))
                     {
-                        <button type="button" class="btn btn-danger" id="btnCancelarEntrega">
-                            Cancelar Entrega
-                        </button>
+                        if (!Model.EstaCalificado)
+                        {
+                            <button type="button" class="btn btn-danger" id="btnCancelarEntrega">
+                                Cancelar Entrega
+                            </button>
+                        }
+                        else
+                        {
+                            @*<label for="input-calificacion auto-select">Calificación</label>
+                                <input type="number" class="form-control input-calificacion auto-select"
+                                       min="0"
+                                       step="0.01"
+                                       inputmode="decimal"
+                                       placeholder="0.00"
+                                       value="@Model.Calificacion" disabled/>*@
+
+                        }
+
                     }
 
                     if (User.IsInRole(roles.DOCENTE))
@@ -397,5 +439,7 @@ function AsignarCalificacion(AlumnoId, ActividadId, EntregableId, Puntaje, input
     });
 }
     </script>
+
+
     @*<script src="~/Scripts/Alumno/actividadDetalle.js"></script>*@
 }
