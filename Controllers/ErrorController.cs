@@ -14,6 +14,11 @@ namespace ControlActividades.Controllers
             Response.StatusCode = 404;
             return View("Error404");
         }
+        public ActionResult Forbidden()
+        {
+            Response.StatusCode = 403;
+            return View("Error403");
+        }
         public ActionResult Index()
         {
             return View();

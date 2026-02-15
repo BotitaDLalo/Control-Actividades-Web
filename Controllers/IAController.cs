@@ -9,6 +9,7 @@ using System.Web.Http;
 
 namespace ControlActividades.Controllers
 {
+    [Authorize(Roles = "Docente")]
     [RoutePrefix("api/IA")]
     public class IAController : ApiController
     {
