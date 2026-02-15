@@ -152,7 +152,7 @@ namespace ControlActividades.Models
     {
         public int EntregaActividadAlumnoId { get; set; }
 
-        public DateTime? FechaEntrega {  get; set; }
+        public DateTime? FechaEntrega { get; set; }
 
         public int EstadoEntregaId { get; set; }
 
@@ -167,7 +167,7 @@ namespace ControlActividades.Models
 
         public string Contenido { get; set; }
 
-        public decimal Calificacion {  get; set; }
+        public decimal Calificacion { get; set; }
 
         public string Comentario { get; set; }
     }
@@ -225,4 +225,36 @@ namespace ControlActividades.Models
     }
     #endregion
 
+    #region Alumnos
+    public class RegistrarEnvioActividadRes
+    {
+        public int EntregaActividadAlumnoId { get; set; }
+
+        public int AlumnoId { get; set; }
+
+        public int EntregableId { get; set; }
+
+        public int ActividadId { get; set; }
+
+        public DateTime FechaEntrega { get; set; }
+
+        public string Contenido { get; set; }
+
+        public decimal Calificacion { get; set; };
+
+        public int EstadoEntregaId { get; set; }
+
+        public int TipoEntrega { get; set; }
+    }
+
+    public class RegistrarAlumnoGrupoMateriaDocenteRes
+    {
+        public bool AlumnoRegistradoGrupo {  get; set; }
+
+        public bool AlumnoRegistradoMateria { get; set; }
+
+        public List<EmailVerificadoAlumno> Alumnos { get; set; }
+    }
+
+    #endregion
 }
