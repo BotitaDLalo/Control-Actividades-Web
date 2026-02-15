@@ -502,7 +502,7 @@ namespace ControlMaterias.Controllers
                 }
 
                 var avisosDb = await query
-                    .OrderByDescending(a => a.FechaCreacion)
+                    .OrderBy(a => a.FechaCreacion)
                     .ToListAsync();
 
                 var avisos = avisosDb.Select(a => new
@@ -716,49 +716,48 @@ namespace ControlMaterias.Controllers
 
         #endregion
 
-        #region Avisos
-        //Controlador para crear un aviso funciona desde dentro de la materia
-        [HttpPost]
-        public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
-        {
-            if (req == null || req.origenMateriaId <= 0 || req.nuevoMateriaId <= 0)
-            {
-                Response.StatusCode = 400;
-                return Json(new { mensaje = "Parámetros inválidos" }, JsonRequestBehavior.AllowGet);
-            }
+        #region CopiarMateri
+        //[HttpPost]
+        //public async Task<ActionResult> CopiarActividades(CopiarActividadesRequest req)
+        //{
+        //    if (req == null || req.origenMateriaId <= 0 || req.nuevoMateriaId <= 0)
+        //    {
+        //        Response.StatusCode = 400;
+        //        return Json(new { mensaje = "Parámetros inválidos" }, JsonRequestBehavior.AllowGet);
+        //    }
 
-            try
-            {
-                var actividades = await Db.tbActividades.Where(a => a.MateriaId == req.origenMateriaId).ToListAsync();
-                if (actividades == null || actividades.Count == 0)
-                {
-                    return Json(new { mensaje = "No hay actividades para copiar" }, JsonRequestBehavior.AllowGet);
-                }
+        //    try
+        //    {
+        //        var actividades = await Db.tbActividades.Where(a => a.MateriaId == req.origenMateriaId).ToListAsync();
+        //        if (actividades == null || actividades.Count == 0)
+        //        {
+        //            return Json(new { mensaje = "No hay actividades para copiar" }, JsonRequestBehavior.AllowGet);
+        //        }
 
-                foreach (var a in actividades)
-                {
-                    var nueva = new tbActividades
-                    {
-                        NombreActividad = a.NombreActividad,
-                        Descripcion = a.Descripcion,
-                        FechaCreacion = DateTime.Now,
-                        FechaLimite = a.FechaLimite,
-                        //TipoActividadId = a.TipoActividadId,
-                        Puntaje = a.Puntaje,
-                        MateriaId = req.nuevoMateriaId
-                    };
-                    Db.tbActividades.Add(nueva);
-                }
+        //        foreach (var a in actividades)
+        //        {
+        //            var nueva = new tbActividades
+        //            {
+        //                NombreActividad = a.NombreActividad,
+        //                Descripcion = a.Descripcion,
+        //                FechaCreacion = DateTime.Now,
+        //                FechaLimite = a.FechaLimite,
+        //                //TipoActividadId = a.TipoActividadId,
+        //                Puntaje = a.Puntaje,
+        //                MateriaId = req.nuevoMateriaId
+        //            };
+        //            Db.tbActividades.Add(nueva);
+        //        }
 
-                await Db.SaveChangesAsync();
-                return Json(new { mensaje = "Actividades copiadas" }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al copiar actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        await Db.SaveChangesAsync();
+        //        return Json(new { mensaje = "Actividades copiadas" }, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 500;
+        //        return Json(new { mensaje = "Error al copiar actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
         #endregion
 

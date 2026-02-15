@@ -1,4 +1,4 @@
-﻿using ControlActividades.Interfaces.Materias;
+using ControlActividades.Interfaces.Materias;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using System;
@@ -209,7 +209,7 @@ namespace ControlActividades.Services.Materias
                     Descripcion = nuevaActividad.Descripcion,
                     FechaCreacion = nuevaActividad.FechaCreacion,
                     FechaLimite = nuevaActividad.FechaLimite,
-                    //Puntaje = nuevaActividad.Puntaje
+                   // Puntaje = nuevaActividad.Puntaje
                 };
             }
             catch (Exception ex)

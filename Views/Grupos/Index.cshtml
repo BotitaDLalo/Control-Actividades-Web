@@ -17,6 +17,39 @@
 
 <div class="container mt-4">
 
+    @if (User.IsInRole(roles.ALUMNO))
+    {
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex gap-2">
+                <div class="input-group">
+                    <input id="buscarClasesInput" type="text" class="form-control" placeholder="Buscar clases..." />
+                    <button id="buscarBtn" class="btn btn-outline-secondary" type="button">Buscar</button>
+                </div>
+                <button id="btnAbrirUnirse" class="btn btn-primary">Entrar a una clase nueva</button>
+            </div>
+        </div>
+
+        <!-- Modal simple para ingresar código de acceso -->
+        <div id="unirseModal" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Entrar a una clase</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="codigoAccesoInput" class="form-label">Código de acceso</label>
+                        <input id="codigoAccesoInput" class="form-control" placeholder="Ingresa el código" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button id="btnUnirseConfirm" type="button" class="btn btn-primary">Entrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     @if (User.IsInRole(roles.DOCENTE))
     {
         <div class="d-flex justify-content-end align-items-center mb-3">
@@ -111,4 +144,9 @@
  {
     @Scripts.Render("~/bundles/docenteGrupos")
  }
+@if (User.IsInRole(roles.ALUMNO))
+ {
+    <script src="~/Scripts/Alumno/UnirseClase.js"></script>
+ }
 }
+

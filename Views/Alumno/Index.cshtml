@@ -46,25 +46,7 @@
         </div>
     </div>
 
-    <!-- Modal simple para ingresar código de acceso -->
-    <div id="unirseModal" class="modal fade" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Entrar a una clase</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="codigoAccesoInput" class="form-label">C�digo de acceso</label>
-                    <input id="codigoAccesoInput" class="form-control" placeholder="Ingresa el c�digo" />
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button id="btnUnirseConfirm" type="button" class="btn btn-primary">Entrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+  
 </div>
 
 @section Scripts {
@@ -75,7 +57,9 @@
             var alumnoDiv = document.getElementById('alumno-datos');
             try {
                 window.alumnoIdGlobal = (alumnoDiv && alumnoDiv.dataset && alumnoDiv.dataset.alumnoid) ? parseInt(alumnoDiv.dataset.alumnoid, 10) : null;
-            } catch (e) { window.alumnoIdGlobal = null; }
+            } catch (e) {
+                window.alumnoIdGlobal = null;
+            }
         })();
     </script>
     <script src="~/Scripts/Alumno/Clases.js"></script>
@@ -172,52 +156,11 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             // Ejecutar carga de materias si estamos en la vista alumno y hay alumnoId
-            try { if (typeof alumnoIdGlobal !== 'undefined' && alumnoIdGlobal) loadMisMaterias(); } catch (e) { }
+            try {
+                if (typeof alumnoIdGlobal !== 'undefined' && alumnoIdGlobal) loadMisMaterias();
+            } catch (e) { }
         });
     </script>
-    <script>
-        // abrir modal cuando se presione el bot�n
-        document.addEventListener('DOMContentLoaded', function () {
-            var btn = document.getElementById('btnAbrirUnirse');
-            var modalEl = document.getElementById('unirseModal');
-            if (btn && modalEl) {
-                btn.addEventListener('click', function () {
-                    // usar bootstrap modal si est� disponible
-                    try {
-                        var modal = new bootstrap.Modal(modalEl);
-                        modal.show();
-                    } catch (e) {
-                        // fallback: mostrar clase show
-                        modalEl.classList.add('show');
-                    }
-                });
-            }
-
-            var btnConfirm = document.getElementById('btnUnirseConfirm');
-            if (btnConfirm) {
-                btnConfirm.addEventListener('click', function () {
-                    // llamar la funci�n definida en UnirseClase.js
-                    if (typeof unirseAClase === 'function') {
-                        unirseAClase();
-                    } else {
-                        alert('Funci�n de unirse no disponible');
-                    }
-                });
-            }
-
-            // Buscar local: filtra elementos en contenedorClases por nombre
-            var buscarBtn = document.getElementById('buscarBtn');
-            var buscarInput = document.getElementById('buscarClasesInput');
-            buscarBtn && buscarBtn.addEventListener('click', function () {
-                var q = buscarInput.value.trim().toLowerCase();
-                var cards = document.querySelectorAll('#contenedorClases .class-card');
-                if (!q) { cards.forEach(c => c.style.display = ''); return; }
-                cards.forEach(function (c) {
-                    var text = (c.innerText || '').toLowerCase();
-                    c.style.display = text.indexOf(q) >= 0 ? '' : 'none';
-                });
-            });
-        });
-    </script>
+ 
 }
 

@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Web.Services.Description;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
+using ControlActividades.Filters;
 using ControlActividades.Recursos;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -197,6 +198,7 @@ namespace ControlActividades.Controllers
             return View("MateriasSinGrupoStandalone");
         }*/
 
+        [CustomAuthorize(Roles = "Docente")]
         [HttpGet]
         public ActionResult ChatIA()
         {
@@ -308,6 +310,7 @@ namespace ControlActividades.Controllers
             return Json(materiasConActividades, JsonRequestBehavior.AllowGet);
         }
 
+        [Authorize(Roles = "Docente")]
         [HttpDelete]
         public JsonResult EliminarGrupo(int grupoId)
         {
@@ -327,6 +330,7 @@ namespace ControlActividades.Controllers
             return Json(new { mensaje = "Grupo eliminado correctamente." });
         }
 
+        [Authorize(Roles = "Docente")]
         [HttpDelete]
         public JsonResult EliminarGrupoConMaterias(int grupoId)
         {

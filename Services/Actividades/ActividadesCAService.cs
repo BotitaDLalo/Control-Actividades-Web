@@ -73,7 +73,7 @@ namespace ControlActividades.Services.Actividades
                         Descripcion = a.Descripcion,
                         FechaCreacion = a.FechaCreacion,
                         FechaLimite = a.FechaLimite,
-                        //Puntaje = a.Puntaje
+                    //    Puntaje = a.Puntaje
                     })
                     .ToListAsync();
 
@@ -110,7 +110,7 @@ namespace ControlActividades.Services.Actividades
                     MateriaId = entidad.MateriaId,
                     FechaCreacion = entidad.FechaCreacion,
                     FechaLimite = entidad.FechaLimite,
-                    //Puntaje = entidad.Puntaje,
+                 //   Puntaje = entidad.Puntaje,
                     Enviado = entidad.Enviado,
                     PermitirEntregasTarde = entidad.PermitirEntregasTarde,
                     FechaProgramada = entidad.FechaProgramada
@@ -166,7 +166,7 @@ namespace ControlActividades.Services.Actividades
                 Descripcion = actividadEditar.Descripcion,
                 FechaCreacion = actividadEditar.FechaCreacion,
                 FechaLimite = actividadEditar.FechaLimite,
-                //Puntaje = actividadEditar.Puntaje
+               // Puntaje = actividadEditar.Puntaje
             };
 
         }

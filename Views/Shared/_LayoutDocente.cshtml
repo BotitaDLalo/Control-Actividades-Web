@@ -21,11 +21,8 @@
     <link href="~/Content/Docente/calendarioDocente.css" rel="stylesheet" />
     @Scripts.Render("~/bundles/modernizr")
 
-    @*<style>
-            html {
-                font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            }
-        </style>*@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
 </head>
 <body>
     <!--LAYOUT DOCENTE-->
@@ -70,10 +67,11 @@
         });
     </script>
 
-
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     @* Render docente/Grupos scripts bundle using Scripts.Render so that in development
         (BundleTable.EnableOptimizations = false) the individual script files are output
-        and DOMContentLoaded handlers register correctly. *@    
+        and DOMContentLoaded handlers register correctly. *@
 
     @RenderSection("Scripts", required: false)
 </body>

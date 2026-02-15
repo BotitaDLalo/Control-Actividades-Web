@@ -302,6 +302,7 @@
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.0\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Security.Cryptography.Xml, Version=8.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Security.Cryptography.Xml.8.0.2\lib\net462\System.Security.Cryptography.Xml.dll</HintPath>
@@ -427,6 +428,7 @@
     <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\DocenteApiController.cs" />
     <Compile Include="Controllers\DocenteController.cs" />
+    <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EventosAgendaApiController.cs" />
     <Compile Include="Controllers\EventosAgendaController.cs" />
     <Compile Include="Controllers\GruposApiController.cs" />
@@ -444,6 +446,7 @@
     <Compile Include="Exceptions\EntregableNoEncontradoException.cs" />
     <Compile Include="Filters\AdminAuditLogAttribute.cs" />
     <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
+    <Compile Include="Filters\CustomAuthorizeAttribute.cs" />
     <Compile Include="Filters\NoCacheAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -484,6 +487,7 @@
     <Compile Include="Models\db\tbAlumnosMaterias.cs" />
     <Compile Include="Models\db\tbAuditoria.cs" />
     <Compile Include="Models\db\tbAvisos.cs" />
+    <Compile Include="Models\db\tbAvisosEnvios.cs" />
     <Compile Include="Models\db\tbDocentes.cs" />
     <Compile Include="Models\db\tbEntregaActividadAlumno.cs" />
     <Compile Include="Models\db\tbEntregables.cs" />
@@ -539,6 +543,7 @@
     <Compile Include="Services\Materias\MateriasService.cs" />
     <Compile Include="Services\Materias\MateriasSTService.cs" />
     <Compile Include="Services\NotificacionesService.cs" />
+    <Compile Include="Services\RecordatorioAvisosService.cs" />
     <Compile Include="Services\ScheduledPublishingService.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -845,6 +850,8 @@
     <Content Include="SIGUIENTE_PASO_FLUTTER.md" />
     <Content Include="SOLUCION_ERROR_FOREIGN_KEY.md" />
     <Content Include="Views\Account\MensajeExito.cshtml" />
+    <Content Include="Views\Shared\Error404.cshtml" />
+    <Content Include="Views\Shared\Error403.cshtml" />
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
@@ -873,6 +880,7 @@
     <Folder Include="sql\" />
     <Folder Include="Views\Actividades\" />
     <Folder Include="Views\Base\" />
+    <Folder Include="Views\Error\" />
     <Folder Include="Views\Eventos\" />
     <Folder Include="Views\MigracionTest\" />
     <Folder Include="Views\MigracionUsuarios\" />

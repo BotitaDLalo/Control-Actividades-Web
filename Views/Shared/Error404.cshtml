@@ -1,0 +1,129 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width" charset="utf-8"/>
+    <title>Error404 - Página no encontrada</title>
+    <style>
+        :root {
+            --azul-500: #0D6EFD;
+            --cyan-500: #1DB7F7;
+            --gris-500: #D1D6DF;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, var(--azul-500), var(--cyan-500));
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .code {
+            font-size: 80px;
+            font-weight: 700;
+            color: var(--azul-500);
+            margin: 0;
+        }
+
+        h2 {
+            margin-top: 10px;
+            color: #333;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--azul-500);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: var(--cyan-500);
+                transform: translateY(-2px);
+            }
+
+        .btn-secondary {
+            background: var(--gris-500);
+            color: #333;
+        }
+
+            .btn-secondary:hover {
+                background: #bfc5cf;
+                transform: translateY(-2px);
+            }
+
+        .divider {
+            height: 4px;
+            width: 60px;
+            background: var(--gris-500);
+            margin: 20px auto;
+            border-radius: 10px;
+        }
+
+        @@media (max-width: 500px) {
+            .card {
+                padding: 40px 20px;
+            }
+
+            .code {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 class="code">404</h1>
+        <div class="divider"></div>
+        <h2>Página no encontrada</h2>
+        <p>
+            Lo sentimos, el recurso que estás buscando no existe
+            o fue eliminado.
+        </p>
+        <div class="btn-group">
+            <a href="/" class="btn btn-primary">Volver al inicio</a>
+            <a href="javascript:history.back()" class="btn btn-secondary">Regresar</a>
+        </div>
+    </div>
+</body>
+</html>
