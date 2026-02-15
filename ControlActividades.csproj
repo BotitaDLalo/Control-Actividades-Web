@@ -439,6 +439,8 @@
     <Compile Include="Controllers\MateriasController.cs" />
     <Compile Include="Controllers\MigracionUsuariosController.cs" />
     <Compile Include="Controllers\NotificacionesApiController.cs" />
+    <Compile Include="Exceptions\ActividadException.cs" />
+    <Compile Include="Exceptions\EntregableNoEncontradoException.cs" />
     <Compile Include="Filters\AdminAuditLogAttribute.cs" />
     <Compile Include="Filters\AntiForgeryExceptionFilter.cs" />
     <Compile Include="Filters\NoCacheAttribute.cs" />
@@ -447,7 +449,11 @@
     </Compile>
     <Compile Include="HashGen.cs" />
     <Compile Include="Hubs\NotificacionesHub.cs" />
+    <Compile Include="Interfaces\Actividades\IActividadesApiService.cs" />
     <Compile Include="Interfaces\Actividades\IActividadesService.cs" />
+    <Compile Include="Interfaces\Alumno\IAlumnoApiService.cs" />
+    <Compile Include="Interfaces\Alumno\IAlumnoService.cs" />
+    <Compile Include="Interfaces\Docente\IDocenteApiService.cs" />
     <Compile Include="Interfaces\Docente\IDocentesService.cs" />
     <Compile Include="Migracion\BulkIdentityMigrator.cs" />
     <Compile Include="Migracion\MigradorUsuariosRunner.cs" />
@@ -501,9 +507,21 @@
     <Compile Include="Recursos\FuncionalidadesGenerales.cs" />
     <Compile Include="Recursos\RecursosGenerales.cs" />
     <Compile Include="Recursos\StringExtensions.cs" />
+    <Compile Include="Services\Actividades\ActividadesApiCAService.cs" />
+    <Compile Include="Services\Actividades\ActividadesApiService.cs" />
+    <Compile Include="Services\Actividades\ActividadesApiSTService.cs" />
     <Compile Include="Services\Actividades\ActividadesCAService.cs" />
     <Compile Include="Services\Actividades\ActividadesService.cs" />
     <Compile Include="Services\Actividades\ActividadesSTService.cs" />
+    <Compile Include="Services\Alumno\AlumnoApiCAService.cs" />
+    <Compile Include="Services\Alumno\AlumnoApiService.cs" />
+    <Compile Include="Services\Alumno\AlumnoApiSTService.cs" />
+    <Compile Include="Services\Alumno\AlumnoCAService.cs" />
+    <Compile Include="Services\Alumno\AlumnoService.cs" />
+    <Compile Include="Services\Alumno\AlumnoSTService.cs" />
+    <Compile Include="Services\Docente\DocenteCAService.cs" />
+    <Compile Include="Services\Docente\DocenteService.cs" />
+    <Compile Include="Services\Docente\DocenteSTService.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\FCMService.cs" />
     <Compile Include="Services\FuenteDatosService.cs" />

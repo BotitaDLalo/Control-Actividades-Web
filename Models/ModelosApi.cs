@@ -88,4 +88,13 @@ namespace ControlActividades.Models
 
         public int? GrupoId {  get; set; }
     }
+
+    public class DetallesActividadRes
+    {
+        public int ActividadId { get; set; }
+
+        public int MateriaId { get; set; }
+    }
+
+
 }

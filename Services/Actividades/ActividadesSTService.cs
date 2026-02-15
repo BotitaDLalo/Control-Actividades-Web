@@ -1,3 +1,4 @@
+using ControlActividades.Interfaces.Actividades;
 using ControlActividades.Models;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +12,7 @@ using System.Web;
 
 namespace ControlActividades.Services.Actividades
 {
-    public class ActividadesSTService
+    public class ActividadesSTService : IActividadesService
     {
         private static readonly ControlActividades.Recursos.FuncionalidadesGenerales fg = new Recursos.FuncionalidadesGenerales();
         private static readonly string url = fg.ObtenerUrlST();
@@ -191,6 +192,11 @@ namespace ControlActividades.Services.Actividades
                     throw new Exception($"Error en API externa: {response}");
             }
 
+        }
+
+        public Task<DetallesActividadRes> ObtenerDetallesActividad(int actividadId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

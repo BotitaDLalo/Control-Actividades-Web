@@ -9,11 +9,11 @@ using ControlActividades.Models;
 
 namespace ControlActividades.Services.Materias
 {
-    public class MateriasApiCAService : IMateriasApiService
+    public class MateriasApiCAService : IMateriasApiService, IDisposable
     {
-
-
+        #region Propiedades
         private ApplicationDbContext _db;
+        private bool _disposed = false;
 
         public ApplicationDbContext Db
         {
@@ -27,7 +27,24 @@ namespace ControlActividades.Services.Materias
             }
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _db?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+        #endregion
 
         public async Task<List<MateriaCARes>> ObtenerMaterias(int ca_usuarioId, int st_usuarioId, string role)
         {
@@ -62,7 +79,7 @@ namespace ControlActividades.Services.Materias
                     Descripcion = b.Descripcion,
                     FechaCreacion = b.FechaCreacion,
                     FechaLimite = b.FechaLimite,
-                    Puntaje = b.Puntaje,
+                    //Puntaje = b.Puntaje,
                     MateriaId = b.MateriaId
                 }).ToList()
             }).ToList();

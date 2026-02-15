@@ -149,7 +149,7 @@ namespace ControlMaterias.Controllers
             string role = Fg.ObtenerRolUsuario(User);
             int st_usuarioId = 0;
 
-            List< MateriaCARes> lsMaterias = await MateriasService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, st_usuarioId, role);
+            List<MateriaCARes> lsMaterias = await MateriasService.ObtenerMateriasSinGrupoPorUsuario(usuarioId, st_usuarioId, role);
 
             return View(lsMaterias);
         }
@@ -224,7 +224,7 @@ namespace ControlMaterias.Controllers
             {
                 return Json(new { error = "Datos de materia inválidos." });
             }
-            
+
             var usuarioId = Fg.ObtenerCAUsuarioId(User);
             var codigoAcceso = ObtenerClaveMateria();
 
@@ -248,7 +248,7 @@ namespace ControlMaterias.Controllers
         }
 
         [HttpPost]
-        private async Task<tbMaterias>CrearMateriaInterna(string nombre, string descripcion, string color, int docenteId)
+        private async Task<tbMaterias> CrearMateriaInterna(string nombre, string descripcion, string color, int docenteId)
         {
             var codigoAcceso = ObtenerClaveMateria();
 
@@ -647,9 +647,10 @@ namespace ControlMaterias.Controllers
                 await Ns.NotificacionCreaActividad(
                     actividadDto
                 );*/
-                
+
                 return Json(new
-                {   mensaje = "Actividad creada y asignada a los alumnos con éxito",
+                {
+                    mensaje = "Actividad creada y asignada a los alumnos con éxito",
                     actividadId = actividad.ActividadId
                 }, JsonRequestBehavior.AllowGet);
             }
@@ -1039,10 +1040,10 @@ namespace ControlMaterias.Controllers
             catch (Exception ex)
             {
                 Response.StatusCode = 500;
-                return Json(new 
-                { 
-                    mensaje = "Error al actualizar la materia", 
-                    error = ex.Message 
+                return Json(new
+                {
+                    mensaje = "Error al actualizar la materia",
+                    error = ex.Message
                 });
             }
         }
@@ -1153,27 +1154,51 @@ namespace ControlMaterias.Controllers
 
 
         #region PartialViews
-        public ActionResult AvisosPartialView()
+        public ActionResult AvisosPartialView(int materiaId)
         {
             return PartialView("_Avisos");
         }
 
-        public ActionResult ActividadesPartialView()
+        public ActionResult ActividadesPartialView(int materiaId)
         {
             return PartialView("_Actividades");
         }
 
-        public ActionResult EntregablesPartialView()
+        public ActionResult EntregablesPartialView(int materiaId)
         {
-            return PartialView("_Entregables");
+            var lsActividadesMateria = Db.tbActividades.Where(a => a.MateriaId == materiaId)
+                .Select(a => new ActividadesMateria
+                {
+                    ActividadId = a.ActividadId,
+                    NombreActividad = a.NombreActividad,
+                    Puntaje = a.Puntaje
+                }).ToList();
+
+            var lsActividadesMateriaId = lsActividadesMateria.Select(a => a.ActividadId).ToList();
+
+            var lsAlumnosCalificar = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateriaId.Contains(a.ActividadId))
+                .Select(a => new AlumnosCalificar
+                {
+                    NombreCompletoAlumno = a.tbAlumnos.ApellidoPaterno + " " + a.tbAlumnos.ApellidoMaterno + " " + a.tbAlumnos.Nombre,
+                    Calificacion = a.Calificacion,
+                    ActividadId = a.tbActividades.ActividadId
+                }).ToList();
+
+            EntregablesPartialViewModel model = new EntregablesPartialViewModel()
+            {
+                ActividadesMateria = lsActividadesMateria,
+                AlumnosCalificar = lsAlumnosCalificar
+            };
+
+            return PartialView("_Entregables", model);
         }
 
-        public ActionResult AlumnosPartialView()
+        public ActionResult AlumnosPartialView(int materiaId)
         {
             return PartialView("_Alumnos");
         }
 
-        public ActionResult ConfiguracionPartialView()
+        public ActionResult ConfiguracionPartialView(int materiaId)
         {
 
             ViewBag.NombreMateria = "";

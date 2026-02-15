@@ -31,7 +31,7 @@ namespace ControlActividades.Controllers
         public MateriasApiController()
         {
         }
-
+        #region Propiedades
         public MateriasApiController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg, MateriasApiService materiasApiService)
         {
             UserManager = userManager;
@@ -112,7 +112,7 @@ namespace ControlActividades.Controllers
                 _fg = value;
             }
         }
-
+        #endregion
 
 
 
@@ -246,7 +246,7 @@ namespace ControlActividades.Controllers
                 //    }).ToList()
                 //}).ToList();
                 string role = Roles.DOCENTE;
-                int st_usuarioId = Fg.ObtenerSTUsuarioId(User);
+                int st_usuarioId = Fg.ObtenerSTUsuarioIdPorCAUsuarioId(docenteId, role);
 
                 var lsMaterias = await MateriasApiService.ObtenerMaterias(docenteId, st_usuarioId, role);
                 return Ok(lsMaterias);
@@ -261,57 +261,57 @@ namespace ControlActividades.Controllers
         }
 
 
-        [HttpGet]
-        [Route("ObtenerMaterias")]
-        public async Task<IHttpActionResult> ObtenerMaterias()
-        {
-            try
-            {
-                var materias = await ConsultaMaterias();
+        //[HttpGet]
+        //[Route("ObtenerMaterias")]
+        //public async Task<IHttpActionResult> ObtenerMaterias()
+        //{
+        //    try
+        //    {
+        //        var materias = await ConsultaMaterias();
 
-                if (materias == null || !materias.Any())
-                    return NotFound();
+        //        if (materias == null || !materias.Any())
+        //            return NotFound();
 
-                return Ok(materias);
-            }
-            catch (Exception)
-            {
-                return Content(HttpStatusCode.BadRequest, new
-                {
-                    mensaje = "Hubo un error en ObtenerMaterias"
-                });
-            }
-        }
+        //        return Ok(materias);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return Content(HttpStatusCode.BadRequest, new
+        //        {
+        //            mensaje = "Hubo un error en ObtenerMaterias"
+        //        });
+        //    }
+        //}
 
 
-        [HttpGet]
-        [Route("ObtenerMateriaUnica")]
-        public async Task<IHttpActionResult> ObtenerMateriaUnica(int id)
-        {
-            try
-            {
-                var subject = await Db.tbMaterias
-                    .Where(m => m.MateriaId == id)
-                    .Select(m => new
-                    {
-                        m.MateriaId,
-                        m.NombreMateria,
-                        m.Descripcion,
-                        m.CodigoAcceso,
-                        m.CodigoColor,
-                        m.DocenteId
-                    })
-                    .FirstOrDefaultAsync();
+        //[HttpGet]
+        //[Route("ObtenerMateriaUnica")]
+        //public async Task<IHttpActionResult> ObtenerMateriaUnica(int id)
+        //{
+        //    try
+        //    {
+        //        var subject = await Db.tbMaterias
+        //            .Where(m => m.MateriaId == id)
+        //            .Select(m => new
+        //            {
+        //                m.MateriaId,
+        //                m.NombreMateria,
+        //                m.Descripcion,
+        //                m.CodigoAcceso,
+        //                m.CodigoColor,
+        //                m.DocenteId
+        //            })
+        //            .FirstOrDefaultAsync();
 
-                if (subject is null) return Content(HttpStatusCode.NotFound, "Materia no encontrado");
+        //        if (subject is null) return Content(HttpStatusCode.NotFound, "Materia no encontrado");
 
-                return Ok(subject);
-            }
-            catch (Exception ex)
-            {
-                return Content(HttpStatusCode.InternalServerError, new { mensaje = "Error al obtener materia", error = ex.Message });
-            }
-        }
+        //        return Ok(subject);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Content(HttpStatusCode.InternalServerError, new { mensaje = "Error al obtener materia", error = ex.Message });
+        //    }
+        //}
 
 
         [HttpPost]
@@ -748,7 +748,7 @@ namespace ControlActividades.Controllers
                 //    }).ToList()
                 //}).ToList();
                 string role = Roles.ALUMNO;
-                int st_usuarioId = Fg.ObtenerSTUsuarioId(User);
+                int st_usuarioId = Fg.ObtenerSTUsuarioIdPorCAUsuarioId(alumnoId, role);
 
                 var lsMateriasSinGrupo = await MateriasApiService.ObtenerMaterias(alumnoId, st_usuarioId, role);
 
