@@ -1,7 +1,11 @@
-﻿using System;
+﻿using ControlActividades.Models;
+using ControlActividades.Services.Materias;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
+using System.Web.Mvc;
 
 namespace ControlActividades.Services.Alumno
 {
@@ -59,6 +63,20 @@ namespace ControlActividades.Services.Alumno
             {
                 _alumnoCAService = value;
             }
+        }
+
+        #endregion
+
+        #region Métodos
+        public async Task<UnirseAClaseMRespuesta> UnirseAClase(int usuarioId, string codigo)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await AlumnoSTService.UnirseAClase(usuarioId, codigo);
+            }
+            return await AlumnoCAService.UnirseAClase(usuarioId, codigo);
         }
 
         #endregion

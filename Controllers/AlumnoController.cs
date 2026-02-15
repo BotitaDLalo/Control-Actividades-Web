@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+using ControlActividades.Exceptions;
+using ControlActividades.Filters;
+using ControlActividades.Interfaces.Materias;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
+using ControlActividades.Services.Alumno;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -18,7 +13,16 @@ using Newtonsoft.Json;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Net.Mail;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
 
 namespace ControlActividades.Controllers
 {
@@ -32,6 +36,7 @@ namespace ControlActividades.Controllers
         private ApplicationDbContext _db;
         private FuncionalidadesGenerales _fg;
         private FCMService _fCMService;
+        private AlumnoService _alumnoService;
 
         public AlumnoController()
         {
@@ -112,6 +117,18 @@ namespace ControlActividades.Controllers
             set
             {
                 _fg = value;
+            }
+        }
+        
+        private AlumnoService AlumnoService
+        {
+            get
+            {
+                return _alumnoService ?? (_alumnoService = new AlumnoService());
+            }
+            set
+            {
+                _alumnoService = value;
             }
         }
 
@@ -226,6 +243,52 @@ namespace ControlActividades.Controllers
         }
 
         #endregion
+
+        [HttpPost]
+        [CustomAuthorize(Roles = "Alumno")]
+        public async Task<ActionResult> UnirseAClaseWeb(string CodigoAcceso)
+        {
+            try
+            {
+                int alumnoId = Fg.ObtenerCAUsuarioId(User);
+
+                if (alumnoId <= 0)
+                {
+                    Response.StatusCode = 401;
+                    return Json(new { mensaje = "Usuario no válido." });
+                }
+
+                if (string.IsNullOrWhiteSpace(CodigoAcceso))
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "Código inválido." });
+                }
+
+                var resultado = await AlumnoService.UnirseAClase(alumnoId, CodigoAcceso);
+                if (resultado == null)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new { mensaje = "No se pudo procesar la solicitud." });
+                }
+                return Json(resultado);
+
+            }
+            catch (AlumnosException e)
+            {
+                Response.StatusCode = 400;
+                return Json(new { mensaje = e.Mensaje});
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+
+                return Json(new {mensaje = "Error interno del servidor."});
+            }
+        }
+
+
+
+
 
         #region avisos
         public async Task<ActionResult> Avisos(int alumnoId, int? materiaId, int? grupoId)

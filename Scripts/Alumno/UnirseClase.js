@@ -1,17 +1,7 @@
-﻿document.addEventListener("DOMContentLoaded", async function () {
-    console.log("Cargando clases...");
-    await cargarClases();
-});
-
-async function obtenerAlumnoId() {
-    return alumnoIdGlobal; 
-}
-
-// Función para unirse a una clase con código
+﻿// Función para unirse a una clase con código
 async function unirseAClase() {
     var codigoAcceso = document.getElementById("codigoAccesoInput").value.trim();
-    var alumnoId = alumnoIdGlobal; // Asegúrate de que este valor esté definido correctamente
-
+    
     if (!codigoAcceso) {
         Swal.fire({
             icon: "warning",
@@ -24,19 +14,21 @@ async function unirseAClase() {
 
     try {
        // Use API endpoint that returns object with IDs so we can redirect into the class
-       var response = await fetch('/api/Alumnos/UnirseAClaseM', {
+        var response = await fetch('/Alumno/UnirseAClaseWeb', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
-                AlumnoId: alumnoId,
-                CodigoAcceso: codigoAcceso
-            })
+            body: `CodigoAcceso=${encodeURIComponent(codigoAcceso)}`
         });
         // Try to parse JSON safely
         let data = null;
-        try { data = await response.json(); } catch (e) { data = null; }
+        try {
+            data = await response.json();
+        }
+        catch (e) {
+            data = null;
+        }
 
         if (response.ok) {
             // If API returns detailed info (UnirseAClaseM), redirect into the class
@@ -48,13 +40,23 @@ async function unirseAClase() {
                     const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                     m.hide();
                 }
-            } catch (e) { try { document.getElementById('unirseModal').classList.remove('show'); } catch (__) { } }
+            } catch (e) {
+                try {
+                    document.getElementById('unirseModal').classList.remove('show');
+                }
+                catch (__) {
+                }
+            }
 
             // If Grupo object present
             if (data && data.Grupo && (data.Grupo.GrupoId || data.Grupo.grupoId)) {
                 const gid = data.Grupo.GrupoId || data.Grupo.grupoId;
                 // persist selection: group selected, clear materia
-                try { localStorage.setItem('grupoIdSeleccionado', String(gid)); localStorage.removeItem('materiaIdSeleccionada'); } catch(e){}
+                try {
+                    localStorage.setItem('grupoIdSeleccionado', String(gid));
+                    localStorage.removeItem('materiaIdSeleccionada');
+                } catch (e) {
+                }
                 // redirect to group view
                 window.location.href = `/Alumno/Clase?tipo=grupo&id=${encodeURIComponent(gid)}`;
                 return;
@@ -70,11 +72,20 @@ async function unirseAClase() {
             }
 
             // Fallback: reload classes list and show success
-            cargarClases();
-            Swal.fire({ icon: 'success', title: 'Unido con éxito', text: (data && data.mensaje) ? data.mensaje : 'Te has unido a la clase.' });
+            //cargarClases();
+            Swal.fire({
+                icon: 'success',
+                title: 'Unido con éxito',
+                text: (data && data.mensaje) ? data.mensaje : 'Te has unido a la clase.'
+            });
         } else {
             const msg = (data && data.mensaje) ? data.mensaje : (data && data.Message) ? data.Message : 'Código inválido o ya estás inscrito.';
-            Swal.fire({ icon: 'error', title: 'Error', text: msg, position: 'center' });
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: msg,
+                position: 'center'
+            });
         }
 
     } catch (error) {
@@ -88,6 +99,69 @@ async function unirseAClase() {
     }
 }
 
+// abrir modal cuando se presione el botón
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btnAbrirUnirse');
+    var modalEl = document.getElementById('unirseModal');
+    if (btn && modalEl) {
+        btn.addEventListener('click', function () {
+            // usar bootstrap modal si está disponible
+            try {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            } catch (e) {
+                // fallback: mostrar clase show
+                modalEl.classList.add('show');
+            }
+        });
+    }
+
+    var btnConfirm = document.getElementById('btnUnirseConfirm');
+    if (btnConfirm) {
+        btnConfirm.addEventListener('click', function () {
+            // llamar la función definida en UnirseClase.js
+            if (typeof unirseAClase === 'function') {
+                unirseAClase();
+            } else {
+                alert('Funci�n de unirse no disponible');
+            }
+        });
+    }
+
+    // Buscar local: filtra elementos en contenedorClases por nombre
+    var buscarBtn = document.getElementById('buscarBtn');
+    var buscarInput = document.getElementById('buscarClasesInput');
+    buscarBtn && buscarBtn.addEventListener('click', function () {
+        var q = buscarInput.value.trim().toLowerCase();
+        var cards = document.querySelectorAll('#contenedorClases .class-card');
+        if (!q) { cards.forEach(c => c.style.display = ''); return; }
+        cards.forEach(function (c) {
+            var text = (c.innerText || '').toLowerCase();
+            c.style.display = text.indexOf(q) >= 0 ? '' : 'none';
+        });
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+async function obtenerAlumnoId() {
+    return alumnoIdGlobal; 
+}
+*/
+/*
 // Cargar clases del alumno
 async function cargarClases() {
     const alumnoId = await obtenerAlumnoId();
@@ -151,8 +225,8 @@ async function cargarClases() {
         alert("Ocurrió un error al cargar las clases.");
     }
 }
-
-// Función para enviar archivo/texto como entrega
+*/
+/*// Función para enviar archivo/texto como entrega
 async function enviarEntrega(actividadId) {
     try {
         var alumnoId = alumnoIdGlobal;
@@ -195,8 +269,10 @@ async function enviarEntrega(actividadId) {
         Swal.fire('Error', e.message || 'No se pudo enviar la entrega', 'error');
     }
 }
-
+*/
 //l45 Agregar clase a la vista
+
+/*
 function agregarCardClase(clase) {
 
     let id = clase.Id;
@@ -338,8 +414,10 @@ function agregarCardClase(clase) {
 
     contenedor.appendChild(card);
 }
-
+*/
 // Render lista lateral de materias
+
+/*
 function renderMisMaterias(materias) {
     var cont = document.getElementById('misMaterias');
     if (!cont) return;
@@ -356,8 +434,10 @@ function renderMisMaterias(materias) {
         cont.appendChild(a);
     });
 }
-
+*/
 // Ver clase al hacer clic
+
+/*
 function verClase(nombre, esGrupo) {
     if (!nombre || nombre === "undefined") {
         alert("Error: La clase no tiene un nombre válido.");
@@ -368,3 +448,4 @@ function verClase(nombre, esGrupo) {
     const tipo = esGrupo ? 'grupo' : 'materia';
     window.location.href = `/Alumno/Clase?tipo=${tipo}&nombre=${encodeURIComponent(nombre)}`;
 }
+*/
