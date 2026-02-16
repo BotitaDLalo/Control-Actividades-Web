@@ -183,30 +183,37 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                string email = model.Email;
-
+                string email = model.Email.Trim();
 
                 Role role;
 
                 var usuario = await UserManager.FindByEmailAsync(model.Email);
-                var getRole = await UserManager.GetRolesAsync(usuario.Id);
-                if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                
+                //Si el usuario existe ya
+                if(usuario != null)
                 {
+                    var getRole = await UserManager.GetRolesAsync(usuario.Id);
+                    if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                    {
+                        return View(model);
+                    }
+                    role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+
+                    if (role == Role.Docente && !usuario.EmailConfirmed)
+                    {
+                        Session[SessionKeys.Email.ToString()] = email;
+                        return RedirectToAction("ConfirmEmail");
+                    }
+                }
+
+                //usuario no existe
+                if (email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError("", "No se permiten correos Gmail.");
                     return View(model);
                 }
 
-                role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
-
-                if (role == Role.Docente && !usuario.EmailConfirmed)
-                {
-                    Session[SessionKeys.Email.ToString()] = email;
-                    return RedirectToAction("ConfirmEmail");
-                }
-
-
-                var emailEsValido = await UserManager.FindByEmailAsync(email);
-
-                if (emailEsValido == null)
+                if (usuario == null)
                 {
                     Session[SessionKeys.Email.ToString()] = email;
                     return RedirectToAction("Register");
@@ -318,6 +325,11 @@ namespace ControlActividades.Controllers
                     string email = Session["Email"] as string ?? "";
 
                     if (email == "")
+                    {
+                        return View();
+                    }
+
+                    if (email.Contains("@gmail.com"))
                     {
                         return View();
                     }

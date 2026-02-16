@@ -560,3 +560,10 @@ h3 {
         position: relative;
         top: -25px;
     }
+
+.email-hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.85rem;
+    color: #d9534f; /* rojo bootstrap */
+}
