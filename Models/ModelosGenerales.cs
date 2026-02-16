@@ -421,7 +421,7 @@ namespace ControlActividades.Models
         public string NombreActividad { get; set; }
         public string Descripcion { get; set; }
         public DateTime FechaCreacion { get; set; }
-        public DateTime FechaLimite { get; set; }
+        public DateTime? FechaLimite { get; set; }
         public Decimal Puntaje { get; set; }
     }
 

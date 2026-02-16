@@ -12,7 +12,7 @@ const PanelMateria = Object.freeze({
     Alumnos: "AlumnosPartialView",
     Configuracion: "ConfiguracionPartialView"
 });
-function cambiarPanel(btn) {
+function cambiarPanel(btn, materiaId) {
     // quitar active a todos
     document.querySelectorAll(".tab-button")
         .forEach(b => b.classList.remove("active"));
@@ -27,8 +27,8 @@ function cambiarPanel(btn) {
 
     // cargar partial view
     $("#contenedor-dinamico").load(
-        `/Materias/${partial}`,
-        { materiaId: window.materiaIdGlobal },
+        `/Materias/${partial}?materiaId=${materiaId}`,
+        //{ materiaId: window.materiaIdGlobal },
         function () {
             if (panelKey === "Avisos") {
                 cargarAvisosDeMateria(); 
@@ -39,11 +39,11 @@ function cambiarPanel(btn) {
             if (panelKey === "Alumnos") {
                 cargarAlumnosAsignados();
             }
-            if (panelKey === "Entregables") {
-                if (typeof cargarActividadesParaEntregables === "function") {
-                    cargarActividadesParaEntregables();
-                }
-            }
+            //if (panelKey === "Entregables") {
+            //    if (typeof cargarActividadesParaEntregables === "function") {
+            //        cargarActividadesParaEntregables();
+            //    }
+            //}
             if (panelKey === "Configuracion") {
                 cargarMateriaEditar();
                 const btn = document.getElementById("btnGuardarMateriaEditada");

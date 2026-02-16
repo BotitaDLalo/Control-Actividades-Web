@@ -19,7 +19,9 @@ namespace ControlActividades.Models.db
 
         public DateTime FechaCreacion { get; set; }
 
-        public DateTime FechaLimite { get; set; }
+        public DateTime? FechaInicio { get; set; }
+
+        public DateTime? FechaLimite { get; set; }
 
         public Decimal Puntaje {  get; set; }
 

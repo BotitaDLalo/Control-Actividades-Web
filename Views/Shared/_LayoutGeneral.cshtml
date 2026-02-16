@@ -28,6 +28,7 @@
     @*@Styles.Render("~/Content/Docente/css")*@
     @*<link href="~/Content/Docente/Layout.css" rel="stylesheet" />*@
     @*<link href="~/Content/Docente/Materias.css" rel="stylesheet" />*@
+    <link rel="stylesheet" href="~/Content/dataTables.dataTables.min.css" />
 
     @RenderSection("Styles", required: false)
 
@@ -71,6 +72,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @Scripts.Render("~/bundles/jquery")
+    <script src="~/Scripts/jquery.dataTables.min.js"></script>
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/color")
