@@ -189,18 +189,22 @@ namespace ControlActividades.Controllers
                 Role role;
 
                 var usuario = await UserManager.FindByEmailAsync(model.Email);
-                var getRole = await UserManager.GetRolesAsync(usuario.Id);
-                if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                
+                if(usuario != null)
                 {
-                    return View(model);
-                }
+                    var getRole = await UserManager.GetRolesAsync(usuario.Id);
+                    if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                    {
+                        return View(model);
+                    }
 
-                role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+                    role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
 
-                if (role == Role.Docente && !usuario.EmailConfirmed)
-                {
-                    Session[SessionKeys.Email.ToString()] = email;
-                    return RedirectToAction("ConfirmEmail");
+                    if (role == Role.Docente && !usuario.EmailConfirmed)
+                    {
+                        Session[SessionKeys.Email.ToString()] = email;
+                        return RedirectToAction("ConfirmEmail");
+                    }
                 }
 
 
