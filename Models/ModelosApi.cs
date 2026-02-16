@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,6 +69,7 @@ namespace ControlActividades.Models
         public int? DocenteId { get; set; }
 
         public List<ActividadCARes> Actividades { get; set; }
+        public List<AvisoCARes> Avisos { get; set; }
     }
 
     public class ActividadCARes
@@ -94,4 +96,29 @@ namespace ControlActividades.Models
 
         public int LimiteEntregasPorAlumno { get; set; }
     }
+
+    public class AvisoCARes
+    {
+        public int AvisoId { get; set; }
+        public string Titulo { get; set; }
+        public string Descripcion { get; set; }
+
+        public string NombresDocente { get; set; }
+        public string ApePaternoDocente { get; set; }
+        public string ApeMaternoDocente { get; set; }
+
+        public DateTime FechaCreacion { get; set; }
+        public DateTime? FechaInicio { get; set; }
+        public DateTime? FechaFin { get; set; }
+
+        [JsonIgnore]
+        public string EnlacesRaw { get; set; }   // viene de BD
+        public List<string> Enlaces { get; set; } // se envía a la app
+
+
+        public int FrecuenciaDias { get; set; }
+        public int GrupoId { get; set; }
+        public int MateriaId { get; set; }
+    }
+
 }

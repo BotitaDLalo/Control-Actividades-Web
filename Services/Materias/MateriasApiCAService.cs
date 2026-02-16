@@ -1,11 +1,12 @@
+using ControlActividades.Interfaces.Materias;
+using ControlActividades.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using ControlActividades.Interfaces.Materias;
-using ControlActividades.Models;
 
 namespace ControlActividades.Services.Materias
 {
@@ -67,7 +68,36 @@ namespace ControlActividades.Services.Materias
                     PermitirEntregasTarde = b.PermitirEntregasTarde,
                     TieneLimiteEntregas = b.TieneLimiteEntregas,
                     LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
-                }).ToList()
+                }).ToList(),
+
+                Avisos = (from aviso in Db.tbAvisos
+                          join docente in Db.tbDocentes
+                          on aviso.DocenteId equals docente.DocenteId into gj
+                          from subdocente in gj.DefaultIfEmpty()
+                          where aviso.MateriaId == a.MateriaId && aviso.GrupoId == null
+                          select new AvisoCARes
+                          {
+                              AvisoId = aviso.AvisoId,
+                              Titulo = aviso.Titulo,
+                              Descripcion = aviso.Descripcion,
+
+                              NombresDocente = subdocente != null ? subdocente.Nombre : "",
+                              ApePaternoDocente = subdocente != null ? subdocente.ApellidoPaterno : "",
+                              ApeMaternoDocente = subdocente != null ? subdocente.ApellidoMaterno : "",
+
+                              FechaCreacion = aviso.FechaCreacion,
+                              FechaInicio = aviso.FechaInicio,
+                              FechaFin = aviso.FechaFin,
+
+                              Enlaces = string.IsNullOrEmpty(aviso.Enlaces)
+                                    ? new List<string>()
+                                    : JsonConvert.DeserializeObject<List<string>>(aviso.Enlaces),
+
+                              FrecuenciaDias = aviso.FrecuenciaDias,
+                              GrupoId = aviso.GrupoId ?? 0,
+                              MateriaId = aviso.MateriaId ?? 0
+                          }).ToList(),
+
             }).ToList();
 
 
