@@ -62,7 +62,7 @@ namespace ControlActividades.Services.Materias
                     Descripcion = b.Descripcion,
                     FechaCreacion = b.FechaCreacion,
                     FechaLimite = b.FechaLimite,
-                    Puntaje = b.Puntaje,
+                    Puntaje = (int)b.Puntaje,
                     MateriaId = b.MateriaId
                 }).ToList()
             }).ToList();

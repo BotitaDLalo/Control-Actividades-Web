@@ -573,7 +573,7 @@ namespace ControlActividades.Controllers
                             alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
                             alumnoEntregable.EntregaId = entregable.EntregableId;
                             alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
-                            alumnoEntregable.FechaCalificado = entregable.FechaCalificado;
+                            //alumnoEntregable.FechaCalificado = entregable.FechaCalificado;
 
                             string contenidoRaw = entregable.Contenido ?? "";
                             try
@@ -674,7 +674,7 @@ namespace ControlActividades.Controllers
                 if (entregable == null) return BadRequest("Entregable no encontrado");
 
                 entregable.Calificacion = null;
-                entregable.FechaCalificado = null;
+                //entregable.FechaCalificado = null;
 
                 Db.Entry(entregable).State = EntityState.Modified;
                 await Db.SaveChangesAsync();

@@ -188,7 +188,7 @@ namespace ControlActividades.Services.Materias
                     Descripcion = nuevaActividad.Descripcion,
                     FechaCreacion = nuevaActividad.FechaCreacion,
                     FechaLimite = nuevaActividad.FechaLimite,
-                    Puntaje = nuevaActividad.Puntaje
+                    Puntaje = (int)nuevaActividad.Puntaje
                 };
             }
             catch (Exception ex)
