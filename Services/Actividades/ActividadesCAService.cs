@@ -92,7 +92,7 @@ namespace ControlActividades.Services.Actividades
                     MateriaId = entidad.MateriaId,
                     FechaCreacion = entidad.FechaCreacion,
                     FechaLimite = entidad.FechaLimite,
-                    Puntaje = entidad.Puntaje,
+                    Puntaje = (int)entidad.Puntaje,
                     Enviado = entidad.Enviado,
                     PermitirEntregasTarde = entidad.PermitirEntregasTarde,
                     FechaProgramada = entidad.FechaProgramada
@@ -152,7 +152,7 @@ namespace ControlActividades.Services.Actividades
                 Descripcion = actividadEditar.Descripcion,
                 FechaCreacion = actividadEditar.FechaCreacion,
                 FechaLimite = actividadEditar.FechaLimite,
-                Puntaje = actividadEditar.Puntaje
+                Puntaje = (int)actividadEditar.Puntaje
             };
             
         }

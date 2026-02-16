@@ -18,7 +18,7 @@
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
-    <Use64BitIISExpress />
+    <Use64BitIISExpress>false</Use64BitIISExpress>
     <IISExpressSSLPort>44344</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
@@ -331,6 +331,9 @@
     <Reference Include="System.Web.Http, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebApi.Core.5.3.0\lib\net45\System.Web.Http.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Http.Owin, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Owin.5.3.0\lib\net45\System.Web.Http.Owin.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Http.WebHost, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebApi.WebHost.5.3.0\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
@@ -475,13 +478,9 @@
     <Compile Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.Designer.cs">
       <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202601201645501_AddMatricula.cs" />
-    <Compile Include="Migrations\202601201645501_AddMatricula.Designer.cs">
-      <DependentUpon>202601201645501_AddMatricula.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601312203196_Campo_ST_usuarios.cs" />
-    <Compile Include="Migrations\202601312203196_Campo_ST_usuarios.Designer.cs">
-      <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
+    <Compile Include="Migrations\202602121917033_ModificacionActividades.cs" />
+    <Compile Include="Migrations\202602121917033_ModificacionActividades.Designer.cs">
+      <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\202602111138426_SyncFix.cs" />
     <Compile Include="Migrations\202602111138426_SyncFix.Designer.cs">
@@ -951,11 +950,8 @@
     <EmbeddedResource Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.resx">
       <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601201645501_AddMatricula.resx">
-      <DependentUpon>202601201645501_AddMatricula.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601312203196_Campo_ST_usuarios.resx">
-      <DependentUpon>202601312203196_Campo_ST_usuarios.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202602121917033_ModificacionActividades.resx">
+      <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202602111138426_SyncFix.resx">
       <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>

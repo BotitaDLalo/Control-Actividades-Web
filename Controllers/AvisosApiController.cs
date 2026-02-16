@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Http;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
@@ -13,6 +5,16 @@ using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Validation;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http;
 
 namespace ControlActividades.Controllers
 {
@@ -208,19 +210,45 @@ namespace ControlActividades.Controllers
         {
             bool avisoCreado = false;
 
+            if (crearAviso == null)
+                return BadRequest("Datos inválidos.");
+
+            if (crearAviso.FechaFin <= crearAviso.FechaInicio)
+                return BadRequest("La fecha fin debe ser mayor a la fecha inicio.");
+
+            // Validar enlaces
+            if (crearAviso.Enlaces != null)
+            {
+                foreach (var link in crearAviso.Enlaces)
+                {
+                    if (!Uri.IsWellFormedUriString(link, UriKind.Absolute))
+                        return BadRequest($"Enlace inválido: {link}");
+                }
+            }
+
             DateTime dateTime = DateTime.Now;
+
             tbAvisos avisos = new tbAvisos
             {
                 DocenteId = crearAviso.DocenteId,
                 Titulo = crearAviso.Titulo,
                 Descripcion = crearAviso.Descripcion,
                 FechaCreacion = dateTime,
+                FechaInicio = crearAviso.FechaInicio,
+                FechaFin = crearAviso.FechaFin,
+                FrecuenciaDias = crearAviso.FrecuenciaDias,
+
+                // 🔥 Convertimos lista a JSON
+                Enlaces = crearAviso.Enlaces != null
+                            ? Newtonsoft.Json.JsonConvert.SerializeObject(crearAviso.Enlaces)
+                            : null
             };
 
             try
             {
                 var materiaId = crearAviso.MateriaId;
                 var grupoId = crearAviso.GrupoId;
+
                 if (grupoId != null)
                 {
                     avisos.GrupoId = grupoId;
@@ -234,49 +262,62 @@ namespace ControlActividades.Controllers
                 await Db.SaveChangesAsync();
                 avisoCreado = true;
 
-                var nuevoAviso = Db.tbAvisos.Where(a => a.AvisoId == avisos.AvisoId).FirstOrDefault();
-
-                var docenteNombre = Db.tbDocentes.Where(a => a.DocenteId == nuevoAviso.DocenteId).Select(a => new
-                {
-                    a.ApellidoPaterno,
-                    a.ApellidoMaterno,
-                    a.Nombre
-                }).FirstOrDefault();
+                var docenteNombre = Db.tbDocentes
+                    .Where(a => a.DocenteId == avisos.DocenteId)
+                    .Select(a => new
+                    {
+                        a.ApellidoPaterno,
+                        a.ApellidoMaterno,
+                        a.Nombre
+                    }).FirstOrDefault();
 
                 var res = new
                 {
-                    AvisoId = nuevoAviso.AvisoId,
-                    Titulo = nuevoAviso.Titulo,
-                    Descripcion = nuevoAviso.Descripcion,
+                    AvisoId = avisos.AvisoId,
+                    Titulo = avisos.Titulo,
+                    Descripcion = avisos.Descripcion,
                     ApePaternoDocente = docenteNombre.ApellidoPaterno,
                     ApeMaternoDocente = docenteNombre.ApellidoMaterno,
                     NombresDocente = docenteNombre.Nombre,
-                    FechaCreacion = nuevoAviso.FechaCreacion,
-                    GrupoId = nuevoAviso.GrupoId,
-                    MateriaId = nuevoAviso.MateriaId
+                    FechaCreacion = avisos.FechaCreacion,
+                    FechaInicio = avisos.FechaInicio,
+                    FechaFin = avisos.FechaFin,
+                    FrecuenciaDias = avisos.FrecuenciaDias,
+                    GrupoId = avisos.GrupoId,
+                    MateriaId = avisos.MateriaId,
+
+                    // 🔥 Enviar ya deserializado
+                    Enlaces = crearAviso.Enlaces ?? new List<string>()
                 };
 
                 return Ok(res);
             }
-            catch (Exception)
+            catch (DbEntityValidationException ex)
             {
-                return BadRequest();
+                var errores = ex.EntityValidationErrors
+                    .SelectMany(e => e.ValidationErrors)
+                    .Select(e => e.ErrorMessage);
+
+                return BadRequest(string.Join(" | ", errores));
             }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
             finally
             {
                 if (avisoCreado)
                 {
                     var materiaId = crearAviso.MateriaId;
                     var grupoId = crearAviso.GrupoId;
+
                     try
                     {
                         await Ns.NotificacionCrearAviso(avisos, grupoId, materiaId);
                     }
                     catch (Exception ex)
                     {
-                        // Log del error pero NO fallar la respuesta HTTP
-                        // El aviso ya se creó exitosamente
-                        // Puedes agregar logging aquí: Console.WriteLine(ex.Message);
                         Console.WriteLine(ex.Message);
                     }
                 }
@@ -285,80 +326,122 @@ namespace ControlActividades.Controllers
 
 
 
-        [HttpGet]
+
+        /* [HttpGet]
+         [Route("ConsultarAvisosCreados")]
+         public IHttpActionResult ConsultarAvisos([FromBody] PeticionConsultarAvisos consultarAvisos)
+         {
+             try
+             {
+                 List<RespuestaConsultarAvisos> lsResAvisos = new List<RespuestaConsultarAvisos>();
+                 List<tbAvisos> lsAvisos = new List<tbAvisos>();
+                 int grupoId = consultarAvisos.GrupoId;
+                 int materiaId = consultarAvisos.MateriaId;
+
+                 if (grupoId != 0)
+                 {
+                     lsAvisos = Db.tbAvisos.Where(a => a.GrupoId == grupoId).ToList();
+                 }
+                 else if (materiaId != 0)
+                 {
+                     lsAvisos = Db.tbAvisos.Where(a => a.MateriaId == materiaId).ToList();
+                 }
+
+                 foreach (var aviso in lsAvisos)
+                 {
+                     int docenteId = aviso.DocenteId;
+                     var docente = Db.tbDocentes.Where(a => a.DocenteId == docenteId)
+                         .Select(a => new
+                         {
+                             a.Nombre,
+                             a.ApellidoPaterno,
+                             a.ApellidoMaterno
+                         }).FirstOrDefault();
+
+                     RespuestaConsultarAvisos resAviso = new RespuestaConsultarAvisos
+                     {
+                         AvisoId = aviso.AvisoId,
+                         Titulo = aviso.Titulo,
+                         Descripcion = aviso.Descripcion,
+                         NombresDocente = docente != null ? docente.Nombre : "",
+                         ApePaternoDocente = docente != null ? docente.ApellidoPaterno : "",
+                         ApeMaternoDocente = docente != null ? docente.ApellidoMaterno : "",
+                         FechaCreacion = aviso.FechaCreacion,
+                         GrupoId = aviso.GrupoId ?? 0,
+                         MateriaId = aviso.MateriaId ?? 0
+                     };
+
+                     lsResAvisos.Add(resAviso);
+                 }
+
+                 return Ok(lsResAvisos.AsEnumerable().Reverse().ToList());
+             }
+             catch (Exception)
+             {
+                 return BadRequest();
+             }
+         }*/
+        [HttpPost]
         [Route("ConsultarAvisosCreados")]
         public IHttpActionResult ConsultarAvisos([FromBody] PeticionConsultarAvisos consultarAvisos)
         {
             try
             {
-                List<RespuestaConsultarAvisos> lsResAvisos = new List<RespuestaConsultarAvisos>();
-                List<tbAvisos> lsAvisos = new List<tbAvisos>();
                 int grupoId = consultarAvisos.GrupoId;
                 int materiaId = consultarAvisos.MateriaId;
 
+                var query = Db.tbAvisos.Include("Docentes").AsQueryable();
+
                 if (grupoId != 0)
-                {
-                    lsAvisos = Db.tbAvisos.Where(a => a.GrupoId == grupoId).ToList();
-                }
+                    query = query.Where(a => a.GrupoId == grupoId);
                 else if (materiaId != 0)
+                    query = query.Where(a => a.MateriaId == materiaId);
+
+                var avisos = query
+                    .OrderByDescending(a => a.FechaCreacion)
+                    .ToList(); // 🔥 Primero traemos a memoria
+
+                var resultado = avisos.Select(a => new RespuestaConsultarAvisos
                 {
-                    lsAvisos = Db.tbAvisos.Where(a => a.MateriaId == materiaId).ToList();
-                }
+                    AvisoId = a.AvisoId,
+                    Titulo = a.Titulo,
+                    Descripcion = a.Descripcion,
 
-                foreach (var aviso in lsAvisos)
-                {
-                    int docenteId = aviso.DocenteId;
-                    var docente = Db.tbDocentes.Where(a => a.DocenteId == docenteId)
-                        .Select(a => new
-                        {
-                            a.Nombre,
-                            a.ApellidoPaterno,
-                            a.ApellidoMaterno
-                        }).FirstOrDefault();
+                    NombresDocente = a.Docentes.Nombre,
+                    ApePaternoDocente = a.Docentes.ApellidoPaterno,
+                    ApeMaternoDocente = a.Docentes.ApellidoMaterno,
 
-                    RespuestaConsultarAvisos resAviso = new RespuestaConsultarAvisos
-                    {
-                        AvisoId = aviso.AvisoId,
-                        Titulo = aviso.Titulo,
-                        Descripcion = aviso.Descripcion,
-                        NombresDocente = docente != null ? docente.Nombre : "",
-                        ApePaternoDocente = docente != null ? docente.ApellidoPaterno : "",
-                        ApeMaternoDocente = docente != null ? docente.ApellidoMaterno : "",
-                        FechaCreacion = aviso.FechaCreacion,
-                        GrupoId = aviso.GrupoId ?? 0,
-                        MateriaId = aviso.MateriaId ?? 0
-                    };
+                    FechaCreacion = a.FechaCreacion,
+                    FechaInicio = a.FechaInicio,
+                    FechaFin = a.FechaFin,
 
-                    lsResAvisos.Add(resAviso);
-                }
+                    Enlaces = string.IsNullOrEmpty(a.Enlaces)
+                                ? new List<string>()
+                                : JsonConvert.DeserializeObject<List<string>>(a.Enlaces),
 
-                return Ok(lsResAvisos.AsEnumerable().Reverse().ToList());
+                    FrecuenciaDias = a.FrecuenciaDias,
+                    GrupoId = a.GrupoId ?? 0,
+                    MateriaId = a.MateriaId ?? 0
+
+                }).ToList();
+
+                return Ok(resultado);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
         }
-        public class AvisoDto
-        {
-            // 🚨 IMPORTANTE: Asegúrate de que los nombres de las propiedades coincidan EXACTAMENTE 
-            // con el JSON que envías desde Dart (AvisoId, Titulo, Descripcion)
-            public int AvisoId { get; set; }
-            public string Titulo { get; set; }
-            public string Descripcion { get; set; }
-            // Si hay otros campos (como DocenteId, GrupoId, etc.) que necesita el ORM 
-            // para la validación, inclúyelos si el NoticeModel de Dart los envía.
-            // Por ahora, solo usamos los que se editan y el ID.
-        }
 
 
-        [HttpPost]
+
+        [HttpPut]
         [Route("ActualizarAviso")]
         public async Task<IHttpActionResult> ActualizarAviso(AvisoDto avisoActualizado)
         {
             try
             {
-                if (avisoActualizado.AvisoId <= 0)
+                if (avisoActualizado == null || avisoActualizado.AvisoId <= 0)
                 {
                     return BadRequest("ID de aviso no válido.");
                 }
@@ -370,12 +453,19 @@ namespace ControlActividades.Controllers
                     return Content(HttpStatusCode.NotFound, "Aviso no encontrado");
                 }
 
+                // 🔥 Actualizar campos básicos
                 dbAviso.Titulo = avisoActualizado.Titulo;
                 dbAviso.Descripcion = avisoActualizado.Descripcion;
+                dbAviso.FechaInicio = avisoActualizado.FechaInicio;
+                dbAviso.FechaFin = avisoActualizado.FechaFin;
+                dbAviso.FrecuenciaDias = avisoActualizado.FrecuenciaDias;
 
+                // 🔥 Convertir lista de enlaces a JSON
+                dbAviso.Enlaces = avisoActualizado.Enlaces == null || !avisoActualizado.Enlaces.Any()
+                    ? null
+                    : JsonConvert.SerializeObject(avisoActualizado.Enlaces);
 
                 await Db.SaveChangesAsync();
-
 
                 var respuestaLimpia = new
                 {
@@ -386,16 +476,25 @@ namespace ControlActividades.Controllers
                     GrupoId = dbAviso.GrupoId,
                     MateriaId = dbAviso.MateriaId,
                     FechaCreacion = dbAviso.FechaCreacion,
-
+                    FechaInicio = dbAviso.FechaInicio,
+                    FechaFin = dbAviso.FechaFin,
+                    Enlaces = avisoActualizado.Enlaces,
+                    FrecuenciaDias = dbAviso.FrecuenciaDias
                 };
 
                 return Ok(respuestaLimpia);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return BadRequest("Error al actualizar: " + e.Message);
+                return Content(HttpStatusCode.InternalServerError, new
+                {
+                    mensaje = "Ocurrió un error al actualizar el aviso.",
+                    detalle = ex.InnerException?.Message ?? ex.Message
+                });
             }
+
         }
+
 
 
 

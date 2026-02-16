@@ -248,18 +248,18 @@ namespace ControlActividades.Models
     public class PeticionCrearAviso
     {
         public int DocenteId { get; set; }
-
-        [Required]
         public string Titulo { get; set; }
-
-        [Required]
         public string Descripcion { get; set; }
-
-        public DateTime FechaCreacion { get; set; }
-
         public int? GrupoId { get; set; }
         public int? MateriaId { get; set; }
+
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+
+        public int FrecuenciaDias { get; set; }
+        public List<string> Enlaces { get; set; }  // 🔥 importante
     }
+
 
 
     public class RegistrarUsuarioGoogle
@@ -317,6 +317,11 @@ namespace ControlActividades.Models
         public int GrupoId { get; set; }
 
         public int MateriaId { get; set; }
+        public List<string> Enlaces { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public int FrecuenciaDias { get; set; }
+
     }
 
 
@@ -669,8 +674,22 @@ namespace ControlActividades.Models
     public class AvisoDto
     {
         public int AvisoId { get; set; }
+
         public string Titulo { get; set; }
+
         public string Descripcion { get; set; }
+
+        public DateTime FechaInicio { get; set; }
+
+        public DateTime FechaFin { get; set; }
+
+        public List<string> Enlaces { get; set; }
+
+        public int FrecuenciaDias { get; set; }
+
+        public int? GrupoId { get; set; }
+
+        public int? MateriaId { get; set; }
     }
 
     /*public class AlumnoEliminarRequest

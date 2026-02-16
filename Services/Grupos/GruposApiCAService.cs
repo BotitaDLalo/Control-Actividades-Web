@@ -81,7 +81,7 @@ namespace ControlActividades.Services.Grupos
                             FechaCreacion = b.FechaCreacion,
                             FechaLimite = b.FechaLimite,
                             //b.TipoActividadId,
-                            Puntaje = b.Puntaje,
+                            Puntaje = (int)b.Puntaje,
                             MateriaId = b.MateriaId,
                             PermitirEntregasTarde = b.PermitirEntregasTarde,
                             TieneLimiteEntregas = b.TieneLimiteEntregas,
