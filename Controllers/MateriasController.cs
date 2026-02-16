@@ -118,7 +118,7 @@ namespace ControlMaterias.Controllers
         {
             get
             {
-                return _notifServ ?? (_notifServ = new NotificacionesService(_db));
+                return _notifServ ?? (_notifServ = new NotificacionesService(Db));
             }
             private set
             {
@@ -643,10 +643,10 @@ namespace ControlMaterias.Controllers
 
                 var actividad = await MateriasService.CrearActividadAsync(actividadDto);
                 //Envío de notificación a los alumnos dentro de la materia
-                /*
+                
                 await Ns.NotificacionCreaActividad(
                     actividadDto
-                );*/
+                );
 
                 return Json(new
                 {
