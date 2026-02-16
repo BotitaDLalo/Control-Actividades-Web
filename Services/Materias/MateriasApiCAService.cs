@@ -1,11 +1,12 @@
+using ControlActividades.Interfaces.Materias;
+using ControlActividades.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using ControlActividades.Interfaces.Materias;
-using ControlActividades.Models;
 
 namespace ControlActividades.Services.Materias
 {
@@ -49,26 +50,65 @@ namespace ControlActividades.Services.Materias
                 lsMateriasUsuario = lsMateriasId;
             }
 
-            var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasUsuario.Contains(a.MateriaId)).Select(a => new MateriaCARes
+            var materias = await Db.tbMaterias
+    .Where(a => lsMateriasUsuario.Contains(a.MateriaId))
+    .ToListAsync(); // 🔥 ejecutamos primero
+
+            var lsMateriasSinGrupo = materias.Select(a => new MateriaCARes
             {
                 MateriaId = a.MateriaId,
                 NombreMateria = a.NombreMateria,
                 Descripcion = a.Descripcion,
                 CodigoAcceso = a.CodigoAcceso,
-                Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new ActividadCARes
-                {
-                    ActividadId = b.ActividadId,
-                    NombreActividad = b.NombreActividad,
-                    Descripcion = b.Descripcion,
-                    FechaCreacion = b.FechaCreacion,
-                    FechaLimite = b.FechaLimite,
-                    Puntaje = b.Puntaje,
-                    MateriaId = b.MateriaId,
-                    PermitirEntregasTarde = b.PermitirEntregasTarde,
-                    TieneLimiteEntregas = b.TieneLimiteEntregas,
-                    LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
-                }).ToList()
+
+                Actividades = Db.tbActividades
+                    .Where(b => b.MateriaId == a.MateriaId)
+                    .Select(b => new ActividadCARes
+                    {
+                        ActividadId = b.ActividadId,
+                        NombreActividad = b.NombreActividad,
+                        Descripcion = b.Descripcion,
+                        FechaCreacion = b.FechaCreacion,
+                        FechaLimite = b.FechaLimite,
+                        Puntaje = b.Puntaje,
+                        MateriaId = b.MateriaId,
+                        PermitirEntregasTarde = b.PermitirEntregasTarde,
+                        TieneLimiteEntregas = b.TieneLimiteEntregas,
+                        LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
+                    })
+                    .ToList(),
+
+                Avisos = Db.tbAvisos
+                    .Where(aviso => aviso.MateriaId == a.MateriaId && aviso.GrupoId == null)
+                    .Join(Db.tbDocentes,
+                          aviso => aviso.DocenteId,
+                          docente => docente.DocenteId,
+                          (aviso, docente) => new { aviso, docente })
+                    .ToList() // 🔥 ejecutamos antes de deserializar
+                    .Select(x => new AvisoCARes
+                    {
+                        AvisoId = x.aviso.AvisoId,
+                        Titulo = x.aviso.Titulo,
+                        Descripcion = x.aviso.Descripcion,
+                        NombresDocente = x.docente.Nombre,
+                        ApePaternoDocente = x.docente.ApellidoPaterno,
+                        ApeMaternoDocente = x.docente.ApellidoMaterno,
+                        FechaCreacion = x.aviso.FechaCreacion,
+                        FechaInicio = x.aviso.FechaInicio,
+                        FechaFin = x.aviso.FechaFin,
+
+                        Enlaces = string.IsNullOrEmpty(x.aviso.Enlaces)
+                            ? new List<string>()
+                            : JsonConvert.DeserializeObject<List<string>>(x.aviso.Enlaces),
+
+                        FrecuenciaDias = x.aviso.FrecuenciaDias,
+                        GrupoId = x.aviso.GrupoId ?? 0,
+                        MateriaId = x.aviso.MateriaId ?? 0
+                    })
+                    .ToList()
+
             }).ToList();
+
 
 
 

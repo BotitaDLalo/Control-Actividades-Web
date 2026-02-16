@@ -692,61 +692,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                //var lsMateriasAlumnoId = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == alumnoId).Select(a => a.MateriaId);
 
-                /*var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasAlumnoId.Contains(a.MateriaId)).Select(a => new
-                {
-                    a.MateriaId,
-                    a.NombreMateria,
-                    a.Descripcion,
-                    a.CodigoAcceso,
-                    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new
-                    {
-                        b.ActividadId,
-                        b.NombreActividad,
-                        b.Descripcion,
-                        b.FechaCreacion,
-                        b.FechaLimite,
-                        b.Puntaje,
-                        b.MateriaId
-                    }).ToList(),
-
-                    Avisos = (from aviso in Db.tbAvisos
-                              join docente in Db.tbDocentes on aviso.DocenteId equals docente.DocenteId into gj
-                              from subdocente in gj.DefaultIfEmpty() // Esto es un LEFT JOIN
-                              where aviso.MateriaId == a.MateriaId && aviso.GrupoId == null
-                              select new
-                              {
-                                  aviso.AvisoId,
-                                  aviso.Titulo,
-                                  aviso.Descripcion,
-                                  aviso.FechaCreacion,
-                                  // Construimos el nombre completo que la app espera
-                                  DocenteNombre = subdocente != null
-                                      ? subdocente.Nombre + " " + subdocente.ApellidoPaterno + " " + subdocente.ApellidoMaterno
-                                      : "",
-                                  aviso.GrupoId,
-                                  aviso.MateriaId
-                              }).ToList()
-                }).ToList();*/
-
-                //foreach (var materia in lsMateriasSinGrupo)
-                //{
-                //    a.MateriaId,
-                //    a.NombreMateria,
-                //    a.Descripcion,
-                //    a.CodigoAcceso,
-                //    Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new
-                //    {
-                //        b.ActividadId,
-                //        b.NombreActividad,
-                //        b.Descripcion,
-                //        b.FechaCreacion,
-                //        b.FechaLimite,
-                //        b.Puntaje,
-                //        b.MateriaId
-                //    }).ToList()
-                //}).ToList();
                 string role = Roles.ALUMNO;
                 int st_usuarioId = Fg.ObtenerSTUsuarioId(User);
 

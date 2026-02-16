@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using ControlActividades.Interfaces.Grupos;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
+using Newtonsoft.Json;
 
 namespace ControlActividades.Services.Grupos
 {
@@ -17,30 +16,24 @@ namespace ControlActividades.Services.Grupos
 
         public ApplicationDbContext Db
         {
-            get
-            {
-                return _db ?? (_db = new ApplicationDbContext());
-            }
-            private set
-            {
-                _db = value;
-            }
+            get { return _db ?? (_db = new ApplicationDbContext()); }
+            private set { _db = value; }
         }
 
         public async Task<List<GruposCreadoCARes>> ObtenerGruposCreados(int ca_usuarioId, int st_usuarioId)
         {
             try
             {
-                var lsGrupos = await Db.tbGrupos.Where(a => a.DocenteId == ca_usuarioId)
+                return await Db.tbGrupos
+                    .Where(a => a.DocenteId == ca_usuarioId)
                     .Select(a => new GruposCreadoCARes
                     {
-                       GrupoId = a.GrupoId,
+                        GrupoId = a.GrupoId,
                         NombreGrupo = a.NombreGrupo
-                    }).ToListAsync();
-
-                return lsGrupos;
+                    })
+                    .ToListAsync();
             }
-            catch (Exception ex)
+            catch
             {
                 return new List<GruposCreadoCARes>();
             }
@@ -48,47 +41,91 @@ namespace ControlActividades.Services.Grupos
 
         public async Task<List<GruposCARes>> ObtenerGruposMaterias(int ca_usuarioId, int st_usuarioId, string role)
         {
-            List<tbGrupos> lsGrupos = new List<tbGrupos>();
             try
             {
+                List<tbGrupos> lsGrupos;
+
                 if (role == Roles.DOCENTE)
                 {
-                    lsGrupos = await Db.tbGrupos.Where(a => a.DocenteId == ca_usuarioId).ToListAsync();
+                    lsGrupos = await Db.tbGrupos
+                        .Where(a => a.DocenteId == ca_usuarioId)
+                        .ToListAsync();
                 }
-                else if (role == Roles.ALUMNO)
+                else
                 {
-                    var lsGruposAlumnosId = await Db.tbAlumnosGrupos.Where(a => a.AlumnoId == ca_usuarioId).Select(a => a.GrupoId).ToListAsync();
+                    var lsGruposAlumnosId = await Db.tbAlumnosGrupos
+                        .Where(a => a.AlumnoId == ca_usuarioId)
+                        .Select(a => a.GrupoId)
+                        .ToListAsync();
 
-                    lsGrupos = await Db.tbGrupos.Where(a => lsGruposAlumnosId.Contains(a.GrupoId)).ToListAsync();
+                    lsGrupos = await Db.tbGrupos
+                        .Where(a => lsGruposAlumnosId.Contains(a.GrupoId))
+                        .ToListAsync();
                 }
-
 
                 var listaGruposMaterias = new List<GruposCARes>();
+
                 foreach (var grupo in lsGrupos)
                 {
-                    var lsMateriasId = await Db.tbGruposMaterias.Where(a => a.GrupoId == grupo.GrupoId).Select(a => a.MateriaId).ToListAsync();
+                    var lsMateriasId = await Db.tbGruposMaterias
+                        .Where(a => a.GrupoId == grupo.GrupoId)
+                        .Select(a => a.MateriaId)
+                        .ToListAsync();
 
-                    var lsMaterias = await Db.tbMaterias.Where(a => lsMateriasId.Contains(a.MateriaId)).Select(m => new MateriaCARes
-                    {
-                        MateriaId = m.MateriaId,
-                        NombreMateria = m.NombreMateria,
-                        Descripcion = m.Descripcion,
-                        Actividades = Db.tbActividades.Where(a => a.MateriaId == m.MateriaId).Select(b => new ActividadCARes
+                    var lsMaterias = await Db.tbMaterias
+                        .Where(m => lsMateriasId.Contains(m.MateriaId))
+                        .Select(m => new MateriaCARes
                         {
-                            ActividadId = b.ActividadId,
-                            NombreActividad = b.NombreActividad,
-                            Descripcion = b.Descripcion,
-                            FechaCreacion = b.FechaCreacion,
-                            FechaLimite = b.FechaLimite,
-                            //b.TipoActividadId,
-                            Puntaje = b.Puntaje,
-                            MateriaId = b.MateriaId,
-                            PermitirEntregasTarde = b.PermitirEntregasTarde,
-                            TieneLimiteEntregas = b.TieneLimiteEntregas,
-                            LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
-                        }).ToList()
-                    }).ToListAsync();
+                            MateriaId = m.MateriaId,
+                            NombreMateria = m.NombreMateria,
+                            Descripcion = m.Descripcion,
+                            CodigoAcceso = m.CodigoAcceso,
 
+                            Actividades = Db.tbActividades
+                                .Where(a => a.MateriaId == m.MateriaId)
+                                .Select(b => new ActividadCARes
+                                {
+                                    ActividadId = b.ActividadId,
+                                    NombreActividad = b.NombreActividad,
+                                    Descripcion = b.Descripcion,
+                                    FechaCreacion = b.FechaCreacion,
+                                    FechaLimite = b.FechaLimite,
+                                    Puntaje = (int)b.Puntaje,
+                                    MateriaId = b.MateriaId,
+                                    PermitirEntregasTarde = b.PermitirEntregasTarde,
+                                    TieneLimiteEntregas = b.TieneLimiteEntregas,
+                                    LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
+                                }).ToList(),
+
+                            Avisos = Db.tbAvisos
+                                .Where(aviso => aviso.MateriaId == m.MateriaId
+                                              && aviso.GrupoId == grupo.GrupoId)
+                                .Select(aviso => new AvisoCARes
+                                {
+                                    AvisoId = aviso.AvisoId,
+                                    Titulo = aviso.Titulo,
+                                    Descripcion = aviso.Descripcion,
+                                    FechaCreacion = aviso.FechaCreacion,
+                                    FechaInicio = aviso.FechaInicio,
+                                    FechaFin = aviso.FechaFin,
+                                    FrecuenciaDias = aviso.FrecuenciaDias,
+                                    GrupoId = aviso.GrupoId ?? 0,
+                                    MateriaId = aviso.MateriaId ?? 0,
+                                    EnlacesRaw = aviso.Enlaces // ⚠ solo string aquí
+                                }).ToList()
+                        })
+                        .ToListAsync();
+
+                    // 🔥 Deserializar Enlaces fuera del query (correcto para EF)
+                    foreach (var materia in lsMaterias)
+                    {
+                        foreach (var aviso in materia.Avisos)
+                        {
+                            aviso.Enlaces = string.IsNullOrEmpty(aviso.EnlacesRaw)
+                                ? new List<string>()
+                                : JsonConvert.DeserializeObject<List<string>>(aviso.EnlacesRaw);
+                        }
+                    }
 
                     listaGruposMaterias.Add(new GruposCARes
                     {
@@ -97,14 +134,13 @@ namespace ControlActividades.Services.Grupos
                         Descripcion = grupo.Descripcion,
                         CodigoAcceso = grupo.CodigoAcceso,
                         CodigoColor = grupo.CodigoColor,
-
                         Materias = lsMaterias
                     });
                 }
 
                 return listaGruposMaterias;
             }
-            catch (Exception)
+            catch
             {
                 return new List<GruposCARes>();
             }
