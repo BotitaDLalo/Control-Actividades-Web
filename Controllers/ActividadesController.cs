@@ -531,7 +531,7 @@ namespace ControlActividades.Controllers
                     JsonRequestBehavior.AllowGet);
             }
         }
-
+        /*
         // POST: /Actividades/EnviarEntrega (recibe multipart/form-data desde la web)
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -660,7 +660,8 @@ namespace ControlActividades.Controllers
         return Json(new { mensaje = "Ocurrió un error al guardar la entrega. Intenta nuevamente más tarde." });
         }
         }
-
+        */
+        /*
         // POST: /Actividades/QuitarCalificacion
         [HttpPost]
         public async Task<ActionResult> QuitarCalificacion(int entregableId)
@@ -695,7 +696,7 @@ namespace ControlActividades.Controllers
         return Json(new { mensaje = "No se pudo quitar la calificación." });
         }
         }
-
+        */
         protected override void Dispose(bool disposing)
         {
             if (disposing)
