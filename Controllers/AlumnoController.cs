@@ -504,12 +504,17 @@ namespace ControlActividades.Controllers
                     Enlaces = lsEnlaces,
                     EstaCalificado = estaCalificado,
                     EstaEntregado = estaEntregado,
-                    EntregaTardia = datosEntregable.EntregaTardia
+                    //EntregaTardia = datosEntregable.EntregaTardia
                 };
 
                 if (datosEntregable != null && datosEntregable.FechaCalificado != null)
                 {
                     model.FechaCalificado = datosEntregable.FechaCalificado.Value;
+                }
+
+                if (datosEntregable != null && datosEntregable.EntregaTardia)
+                {
+                    model.EntregaTardia = datosEntregable.EntregaTardia;
                 }
 
                 return View(model);
