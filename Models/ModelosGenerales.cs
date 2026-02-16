@@ -12,7 +12,7 @@ namespace ControlActividades.Models
     {
         public int EntregableId { get; set; }
 
-        public int Calificacion { get; set; }
+        public decimal Calificacion { get; set; }
     }
 
     public class QuitarCalificacionPeticion
@@ -287,7 +287,7 @@ namespace ControlActividades.Models
         public string ApellidoMaterno { get; set; }
         public DateTime FechaEntrega { get; set; }
         public string Respuesta { get; set; }
-        public int Calificacion { get; set; }
+        public decimal Calificacion { get; set; }
         public DateTime? FechaCalificado { get; set; }
         public string Texto { get; set; }
         public List<string> Enlaces { get; set; }
@@ -645,7 +645,7 @@ namespace ControlActividades.Models
 
         public string Contenido { get; set; }
 
-        public int Calificacion { get; set; }
+        public decimal Calificacion { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
         public DateTime? FechaCalificado { get; set; }

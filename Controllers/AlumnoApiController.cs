@@ -1099,7 +1099,7 @@ namespace ControlActividades.Controllers
                 var tieneLimiteEntregas = actividad.TieneLimiteEntregas;
 
                 var entregasAlumno = Db.tbEntregaActividadAlumno
-                    .Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId && a.Estatus)
+                    .Where(a => a.ActividadId == actividadId && a.AlumnoId == alumnoId)
                     .ToList();
                 if (tieneLimiteEntregas)
                 {
@@ -1830,8 +1830,8 @@ namespace ControlActividades.Controllers
                                 ActividadId = datosAlumnoActividad.ActividadId,
                                 FechaEntrega = datosAlumnoActividad.FechaEntrega,
                                 Contenido = entrega.Contenido,
-                                //Calificacion = entrega.Calificacion ?? 0,
-                                //FechaCalificado = entrega.FechaCalificado,
+                                Calificacion = datosAlumnoActividad.Calificacion,
+                                FechaCalificado = datosAlumnoActividad.FechaCalificado,
                                 EstadoEntregaId = datosAlumnoActividad.EstadoEntregaId
                             };
 

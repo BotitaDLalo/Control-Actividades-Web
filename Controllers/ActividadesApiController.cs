@@ -579,8 +579,8 @@ namespace ControlActividades.Controllers
                             alumnoEntregable.ApellidoPaterno = apellidoPaterno ?? "";
                             alumnoEntregable.ApellidoMaterno = apellidoMaterno ?? "";
                             alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
-                            alumnoEntregable.EntregaId = entregable.EntregableId;
-                            alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                            alumnoEntregable.EntregaId = alumnoActividad.EntregaActividadAlumnoId;
+                            alumnoEntregable.Calificacion = (decimal)alumnoActividad.Calificacion;
                             //alumnoEntregable.FechaCalificado = entregable.FechaCalificado;
 
                             string contenidoRaw = entregable.Contenido ?? "";
@@ -677,14 +677,14 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == peticion.EntregableId);
+                var entregaAlumno = Db.tbEntregaActividadAlumno.FirstOrDefault(a => a.EntregaActividadAlumnoId == peticion.EntregableId);
 
-                if (entregable == null) return BadRequest("Entregable no encontrado");
+                if (entregaAlumno == null) return BadRequest("Entregable no encontrado");
 
-                entregable.Calificacion = null;
-                //entregable.FechaCalificado = null;
+                entregaAlumno.Calificacion = 0;
+                entregaAlumno.FechaCalificado = null;
 
-                Db.Entry(entregable).State = EntityState.Modified;
+                Db.Entry(entregaAlumno).State = EntityState.Modified;
                 await Db.SaveChangesAsync();
 
                 return Ok();
