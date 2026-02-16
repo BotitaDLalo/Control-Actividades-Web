@@ -9,6 +9,8 @@
     var puntaje = ViewBag.Puntaje;
 
     var entregaId = ViewBag.EntregaId;
+
+    string estatusEntrega = string.Empty;
 }
 
 <style>
@@ -94,9 +96,62 @@
             <input type="hidden" name="AlumnoId" value="@alumnoId" />
             <input type="hidden" name="TipoEntregaId" value="1" />
             <div id="entregaForm">
+
                 <div class="mb-3">
-                    <label style="font-size:20px;"><span style="font-weight:bold;">Calificación: </span>@Model.Calificacion</label>
+                    <label style="font-size:20px;">
+                        <span style="font-weight:bold;">Estatus: </span>@{
+                            if (!Model.EntregaTardia)
+                            {
+                                estatusEntrega = "Enviado";
+
+                                <span>@estatusEntrega</span>
+                            }
+                            else
+                            {
+                                estatusEntrega = "Enviado con retraso";
+                                <span style="color: red;">@estatusEntrega</span>
+                            }
+
+
+
+                        }
+                    </label>
                 </div>
+
+
+
+                <div class="mb-3">
+                    <label style="font-size:20px;">
+                        <span style="font-weight:bold;">Puntaje: </span>@{
+                            if (Model.Puntaje > 0)
+                            {
+                                <span>@Model.Puntaje</span>
+                            }
+                            else
+                            {
+                                <span>Sin Puntaje</span>
+                            }
+                        }
+                    </label>
+                </div>
+
+
+                <div class="mb-3">
+                    <label style="font-size:20px;">
+                        <span style="font-weight:bold;">Calificación: </span>@{
+                            if (Model.Calificacion > 0)
+                            {
+                                @Model.Calificacion
+                            }
+                            else
+                            {
+                                var sinCalificacion = "Sin Calificación";
+                                @sinCalificacion
+                            }
+                        }
+                    </label>
+                </div>
+
                 <div class="mb-3">
                     <label for="Respuesta" class="form-label">Respuesta</label>
                     <textarea id="Respuesta" name="Respuesta" class="form-control" rows="6" placeholder="Escribe tu respuesta para el docente..." @(Model.EstaEntregado ? "disabled" : "")>@Model.Respuesta</textarea>
@@ -104,10 +159,10 @@
 
 
                 @*<div class="mb-3">
-                        <label for="Enlaces" class="form-label">Enlace (opcional)</label>
-                        <input type="url" id="Enlaces" name="Enlaces" class="form-control" placeholder="https://ejemplo.com/album" />
-                        <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
-                    </div>*@
+            <label for="Enlaces" class="form-label">Enlace (opcional)</label>
+            <input type="url" id="Enlaces" name="Enlaces" class="form-control" placeholder="https://ejemplo.com/album" />
+            <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
+        </div>*@
 
                 <div class="mb-3">
                     <label class="form-label font-weight-bold">Enlaces (opcional)</label>
@@ -159,12 +214,12 @@
                         else
                         {
                             @*<label for="input-calificacion auto-select">Calificación</label>
-                                <input type="number" class="form-control input-calificacion auto-select"
-                                       min="0"
-                                       step="0.01"
-                                       inputmode="decimal"
-                                       placeholder="0.00"
-                                       value="@Model.Calificacion" disabled/>*@
+                    <input type="number" class="form-control input-calificacion auto-select"
+                           min="0"
+                           step="0.01"
+                           inputmode="decimal"
+                           placeholder="0.00"
+                           value="@Model.Calificacion" disabled/>*@
 
                         }
 
