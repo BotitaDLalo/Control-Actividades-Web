@@ -97,4 +97,15 @@ namespace ControlActividades.Models
     }
 
 
+    public class CrearActividadReq
+    {
+        public string Role { get; set; }
+
+        public int st_usuarioId { get; set; }
+
+        public int ca_usuarioId { get; set; }
+
+        public string View { get; set; }
+    }
+
 }

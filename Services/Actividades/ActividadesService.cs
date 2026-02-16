@@ -63,14 +63,14 @@ namespace ControlActividades.Services
         }
         #endregion
 
-        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
+        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int st_usuarioId,int materiaId, string rol, int grupoId = 0)
         {
             var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
             if (fuenteDatos == FuenteDatos.API)
             {
-                return await ActividadesSTService.ObtenerActividadesPorMateria(materiaId, rol);
+                return await ActividadesSTService.ObtenerActividadesPorMateria(st_usuarioId,materiaId, rol, grupoId);
             }
-            return await ActividadesCAService.ObtenerActividadesPorMateria(materiaId, rol);
+            return await ActividadesCAService.ObtenerActividadesPorMateria(st_usuarioId,materiaId, rol, grupoId);
         }
 
         public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)

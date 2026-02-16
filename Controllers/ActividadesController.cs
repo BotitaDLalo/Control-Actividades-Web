@@ -122,13 +122,15 @@ namespace ControlActividades.Controllers
 
         // Controlador que obtiene todo lo de actividades que pertenecen a esa materia
         [HttpGet]
-        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
+        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId, int grupoId = 0)
         {
             try
             {
                 var rol = Fg.ObtenerRolUsuario(User);
 
-                var actividades = await ActividadesService.ObtenerActividadesPorMateria(materiaId, rol);
+                var st_usuarioId = Fg.ObtenerSTUsuarioId(User);
+
+                var actividades = await ActividadesService.ObtenerActividadesPorMateria(st_usuarioId,materiaId, rol, grupoId);
 
                 return Json(actividades, JsonRequestBehavior.AllowGet);
             }

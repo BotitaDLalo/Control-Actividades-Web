@@ -17,5 +17,7 @@ namespace ControlActividades.Interfaces.Materias
         Task<List<AlumnoCorreo>> BuscarAlumnosPorCorreo(string query);
        
         Task<ActividadRes> CrearActividadAsync(ActividadDTO actividad);
+
+        Task<EntregablesPartialViewModel> ObtenerEntregablesAlumno(int materiaId);
     }
 }

@@ -1,0 +1,95 @@
+﻿@{
+    ViewBag.Title = "Administrador";
+    Layout = "~/Views/Shared/_LayoutAdministrador.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3>Migración de Usuarios</h3>
+    </div>
+    <div class="card-body">
+        <form id="formExcel">
+            <div class="mb-3">
+                <label for="archivoExcel" class="form-label">Seleccione el archivo Excel (.xlsx)</label>
+                <input class="form-control" type="file" id="archivoExcel" name="archivoExcel" accept=".xlsx" />
+            </div>
+            <button type="button" id="btnSubir" onclick="subirArchivo()" class="btn btn-primary">
+                Procesar Archivo
+            </button>
+        </form>
+    </div>
+    <div id="resultadoBusqueda" class="card-footer" style="display:none;">
+        <p class="text-success">Archivo procesado correctamente.</p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Configuración global del Toast
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+
+    function subirArchivo() {
+        var input = document.getElementById('archivoExcel');
+        var btn = $("#btnSubir");
+
+        if (input.files.length === 0) {
+            Toast.fire({
+                icon: 'error',
+                title: "Por favor, selecciona un archivo."
+            });
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("archivoExcel", input.files[0]);
+
+        // Estado de carga
+        btn.prop("disabled", true).text("Procesando...");
+
+        $.ajax({
+            url: '@Url.Action("MigrarUsuarios", "Administrador")',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Toast.fire({
+                        icon: 'success',
+                        title: "¡Éxito! Se registraron " + response.data.length + " usuarios."
+                    });
+                    $("#resultadoBusqueda").fadeIn();
+                    console.log("Lista de usuarios:", response.data);
+                } else {
+                    // Aquí se mostrará el error de la licencia o validación
+                    Toast.fire({
+                        icon: 'error',
+                        title: response.message
+                    });
+                }
+            },
+            error: function (xhr) {
+                Toast.fire({
+                    icon: 'error',
+                    title: "Error crítico: El servidor no respondió adecuadamente."
+                });
+                console.error(xhr.responseText);
+            },
+            complete: function() {
+                btn.prop("disabled", false).text("Procesar Archivo");
+            }
+        });
+    }
+</script>

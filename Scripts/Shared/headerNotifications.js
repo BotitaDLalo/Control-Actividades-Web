@@ -86,6 +86,8 @@ document.addEventListener("click", async function (e) {
     const panel = document.getElementById("notificaciones-panel");
     const icono = document.getElementById("notificaciones-icono");
 
+    if (!panel || !icono) return;
+
     // Click fuera de notificaciones
     if (panel?.classList.contains("mostrar") &&
         !panel.contains(e.target) &&

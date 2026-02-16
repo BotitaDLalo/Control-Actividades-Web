@@ -82,7 +82,10 @@ namespace ControlActividades.Models
     {
         public string Role { get; set; }
         public int MateriaId { get; set; }
+        public int GrupoId { get; set; }
         public string View { get; set; }
+        public int st_usuarioId { get; set; }
+
     }
 
     public class ObtenerActividadPorIdRequest

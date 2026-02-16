@@ -1,14 +1,7 @@
-﻿using ControlActividades.Filters;
-using ControlActividades.Models;
-using ControlActividades.Recursos;
-using ControlActividades.Services;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -16,6 +9,17 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
+using ControlActividades.Dtos.Migracion;
+using ControlActividades.Filters;
+using ControlActividades.Migracion;
+using ControlActividades.Models;
+using ControlActividades.Recursos;
+using ControlActividades.Services;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
+using OfficeOpenXml;
 
 namespace ControlActividades.Controllers
 {
@@ -33,11 +37,11 @@ namespace ControlActividades.Controllers
         #region Constantes
         public AdministradorController() { }
 
-        public AdministradorController(ApplicationUserManager userManager, 
-            ApplicationSignInManager signInManager, 
-            RoleManager<IdentityRole> roleManager, 
-            ApplicationDbContext DbContext, 
-            FuncionalidadesGenerales fg, 
+        public AdministradorController(ApplicationUserManager userManager,
+            ApplicationSignInManager signInManager,
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDbContext DbContext,
+            FuncionalidadesGenerales fg,
             Services.EmailService emailService)
         {
             UserManager = userManager;
@@ -150,21 +154,21 @@ namespace ControlActividades.Controllers
             return View(docentes);
         }
 
-        public async Task <ActionResult> VerDocentes()
+        public async Task<ActionResult> VerDocentes()
         {
-            
-                    var docentes = await Db.tbDocentes
-            .Select(d => new DocentesValidacion
-            {
-                DocenteId = d.DocenteId,
-                ApellidoPaterno = d.ApellidoPaterno,
-                ApellidoMaterno = d.ApellidoMaterno,
-                Nombre = d.Nombre,
-                UserId = d.UserId
-            })
-            .ToListAsync();
 
-                    return View(docentes);
+            var docentes = await Db.tbDocentes
+    .Select(d => new DocentesValidacion
+    {
+        DocenteId = d.DocenteId,
+        ApellidoPaterno = d.ApellidoPaterno,
+        ApellidoMaterno = d.ApellidoMaterno,
+        Nombre = d.Nombre,
+        UserId = d.UserId
+    })
+    .ToListAsync();
+
+            return View(docentes);
         }
         #region Metodos de la tabla
         private static string EstadoAutorizado(bool? status)
@@ -373,14 +377,14 @@ namespace ControlActividades.Controllers
 
                             var templatePath = HostingEnvironment.MapPath("~/Templates/Emails/CodigoDocente.html");
                             var html = System.IO.File.ReadAllText(templatePath);
-                            
+
                             //Se reemplaza link en el archivo html por el link real
                             html = html.Replace("{{codigoDocente}}", codigoDocente);
 
                             var emailService = new Services.EmailService();
                             await emailService.SendEmailAsync(
-                                user.Email, 
-                                "Código de verificación", 
+                                user.Email,
+                                "Código de verificación",
                                 html
                             );
 
@@ -410,7 +414,7 @@ namespace ControlActividades.Controllers
         #endregion
 
         #region Ingreso como docente
-        
+
         [HttpPost]
         [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
@@ -422,7 +426,7 @@ namespace ControlActividades.Controllers
                 //MENSAJE DE ERROR
                 return RedirectToAction("Index");
             }
-           
+
             string adminId = User.Identity.GetUserId();
             if (string.IsNullOrEmpty(adminId))
             {
@@ -431,13 +435,13 @@ namespace ControlActividades.Controllers
 
             // Obtener docente
             var docente = await UserManager.FindByIdAsync(userId);
-            if(docente == null)
+            if (docente == null)
             {
                 return RedirectToAction("Index");
             }
 
             //Verificar rol
-            if(!await UserManager.IsInRoleAsync(userId, "Docente"))
+            if (!await UserManager.IsInRoleAsync(userId, "Docente"))
             {
                 return RedirectToAction("Index");
             }
@@ -476,18 +480,18 @@ namespace ControlActividades.Controllers
         {
             var principal = (ClaimsPrincipal)User;
 
-            if(!principal.HasClaim("IsImpersonating", "true"))
+            if (!principal.HasClaim("IsImpersonating", "true"))
                 return RedirectToAction("Index", "Home");
 
             var adminId = principal.FindFirst("AdminOriginalId")?.Value;
-            
-            if(adminId == null)
+
+            if (adminId == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
             var admin = await UserManager.FindByIdAsync(adminId);
-            if(admin == null)
+            if (admin == null)
             {
                 return RedirectToAction("Login", "Account");
             }
@@ -502,6 +506,94 @@ namespace ControlActividades.Controllers
         }
 
 
+        #endregion
+
+
+        #region Subir usuarios
+        public ActionResult MigrarUsuarios()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult MigrarUsuarios(HttpPostedFileBase archivoExcel)
+        {
+            try
+            {
+                BulkIdentityMigrator bulk = new BulkIdentityMigrator();
+                // 1. Validar que el archivo llegó y tiene contenido
+                if (archivoExcel == null || archivoExcel.ContentLength == 0)
+                {
+                    return Json(new { success = false, message = "No se recibió ningún archivo o está vacío." });
+                }
+
+                // 2. Validar extensión
+                string extension = System.IO.Path.GetExtension(archivoExcel.FileName);
+                if (extension.ToLower() != ".xlsx")
+                {
+                    return Json(new { success = false, message = "Formato no válido. Por favor, suba un archivo .xlsx" });
+                }
+
+                // 3. Llamada al método de extracción
+                var listaUsuarios = ObtenerListaUsuarios(archivoExcel);
+
+                if (listaUsuarios.Count == 0)
+                {
+                    return Json(new { success = false, message = "No se encontraron registros válidos en el archivo." });
+                }
+
+                var registrarBulk = bulk.MigrarUsuarios(listaUsuarios);
+                if (!registrarBulk)
+                {
+                    return Json(new { success = false, message = "Error en el servidor: " + "No se pudieron registrar los usuarios."});
+                }
+                // Retornamos la lista mapeada
+                return Json(new { success = true, data = listaUsuarios, total = listaUsuarios.Count });
+            }
+            catch (Exception ex)
+            {
+                // Es buena práctica registrar el error (log) aquí
+                return Json(new { success = false, message = "Error en el servidor: " + ex.Message });
+            }
+        }
+
+        private List<UsuarioMigracionDto> ObtenerListaUsuarios(HttpPostedFileBase archivoExcel)
+        {
+            var listaUsuarios = new List<UsuarioMigracionDto>();
+
+            // 1. PRIMERO declaras la licencia (FUERA del using)
+
+            //OfficeOpenXml.ExcelPackage.License.SetLicense(OfficeOpenXml.LicenseContext.NonCommercial);            // 2. DESPUÉS instancias el paquete
+            OfficeOpenXml.ExcelPackage.License.SetNonCommercialOrganization("ControlActividades");
+            using (var package = new OfficeOpenXml.ExcelPackage(archivoExcel.InputStream))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+
+                if (worksheet.Dimension != null)
+                {
+                    int rowCount = worksheet.Dimension.Rows;
+
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var matricula = worksheet.Cells[row, 1].Text.Trim();
+                        if (string.IsNullOrEmpty(matricula)) continue;
+
+                        listaUsuarios.Add(new UsuarioMigracionDto
+                        {
+                            Matricula = matricula,
+                            Nombre = worksheet.Cells[row, 2].Text.Trim(),
+                            ApellidoPaterno = worksheet.Cells[row, 3].Text.Trim(),
+                            ApellidoMaterno = worksheet.Cells[row, 4].Text.Trim(),
+                            Correo = worksheet.Cells[row, 5].Text.Trim(),
+                            PasswordPlano = worksheet.Cells[row, 6].Text.Trim(),
+                            Rol = worksheet.Cells[row, 7].Text.Trim()
+                        });
+                    }
+                }
+            }
+
+            return listaUsuarios;
+        }
         #endregion
         protected override void Dispose(bool disposing)
         {
