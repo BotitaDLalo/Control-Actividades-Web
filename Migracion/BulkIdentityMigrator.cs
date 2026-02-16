@@ -1,4 +1,5 @@
 ﻿using ControlActividades.Dtos.Migracion;
+using Microsoft.Ajax.Utilities;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -123,121 +124,249 @@ namespace ControlActividades.Migracion
         }
 
         //Generar ids válidos.
-        public void MigrarUsuarios(List<UsuarioMigracionDto> usuarios)
+        //public void MigrarUsuarios(List<UsuarioMigracionDto> usuarios)
+        //{
+        //    /*Migración sólo una vez
+        //    if (YaHayUsuarios())
+        //        throw new Exception("La migración ya fue ejecutada anteriormente.");
+        //    */
+        //    //Validar lista vacía
+        //    if (usuarios == null || usuarios.Count == 0)
+        //        throw new Exception("No hay usuarios para migrar");
+
+        //    int totalUsuarios = usuarios.Count;
+
+        //    var tablaUsuarios = CrearTablaAspNetUsers();
+        //    var tablaAlumnos = CrearTablaAlumnos();
+        //    var tablaDocentes = CrearTablaDocentes();
+        //    var tablaUserRoles = CrearTablaUserRoles();
+        //    var roles = ObtenerRoles();
+
+        //    var duplicados = usuarios
+        //        .GroupBy(x => x.Correo)
+        //        .Where(g => g.Count() > 1)
+        //        .Select(g => g.Key)
+        //        .ToList();
+
+        //    //Valida duplicados en el archivo
+        //    if (duplicados.Any())
+        //        throw new Exception("Correos duplicados en archivo JSON");
+
+        //    var correosExistentes = new HashSet<string>();
+
+        //    using (var cn = new SqlConnection(_connectionString))
+        //    using (var cmd = new SqlCommand("SELECT Email FROM AspNetUsers", cn))
+        //    {
+        //        cn.Open();
+        //        using (var rd = cmd.ExecuteReader())
+        //            while (rd.Read())
+        //                correosExistentes.Add(rd.GetString(0));
+        //    }
+
+        //    var repetidosEnBd = usuarios
+        //        .Where(u => correosExistentes.Contains(u.Correo))
+        //        .Select(u => u.Correo)
+        //        .ToList();
+
+        //    //Valida duplicados en la base de datos
+        //    if (repetidosEnBd.Any())
+        //        throw new Exception("Existen correos ya registrados en la base de datos");
+
+        //    foreach (var dto in usuarios)
+        //    {
+        //        var userId = Guid.NewGuid().ToString();
+        //        if(!roles.ContainsKey(dto.Rol))
+        //            throw new Exception($"Rol inválido: {dto.Rol}");
+
+        //        tablaUsuarios.Rows.Add(
+        //            userId,
+        //            dto.Correo,
+        //            dto.Correo,
+        //            false,   //email confirmed
+        //            HASH_RESET,
+        //            Guid.NewGuid().ToString(),
+        //            false,
+        //            false,
+        //            false,
+        //            0
+        //        );
+
+        //        tablaUserRoles.Rows.Add(
+        //            userId,
+        //            roles[dto.Rol]
+        //        );
+
+        //        if (dto.Rol == "Alumno")
+        //        {
+        //            tablaAlumnos.Rows.Add(
+        //                dto.ApellidoPaterno,
+        //                dto.ApellidoMaterno,
+        //                dto.Nombre,
+        //                userId,
+        //                DBNull.Value,
+        //                dto.Matricula
+        //            );
+        //        }
+
+        //        if(dto.Rol == "Docente")
+        //        {
+        //            tablaDocentes.Rows.Add(
+        //                dto.ApellidoPaterno,
+        //                dto.ApellidoMaterno,
+        //                dto.Nombre,
+        //                false, //estaAutorizado
+        //                false, //seEnvioCorreo
+        //                DBNull.Value, //FechaExpiracionCodigo
+        //                DBNull.Value, //codigoAutorizacion
+        //                userId
+        //            );
+        //        }
+
+        //    }
+
+        //    var sw = Stopwatch.StartNew();
+        //    InsertarUsuariosBulk(tablaUsuarios);
+        //    InsertarBulk(tablaAlumnos, "tbAlumnos");
+        //    InsertarBulk(tablaDocentes, "tbDocentes");
+        //    InsertarBulk(tablaUserRoles, "AspNetUserRoles");
+        //    sw.Stop();
+
+        //    var segundos = sw.Elapsed.TotalSeconds;
+        //    var velocidad = totalUsuarios/ segundos;
+
+        //    Debug.WriteLine(
+        //        $"TIEMPO REAL DE INSERCIÓN: {segundos:N2} s");
+
+        //    Debug.WriteLine(
+        //        $"VELOCIDAD: {velocidad:N2} usuarios/s");
+
+        //}
+
+
+        public bool MigrarUsuarios(List<UsuarioMigracionDto> usuarios)
         {
-            /*Migración sólo una vez
+            try
+            {
+                /*Migración sólo una vez
             if (YaHayUsuarios())
                 throw new Exception("La migración ya fue ejecutada anteriormente.");
             */
-            //Validar lista vacía
-            if (usuarios == null || usuarios.Count == 0)
-                throw new Exception("No hay usuarios para migrar");
+                //Validar lista vacía
+                if (usuarios == null || usuarios.Count == 0)
+                    throw new Exception("No hay usuarios para migrar");
 
-            int totalUsuarios = usuarios.Count;
+                int totalUsuarios = usuarios.Count;
 
-            var tablaUsuarios = CrearTablaAspNetUsers();
-            var tablaAlumnos = CrearTablaAlumnos();
-            var tablaDocentes = CrearTablaDocentes();
-            var tablaUserRoles = CrearTablaUserRoles();
-            var roles = ObtenerRoles();
+                var tablaUsuarios = CrearTablaAspNetUsers();
+                var tablaAlumnos = CrearTablaAlumnos();
+                var tablaDocentes = CrearTablaDocentes();
+                var tablaUserRoles = CrearTablaUserRoles();
+                var roles = ObtenerRoles();
 
-            var duplicados = usuarios
-                .GroupBy(x => x.Correo)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key)
-                .ToList();
+                var duplicados = usuarios
+                    .GroupBy(x => x.Correo)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
 
-            //Valida duplicados en el archivo
-            if (duplicados.Any())
-                throw new Exception("Correos duplicados en archivo JSON");
+                //Valida duplicados en el archivo
+                if (duplicados.Any())
+                    throw new Exception("Correos duplicados en archivo JSON");
 
-            var correosExistentes = new HashSet<string>();
+                var correosExistentes = new HashSet<string>();
 
-            using (var cn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand("SELECT Email FROM AspNetUsers", cn))
-            {
-                cn.Open();
-                using (var rd = cmd.ExecuteReader())
-                    while (rd.Read())
-                        correosExistentes.Add(rd.GetString(0));
-            }
-
-            var repetidosEnBd = usuarios
-                .Where(u => correosExistentes.Contains(u.Correo))
-                .Select(u => u.Correo)
-                .ToList();
-
-            //Valida duplicados en la base de datos
-            if (repetidosEnBd.Any())
-                throw new Exception("Existen correos ya registrados en la base de datos");
-            
-            foreach (var dto in usuarios)
-            {
-                var userId = Guid.NewGuid().ToString();
-                if(!roles.ContainsKey(dto.Rol))
-                    throw new Exception($"Rol inválido: {dto.Rol}");
-
-                tablaUsuarios.Rows.Add(
-                    userId,
-                    dto.Correo,
-                    dto.Correo,
-                    false,   //email confirmed
-                    HASH_RESET,
-                    Guid.NewGuid().ToString(),
-                    false,
-                    false,
-                    false,
-                    0
-                );
-
-                tablaUserRoles.Rows.Add(
-                    userId,
-                    roles[dto.Rol]
-                );
-
-                if (dto.Rol == "Alumno")
+                using (var cn = new SqlConnection(_connectionString))
+                using (var cmd = new SqlCommand("SELECT Email FROM AspNetUsers", cn))
                 {
-                    tablaAlumnos.Rows.Add(
-                        dto.ApellidoPaterno,
-                        dto.ApellidoMaterno,
-                        dto.Nombre,
+                    cn.Open();
+                    using (var rd = cmd.ExecuteReader())
+                        while (rd.Read())
+                            correosExistentes.Add(rd.GetString(0));
+                }
+
+                var repetidosEnBd = usuarios
+                    .Where(u => correosExistentes.Contains(u.Correo))
+                    .Select(u => u.Correo)
+                    .ToList();
+
+                //Valida duplicados en la base de datos
+                if (repetidosEnBd.Any())
+                    throw new Exception("Existen correos ya registrados en la base de datos");
+
+                foreach (var dto in usuarios)
+                {
+                    var userId = Guid.NewGuid().ToString();
+                    if (!roles.ContainsKey(dto.Rol))
+                        throw new Exception($"Rol inválido: {dto.Rol}");
+
+                    tablaUsuarios.Rows.Add(
                         userId,
-                        DBNull.Value,
-                        dto.Matricula
+                        dto.Correo,
+                        dto.Correo,
+                        false,   //email confirmed
+                        HASH_RESET,
+                        Guid.NewGuid().ToString(),
+                        false,
+                        false,
+                        false,
+                        0
                     );
+
+                    tablaUserRoles.Rows.Add(
+                        userId,
+                        roles[dto.Rol]
+                    );
+
+                    if (dto.Rol == "Alumno")
+                    {
+                        tablaAlumnos.Rows.Add(
+                            dto.ApellidoPaterno,
+                            dto.ApellidoMaterno,
+                            dto.Nombre,
+                            userId,
+                            DBNull.Value,
+                            dto.Matricula
+                        );
+                    }
+
+                    if (dto.Rol == "Docente")
+                    {
+                        tablaDocentes.Rows.Add(
+                            dto.ApellidoPaterno,
+                            dto.ApellidoMaterno,
+                            dto.Nombre,
+                            false, //estaAutorizado
+                            false, //seEnvioCorreo
+                            DBNull.Value, //FechaExpiracionCodigo
+                            DBNull.Value, //codigoAutorizacion
+                            userId
+                        );
+                    }
+
                 }
 
-                if(dto.Rol == "Docente")
-                {
-                    tablaDocentes.Rows.Add(
-                        dto.ApellidoPaterno,
-                        dto.ApellidoMaterno,
-                        dto.Nombre,
-                        false, //estaAutorizado
-                        false, //seEnvioCorreo
-                        DBNull.Value, //FechaExpiracionCodigo
-                        DBNull.Value, //codigoAutorizacion
-                        userId
-                    );
-                }
+                var sw = Stopwatch.StartNew();
+                InsertarUsuariosBulk(tablaUsuarios);
+                InsertarBulk(tablaAlumnos, "tbAlumnos");
+                InsertarBulk(tablaDocentes, "tbDocentes");
+                InsertarBulk(tablaUserRoles, "AspNetUserRoles");
+                sw.Stop();
 
+                var segundos = sw.Elapsed.TotalSeconds;
+                var velocidad = totalUsuarios / segundos;
+
+                Debug.WriteLine(
+                    $"TIEMPO REAL DE INSERCIÓN: {segundos:N2} s");
+
+                Debug.WriteLine(
+                    $"VELOCIDAD: {velocidad:N2} usuarios/s");
+
+                return true;
             }
-            
-            var sw = Stopwatch.StartNew();
-            InsertarUsuariosBulk(tablaUsuarios);
-            InsertarBulk(tablaAlumnos, "tbAlumnos");
-            InsertarBulk(tablaDocentes, "tbDocentes");
-            InsertarBulk(tablaUserRoles, "AspNetUserRoles");
-            sw.Stop();
-
-            var segundos = sw.Elapsed.TotalSeconds;
-            var velocidad = totalUsuarios/ segundos;
-
-            Debug.WriteLine(
-                $"TIEMPO REAL DE INSERCIÓN: {segundos:N2} s");
-           
-            Debug.WriteLine(
-                $"VELOCIDAD: {velocidad:N2} usuarios/s");
+            catch (Exception)
+            {
+                return false;
+            }
 
         }
 

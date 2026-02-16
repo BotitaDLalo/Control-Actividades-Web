@@ -33,7 +33,7 @@ namespace ControlActividades.Services.Actividades
             }
         }
         
-        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
+        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria( int st_usuarioId,int materiaId, string rol, int grupoId = 0)
         {
             string query = url + "ObtenerActividadesPorMateria";
 
@@ -44,8 +44,10 @@ namespace ControlActividades.Services.Actividades
                 var model = new ObtenerActividadesPorMateriaRequest()
                 {
                     Role = rol,
+                    GrupoId = grupoId,
                     MateriaId = materiaId,
                     View = View,
+                    st_usuarioId = st_usuarioId,    
                 };
 
                 var json = JsonConvert.SerializeObject(model);

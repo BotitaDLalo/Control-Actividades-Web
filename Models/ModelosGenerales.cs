@@ -423,6 +423,8 @@ namespace ControlActividades.Models
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaLimite { get; set; }
         public Decimal Puntaje { get; set; }
+
+        public string Rol { get; set; }
     }
 
     public class MateriaRes

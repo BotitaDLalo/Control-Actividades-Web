@@ -6,7 +6,7 @@ namespace ControlActividades.Interfaces.Actividades
 {
     public interface IActividadesService
     {
-        Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol);
+        Task<List<ActividadRes>> ObtenerActividadesPorMateria(int st_usuarioId,int materiaId, string rol, int grupoId = 0);
 
         Task<ActividadDetallesRes>ObtenerActividadPorId(int actividadId);
 
