@@ -682,7 +682,7 @@ namespace ControlActividades.Controllers
             {
                 return RedirectToAction("Login");
             }
-
+           
             // Si el usuario ya tiene un inicio de sesión, iniciar sesión del usuario con este proveedor de inicio de sesión externo
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
 
@@ -703,6 +703,12 @@ namespace ControlActividades.Controllers
                     }
 
                     var role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+                    if (role == Role.Docente && !usuario.EmailConfirmed)
+                    {
+                        Session[SessionKeys.Email.ToString()] = loginInfo.Email;
+                        return RedirectToAction("ConfirmEmail");
+                    }
+
                     return RedirectToLocal(returnUrl, role);
                     
 
@@ -830,7 +836,7 @@ namespace ControlActividades.Controllers
                             user.LockoutEndDateUtc = DateTime.MaxValue;
                             await UserManager.UpdateAsync(user);
                             await Db.SaveChangesAsync();
-                            break;
+                            return RedirectToAction("ConfirmEmail");
 
                         case Role.Alumno:
                             Db.tbAlumnos.Add(new tbAlumnos
