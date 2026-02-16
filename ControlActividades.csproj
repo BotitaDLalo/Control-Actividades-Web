@@ -450,45 +450,9 @@
     <Compile Include="Interfaces\Grupos\IGruposService.cs" />
     <Compile Include="Interfaces\Materias\IMateriasApiService.cs" />
     <Compile Include="Interfaces\Materias\IMateriasService.cs" />
-    <Compile Include="Migrations\202510031833068_InitialMigration.cs" />
-    <Compile Include="Migrations\202510031833068_InitialMigration.Designer.cs">
-      <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202512132237150_Refactorizacion.cs" />
-    <Compile Include="Migrations\202512132237150_Refactorizacion.Designer.cs">
-      <DependentUpon>202512132237150_Refactorizacion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202512140000398_Refactorizacion_Dos.cs" />
-    <Compile Include="Migrations\202512140000398_Refactorizacion_Dos.Designer.cs">
-      <DependentUpon>202512140000398_Refactorizacion_Dos.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202512180521233_Modifica_Nombre_cTipoNotificacion.cs" />
-    <Compile Include="Migrations\202512180521233_Modifica_Nombre_cTipoNotificacion.Designer.cs">
-      <DependentUpon>202512180521233_Modifica_Nombre_cTipoNotificacion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202512281756187_SeedTiposNotificacion.cs" />
-    <Compile Include="Migrations\202512281756187_SeedTiposNotificacion.Designer.cs">
-      <DependentUpon>202512281756187_SeedTiposNotificacion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.cs" />
-    <Compile Include="Migrations\202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.Designer.cs">
-      <DependentUpon>202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs" />
-    <Compile Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.Designer.cs">
-      <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202602121917033_ModificacionActividades.cs" />
-    <Compile Include="Migrations\202602121917033_ModificacionActividades.Designer.cs">
-      <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202602111138426_SyncFix.cs" />
-    <Compile Include="Migrations\202602111138426_SyncFix.Designer.cs">
-      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.cs" />
-    <Compile Include="Migrations\202602111144587_CreateTablaLogsAdministrador.Designer.cs">
-      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
+    <Compile Include="Migrations\202602160530434_Refactor.cs" />
+    <Compile Include="Migrations\202602160530434_Refactor.Designer.cs">
+      <DependentUpon>202602160530434_Refactor.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Dtos\Migracion\MigracionUsuariosDto.cs" />
@@ -929,38 +893,6 @@
     <Content Include="Views\_ViewStart.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202510031833068_InitialMigration.resx">
-      <DependentUpon>202510031833068_InitialMigration.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512132237150_Refactorizacion.resx">
-      <DependentUpon>202512132237150_Refactorizacion.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512140000398_Refactorizacion_Dos.resx">
-      <DependentUpon>202512140000398_Refactorizacion_Dos.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512180521233_Modifica_Nombre_cTipoNotificacion.resx">
-      <DependentUpon>202512180521233_Modifica_Nombre_cTipoNotificacion.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512281756187_SeedTiposNotificacion.resx">
-      <DependentUpon>202512281756187_SeedTiposNotificacion.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.resx">
-      <DependentUpon>202512311813222_Add_GrupoId_MateriaId_ToNotificaciones.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.resx">
-      <DependentUpon>202512311913542_AddFksGrupo-y-Materia_ToNotificaciones.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202602121917033_ModificacionActividades.resx">
-      <DependentUpon>202602121917033_ModificacionActividades.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202602111138426_SyncFix.resx">
-      <DependentUpon>202602111138426_SyncFix.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202602111144587_CreateTablaLogsAdministrador.resx">
-      <DependentUpon>202602111144587_CreateTablaLogsAdministrador.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
@@ -968,6 +900,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Variables\colors.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202602160530434_Refactor.resx">
+      <DependentUpon>202602160530434_Refactor.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
