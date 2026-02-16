@@ -45,7 +45,7 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId);
+                var datosAlumnoActividad = await Db.tbEntregaActividadAlumno.FirstOrDefaultAsync(a => a.ActividadId == ActividadId && a.AlumnoId == AlumnoId && a.Estatus);
                 if (datosAlumnoActividad == null)
                     return Content(HttpStatusCode.NotFound, new { mensaje = "No se encontró registro de entrega para el alumno y la actividad." });
 
@@ -226,7 +226,10 @@ namespace ControlActividades.Controllers
                     Puntaje = a.Puntaje,
                     Enviado = a.Enviado,
                     FechaProgramada = a.FechaProgramada,
-                    MateriaId = a.MateriaId
+                    MateriaId = a.MateriaId,
+                    PermitirEntregasTarde = a.PermitirEntregasTarde,
+                    TieneLimiteEntregas = a.TieneLimiteEntregas,
+                    LimiteEntregasPorAlumno = a.LimiteEntregasPorAlumno
                 }).ToList();
 
 
@@ -365,6 +368,11 @@ namespace ControlActividades.Controllers
             dbActivity.Enviado = updatedActivity.Enviado ?? dbActivity.Enviado;
             dbActivity.FechaProgramada = updatedActivity.FechaProgramada ?? dbActivity.FechaProgramada;
 
+            // Nuevos campos para límites de entrega
+            dbActivity.PermitirEntregasTarde = updatedActivity.PermitirEntregasTarde;
+            dbActivity.TieneLimiteEntregas = updatedActivity.TieneLimiteEntregas;
+            dbActivity.LimiteEntregasPorAlumno = updatedActivity.LimiteEntregasPorAlumno;
+
             await Db.SaveChangesAsync();
 
             // si cambió a publicado ahora -> asignar alumnos
@@ -495,7 +503,7 @@ namespace ControlActividades.Controllers
                 //    .Include(a => a.Actividades)
                 //    .Include(a => a.Alumnos).ToListAsync();
 
-                var lsAlumnosActividades = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.EstadoEntregaId == 1)
+                var lsAlumnosActividades = await Db.tbEntregaActividadAlumno.Where(a => a.ActividadId == actividadId && a.EstadoEntregaId == 1 && a.Estatus)
                     .Include(a => a.tbAlumnos)
                     .Include(a => a.tbEntregables)
                     .ToListAsync();
@@ -571,8 +579,8 @@ namespace ControlActividades.Controllers
                             alumnoEntregable.ApellidoPaterno = apellidoPaterno ?? "";
                             alumnoEntregable.ApellidoMaterno = apellidoMaterno ?? "";
                             alumnoEntregable.FechaEntrega = alumnoActividad.FechaEntrega;
-                            alumnoEntregable.EntregaId = entregable.EntregableId;
-                            alumnoEntregable.Calificacion = entregable.Calificacion ?? 0;
+                            alumnoEntregable.EntregaId = alumnoActividad.EntregaActividadAlumnoId;
+                            alumnoEntregable.Calificacion = (decimal)alumnoActividad.Calificacion;
                             //alumnoEntregable.FechaCalificado = entregable.FechaCalificado;
 
                             string contenidoRaw = entregable.Contenido ?? "";
@@ -669,14 +677,14 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                var entregable = Db.tbEntregables.FirstOrDefault(a => a.EntregableId == peticion.EntregableId);
+                var entregaAlumno = Db.tbEntregaActividadAlumno.FirstOrDefault(a => a.EntregaActividadAlumnoId == peticion.EntregableId);
 
-                if (entregable == null) return BadRequest("Entregable no encontrado");
+                if (entregaAlumno == null) return BadRequest("Entregable no encontrado");
 
-                entregable.Calificacion = null;
-                //entregable.FechaCalificado = null;
+                entregaAlumno.Calificacion = 0;
+                entregaAlumno.FechaCalificado = null;
 
-                Db.Entry(entregable).State = EntityState.Modified;
+                Db.Entry(entregaAlumno).State = EntityState.Modified;
                 await Db.SaveChangesAsync();
 
                 return Ok();

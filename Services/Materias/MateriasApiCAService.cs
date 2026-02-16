@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -9,7 +9,7 @@ using ControlActividades.Models;
 
 namespace ControlActividades.Services.Materias
 {
-    public class MateriasApiCAService : IMateriasApiService
+    public class    MateriasApiCAService : IMateriasApiService
     {
 
 
@@ -62,8 +62,11 @@ namespace ControlActividades.Services.Materias
                     Descripcion = b.Descripcion,
                     FechaCreacion = b.FechaCreacion,
                     FechaLimite = b.FechaLimite,
-                    Puntaje = (int)b.Puntaje,
-                    MateriaId = b.MateriaId
+                    Puntaje = b.Puntaje,
+                    MateriaId = b.MateriaId,
+                    PermitirEntregasTarde = b.PermitirEntregasTarde,
+                    TieneLimiteEntregas = b.TieneLimiteEntregas,
+                    LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
                 }).ToList()
             }).ToList();
 

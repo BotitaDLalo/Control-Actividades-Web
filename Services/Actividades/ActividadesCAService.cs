@@ -52,7 +52,10 @@ namespace ControlActividades.Services.Actividades
                         Descripcion = a.Descripcion,
                         FechaCreacion = a.FechaCreacion,
                         FechaLimite = a.FechaLimite,
-                        Puntaje = (int)a.Puntaje
+                        Puntaje = a.Puntaje,
+                        PermitirEntregasTarde = a.PermitirEntregasTarde,
+                        TieneLimiteEntregas = a.TieneLimiteEntregas,
+                        LimiteEntregasPorAlumno = a.LimiteEntregasPorAlumno
                     })
                     .ToListAsync();
 
@@ -135,6 +138,10 @@ namespace ControlActividades.Services.Actividades
 
             actividadEditar.Enviado = actividadDto.Enviado;
             actividadEditar.FechaProgramada = actividadDto.FechaProgramada;
+
+            actividadEditar.PermitirEntregasTarde = actividadDto.PermitirEntregasTarde;
+            actividadEditar.TieneLimiteEntregas = actividadDto.TieneLimiteEntregas;
+            actividadEditar.LimiteEntregasPorAlumno = actividadDto.LimiteEntregasPorAlumno;
 
             await Db.SaveChangesAsync();
 
