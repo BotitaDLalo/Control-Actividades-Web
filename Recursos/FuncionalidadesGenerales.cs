@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
+using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +21,7 @@ namespace ControlActividades.Recursos
     {
         private bool _disposed = false;
         private ApplicationDbContext _db;
+        private FuenteDatosService _fuenteDatos;
         #region Propiedades
         public ApplicationDbContext Db
         {
@@ -32,6 +34,18 @@ namespace ControlActividades.Recursos
                 _db = value;
             }
         }
+        public FuenteDatosService FuenteDatosService
+        {
+            get
+            {
+                return _fuenteDatos ?? (_fuenteDatos = new FuenteDatosService());
+            }
+            private set
+            {
+                _fuenteDatos = value;
+            }
+        }
+
 
         public void Dispose()
         {
@@ -110,18 +124,18 @@ namespace ControlActividades.Recursos
         #region ST
         public string ObtenerUrlST()
         {
-            string url = @"";
+            string url = @"https://mx.scholatek.com/Demo/ControlActividades/";
             return url;
         }
 
         public string ObtenerFuenteDeDatos()
         {
-            return "";
+            return FuenteDatosService.ObtenerFuenteDatos();
         }
 
         public string ObtenerXApiKey()
         {
-            return "";
+            return "7EYr2OW4VHnuHj7Ioy+pTm4eQlFK/P1dOrkNC7qMCg4=";
         }
         #endregion
 

@@ -2,6 +2,62 @@
     ViewData["Title"] = "CrearActividadModal";
 }
 
+<style>
+    /* Contenedor del switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+
+        /* Esconder el checkbox original */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    /* El cuerpo del switch (fondo) */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc; /* Color cuando está apagado */
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+        /* El círculo interior */
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    /* --- ESTADO ACTIVADO (Como tu imagen) --- */
+
+    /* Fondo azul claro cuando está checked */
+    input:checked + .slider {
+        background-color: #add8e6; /* Celeste claro */
+    }
+
+        /* El círculo se mueve y cambia a azul más fuerte */
+        input:checked + .slider:before {
+            transform: translateX(24px);
+            background-color: #0099cc; /* Azul de la imagen */
+        }
+</style>
+
 
 <div class="modal fade" id="crearActividadModal" tabindex="-1" aria-labelledby="crearActividadModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -12,6 +68,7 @@
             </div>
             <div class="modal-body modal-body-custom">
                 <form id="actividadesForm" style="display:flex;flex-direction:column;gap:12px;">
+
                     <div class="form-group mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
                         <input type="text" id="nombre" class="form-control" autocomplete="off" autocorrect="off" spellcheck="false">
@@ -36,13 +93,37 @@
                         </div>
                     </div>
 
+                    <div class="row g-3 mb-2">
+                        <div class="col-12 col-md-6">
+                            <label for="TooglePermiteEntregasTardias" class="form-label d-block">Permitir entregas tardías</label>
+                            <div class="d-flex align-items-center">
+                                <label class="switch">
+                                    <input type="checkbox" id="TooglePermiteEntregasTardias">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="limiteEntregas" class="form-label">Limitar número de entregas</label>
+                            <div class="d-flex align-items-center" style="gap: 15px;">
+                                <input type="number" id="limiteEntregas" class="form-control" style="max-width:110px;" placeholder="" disabled>
+                                <label class="switch">
+                                    <input type="checkbox" id="ToogleLimiteEntregas">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                 </form>
             </div>
+
             <div class="modal-footer modal-footer-custom d-flex flex-wrap justify-content-end gap-3" style="padding:1rem 1.25rem;">
                 <button type="button" class="btn btn-secondary me-auto" data-bs-dismiss="modal">Cancelar</button>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-outline-secondary" id="btnSugerencias">Sugerencias</button>
-                    <button type="button" class="btn btn-outline-secondary" id="btnPublicarBorrador">Publicar como borrador</button>
+                    <button type="button" class="btn btn-outline-secondary" id="btnPublicarBorrador">Borrador</button>
                     <button type="button" class="btn btn-primary btn-lg" id="btnPublicarActividad" style="min-width:110px;">Publicar</button>
                 </div>
             </div>
@@ -50,20 +131,21 @@
     </div>
 </div>
 
+
 <div class="modal fade" id="sugerenciasModal" tabindex="-1" aria-labelledby="sugerenciasModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content modal-content-custom">
-            
+
             <div class="modal-header modal-header-custom">
                 <h5 class="modal-title modal-title-custom" id="sugerenciasModalLabel">Sugerencias</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            
+
             <div class="modal-body modal-body-custom">
                 <div id="sugerenciasLista" class="">
                 </div>
             </div>
-            
+
             <div class="modal-footer modal-footer-custom">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="btnAplicarSugerencia">
@@ -74,11 +156,12 @@
     </div>
 </div>
 
+
 <script>
     // Cargar tipos de actividades cuando se abra el modal
     document.addEventListener('DOMContentLoaded', function () {
         var crearModal = document.getElementById('crearActividadModal');
-            if (crearModal) {
+        if (crearModal) {
             function toInputDateTimeLocal(dt) {
                 if (!(dt instanceof Date)) return '';
                 const pad = (n) => n < 10 ? '0' + n : n;
@@ -102,8 +185,8 @@
                         try {
                             var d = document.getElementById('fechaLimite');
                             var h = document.getElementById('horaLimite');
-                            if (d) d.value = `${defaultDate.getFullYear()}-${String(defaultDate.getMonth()+1).padStart(2,'0')}-${String(defaultDate.getDate()).padStart(2,'0')}`;
-                            if (h) h.value = `${String(defaultDate.getHours()).padStart(2,'0')}:${String(defaultDate.getMinutes()).padStart(2,'0')}`;
+                            if (d) d.value = `${defaultDate.getFullYear()}-${String(defaultDate.getMonth() + 1).padStart(2, '0')}-${String(defaultDate.getDate()).padStart(2, '0')}`;
+                            if (h) h.value = `${String(defaultDate.getHours()).padStart(2, '0')}:${String(defaultDate.getMinutes()).padStart(2, '0')}`;
                         } catch (e) { }
                     }
 
@@ -116,8 +199,8 @@
                             if (window._editarFechaISO) {
                                 var dt = new Date(window._editarFechaISO);
                                 if (!isNaN(dt)) {
-                                    if (fecha) fecha.value = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-                                    if (hora) hora.value = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+                                    if (fecha) fecha.value = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+                                    if (hora) hora.value = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
                                 }
                             }
                         } catch (e) { }
@@ -160,8 +243,8 @@
             // asociar comportamiento: publicar (enviado=true) y publicar como borrador (enviado=false)
             var defaultBtn = document.getElementById('btnPublicarActividad');
             var borradorBtn = document.getElementById('btnPublicarBorrador');
-            if (defaultBtn) defaultBtn.addEventListener('click', function(){ registrarActividad(true); });
-            if (borradorBtn) borradorBtn.addEventListener('click', async function(){
+            if (defaultBtn) defaultBtn.addEventListener('click', function () { registrarActividad(true); });
+            if (borradorBtn) borradorBtn.addEventListener('click', async function () {
                 const confirmed = await Swal.fire({ icon: 'question', title: '¿Seguro que quiere publicar esta actividad como borrador?', showCancelButton: true, confirmButtonText: 'Sí, publicar como borrador', cancelButtonText: 'Cancelar' });
                 if (confirmed && confirmed.isConfirmed) registrarActividad(false);
             });
@@ -169,14 +252,34 @@
     });
 
 </script>
+
 <style>
     /* Styles para mejorar visual de sugerencias */
-    .suggestion-card { border: 1px solid #e9eefb; border-radius: 8px; }
-    .suggestion-title { font-size: 1rem; color: #0b5ed7; }
-    .suggestion-text { font-size: .95rem; color: #333; max-height: 160px; overflow: auto; }
-    .suggestion-card .form-check-input { width: 18px; height: 18px; }
+    .suggestion-card {
+        border: 1px solid #e9eefb;
+        border-radius: 8px;
+    }
+
+    .suggestion-title {
+        font-size: 1rem;
+        color: #0b5ed7;
+    }
+
+    .suggestion-text {
+        font-size: .95rem;
+        color: #333;
+        max-height: 160px;
+        overflow: auto;
+    }
+
+    .suggestion-card .form-check-input {
+        width: 18px;
+        height: 18px;
+    }
     /* ensure radio focus visible */
-    .suggestion-card:focus-within { box-shadow: 0 0 0 3px rgba(13,110,253,0.12); }
+    .suggestion-card:focus-within {
+        box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+    }
 </style>
 
 

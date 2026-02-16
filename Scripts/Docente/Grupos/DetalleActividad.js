@@ -266,20 +266,20 @@ function prepararAlumnosYActividades() {
         .catch(function (err) { console.error(err); });
 }
 
-function AlumnosDeMateriaParaActividades() {
-    return fetch("/Actividades/AlumnosParaCalificarActividades?materiaId=" + materiaIdGlobal)
-        .then(function (response) {
-            if (!response.ok) throw new Error("No se pudieron cargar los alumnos.");
-            return response.json();
-        })
-        .then(function (alumnos) {
-            localStorage.setItem("alumnos_materia_" + materiaIdGlobal, JSON.stringify(alumnos));
-            console.log("Alumnos guardados en localStorage:", alumnos);
-        })
-        .catch(function (error) {
-            console.error("Error al cargar alumnos:", error);
-        });
-}
+//function AlumnosDeMateriaParaActividades() {
+//    return fetch("/Actividades/AlumnosParaCalificarActividades?materiaId=" + materiaIdGlobal)
+//        .then(function (response) {
+//            if (!response.ok) throw new Error("No se pudieron cargar los alumnos.");
+//            return response.json();
+//        })
+//        .then(function (alumnos) {
+//            localStorage.setItem("alumnos_materia_" + materiaIdGlobal, JSON.stringify(alumnos));
+//            console.log("Alumnos guardados en localStorage:", alumnos);
+//        })
+//        .catch(function (error) {
+//            console.error("Error al cargar alumnos:", error);
+//        });
+//}
 
 function obtenerActividadesParaEvaluar() {
     var alumnos = JSON.parse(localStorage.getItem("alumnos_materia_" + materiaIdGlobal) || "[]");

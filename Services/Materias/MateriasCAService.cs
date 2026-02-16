@@ -159,8 +159,12 @@ namespace ControlActividades.Services.Materias
                     Puntaje = actividadDto.Puntaje,
                     MateriaId = actividadDto.MateriaId,
                     Enviado = actividadDto.Enviado,
-                    FechaProgramada = actividadDto.FechaProgramada
+                    FechaProgramada = actividadDto.FechaProgramada,
+                    PermitirEntregasTarde = actividadDto.PermitirEntregasTarde,
+                    TieneLimiteEntregas = actividadDto.TieneLimiteEntregas,
+                    LimiteEntregasPorAlumno = actividadDto.LimiteEntregasPorAlumno
                 };
+
 
                 Db.tbActividades.Add(nuevaActividad);
                 await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID

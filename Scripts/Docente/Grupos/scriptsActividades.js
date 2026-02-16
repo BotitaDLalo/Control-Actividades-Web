@@ -241,6 +241,18 @@ async function registrarActividad(enviarAhora) {
     // ahora fecha y hora se seleccionan por separado
     let fechaInput = document.getElementById('fechaLimite');
     let horaInput = document.getElementById('horaLimite');
+
+    // let tieneLimiteEntregas = document.getElementById("ieneLimiteEntregas").checked;
+    // let limiteEntregasPorAlumno = document.getElementById("limiteEntregasPorAlumno").value.trim() ?? 0;
+    // let permiteEntregasTarde = document.getElementById("permiteEntregasTarde").checked;
+
+    let tieneLimiteEntregas = document.getElementById("ToogleLimiteEntregas")?.checked || false;
+    let permiteEntregasTarde = document.getElementById("TooglePermiteEntregasTardias")?.checked || false;
+        
+        // Para el valor numérico
+    let inputLimite = document.getElementById("limiteEntregas");
+    let limiteEntregasPorAlumno = (inputLimite && inputLimite.value) ? inputLimite.value.trim() : 0;
+
     let fechaHoraLimite = '';
     if (fechaInput && horaInput) {
         fechaHoraLimite = fechaInput.value && horaInput.value ? `${fechaInput.value}T${horaInput.value}` : '';
@@ -293,7 +305,10 @@ async function registrarActividad(enviarAhora) {
         Descripcion: descripcion,
         FechaLimite: fechaHoraLimite,
         Puntaje: (puntaje === null || puntaje === 0) ? 0 : puntaje,
-        MateriaId: parseInt(materiaIdGlobal, 10)
+        MateriaId: parseInt(materiaIdGlobal, 10),
+        TieneLimiteEntregas: tieneLimiteEntregas,
+        LimiteEntregasPorAlumno: limiteEntregasPorAlumno,
+        PermitirEntregasTarde: permiteEntregasTarde
     };
     // enviarAhora = true => publicar; false => borrador; undefined/null => publicar (por compatibilidad)
     actividad.Enviado = (typeof enviarAhora === 'boolean') ? enviarAhora : true;

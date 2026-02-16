@@ -1,6 +1,7 @@
 using ControlActividades.Exceptions;
 using ControlActividades.Filters;
 using ControlActividades.Interfaces.Materias;
+using ControlActividades.Exceptions;
 using ControlActividades.Interfaces.Alumnos;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
@@ -24,6 +25,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using ControlActividades.Filters;
 
 namespace ControlActividades.Controllers
 {
@@ -38,6 +40,7 @@ namespace ControlActividades.Controllers
         private FuncionalidadesGenerales _fg;
         private FCMService _fCMService;
         private AlumnoApiService _alumnoApiService;
+        private AlumnoService _alumnoService;
 
 
         public AlumnoController()
@@ -132,6 +135,19 @@ namespace ControlActividades.Controllers
                 _alumnoApiService = value;
             }
         }
+
+        private AlumnoService AlumnoService
+        {
+            get
+            {
+                return _alumnoService ?? (_alumnoService = new AlumnoService());
+            }
+            set
+            {
+                _alumnoService = value;
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -141,6 +157,8 @@ namespace ControlActividades.Controllers
                     _userManager.Dispose();
                     _userManager = null;
                 }
+        
+
 
                 if (_signInManager != null)
                 {
@@ -480,11 +498,17 @@ namespace ControlActividades.Controllers
                     Enlaces = lsEnlaces,
                     EstaCalificado = estaCalificado,
                     EstaEntregado = estaEntregado,
+                    //EntregaTardia = datosEntregable.EntregaTardia
                 };
 
-                if (datosEntregable.FechaCalificado != null)
+                if (datosEntregable != null && datosEntregable.FechaCalificado != null)
                 {
                     model.FechaCalificado = datosEntregable.FechaCalificado.Value;
+                }
+
+                if (datosEntregable != null && datosEntregable.EntregaTardia)
+                {
+                    model.EntregaTardia = datosEntregable.EntregaTardia;
                 }
 
                 return View(model);
