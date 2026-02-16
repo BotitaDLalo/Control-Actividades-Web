@@ -19,7 +19,9 @@ namespace ControlActividades.Models.db
 
         public DateTime FechaCreacion { get; set; }
 
-        public DateTime FechaLimite { get; set; }
+        public DateTime? FechaInicio { get; set; }
+
+        public DateTime? FechaLimite { get; set; }
 
         public Decimal Puntaje {  get; set; }
 
@@ -32,6 +34,8 @@ namespace ControlActividades.Models.db
         public DateTime? FechaProgramada { get; set; }
 
         public int LimiteEntregasPorAlumno { get; set; }
+
+        public bool TieneLimiteEntregas { get; set; }
 
         public virtual ICollection<tbEntregaActividadAlumno> tbEntregaActividadAlumno { get; set; }
         

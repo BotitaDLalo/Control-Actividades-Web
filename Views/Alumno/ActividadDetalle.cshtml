@@ -1,69 +1,245 @@
+@model ControlActividades.Models.ActividadDetalleViewModel
+@using roles = ControlActividades.Roles;
 @{
-    Layout = "~/Views/Shared/_LayoutAlumno.cshtml";
+    Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
     ViewBag.Title = "ActividadDetalle";
-    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId :0;
-    int actividadId = Request.QueryString["actividadId"] != null ? int.Parse(Request.QueryString["actividadId"]) :0;
+    int alumnoId = ViewBag.AlumnoId != null ? (int)ViewBag.AlumnoId : 0;
+    int actividadId = Request.QueryString["actividadId"] != null ? int.Parse(Request.QueryString["actividadId"]) : 0;
+
+    var puntaje = ViewBag.Puntaje;
+
+    var entregaId = ViewBag.EntregaId;
+
+    string estatusEntrega = string.Empty;
 }
 
 <style>
     /* Simple improvements for ActividadDetalle */
     .actividad-card {
         background: #f8f9fb;
-        border:1px solid #e3e7ea;
-        padding:20px;
-        border-radius:8px;
-        box-shadow:02px6px rgba(0,0,0,0.03);
-        margin-top:20px;
+        border: 1px solid #e3e7ea;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 02px 6px rgba(0,0,0,0.03);
+        margin-top: 20px;
     }
+
     .actividad-header {
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:12px;
-        margin-bottom:12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
     }
+
     .fecha-limite-badge {
         background: linear-gradient(90deg,#f8d7da, #ffe8e8);
-        color:#842029;
-        padding:8px12px;
-        border-radius:20px;
-        font-weight:600;
-        font-size:0.95rem;
+        color: #842029;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.95rem;
     }
-    #entregaForm .form-control { border-radius:6px; }
-    #estadoEntrega pre { background:#fff; padding:8px; border-radius:6px; border:1px solid #e9ecef; }
+
+    .fecha-calificado-badge {
+        /* Gradiente suave verde esmeralda a verde pálido */
+        background: linear-gradient(90deg, #d1e7dd, #e2f3ea);
+        /* Texto verde oscuro para legibilidad (Bootstrap Success Dark) */
+        color: #0a58ca; /* O puedes usar #14502d para un verde bosque */
+        color: #0f5132;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        /* Opcional: un borde sutil para darle más definición */
+        border: 1px solid #badbcc;
+        /* Alineación si hay iconos */
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #entregaForm .form-control {
+        border-radius: 6px;
+    }
+
+    #estadoEntrega pre {
+        background: #fff;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+    }
 </style>
 
 <div class="container">
     <div class="actividad-card">
         <div class="actividad-header">
             <div>
-                <h2 id="tituloActividad" style="margin:0;">Cargando...</h2>
-                <p id="descripcionActividad" style="margin:6px000; color:#495057;"></p>
+                <h2 id="tituloActividad" style="margin:0;">@Model.NombreActividad</h2>
+                <p id="descripcionActividad" style="margin:6px; color:#495057;">@Model.Descripcion</p>
             </div>
             <div style="text-align:right;">
-                <div class="fecha-limite-badge">Fecha límite: <span id="fechaLimite">—</span></div>
+                <div class="fecha-limite-badge">Fecha límite: <span id="fechaLimite">@Model.FechaLimite</span></div>
+
+                @if (Model.EstaCalificado)
+                {
+                    <br />
+                    <div class="fecha-calificado-badge">Fecha calificado: <span id="fechaLimite">@Model.FechaCalificado</span></div>
+                }
             </div>
         </div>
 
         <div id="estadoEntrega" style="margin-bottom:16px;"></div>
+        <form id="formEntrega" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ActividadId" value="@actividadId" />
+            <input type="hidden" name="AlumnoId" value="@alumnoId" />
+            <input type="hidden" name="TipoEntregaId" value="1" />
+            <div id="entregaForm">
 
-        <div id="entregaForm">
-            <div class="mb-3">
-                <label for="respuesta" class="form-label">Respuesta</label>
-                <textarea id="respuesta" class="form-control" rows="6" placeholder="Escribe tu respuesta para el docente..."></textarea>
+                <div class="mb-3">
+                    <label style="font-size:20px;">
+                        <span style="font-weight:bold;">Estatus: </span>@{
+                            if (!Model.EntregaTardia)
+                            {
+                                estatusEntrega = "Enviado";
+
+                                <span>@estatusEntrega</span>
+                            }
+                            else
+                            {
+                                estatusEntrega = "Enviado con retraso";
+                                <span style="color: red;">@estatusEntrega</span>
+                            }
+
+
+
+                        }
+                    </label>
+                </div>
+
+
+
+                <div class="mb-3">
+                    <label style="font-size:20px;">
+                        <span style="font-weight:bold;">Puntaje: </span>@{
+                            if (Model.Puntaje > 0)
+                            {
+                                <span>@Model.Puntaje</span>
+                            }
+                            else
+                            {
+                                <span>Sin Puntaje</span>
+                            }
+                        }
+                    </label>
+                </div>
+
+
+                <div class="mb-3">
+                    <label style="font-size:20px;">
+                        <span style="font-weight:bold;">Calificación: </span>@{
+                            if (Model.Calificacion > 0)
+                            {
+                                @Model.Calificacion
+                            }
+                            else
+                            {
+                                var sinCalificacion = "Sin Calificación";
+                                @sinCalificacion
+                            }
+                        }
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Respuesta" class="form-label">Respuesta</label>
+                    <textarea id="Respuesta" name="Respuesta" class="form-control" rows="6" placeholder="Escribe tu respuesta para el docente..." @(Model.EstaEntregado ? "disabled" : "")>@Model.Respuesta</textarea>
+                </div>
+
+
+                @*<div class="mb-3">
+            <label for="Enlaces" class="form-label">Enlace (opcional)</label>
+            <input type="url" id="Enlaces" name="Enlaces" class="form-control" placeholder="https://ejemplo.com/album" />
+            <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
+        </div>*@
+
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Enlaces (opcional)</label>
+                    @if (!Model.EstaEntregado)
+                    {
+                        <div id="contenedorEnlaces">
+                            <div class="input-group mb-2">
+                                <input type="url" class="form-control enlace-input" placeholder="https://ejemplo.com" />
+                                <button type="button" class="btn btn-outline-secondary add-enlace">+</button>
+                            </div>
+                        </div>
+
+
+                        <input type="hidden" name="Enlaces" id="EnlacesJson" value="[]" />
+                    }
+                    else
+                    {
+                        foreach (var enlace in Model.Enlaces)
+                        {
+                            <div class="mb-2">
+                                <a href="@enlace" target="_blank" class="form-control text-truncate" style="display:block;">
+                                    @enlace
+                                </a>
+                            </div>
+                        }
+                    }
+                </div>
+
+                @if (!Model.EstaEntregado)
+                {
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Adjuntar archivos (puedes elegir varios)</label>
+                        <input type="file" name="fileEntrega" class="form-control" multiple />
+                    </div>
+
+
+                    <button class="btn btn-primary" id="btnEnviar">Enviar</button>
+                }
+                else
+                {
+                    if (User.IsInRole(roles.ALUMNO))
+                    {
+                        if (!Model.EstaCalificado)
+                        {
+                            <button type="button" class="btn btn-danger" id="btnCancelarEntrega">
+                                Cancelar Entrega
+                            </button>
+                        }
+                        else
+                        {
+                            @*<label for="input-calificacion auto-select">Calificación</label>
+                    <input type="number" class="form-control input-calificacion auto-select"
+                           min="0"
+                           step="0.01"
+                           inputmode="decimal"
+                           placeholder="0.00"
+                           value="@Model.Calificacion" disabled/>*@
+
+                        }
+
+                    }
+
+                    if (User.IsInRole(roles.DOCENTE))
+                    {
+                        <br />
+                        <label for="input-calificacion auto-select">Asignar Calificación</label>
+                        <input type="number" class="form-control input-calificacion auto-select"
+                               min="0"
+                               step="0.01"
+                               inputmode="decimal"
+                               placeholder="0.00"
+                               value="@Model.Calificacion"
+                               onchange="AsignarCalificacion(@alumnoId, @actividadId, @entregaId, @puntaje ,this)" />
+                    }
+                }
             </div>
-            <div class="mb-3">
-                <label for="respuestaLink" class="form-label">Enlace (opcional)</label>
-                <input type="url" id="respuestaLink" class="form-control" placeholder="https://ejemplo.com/album" />
-                <small class="text-muted">Puedes pegar un enlace a Google Photos, Drive, Imgur u otro servicio con tus fotos o archivos.</small>
-            </div>
-            <div class="mb-3">
-                <label for="fileEntrega" class="form-label">Adjuntar archivo / foto (opcional)</label>
-                <input type="file" id="fileEntrega" class="form-control" multiple />
-            </div>
-            <button class="btn btn-primary" id="btnEnviar">Enviar entrega</button>
-        </div>
+        </form>
 
         <div id="calificacionAlumno" style="margin-top:20px;"></div>
     </div>
@@ -71,8 +247,254 @@
 
 @section Scripts {
     <script>
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
         var alumnoIdGlobal = @alumnoId;
         var actividadIdGlobal = @actividadId;
+
+$("#formEntrega").submit(function(e) {
+    e.preventDefault();
+
+    // 1. Recolectar enlaces
+    var listaEnlaces = [];
+    $(".enlace-input").each(function () {
+        var url = $(this).val().trim();
+        if (url !== "") {
+            listaEnlaces.push(url);
+        }
+    });
+
+    $("#EnlacesJson").val(JSON.stringify(listaEnlaces));
+
+    // 2. Mostrar alerta de "Enviando..." (Loading)
+    Swal.fire({
+        title: 'Subiendo entrega...',
+        text: 'Por favor, espera un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading(); // Muestra el spinner de carga
+        }
+    });
+
+    var formData = new FormData(this);
+
+    $.ajax({
+        url: '@Url.Action("SubirEntrega", "Alumno")',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            // 3. Alerta de éxito
+            Swal.fire({
+                title: '¡Logrado!',
+                text: response.Mensaje || 'Tu entrega se ha subido correctamente.',
+                icon: 'success',
+                confirmButtonText: 'Excelente'
+            }).then(() => {
+                location.reload(); // Refresca al cerrar la alerta
+            });
+        },
+        error: function(xhr) {
+            var errorTexto = "Ocurrió un problema al subir la entrega.";
+
+            // Intentar extraer el mensaje de error del servidor
+            try {
+                var err = JSON.parse(xhr.responseText);
+                errorTexto = err.Mensaje;
+            } catch (e) { }
+
+            // 4. Alerta de error
+            Swal.fire({
+                title: 'Error',
+                text: errorTexto,
+                icon: 'error',
+                confirmButtonText: 'Reintentar'
+            });
+        }
+    });
+});
+
+        $(document).ready(function() {
+            $(document).on('click', '.add-enlace', function() {
+                var nuevoInput = `
+                    <div class="input-group mb-2">
+                        <input type="url" class="form-control enlace-input" placeholder="https://ejemplo.com" />
+                        <button type="button" class="btn btn-outline-danger remove-enlace">-</button>
+                    </div>`;
+                $("#contenedorEnlaces").append(nuevoInput);
+    });
+
+    $(document).on('click', '.remove-enlace', function() {
+        $(this).closest('.input-group').remove();
+    });
+
+});
+
+
+       $("#btnCancelarEntrega").click(function(e) {
+            e.preventDefault();
+            var btn = $(this);
+
+            // 1. Preguntar al usuario con SweetAlert2
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción eliminará tu entrega y no podrás deshacerlo.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',    // Rojo para acciones de borrado
+                cancelButtonColor: '#3085d6', // Azul para cancelar
+                confirmButtonText: 'Sí, cancelar entrega',
+                cancelButtonText: 'No, mantenerla'
+            }).then((result) => {
+                // 2. Si el usuario confirmó (clic en el botón rojo)
+                if (result.isConfirmed) {
+
+                    btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm"></span> Cancelando...');
+
+                    $.ajax({
+                        url: '@Url.Action("CancelarEnvioActividadAlumno", "api/Alumnos")',
+                        type: 'POST',
+                        data: {
+                            ActividadId: actividadIdGlobal,
+                            AlumnoId: alumnoIdGlobal
+                        },
+                        success: function (response, status, xhr) {
+                            if (response.Exito) {
+                                Swal.fire(
+                                    '¡Cancelado!',
+                                    'Tu entrega ha sido eliminada.',
+                                    'success'
+                                ).then(() => {
+                                    location.reload(); // Recarga después de que el usuario cierre el aviso
+                                });
+                            } else {
+                                Swal.fire('Error', response.Mensaje, 'error');
+                                btn.prop("disabled", false).text("Cancelar Entrega");
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'No se pudo comunicar con el servidor.', 'error');
+                            btn.prop("disabled", false).text("Cancelar Entrega");
+                        }
+                    });
+                }
+            });
+        });
     </script>
-    <script src="~/Scripts/Alumno/actividadDetalle.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            $(document).on('keydown', '.input-calificacion', function (e) {
+
+                // Teclas permitidas siempre
+                const teclasPermitidas = [
+                    'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                    'ArrowLeft', 'ArrowRight', 'Home', 'End'
+                ];
+
+                if (teclasPermitidas.includes(e.key)) {
+                    return;
+                }
+
+                // Permitir números (teclado normal y numérico)
+                if ((e.key >= '0' && e.key <= '9')) {
+                    return;
+                }
+
+                // Permitir un solo punto decimal
+                if (e.key === '.') {
+                    if ($(this).val().includes('.')) {
+                        e.preventDefault();
+                    }
+                    return;
+                }
+
+                // Bloquear todo lo demás (letras, -, +, e, etc.)
+                e.preventDefault();
+            });
+
+            document.addEventListener("focusin", function (e) {
+                if (e.target.classList.contains("auto-select")) {
+                    e.target.select();
+                }
+            });
+        });
+
+function AsignarCalificacion(AlumnoId, ActividadId, EntregableId, Puntaje, inputDato) {
+    let calificacion = inputDato.value;
+
+    // 1. Validaciones básicas
+    if (calificacion === "" || calificacion < 0) return;
+
+    if (parseFloat(calificacion) > parseFloat(Puntaje)) {
+        //Swal.fire('Atención', 'La calificación no puede exceder el puntaje máximo (' + Puntaje + ')', 'warning');
+        Toast.fire({
+            icon: 'warning',
+            title: 'La calificación no puede exceder el puntaje máximo (' + Puntaje + ')'
+        });
+        inputDato.value = "";
+        return;
+    }
+
+    // 2. Feedback visual: ponemos el input en amarillo mientras guarda
+    $(inputDato).css("background-color", "#fff3cd");
+
+    $.ajax({
+        url: '@Url.Action("AsignarCalificacion", "api/Actividades")',
+        type: 'POST',
+        data: {
+            //alumnoId: AlumnoId,
+            //actividadId: ActividadId,
+            EntregableId: EntregableId,
+            Calificacion: calificacion
+        },
+        success: function (response) {
+            if (response.Exito) {
+                // Feedback visual en el input
+                $(inputDato).css("background-color", "#d4edda");
+                setTimeout(() => {
+                    $(inputDato).css("background-color", "#ffffff");
+                }, 1000);
+
+                // Notificación Toast de éxito
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Calificación guardada'
+                });
+
+            } else {
+                // Notificación Toast de error (si el servidor responde con error)
+                Toast.fire({
+                    icon: 'error',
+                    title: response.Mensaje || 'Error al guardar'
+                });
+                $(inputDato).css("background-color", "#f8d7da");
+            }
+        },
+        error: function () {
+            // Notificación Toast de fallo de conexión
+            Toast.fire({
+                icon: 'error',
+                title: 'Fallo de conexión con el servidor'
+            });
+            $(inputDato).css("background-color", "#f8d7da");
+        }
+    });
+}
+    </script>
+
+
+    @*<script src="~/Scripts/Alumno/actividadDetalle.js"></script>*@
 }

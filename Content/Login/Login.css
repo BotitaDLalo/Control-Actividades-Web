@@ -539,3 +539,24 @@ h3 {
     .danger-btn-light:hover {
         color: #d50100;
     }
+
+.error-message {
+    display: block;
+    font-size: 0.75rem;
+    color: #e74c3c;
+    margin-top: 4px;
+    line-height: 1.2;
+}
+
+.input-validation-error {
+    border: 1px solid #e74c3c !important;
+}
+
+.input-box {
+    position: relative;
+}
+
+    .input-box .error-message {
+        position: relative;
+        top: -25px;
+    }

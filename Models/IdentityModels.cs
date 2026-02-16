@@ -38,6 +38,7 @@ namespace ControlActividades.Models
         public DbSet<tbMaterias> tbMaterias { get; set; }
         public DbSet<tbActividades> tbActividades { get; set; }
         public DbSet<tbAvisos> tbAvisos { get; set; }
+        public DbSet<tbAvisosEnvios> tbAvisosEnvios { get; set; }
         public DbSet<tbEventosAgenda> tbEventosAgenda { get; set; }
         public DbSet<tbEventosGrupos> tbEventosGrupos { get; set; }
         public DbSet<tbEventosMaterias> tbEventosMaterias { get; set; }
@@ -47,7 +48,6 @@ namespace ControlActividades.Models
         public DbSet<cTipoEntrega> cTipoEntrega { get; set; }
         public DbSet<cEstadoEntrega> cEstadoEntrega { get; set; }
         public DbSet<cTipoNotificacion> cTipoNotificacion { get; set; }
-        public DbSet<cEstadoEntregas> cEstadoEntregas { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -232,9 +232,9 @@ namespace ControlActividades.Models
                 .HasForeignKey(a => a.EstadoEntregaId)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<tbEntregaActividadAlumno>()
-                .HasIndex(e => new { e.AlumnoId, e.ActividadId })
-                .IsUnique();
+            //modelBuilder.Entity<tbEntregaActividadAlumno>()
+            //    .HasIndex(e => new { e.AlumnoId, e.ActividadId })
+            //    .IsUnique();
             #endregion
 
 

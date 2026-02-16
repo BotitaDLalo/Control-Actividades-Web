@@ -1,3 +1,4 @@
+using ControlActividades.Interfaces.Actividades;
 using ControlActividades.Models;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,11 @@ using System.Web.Mvc;
 
 namespace ControlActividades.Services.Actividades
 {
-    public class ActividadesCAService
+    public class ActividadesCAService : IActividadesService, IDisposable
     {
+        #region Propiedades
         private ApplicationDbContext _db;
+        private bool _disposed = false;
 
         public ApplicationDbContext Db
         {
@@ -25,6 +28,24 @@ namespace ControlActividades.Services.Actividades
             }
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _db?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+#endregion
         public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
         {
             try
@@ -52,7 +73,7 @@ namespace ControlActividades.Services.Actividades
                         Descripcion = a.Descripcion,
                         FechaCreacion = a.FechaCreacion,
                         FechaLimite = a.FechaLimite,
-                        Puntaje = a.Puntaje
+                    //    Puntaje = a.Puntaje
                     })
                     .ToListAsync();
 
@@ -71,7 +92,7 @@ namespace ControlActividades.Services.Actividades
 
         public async Task<ActividadDetallesRes> ObtenerActividadPorId(int actividadId)
         {
-            
+
             try
             {
                 // Cargar la entidad y mapear a DTO en memoria para evitar errores de traducción de EF
@@ -89,14 +110,14 @@ namespace ControlActividades.Services.Actividades
                     MateriaId = entidad.MateriaId,
                     FechaCreacion = entidad.FechaCreacion,
                     FechaLimite = entidad.FechaLimite,
-                    Puntaje = entidad.Puntaje,
+                 //   Puntaje = entidad.Puntaje,
                     Enviado = entidad.Enviado,
                     PermitirEntregasTarde = entidad.PermitirEntregasTarde,
                     FechaProgramada = entidad.FechaProgramada
                 };
 
-            } 
-            catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 throw new Exception("Error al obtener la actividad: " + ex.Message);
             }
@@ -104,7 +125,7 @@ namespace ControlActividades.Services.Actividades
 
         public async Task<ActividadRes> ActualizarActividad(int id, ActividadDTO actividadDto)
         {
-            
+
             var actividadEditar = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
             if (actividadEditar == null)
             {
@@ -120,18 +141,18 @@ namespace ControlActividades.Services.Actividades
                 actividadEditar.Descripcion = actividadDto.Descripcion;
             }
 
-            if(actividadDto.FechaLimite != default(DateTime))
+            if (actividadDto.FechaLimite != default(DateTime))
             {
                 actividadEditar.FechaLimite = actividadDto.FechaLimite;
             }
 
-                if (actividadDto.Puntaje > 0)
-                {
-                    actividadEditar.Puntaje = actividadDto.Puntaje;
-                }
-
+            if (actividadDto.Puntaje > 0)
+            {
                 actividadEditar.Puntaje = actividadDto.Puntaje;
-            
+            }
+
+            actividadEditar.Puntaje = actividadDto.Puntaje;
+
 
             actividadEditar.Enviado = actividadDto.Enviado;
             actividadEditar.FechaProgramada = actividadDto.FechaProgramada;
@@ -145,13 +166,13 @@ namespace ControlActividades.Services.Actividades
                 Descripcion = actividadEditar.Descripcion,
                 FechaCreacion = actividadEditar.FechaCreacion,
                 FechaLimite = actividadEditar.FechaLimite,
-                Puntaje = actividadEditar.Puntaje
+               // Puntaje = actividadEditar.Puntaje
             };
-            
+
         }
         public async Task EliminarActividad(int id)
         {
-            
+
             var activity = await Db.tbActividades.FirstOrDefaultAsync(a => a.ActividadId == id);
             if (activity == null)
             {
@@ -168,6 +189,29 @@ namespace ControlActividades.Services.Actividades
             Db.tbActividades.Remove(activity);
             await Db.SaveChangesAsync();
 
+        }
+
+        public async Task<DetallesActividadRes> ObtenerDetallesActividad(int actividadId)
+        {
+            DetallesActividadRes actividadRes = new DetallesActividadRes();
+            try
+            {
+                var actividad = await Db.tbActividades.Where(a => a.ActividadId == actividadId).Select(a => new { a.ActividadId, a.MateriaId }).FirstOrDefaultAsync();
+
+                if (actividad != null)
+                {
+                    actividadRes.ActividadId = actividad.ActividadId;
+                    actividadRes.MateriaId = actividad.MateriaId;
+
+                    return actividadRes;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
     }

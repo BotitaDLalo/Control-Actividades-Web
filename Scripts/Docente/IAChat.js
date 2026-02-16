@@ -1,22 +1,45 @@
 (function(){
-    function appendMessage(role, text){
+    function appendMessage(role, text) {
         var chat = document.getElementById('chatBox');
         var wrapper = document.createElement('div');
         wrapper.style.margin = '6px 0';
-        // Ensure text is a string to avoid runtime errors when null/objects are passed
-        var safeText = (text === null || text === undefined) ? '' : String(text);
-        // Preserve newlines in the displayed HTML
-        var htmlText = escapeHtml(safeText).replace(/\n/g, '<br>');
 
-        if(role === 'user'){
+        var safeText = (text === null || text === undefined) ? '' : String(text);
+
+        if (role === 'user') {
             wrapper.style.textAlign = 'right';
-            wrapper.innerHTML = '<div style="display:inline-block;background:#007bff;color:#fff;padding:8px;border-radius:8px;max-width:80%">'+htmlText+'</div>';
-        } else {
-            wrapper.style.textAlign = 'left';
-            // For assistant messages remove common markdown decorations so text looks conversational
-            wrapper.innerHTML = '<div style="display:inline-block;background:#f1f1f1;color:#000;padding:8px;border-radius:8px;max-width:80%">'+htmlText+'</div>';
+
+            var htmlText = escapeHtml(safeText).replace(/\n/g, '<br>');
+
+            wrapper.innerHTML =
+                '<div style="display:inline-block;background:#007bff;color:#fff;padding:8px;border-radius:8px;max-width:80%">' +
+                htmlText +
+                '</div>';
         }
+        else {
+            wrapper.style.textAlign = 'left';
+
+            // Se reemplaz saltos de línea,no escapar $
+            var htmlText = safeText.replace(/\n/g, '<br>');
+
+            wrapper.innerHTML =
+                '<div class="assistant-message" style="display:inline-block;background:#f1f1f1;color:#000;padding:8px;border-radius:8px;max-width:80%">' +
+                htmlText +
+                '</div>';
+        }
+
         chat.appendChild(wrapper);
+
+        if (role === 'assistant' && typeof renderMathInElement === 'function') {
+            renderMathInElement(wrapper, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false }
+                ],
+                throwOnError: false
+            });
+        }
+
         chat.scrollTop = chat.scrollHeight;
     }
 

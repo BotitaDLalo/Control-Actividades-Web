@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -9,9 +10,11 @@ using ControlActividades.Models;
 
 namespace ControlActividades.Services
 {
-    public class GruposCAService : IGruposService
+    public class GruposCAService : IGruposService, IDisposable
     {
+        #region Propiedades
         private ApplicationDbContext _db;
+        private bool _disposed = false;
 
         public ApplicationDbContext Db
         {
@@ -25,14 +28,33 @@ namespace ControlActividades.Services
             }
         }
 
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _db?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+        #endregion
+
         public async Task<List<GruposCARes>> ObtenerGruposPorUsuario(string role, int ca_usuarioId, int st_usuarioId)
         {
             List<GruposCARes> grupos = new List<GruposCARes>();
 
             if (role == Roles.DOCENTE)
             {
-                grupos = Db.tbGrupos.Where(g => g.DocenteId == ca_usuarioId)
-                        .OrderByDescending(g => g.GrupoId) // mostrar primero los grupos más recientes
+                grupos = await Db.tbGrupos.Where(g => g.DocenteId == ca_usuarioId)
                         .Select(g => new GruposCARes
                         {
                             GrupoId = g.GrupoId,
@@ -43,8 +65,7 @@ namespace ControlActividades.Services
                             ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
                             ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
                             NombresDocente = g.Docentes.Nombre,
-                        })
-                        .ToList();
+                        }).ToListAsync();
             }
             else if (role == Roles.ALUMNO)
             {
@@ -56,8 +77,7 @@ namespace ControlActividades.Services
 
                 lsAlumnoGruposId.AddRange(lsMateriasGrupoId);
 
-                grupos = Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
-                        .OrderByDescending(g => g.GrupoId) // mostrar primero los grupos más recientes
+                grupos = await Db.tbGrupos.Where(g => lsAlumnoGruposId.Contains(g.GrupoId))
                         .Select(g => new GruposCARes
                         {
                             GrupoId = g.GrupoId,
@@ -68,8 +88,7 @@ namespace ControlActividades.Services
                             ApellidoPaternoDocente = g.Docentes.ApellidoPaterno,
                             ApellidoMaternoDocente = g.Docentes.ApellidoMaterno,
                             NombresDocente = g.Docentes.Nombre
-                        })
-                        .ToList();
+                        }).ToListAsync();
             }
 
             return grupos;
@@ -77,17 +96,17 @@ namespace ControlActividades.Services
 
         public async Task<List<MateriaCARes>> ObtenerMateriasPorGrupo(int grupoId, int ca_usuarioId, int st_usuarioId, string role)
         {
-            var materiasIds = Db.tbGruposMaterias
+            var materiasIds = await Db.tbGruposMaterias
                 .Where(gm => gm.GrupoId == grupoId)
                 .Select(gm => gm.MateriaId)
-                .ToList();
+                .ToListAsync();
 
-            var docenteGrupo = Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => new { a.Docentes.ApellidoPaterno, a.Docentes.ApellidoMaterno, a.Docentes.Nombre }).FirstOrDefault();
+            var docenteGrupo = await Db.tbGrupos.Where(a => a.GrupoId == grupoId).Select(a => new { a.Docentes.ApellidoPaterno, a.Docentes.ApellidoMaterno, a.Docentes.Nombre }).FirstOrDefaultAsync();
 
             if (role == Roles.ALUMNO)
             {
                 //var usuarioId = Fg.ObtenerUsuarioId(User);
-                var alumnoPerteneceGrupo = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == ca_usuarioId && a.GrupoId == grupoId).Any();
+                var alumnoPerteneceGrupo = await Db.tbAlumnosGrupos.Where(a => a.AlumnoId == ca_usuarioId && a.GrupoId == grupoId).AnyAsync();
 
                 if (!alumnoPerteneceGrupo)
                 {
@@ -95,7 +114,7 @@ namespace ControlActividades.Services
                 }
             }
 
-            var lsMaterias = Db.tbMaterias
+            var lsMaterias = await Db.tbMaterias
                 .Where(m => materiasIds.Contains(m.MateriaId))
                 .Select(m => new MateriaCARes
                 {
@@ -107,8 +126,7 @@ namespace ControlActividades.Services
                     ApellidoPaternoDocente = docenteGrupo.ApellidoPaterno,
                     ApellidoMaternoDocente = docenteGrupo.ApellidoMaterno,
                     NombresDocente = docenteGrupo.Nombre
-                })
-                .ToList();
+                }).ToListAsync();
 
             return lsMaterias;
         }
@@ -117,13 +135,13 @@ namespace ControlActividades.Services
         {
             if (role == Roles.DOCENTE)
             {
-                var docenteTieneGrupos = Db.tbGrupos.Where(a => a.DocenteId == ca_usuarioId).Any();
+                var docenteTieneGrupos = await Db.tbGrupos.Where(a => a.DocenteId == ca_usuarioId).AnyAsync();
                 return docenteTieneGrupos;
 
             }
             else if (role == Roles.ALUMNO)
             {
-                var alumnoTieneGrupos = Db.tbAlumnosGrupos.Where(a => a.AlumnoId == ca_usuarioId).Any();
+                var alumnoTieneGrupos = await Db.tbAlumnosGrupos.Where(a => a.AlumnoId == ca_usuarioId).AnyAsync();
                 return alumnoTieneGrupos;
             }
             return false;
@@ -133,12 +151,12 @@ namespace ControlActividades.Services
         {
             if (role == Roles.DOCENTE)
             {
-                var docenteTieneMaterias = Db.tbMaterias.Where(a => a.DocenteId == ca_usuarioId).Any();
+                var docenteTieneMaterias = await Db.tbMaterias.Where(a => a.DocenteId == ca_usuarioId).AnyAsync();
                 return docenteTieneMaterias;
             }
             else if (role == Roles.ALUMNO)
             {
-                var alumnoTieneMaterias = Db.tbAlumnosMaterias.Where(a => a.AlumnoId == ca_usuarioId).Any();
+                var alumnoTieneMaterias = await Db.tbAlumnosMaterias.Where(a => a.AlumnoId == ca_usuarioId).AnyAsync();
                 return alumnoTieneMaterias;
             }
 

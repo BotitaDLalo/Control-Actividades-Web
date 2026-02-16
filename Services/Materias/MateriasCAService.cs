@@ -1,4 +1,4 @@
-﻿using ControlActividades.Interfaces.Materias;
+using ControlActividades.Interfaces.Materias;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
 using System;
@@ -11,9 +11,11 @@ using System.Web.Mvc;
 
 namespace ControlActividades.Services.Materias
 {
-    public class MateriasCAService
+    public class MateriasCAService : IMateriasService, IDisposable
     {
+        #region Propiedades
         private ApplicationDbContext _db;
+        private bool _disposed = false;
 
         public ApplicationDbContext Db
         {
@@ -26,6 +28,25 @@ namespace ControlActividades.Services.Materias
                 _db = value;
             }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _db?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+        #endregion
 
         public async Task<List<AlumnoCorreo>> BuscarAlumnosPorCorreo(string query)
         {
@@ -138,8 +159,12 @@ namespace ControlActividades.Services.Materias
                     Puntaje = actividadDto.Puntaje,
                     MateriaId = actividadDto.MateriaId,
                     Enviado = actividadDto.Enviado,
-                    FechaProgramada = actividadDto.FechaProgramada
+                    FechaProgramada = actividadDto.FechaProgramada,
+                    PermitirEntregasTarde = actividadDto.PermitirEntregasTarde,
+                    TieneLimiteEntregas = actividadDto.TieneLimiteEntregas,
+                    LimiteEntregasPorAlumno = actividadDto.LimiteEntregasPorAlumno
                 };
+
 
                 Db.tbActividades.Add(nuevaActividad);
                 await Db.SaveChangesAsync(); // Guarda la actividad y genera el ID
@@ -188,7 +213,7 @@ namespace ControlActividades.Services.Materias
                     Descripcion = nuevaActividad.Descripcion,
                     FechaCreacion = nuevaActividad.FechaCreacion,
                     FechaLimite = nuevaActividad.FechaLimite,
-                    Puntaje = nuevaActividad.Puntaje
+                   // Puntaje = nuevaActividad.Puntaje
                 };
             }
             catch (Exception ex)

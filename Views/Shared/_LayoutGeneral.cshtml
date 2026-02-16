@@ -1,9 +1,21 @@
-﻿@{ 
+﻿@{
     Response.Cache.SetCacheability(HttpCacheability.NoCache);
     Response.Cache.SetNoStore();
     Response.Cache.SetExpires(DateTime.UtcNow.AddSeconds(-1));
 }
+@{
+    var principal = User as System.Security.Claims.ClaimsPrincipal;
+    bool isImpersonating = principal?.HasClaim("IsImpersonating", "true") ?? false;
 
+    bool esAdmin = User.IsInRole("Administrador");
+    bool esDocente = User.IsInRole("Docente");
+    bool esAlumno = User.IsInRole("Alumno");
+
+    string rol = User.IsInRole("Docente") ? "Docente" :
+                 User.IsInRole("Alumno") ? "Alumno" :
+                 User.IsInRole("Administrador") ? "Administrador" :
+                 string.Empty;
+}
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,6 +28,7 @@
     @*@Styles.Render("~/Content/Docente/css")*@
     @*<link href="~/Content/Docente/Layout.css" rel="stylesheet" />*@
     @*<link href="~/Content/Docente/Materias.css" rel="stylesheet" />*@
+    <link rel="stylesheet" href="~/Content/dataTables.dataTables.min.css" />
 
     @RenderSection("Styles", required: false)
 
@@ -34,6 +47,15 @@
     <div id="loader" class="carga">
         <div class="spinner"></div>
     </div>
+    @if (isImpersonating)
+    {
+        <div class="impersonation-strip">
+            <span>Estás ingresando como administrador</span>
+            <a href="@Url.Action("SalirImpersonacion", "Administrador")">
+                Salir
+            </a>
+        </div>
+    }
     <div class="layout">
         <aside class="layout-sidebar">
             @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
@@ -50,6 +72,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @Scripts.Render("~/bundles/jquery")
+    <script src="~/Scripts/jquery.dataTables.min.js"></script>
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/color")

@@ -12,7 +12,7 @@ namespace ControlActividades.Models
     {
         public int EntregableId { get; set; }
 
-        public int Calificacion { get; set; }
+        public decimal Calificacion { get; set; }
     }
 
     public class QuitarCalificacionPeticion
@@ -271,7 +271,7 @@ namespace ControlActividades.Models
     public class RespuestaAlumnosEntregables
     {
         public int ActividadId { get; set; }
-        public int Puntaje { get; set; }
+        public Decimal  Puntaje { get; set; }
         public int TotalEntregados { get; set; }
         public List<AlumnoEntregable> AlumnosEntregables { get; set; }
     }
@@ -421,8 +421,8 @@ namespace ControlActividades.Models
         public string NombreActividad { get; set; }
         public string Descripcion { get; set; }
         public DateTime FechaCreacion { get; set; }
-        public DateTime FechaLimite { get; set; }
-        public int Puntaje { get; set; }
+        public DateTime? FechaLimite { get; set; }
+        public Decimal Puntaje { get; set; }
     }
 
     public class MateriaRes
@@ -626,8 +626,12 @@ namespace ControlActividades.Models
         public int? AvisoId { get; set; }
         public string Titulo { get; set; }
         public string Descripcion { get; set; }
+        public string Enlaces { get; set; }
         public int? GrupoId { get; set; }
         public int MateriaId { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public int FrecuenciaDias { get; set; }
     }
 
     public class EnvioActividadAlumnoResponse
@@ -704,6 +708,7 @@ namespace ControlActividades.Models
 
         public int MateriaId { get; set; }
     }
+
 
 
 

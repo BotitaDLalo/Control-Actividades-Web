@@ -1,6 +1,6 @@
 @using Rol = ControlActividades.Roles;
 @{
-    Layout = "~/Views/Shared/_LayoutDocente.cshtml";
+    Layout = "~/Views/Shared/_LayoutGeneral.cshtml";
     ViewBag.Title = "MateriasDetalles";
     Html.RenderPartial("~/Views/Docente/CrearActividadModal.cshtml");
     Html.RenderPartial("~/Views/Docente/crearAvisoMateriaModal.cshtml");
@@ -134,19 +134,19 @@
                     var nombre = a.NombreActividad || a.nombreActividad || a.Nombre || ('Actividad ' + id);
                     var descripcion = a.Descripcion || '';
                     html += `<div class="accordion-item">\n
-                        <h2 class="accordion-header" id="heading${id}">\n
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="false" aria-controls="collapse${id}">\n
-                                ${escapeHtml(nombre)}\n
-                            </button>\n
-                        </h2>\n
+                            <h2 class="accordion-header" id="heading${id}">\n
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="false" aria-controls="collapse${id}">\n
+                                    ${escapeHtml(nombre)}\n
+                                </button>\n
+                            </h2>\n
 
-                        <div id="collapse${id}" class="accordion-collapse collapse" aria-labelledby="heading${id}" data-bs-parent="#accordionActividades">\n
-                            <div class="accordion-body" data-actividad-id="${id}">\n
-                                <p class="text-muted mb-2">${escapeHtml(descripcion)}</p>\n
-                                <div class="entregables-contenedor" id="cont_entregables_${id}"><small class="text-muted">Presiona el encabezado para cargar entregables.</small></div>\n
-                            </div>\n
-                            </div>\n
-                        </div>`;
+                            <div id="collapse${id}" class="accordion-collapse collapse" aria-labelledby="heading${id}" data-bs-parent="#accordionActividades">\n
+                                <div class="accordion-body" data-actividad-id="${id}">\n
+                                    <p class="text-muted mb-2">${escapeHtml(descripcion)}</p>\n
+                                    <div class="entregables-contenedor" id="cont_entregables_${id}"><small class="text-muted">Presiona el encabezado para cargar entregables.</small></div>\n
+                                </div>\n
+                                </div>\n
+                            </div>`;
                 });
 
                 html += '</div></div></div>';
@@ -252,15 +252,15 @@
                     var btnText = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'Evaluar' : 'Editar';
                     var btnClass = (it.Calificacion === null || typeof it.Calificacion === 'undefined') ? 'btn btn-sm btn-success btn-evaluar' : 'btn btn-sm btn-warning btn-evaluar';
                     html += `
-                        <tr data-entrega-id="${it.EntregaId}" data-alumno-id="${it.AlumnoId}">
-                            <td>${escapeHtml(nombre)}</td>
-                            <td><pre style="white-space:pre-wrap;margin:0">${escapeHtml(respTxt)}</pre></td>
-                            <td>${fecha}</td>
-                            <td class="cal-cell">${cal}</td>
-                            <td>
-                                <button class="${btnClass}" data-entrega-id="${it.EntregaId}" data-respuesta="${encodeURIComponent(it.Respuesta || '')}">${btnText}</button>
-                            </td>
-                        </tr>`;
+                            <tr data-entrega-id="${it.EntregaId}" data-alumno-id="${it.AlumnoId}">
+                                <td>${escapeHtml(nombre)}</td>
+                                <td><pre style="white-space:pre-wrap;margin:0">${escapeHtml(respTxt)}</pre></td>
+                                <td>${fecha}</td>
+                                <td class="cal-cell">${cal}</td>
+                                <td>
+                                    <button class="${btnClass}" data-entrega-id="${it.EntregaId}" data-respuesta="${encodeURIComponent(it.Respuesta || '')}">${btnText}</button>
+                                </td>
+                            </tr>`;
                 });
 
                 html += '</tbody></table></div>';
@@ -274,21 +274,21 @@
                         var modal = new bootstrap.Modal(document.getElementById('entregablesModal'));
                         var modalBody = document.querySelector('#entregablesModal .modal-body');
                         modalBody.innerHTML = `
-                            <div>
-                                <strong>Respuesta completa:</strong>
-                                <pre style="white-space:pre-wrap">${escapeHtml(respuesta)}</pre>
-                            </div>
-                            <div class="mt-3">
-                                <label>Calificación</label>
-                                <input id="modalCalificacion" type="number" min="0" max="${data.Puntaje || 100}" class="form-control"/>
-                            </div>
-                            <div class="mt-2">
-                                <label>Comentario</label>
-                                <textarea id="modalComentario" class="form-control"></textarea>
-                            </div>
-                            <div class="mt-3 text-end">
-                                <button id="modalGuardarCalificacion" class="btn btn-success">Guardar</button>
-                            </div>`;
+                                <div>
+                                    <strong>Respuesta completa:</strong>
+                                    <pre style="white-space:pre-wrap">${escapeHtml(respuesta)}</pre>
+                                </div>
+                                <div class="mt-3">
+                                    <label>Calificación</label>
+                                    <input id="modalCalificacion" type="number" min="0" max="${data.Puntaje || 100}" class="form-control"/>
+                                </div>
+                                <div class="mt-2">
+                                    <label>Comentario</label>
+                                    <textarea id="modalComentario" class="form-control"></textarea>
+                                </div>
+                                <div class="mt-3 text-end">
+                                    <button id="modalGuardarCalificacion" class="btn btn-success">Guardar</button>
+                                </div>`;
 
                         modal.show();
                         document.getElementById('modalGuardarCalificacion').addEventListener('click', async function () {
@@ -372,33 +372,35 @@
     <nav class="materia-nav">
         <button class="tab-button active"
                 data-panel="Avisos"
-                onclick="cambiarPanel(this)">
+                onclick="cambiarPanel(this,@materiaId)">
             Avisos
         </button>
 
         <button class="tab-button"
                 data-panel="Actividades"
-                onclick="cambiarPanel(this)">
+                onclick="cambiarPanel(this,@materiaId)">
             Actividades
         </button>
 
-        <button class="tab-button"
-                data-panel="Entregables"
-                onclick="cambiarPanel(this)">
-            Entregables
-        </button>
 
         @if (User.IsInRole(Rol.DOCENTE))
         {
+
+            <button class="tab-button"
+                    data-panel="Entregables"
+                    onclick="cambiarPanel(this,@materiaId)">
+                Entregables
+            </button>
+
             <button class="tab-button"
                     data-panel="Alumnos"
-                    onclick="cambiarPanel(this)">
+                    onclick="cambiarPanel(this,@materiaId)">
                 Alumnos
             </button>
 
             <button class="tab-button"
                     data-panel="Configuracion"
-                    onclick="cambiarPanel(this)">
+                    onclick="cambiarPanel(this,@materiaId)">
                 Configuración
             </button>
         }
@@ -436,6 +438,37 @@
 </div>
 
 @section Scripts {
+    <script>
+        $(document).ready(function () {
+            function gestionarEstadoLimite() {
+                const $toggle = $('#ToogleLimiteEntregas');
+                const $input = $('#limiteEntregas');
+                const $toggleTardias = $('#TooglePermiteEntregasTardias');
+
+                if ($toggle.length && $input.length) {
+                    const activo = $toggle.is(':checked');
+                    $input.prop('disabled', !activo);
+                    if (!activo) $input.val('');
+                }
+                
+                if ($toggleTardias.length) {
+                    const permiteTardias = $toggleTardias.is(':checked');
+                    console.log(permiteTardias);
+                }
+            }
+
+            // 1. Delegación de eventos para el cambio
+            $(document).on('change', '#ToogleLimiteEntregas', '#TooglePermiteEntregasTardias', function () {
+                gestionarEstadoLimite();
+            });
+
+            // 2. Asegurar estado cada vez que el modal se abre
+            $(document).on('shown.bs.modal', '#crearActividadModal', function () {
+                gestionarEstadoLimite();
+            });
+        });
+    </script>
+
     <script>
         // Poblar select de entregables (opcional)
         async function poblarSelectActividadesEntregables() {
@@ -623,63 +656,7 @@
             }
         }
 
-        const btnCopiar = document.getElementById('btnCopiarMateria');
         const btnEditar = document.getElementById('btnEditarMateria');
-
-        if (btnCopiar) btnCopiar.addEventListener('click', async function () {
-            try {
-                // get current materia details
-                const respMat = await fetch(`/api/Materias/ObtenerMateriaUnica?id=${materiaIdGlobal}`);
-                if (!respMat.ok) throw new Error('No se pudo obtener materia');
-                const mat = await respMat.json();
-
-                // create new materia (sin grupo) copying fields
-                const nuevo = {
-                    NombreMateria: mat.NombreMateria + ' (Copia)',
-                    Descripcion: mat.Descripcion,
-                    CodigoColor: mat.CodigoColor || '#2196F3',
-                    DocenteId: @docenteId };
-
-                const crear = await fetch('/Materias/CrearMateria', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(nuevo)
-                });
-
-                if (!crear.ok) {
-                    const t = await crear.text();
-                    throw new Error(t || 'Error al crear copia');
-                }
-
-                const res = await crear.json();
-                const nuevoId = res.materiaId || res.MateriaId || 0;
-
-                // intentar copiar actividades de la materia original a la nueva
-                try {
-                    await fetch('/Materias/CopiarActividades', {
-                        method: 'POST', headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            origenMateriaId: materiaIdGlobal,
-                            nuevoMateriaId: nuevoId
-                        })
-                    });
-                } catch (err) {
-                    console.warn('No se pudieron copiar actividades automáticamente', err);
-                }
-
-                // Inform using native alert and then redirect to Materias sin grupo
-                alert("Materia copiada con éxito. Se encuentra en 'Materias sin Grupo'.");
-                window.location.href = '/Docente/MateriasSinGrupo';
-            } catch (e) {
-                console.error(e);
-                Swal.fire('Error', e.message || 'No se pudo copiar');
-            }
-        });
-
 
         if (btnEditar) btnEditar.addEventListener('click', async function () {
             try {

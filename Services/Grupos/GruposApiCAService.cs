@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -11,9 +11,11 @@ using ControlActividades.Models.db;
 
 namespace ControlActividades.Services.Grupos
 {
-    public class GruposApiCAService : IGruposApiService
+    public class GruposApiCAService : IGruposApiService, IDisposable
     {
+        #region Propiedades
         private ApplicationDbContext _db;
+        private bool _disposed = false;
 
         public ApplicationDbContext Db
         {
@@ -26,6 +28,26 @@ namespace ControlActividades.Services.Grupos
                 _db = value;
             }
         }
+
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _db?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+        #endregion
 
         public async Task<List<GruposCreadoCARes>> ObtenerGruposCreados(int ca_usuarioId, int st_usuarioId)
         {
@@ -81,7 +103,7 @@ namespace ControlActividades.Services.Grupos
                             FechaCreacion = b.FechaCreacion,
                             FechaLimite = b.FechaLimite,
                             //b.TipoActividadId,
-                            Puntaje = b.Puntaje,
+                          //  Puntaje = b.Puntaje,
                             MateriaId = b.MateriaId,
                         }).ToList()
                     }).ToListAsync();

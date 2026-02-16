@@ -1,7 +1,9 @@
-﻿@{ 
+﻿@{
     Layout = null;
     ViewBag.Title = "Registrarse";
 }
+@model ControlActividades.Models.RegisterViewModel
+@using ControlActividades.Models
 
 <!DOCTYPE html>
 <html>
@@ -41,54 +43,97 @@
                     <header>Registro</header>
                 </div>
 
+                @Html.ValidationSummary(true, "", new { @class = "error-message" })
+
                 @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-signin" }))
                 {
                     @Html.AntiForgeryToken()
 
                     <div class="input-box">
-                        <input name="ApellidoPaterno" type="text" class="input-field" autocomplete="off" required />
-                        <label for="apellidoPaterno">Apellido Paterno</label>
-                    </div>
-                    <div class="input-box">
-                        <input name="ApellidoMaterno" type="text" class="input-field" autocomplete="off" required />
-                        <label for="apellidoMaterno">Apellido Materno</label>
-                    </div>
-                    <div class="input-box">
-                        <input name="Nombres" type="text" class="input-field" autocomplete="off" required />
-                        <label for="nombres">Nombres</label>
-                    </div>
-                    <div class="input-box">
-                        <input name="Password" type="password" class="input-field" autocomplete="off" required />
-                        <label for="password">Contraseña</label>
+                        @Html.TextBoxFor(m => m.ApellidoPaterno, new { @class = "input-field", autocomplete = "off" })
+                        <label>Apellido Paterno</label>
+                        @Html.ValidationMessageFor(m => m.ApellidoPaterno, "", new { @class = "error-message" })
                     </div>
 
-                    @*<select name="TipoUsuario" class="form-select form-select-lg mb-3" style="font-size:1em;color:#555;">*@
-                    <select name="Role" class="form-control form-control-lg mb-3" style="font-size:1em;color:#555;">
-                        <option selected>Elige tu rol</option>
-                        <option value="Docente">Docente</option>
-                        <option value="Alumno">Alumno</option>
-                    </select>
+                    <div class="input-box">
+                        @Html.TextBoxFor(m => m.ApellidoMaterno, new { @class = "input-field", autocomplete = "off" })
+                        <label>Apellido Materno</label>
+                        @Html.ValidationMessageFor(m => m.ApellidoMaterno, "", new { @class = "error-message" })
+                    </div>
 
+                    <div class="input-box">
+                        @Html.TextBoxFor(m => m.Nombres, new { @class = "input-field", autocomplete = "off" })
+                        <label>Nombres</label>
+                        @Html.ValidationMessageFor(m => m.Nombres, "", new { @class = "error-message" })
+                    </div>
+
+                    <div class="input-box">
+                        @Html.PasswordFor(m => m.Password, new { @class = "input-field", autocomplete = "off" })
+                        <label>Contraseña</label>
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "error-message" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.DropDownListFor(m => m.Role,
+                            new SelectList(
+                                Enum.GetValues(typeof(Role))
+                                    .Cast<Role>()
+                                    .Where(r => r == Role.Docente || r == Role.Alumno)
+                            ),
+                            "Elige tu rol",
+                            new { @class = "form-control form-control-lg" })
+                        @Html.ValidationMessageFor(m => m.Role, "", new { @class = "error-message" })
+                    </div>
 
                     <div class="input-box">
                         <input type="submit" class="input-submit" value="Registrarse" />
                     </div>
                 }
-
             </div>
         </div>
 
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        $.validator.setDefaults({
+            onkeyup: false,
+            onclick: false,
+            onfocusout: false
+        });
+    </script>
 
 
+    @if (TempData["Success"] != null)
+    {
+        <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: '@TempData["Success"]',
+            confirmButtonColor: '#3085d6'
+        });
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '@TempData["Error"]',
+            confirmButtonColor: '#d33'
+        });
+        </script>
+    }
 </body>
 </html>
 
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}
-@section Styles{
-    <link href="@Url.Content("~/Content/Login/Login.css")" rel="stylesheet" />
-}
+    

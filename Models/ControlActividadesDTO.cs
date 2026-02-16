@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Drawing;
 using System.Linq;
 using System.Web;
 
@@ -84,7 +87,7 @@ namespace ControlActividades.Models
 
     public class ObtenerActividadPorIdRequest
     {
-        public int ActividadId { get; set;}
+        public int ActividadId { get; set; }
         public string View { get; set; }
     }
 
@@ -95,7 +98,7 @@ namespace ControlActividades.Models
         public string Descripcion { get; set; }
         public int MateriaId { get; set; }
         public DateTime FechaCreacion { get; set; }
-        public DateTime FechaLimite { get; set; }
+        public DateTime? FechaLimite { get; set; }
         public int Puntaje { get; set; }
         public bool? Enviado { get; set; }
         public bool PermitirEntregasTarde { get; set; }
@@ -136,6 +139,169 @@ namespace ControlActividades.Models
         public int MateriaId { get; set; }
         public bool? Enviado { get; set; }
         public DateTime? FechaProgramada { get; set; }
+        public bool PermitirEntregasTarde { get; set; }
+        public bool TieneLimiteEntregas { get; set; }
+        public int LimiteEntregasPorAlumno { get; set; }
     }
 
+
+
+    #region Actividades
+    public class ObtenerEnviosActividadesAlumnoReq
+    {
+        public int AlumnoId { get; set; }
+        public int ActividadId { get; set; }
+    }
+    public class ObtenerEnviosActividadesAlumnoRes
+    {
+        public int EntregaActividadAlumnoId { get; set; }
+
+        public DateTime? FechaEntrega { get; set; }
+
+        public int EstadoEntregaId { get; set; }
+
+        public List<Entregables> Entregables { get; set; }
+    }
+
+    public class Entregables
+    {
+        public int EntregableId { get; set; }
+
+        public int TipoEntregaId { get; set; }
+
+        public string Contenido { get; set; }
+
+        public decimal Calificacion { get; set; }
+
+        public string Comentario { get; set; }
+    }
+
+    public class ObtenerActividadesPorMateriaReq
+    {
+        public int MateriaId { get; set; }
+    }
+    public class ObtenerActividadesPorMateriaRes
+    {
+        public int ActividadId { get; set; }
+
+        public string NombreActividad { get; set; }
+
+        public string DescripcionActividad { get; set; }
+
+        public string FechaCreacionActividad { get; set; }
+
+        public string FechaLimiteActividad { get; set; }
+
+        public decimal Puntaje { get; set; }
+
+        public bool? Enviado { get; set; }
+
+        public DateTime? FechaProgramada { get; set; }
+
+        public int MateriaId { get; set; }
+    }
+
+    public class ActividadesDTO
+    {
+        public int ActividadId { get; set; }
+
+        public string NombreActividad { get; set; }
+
+        public string Descripcion { get; set; }
+
+        public DateTime FechaCreacion { get; set; }
+
+        public DateTime? FechaLimite { get; set; }
+
+        public Decimal Puntaje { get; set; }
+
+        public int MateriaId { get; set; }
+
+        public bool PermitirEntregasTarde { get; set; }
+
+        public bool? Enviado { get; set; }
+
+        public DateTime? FechaProgramada { get; set; }
+
+        public int LimiteEntregasPorAlumno { get; set; }
+
+        public bool TieneLimiteEntregas { get; set; }
+    }
+    #endregion
+
+    #region Alumnos
+    public class RegistrarEnvioActividadRes
+    {
+        public int EntregaActividadAlumnoId { get; set; }
+
+        public int AlumnoId { get; set; }
+
+        public int EntregableId { get; set; }
+
+        public int ActividadId { get; set; }
+
+        public DateTime FechaEntrega { get; set; }
+
+        public string Contenido { get; set; }
+
+        public decimal Calificacion { get; set; }
+
+        public int EstadoEntregaId { get; set; }
+
+        public int TipoEntrega { get; set; }
+    }
+
+    public class RegistrarAlumnoGrupoMateriaDocenteRes
+    {
+        public bool AlumnoRegistradoGrupo {  get; set; }
+
+        public bool AlumnoRegistradoMateria { get; set; }
+
+        public List<EmailVerificadoAlumno> Alumnos { get; set; }
+    }
+
+    #endregion
+
+
+    #region Actividades
+    public class ActividadDetalleViewModel
+    {
+        public string NombreActividad { get; set; }
+        public string Descripcion { get; set; }
+        public decimal Puntaje { get; set; }
+        
+        public string Respuesta { get; set; }
+
+        public DateTime? FechaLimite { get; set; }
+
+        public List<string> Enlaces { get; set; }
+
+        public decimal Calificacion { get; set; }
+
+        public DateTime FechaCalificado { get; set; }
+
+        public bool EstaCalificado { get; set; }
+
+        public bool EstaEntregado { get; set; }
+
+        public bool EntregaTardia { get; set; }
+    }
+    
+    public class EntregaContenidoModel
+    {
+        public string Texto { get; set; }
+        public List<string> Enlaces { get; set; }
+        public List<ArchivoDetalleModel> Archivos { get; set; }
+        public DateTime FechaEntrega { get; set; }
+    }
+
+    public class ArchivoDetalleModel
+    {
+        public string Nombre { get; set; }
+        public string Ruta { get; set; } // Esta es la que necesitas
+        public long Size { get; set; }
+        public string NombreGuardado { get; set; }
+        public DateTime FechaGuardado { get; set; }
+    }
+    #endregion
 }

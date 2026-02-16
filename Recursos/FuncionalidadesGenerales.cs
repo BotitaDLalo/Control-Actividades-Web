@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using ControlActividades.Models;
 using ControlActividades.Models.db;
+using ControlActividades.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +21,7 @@ namespace ControlActividades.Recursos
     {
         private bool _disposed = false;
         private ApplicationDbContext _db;
+        private FuenteDatosService _fuenteDatos;
         #region Propiedades
         public ApplicationDbContext Db
         {
@@ -32,6 +34,18 @@ namespace ControlActividades.Recursos
                 _db = value;
             }
         }
+        public FuenteDatosService FuenteDatosService
+        {
+            get
+            {
+                return _fuenteDatos ?? (_fuenteDatos = new FuenteDatosService());
+            }
+            private set
+            {
+                _fuenteDatos = value;
+            }
+        }
+
 
         public void Dispose()
         {
@@ -110,18 +124,18 @@ namespace ControlActividades.Recursos
         #region ST
         public string ObtenerUrlST()
         {
-            string url = @"";
+            string url = @"https://mx.scholatek.com/Demo/ControlActividades/";
             return url;
         }
 
         public string ObtenerFuenteDeDatos()
         {
-            return "";
+            return FuenteDatosService.ObtenerFuenteDatos();
         }
 
         public string ObtenerXApiKey()
         {
-            return "";
+            return "7EYr2OW4VHnuHj7Ioy+pTm4eQlFK/P1dOrkNC7qMCg4=";
         }
         #endregion
 
@@ -204,6 +218,24 @@ namespace ControlActividades.Recursos
             return usuarioId;
         }
 
+        public int ObtenerSTUsuarioIdPorCAUsuarioId(int ca_usuarioId, string role)
+        {
+            int st_usuarioId = 0;
+            if (role == Roles.DOCENTE)
+            {
+                var st_usuarioIdAlumno = Db.tbAlumnos.Where(a => a.AlumnoId == ca_usuarioId).Select(a => a.ST_UsuarioId).FirstOrDefault();
+                if (st_usuarioIdAlumno != null)
+                    st_usuarioId = st_usuarioIdAlumno.Value;
+            }
+            else if (role == Roles.ALUMNO)
+            {
+                var st_usuarioIdDocente = Db.tbDocentes.Where(a => a.DocenteId == ca_usuarioId).Select(a => a.ST_UsuarioId).FirstOrDefault();
+                if(st_usuarioIdDocente != null)
+                    st_usuarioId = st_usuarioIdDocente.Value;
+            }
+            return st_usuarioId;
+        }
+
         public string ObtenerRolUsuario(IPrincipal User)
         {
             var identity = User.Identity as ClaimsIdentity;
@@ -213,6 +245,50 @@ namespace ControlActividades.Recursos
             return rolClaim?.Value;
         }
 
+        #endregion
+
+        #region EntregasAlumno
+        public bool _validarURL(string url)
+        {
+            try
+            {
+                Uri result;
+                bool esValida = Uri.TryCreate(url, UriKind.Absolute, out result) &&
+                    (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps);
+                return esValida;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public int _determinarTipoEntrega(string texto, List<string> enlaces, List<object> archivos)
+        {
+            bool tieneTexto = !string.IsNullOrEmpty(texto);
+            bool tieneEnlaces = enlaces != null && enlaces.Any();
+            bool tieneArchivos = archivos != null && archivos.Any();
+
+            if (tieneTexto && tieneEnlaces && tieneArchivos) return 4;
+            if (tieneArchivos) return 3;
+            if (tieneEnlaces) return 2;
+            if (tieneTexto) return 1;
+            return 1;
+
+        }
+
+
+        public string FormatearTamano(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len = len / 1024;
+            }
+            return $"{len:0.##} {sizes[order]}";
+        }
         #endregion
     }
 }

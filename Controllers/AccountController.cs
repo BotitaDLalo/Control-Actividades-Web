@@ -185,6 +185,25 @@ namespace ControlActividades.Controllers
             {
                 string email = model.Email;
 
+
+                Role role;
+
+                var usuario = await UserManager.FindByEmailAsync(model.Email);
+                var getRole = await UserManager.GetRolesAsync(usuario.Id);
+                if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
+                {
+                    return View(model);
+                }
+
+                role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+
+                if (role == Role.Docente && !usuario.EmailConfirmed)
+                {
+                    Session[SessionKeys.Email.ToString()] = email;
+                    return RedirectToAction("ConfirmEmail");
+                }
+
+
                 var emailEsValido = await UserManager.FindByEmailAsync(email);
 
                 if (emailEsValido == null)
@@ -290,6 +309,12 @@ namespace ControlActividades.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    if (model.Role == Role.Administrador)
+                    {
+                        ModelState.AddModelError("", "Rol no permitido.");
+                        return View(model);
+                    }
+
                     string email = Session["Email"] as string ?? "";
 
                     if (email == "")
@@ -301,14 +326,14 @@ namespace ControlActividades.Controllers
                     var apellidoPaterno = model.ApellidoPaterno;
                     var apellidoMaterno = model.ApellidoMaterno;
                     var password = model.Password;
-                    var role = model.Role;
-
+                    var role = model.Role.Value;
 
                     var user = new ApplicationUser { UserName = email, Email = email };
                     var result = await UserManager.CreateAsync(user, model.Password);
+
                     if (result.Succeeded)
                     {
-                        string roleStr = model.Role.ToString();
+                        string roleStr = role.ToString();
 
                         //Si el rol no existe, este es creado
                         if (!await RoleManager.RoleExistsAsync(roleStr))
@@ -324,11 +349,11 @@ namespace ControlActividades.Controllers
                         }
 
 
-                        string controller;
+                        string controller = "Grupos";
                         switch (role)
                         {
                             case Role.Docente:
-                                controller = Role.Docente.ToString();
+                                //controller = Role.Docente.ToString();
                                 DateTime fechaExpiracionCodigo = DateTime.UtcNow.AddMinutes(59);
                                 string codigo = Fg.GenerarCodigoAleatorio();
 
@@ -351,11 +376,11 @@ namespace ControlActividades.Controllers
                                 return RedirectToAction("ConfirmEmail");
 
                             case Role.Alumno:
-                                controller = Role.Alumno.ToString();
+                                //controller = Role.Alumno.ToString();
                                 tbAlumnos alumno = new tbAlumnos()
                                 {
                                     ApellidoPaterno = apellidoPaterno,
-                                    ApellidoMaterno = apellidoPaterno,
+                                    ApellidoMaterno = apellidoMaterno,
                                     Nombre = nombre,
                                     UserId = user.Id,
                                 };
@@ -375,8 +400,9 @@ namespace ControlActividades.Controllers
                         // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
                         // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                         //await UserManager.SendEmailAsync(user.Id, "Confirmar la cuenta", "Para confirmar su cuenta, haga clic <a href=\"" + callbackUrl + "\">aquí</a>");
-
-                        return RedirectToAction("Index", controller);
+                        
+                        TempData["RedirectUrl"] = Url.Action("Index", controller);
+                        return RedirectToAction("MensajeExito");
                     }
                     AddErrors(result);
                 }
@@ -385,8 +411,16 @@ namespace ControlActividades.Controllers
             catch (Exception)
             {
                 // Si llegamos a este punto, es que se ha producido un error y volvemos a mostrar el formulario
+                TempData["Error"] = "Ocurrió un error inesperado.";
                 return View(model);
             }
+        }
+
+        public ActionResult MensajeExito()
+        {
+            if (TempData["RedirectUrl"] == null)
+                return RedirectToAction("Index", "Home");
+            return View();
         }
 
         [AllowAnonymous]
@@ -441,7 +475,9 @@ namespace ControlActividades.Controllers
 
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
 
-                    return RedirectToAction("Index", "Docente");
+                    TempData["RedirectUrl"] = Url.Action("Index", "Docente");
+                    TempData["Mensaje"] = "Cuenta verificada correctamente.";
+                    return RedirectToAction("MensajeExito");
                 }
 
                 return View();

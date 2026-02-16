@@ -43,3 +43,30 @@ Gris casi blanco: #fafafa.
 .label-custom {
     color: var(--txt-principal);
 }
+
+.impersonation-strip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: #dc3545;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    z-index: 10000;
+}
+
+    .impersonation-strip a {
+        color: white;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+.swal2-container {
+    z-index: 4000 !important;
+}

@@ -37,29 +37,6 @@ namespace ControlActividades.Controllers
         {
         }
 
-        // Controlador que obtiene todo lo de actividades que pertenecen a esa materia
-        [HttpGet]
-        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
-        {
-            try
-            {
-                var rol = Fg.ObtenerRolUsuario(User);
-
-                var actividades = await ActividadesService.ObtenerActividadesPorMateria(materiaId, rol);
-
-                return Json(actividades, JsonRequestBehavior.AllowGet);
-            }
-            catch (KeyNotFoundException)
-            {
-                Response.StatusCode = 404; // Not Found
-                return Json(new { mensaje = "No se encontraron actividades para la materia especificada." }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
 
         #region Constructores con dependencias
         public ActividadesController(ApplicationUserManager userManager, ApplicationSignInManager signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext DbContext, FuncionalidadesGenerales fg)
@@ -144,6 +121,31 @@ namespace ControlActividades.Controllers
         }
         #endregion
 
+        // Controlador que obtiene todo lo de actividades que pertenecen a esa materia
+        [HttpGet]
+        public async Task<ActionResult> ObtenerActividadesPorMateria(int materiaId)
+        {
+            try
+            {
+                var rol = Fg.ObtenerRolUsuario(User);
+
+                var actividades = await ActividadesService.ObtenerActividadesPorMateria(materiaId, rol);
+
+                return Json(actividades, JsonRequestBehavior.AllowGet);
+            }
+            catch (KeyNotFoundException)
+            {
+                Response.StatusCode = 404; // Not Found
+                return Json(new { mensaje = "No se encontraron actividades para la materia especificada." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500; // Internal Server Error
+                return Json(new { mensaje = "Error al obtener las actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
         //Controlador para obtener los datos de una actividad
         [HttpGet]
         public async Task<ActionResult> ObtenerActividadPorId(int actividadId)
@@ -168,11 +170,13 @@ namespace ControlActividades.Controllers
 
         // Redirige a la vista correspondiente según el rol (Docente -> EvaluarActividades, Alumno -> ActividadDetalle)
         [HttpGet]
-        public ActionResult DetallesActividad(int actividadId)
+        public async Task<ActionResult> DetallesActividad(int actividadId)
         {
             try
             {
-                var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
+                //var actividad = Db.tbActividades.FirstOrDefault(a => a.ActividadId == actividadId);
+                var actividad = await ActividadesService.ObtenerDetallesActividad(actividadId);
+                
                 if (actividad == null)
                 {
                     return HttpNotFound("Actividad no encontrada");
@@ -201,42 +205,42 @@ namespace ControlActividades.Controllers
 
 
         // Método para obtener la lista de alumnos que están dentro de la materia > se guardan en array para despues comparar.-HAcer busqueda mas eficiente
-        [HttpGet]
-        public async Task<ActionResult> AlumnosParaCalificarActividades(int materiaId)
-        {
-            try
-            {
-                var alumnos = await Db.tbAlumnosMaterias
-                    .Where(am => am.MateriaId == materiaId)
-                    .Join(Db.tbAlumnos,
-                        am => am.AlumnoId,
-                        a => a.AlumnoId,
-                        (am, a) => new
-                        {
-                            a.AlumnoId,
-                            a.Nombre,
-                            a.ApellidoPaterno,
-                            a.ApellidoMaterno
-                        })
-                    .OrderBy(a => a.ApellidoPaterno)
-                    .ThenBy(a => a.ApellidoMaterno)
-                    .ThenBy(a => a.Nombre)
-                    .ToListAsync();
+        //[HttpGet]
+        //public async Task<ActionResult> AlumnosParaCalificarActividades(int materiaId)
+        //{
+        //    try
+        //    {
+        //        var alumnos = await Db.tbAlumnosMaterias
+        //            .Where(am => am.MateriaId == materiaId)
+        //            .Join(Db.tbAlumnos,
+        //                am => am.AlumnoId,
+        //                a => a.AlumnoId,
+        //                (am, a) => new
+        //                {
+        //                    a.AlumnoId,
+        //                    a.Nombre,
+        //                    a.ApellidoPaterno,
+        //                    a.ApellidoMaterno
+        //                })
+        //            .OrderBy(a => a.ApellidoPaterno)
+        //            .ThenBy(a => a.ApellidoMaterno)
+        //            .ThenBy(a => a.Nombre)
+        //            .ToListAsync();
 
-                if (alumnos == null || !alumnos.Any())
-                {
-                    Response.StatusCode = 404; // Not Found
-                    return Json(new { mensaje = "No se encontraron alumnos para la materia especificada." }, JsonRequestBehavior.AllowGet);
-                }
+        //        if (alumnos == null || !alumnos.Any())
+        //        {
+        //            Response.StatusCode = 404; // Not Found
+        //            return Json(new { mensaje = "No se encontraron alumnos para la materia especificada." }, JsonRequestBehavior.AllowGet);
+        //        }
 
-                return Json(alumnos, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500; // Internal Server Error
-                return Json(new { mensaje = "Error al obtener los alumnos", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        return Json(alumnos, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 500; // Internal Server Error
+        //        return Json(new { mensaje = "Error al obtener los alumnos", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
 
         //[HttpPost]
@@ -450,22 +454,22 @@ namespace ControlActividades.Controllers
         //}
 
         // Endpoint to return tipos de actividades for populating select in modal
-        [HttpGet]
-        public ActionResult ObtenerTiposActividades()
-        {
-            try
-            {
-                // Utilizar helper para devolver los tipos disponibles en BD o los valores por defecto del enum
-                var tiposDict = EnumHelpers.ObtenerTiposActividad(Db);
-                var tipos = tiposDict.Select(kv => new { TipoActividadId = kv.Key, Nombre = kv.Value }).ToList();
-                return Json(tipos, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 500;
-                return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //[HttpGet]
+        //public ActionResult ObtenerTiposActividades()
+        //{
+        //    try
+        //    {
+        //        // Utilizar helper para devolver los tipos disponibles en BD o los valores por defecto del enum
+        //        var tiposDict = EnumHelpers.ObtenerTiposActividad(Db);
+        //        var tipos = tiposDict.Select(kv => new { TipoActividadId = kv.Key, Nombre = kv.Value }).ToList();
+        //        return Json(tipos, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 500;
+        //        return Json(new { mensaje = "Error al obtener tipos de actividades", error = ex.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
         // Nuevo: actualizar actividad (compatible con fetch PUT desde JS)
         [HttpPut]

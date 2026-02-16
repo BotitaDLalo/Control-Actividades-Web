@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Identity.EntityFramework;
 using System.Collections.Generic;
@@ -22,8 +22,6 @@ namespace ControlActividades.Models.db
 
         [Required]
         public string Nombre { get; set; }
-
-        public string Matricula {  get; set; }
 
         public virtual ApplicationUser IdentityUser { get; set; }
 
