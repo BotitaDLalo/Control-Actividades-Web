@@ -50,55 +50,65 @@ namespace ControlActividades.Services.Materias
                 lsMateriasUsuario = lsMateriasId;
             }
 
-            var lsMateriasSinGrupo = Db.tbMaterias.Where(a => lsMateriasUsuario.Contains(a.MateriaId)).Select(a => new MateriaCARes
+            var materias = await Db.tbMaterias
+    .Where(a => lsMateriasUsuario.Contains(a.MateriaId))
+    .ToListAsync(); // 🔥 ejecutamos primero
+
+            var lsMateriasSinGrupo = materias.Select(a => new MateriaCARes
             {
                 MateriaId = a.MateriaId,
                 NombreMateria = a.NombreMateria,
                 Descripcion = a.Descripcion,
                 CodigoAcceso = a.CodigoAcceso,
-                Actividades = Db.tbActividades.Where(b => b.MateriaId == a.MateriaId).Select(b => new ActividadCARes
-                {
-                    ActividadId = b.ActividadId,
-                    NombreActividad = b.NombreActividad,
-                    Descripcion = b.Descripcion,
-                    FechaCreacion = b.FechaCreacion,
-                    FechaLimite = b.FechaLimite,
-                    Puntaje = b.Puntaje,
-                    MateriaId = b.MateriaId,
-                    PermitirEntregasTarde = b.PermitirEntregasTarde,
-                    TieneLimiteEntregas = b.TieneLimiteEntregas,
-                    LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
-                }).ToList(),
 
-                Avisos = (from aviso in Db.tbAvisos
-                          join docente in Db.tbDocentes
-                          on aviso.DocenteId equals docente.DocenteId into gj
-                          from subdocente in gj.DefaultIfEmpty()
-                          where aviso.MateriaId == a.MateriaId && aviso.GrupoId == null
-                          select new AvisoCARes
-                          {
-                              AvisoId = aviso.AvisoId,
-                              Titulo = aviso.Titulo,
-                              Descripcion = aviso.Descripcion,
+                Actividades = Db.tbActividades
+                    .Where(b => b.MateriaId == a.MateriaId)
+                    .Select(b => new ActividadCARes
+                    {
+                        ActividadId = b.ActividadId,
+                        NombreActividad = b.NombreActividad,
+                        Descripcion = b.Descripcion,
+                        FechaCreacion = b.FechaCreacion,
+                        FechaLimite = b.FechaLimite,
+                        Puntaje = b.Puntaje,
+                        MateriaId = b.MateriaId,
+                        PermitirEntregasTarde = b.PermitirEntregasTarde,
+                        TieneLimiteEntregas = b.TieneLimiteEntregas,
+                        LimiteEntregasPorAlumno = b.LimiteEntregasPorAlumno
+                    })
+                    .ToList(),
 
-                              NombresDocente = subdocente != null ? subdocente.Nombre : "",
-                              ApePaternoDocente = subdocente != null ? subdocente.ApellidoPaterno : "",
-                              ApeMaternoDocente = subdocente != null ? subdocente.ApellidoMaterno : "",
+                Avisos = Db.tbAvisos
+                    .Where(aviso => aviso.MateriaId == a.MateriaId && aviso.GrupoId == null)
+                    .Join(Db.tbDocentes,
+                          aviso => aviso.DocenteId,
+                          docente => docente.DocenteId,
+                          (aviso, docente) => new { aviso, docente })
+                    .ToList() // 🔥 ejecutamos antes de deserializar
+                    .Select(x => new AvisoCARes
+                    {
+                        AvisoId = x.aviso.AvisoId,
+                        Titulo = x.aviso.Titulo,
+                        Descripcion = x.aviso.Descripcion,
+                        NombresDocente = x.docente.Nombre,
+                        ApePaternoDocente = x.docente.ApellidoPaterno,
+                        ApeMaternoDocente = x.docente.ApellidoMaterno,
+                        FechaCreacion = x.aviso.FechaCreacion,
+                        FechaInicio = x.aviso.FechaInicio,
+                        FechaFin = x.aviso.FechaFin,
 
-                              FechaCreacion = aviso.FechaCreacion,
-                              FechaInicio = aviso.FechaInicio,
-                              FechaFin = aviso.FechaFin,
+                        Enlaces = string.IsNullOrEmpty(x.aviso.Enlaces)
+                            ? new List<string>()
+                            : JsonConvert.DeserializeObject<List<string>>(x.aviso.Enlaces),
 
-                              Enlaces = string.IsNullOrEmpty(aviso.Enlaces)
-                                    ? new List<string>()
-                                    : JsonConvert.DeserializeObject<List<string>>(aviso.Enlaces),
-
-                              FrecuenciaDias = aviso.FrecuenciaDias,
-                              GrupoId = aviso.GrupoId ?? 0,
-                              MateriaId = aviso.MateriaId ?? 0
-                          }).ToList(),
+                        FrecuenciaDias = x.aviso.FrecuenciaDias,
+                        GrupoId = x.aviso.GrupoId ?? 0,
+                        MateriaId = x.aviso.MateriaId ?? 0
+                    })
+                    .ToList()
 
             }).ToList();
+
 
 
 
