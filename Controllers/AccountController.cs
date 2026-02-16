@@ -183,37 +183,30 @@ namespace ControlActividades.Controllers
         {
             try
             {
-                string email = model.Email.Trim();
+                string email = model.Email;
+
 
                 Role role;
 
                 var usuario = await UserManager.FindByEmailAsync(model.Email);
-                
-                //Si el usuario existe ya
-                if(usuario != null)
+                var getRole = await UserManager.GetRolesAsync(usuario.Id);
+                if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
                 {
-                    var getRole = await UserManager.GetRolesAsync(usuario.Id);
-                    if (string.IsNullOrEmpty(getRole.FirstOrDefault()) || !Enum.IsDefined(typeof(Role), getRole.FirstOrDefault()))
-                    {
-                        return View(model);
-                    }
-                    role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
-
-                    if (role == Role.Docente && !usuario.EmailConfirmed)
-                    {
-                        Session[SessionKeys.Email.ToString()] = email;
-                        return RedirectToAction("ConfirmEmail");
-                    }
-                }
-
-                //usuario no existe
-                if (email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
-                {
-                    ModelState.AddModelError("", "No se permiten correos Gmail.");
                     return View(model);
                 }
 
-                if (usuario == null)
+                role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
+
+                if (role == Role.Docente && !usuario.EmailConfirmed)
+                {
+                    Session[SessionKeys.Email.ToString()] = email;
+                    return RedirectToAction("ConfirmEmail");
+                }
+
+
+                var emailEsValido = await UserManager.FindByEmailAsync(email);
+
+                if (emailEsValido == null)
                 {
                     Session[SessionKeys.Email.ToString()] = email;
                     return RedirectToAction("Register");
@@ -325,11 +318,6 @@ namespace ControlActividades.Controllers
                     string email = Session["Email"] as string ?? "";
 
                     if (email == "")
-                    {
-                        return View();
-                    }
-
-                    if (email.Contains("@gmail.com"))
                     {
                         return View();
                     }
@@ -682,7 +670,7 @@ namespace ControlActividades.Controllers
             {
                 return RedirectToAction("Login");
             }
-           
+
             // Si el usuario ya tiene un inicio de sesión, iniciar sesión del usuario con este proveedor de inicio de sesión externo
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
 
@@ -703,12 +691,6 @@ namespace ControlActividades.Controllers
                     }
 
                     var role = (Role)Enum.Parse(typeof(Role), getRole.FirstOrDefault());
-                    if (role == Role.Docente && !usuario.EmailConfirmed)
-                    {
-                        Session[SessionKeys.Email.ToString()] = loginInfo.Email;
-                        return RedirectToAction("ConfirmEmail");
-                    }
-
                     return RedirectToLocal(returnUrl, role);
                     
 
@@ -836,7 +818,7 @@ namespace ControlActividades.Controllers
                             user.LockoutEndDateUtc = DateTime.MaxValue;
                             await UserManager.UpdateAsync(user);
                             await Db.SaveChangesAsync();
-                            return RedirectToAction("ConfirmEmail");
+                            break;
 
                         case Role.Alumno:
                             Db.tbAlumnos.Add(new tbAlumnos

@@ -399,7 +399,7 @@ function redirigir(tipoId, materiaId, grupoId) {
 
         //Materia Asignada
         case 7:
-            window.location.href = `/Materias/MateriaDetalles?materiaId=${materiaId}`;
+            window.location.href = `/Alumno/Clase?tipo=materia&id=${materiaId}`;
             break;
 
         default:
