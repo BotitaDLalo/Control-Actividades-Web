@@ -3,6 +3,7 @@ using ControlActividades.Models;
 using ControlActividades.Models.db;
 using ControlActividades.Recursos;
 using ControlActividades.Services;
+using ControlActividades.Services.Materias;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -213,6 +214,9 @@ namespace ControlMaterias.Controllers
 
             ViewBag.MateriaId = materiaId.HasValue ? materiaId.Value : 0;
             ViewBag.GrupoId = grupoId ?? 0;
+
+            ViewBag.NombreMateria = materiaDetalles.NombreMateria;
+            ViewBag.CodigoClase = materiaDetalles.CodigoAcceso;
             return View("MateriaDetalles");
         }
 
@@ -666,6 +670,8 @@ namespace ControlMaterias.Controllers
         {
             try
             {
+                var rolUsuario = Fg.ObtenerRolUsuario(User);
+
                 // Load activities into memory first to avoid EF translation issues with DateTime.ToString(format)
                 //bool esDocente = User != null && (User.IsInRole("Docente") || User.IsInRole("Administrador"));
                 var query = Db.tbActividades.Where(a => a.MateriaId == materiaId).ToList();
@@ -676,12 +682,6 @@ namespace ControlMaterias.Controllers
                 }
                 var actividadesEntities = query;
 
-                //if (actividadesEntities == null || actividadesEntities.Count == 0)
-                //{
-                //    Response.StatusCode = 404; // Not Found
-                //    return Json(new { mensaje = "No hay actividades registradas para esta materia." }, JsonRequestBehavior.AllowGet);
-                //}
-                var rolUsuario = Fg.ObtenerRolUsuario(User);
 
                 var resultado = actividadesEntities.Select(a => new
                 {
@@ -698,7 +698,6 @@ namespace ControlMaterias.Controllers
                     FechaProgramada = a.FechaProgramada,
                     Rol = rolUsuario
                 }).ToList();
-
 
 
                 return Json(new
@@ -1166,46 +1165,9 @@ namespace ControlMaterias.Controllers
             return PartialView("_Actividades");
         }
 
-        public ActionResult EntregablesPartialView(int materiaId)
+        public async Task<ActionResult> EntregablesPartialView(int materiaId)
         {
-            var lsActividadesMateria = Db.tbActividades.Where(a => a.MateriaId == materiaId)
-                .Select(a => new ActividadesMateria
-                {
-                    ActividadId = a.ActividadId,
-                    NombreActividad = a.NombreActividad,
-                    Puntaje = a.Puntaje
-                }).ToList();
-
-            var lsActividadesMateriaId = lsActividadesMateria.Select(a => a.ActividadId).ToList();
-
-            var lsAlumnosCalificar = Db.tbEntregaActividadAlumno.Where(a => lsActividadesMateriaId.Contains(a.ActividadId) && a.Estatus)
-                .Select(a => new AlumnosCalificar
-                {
-                    EntregableId = a.EntregaActividadAlumnoId,
-                    AlumnoId = a.AlumnoId,
-                    NombreCompletoAlumno = a.tbAlumnos.ApellidoPaterno + " " + a.tbAlumnos.ApellidoMaterno + " " + a.tbAlumnos.Nombre,
-                    Calificacion = a.Calificacion,
-                    ActividadId = a.tbActividades.ActividadId,
-                    EntregaTardia = a.EntregaTardia
-                    //SinPuntaje = 
-                }).ToList();
-
-            lsAlumnosCalificar = lsAlumnosCalificar.Select(a => new AlumnosCalificar
-            {
-                EntregableId = a.EntregableId,
-                AlumnoId = a.AlumnoId,
-                NombreCompletoAlumno = a.NombreCompletoAlumno,
-                Calificacion = a.Calificacion,
-                ActividadId = a.ActividadId,
-                EntregaTardia = a.EntregaTardia,
-                SinPuntaje = lsActividadesMateria.Where(act => act.ActividadId == a.ActividadId).Select(act => act.Puntaje).FirstOrDefault() == 0
-            }).ToList();
-
-            EntregablesPartialViewModel model = new EntregablesPartialViewModel()
-            {
-                ActividadesMateria = lsActividadesMateria,
-                AlumnosCalificar = lsAlumnosCalificar
-            };
+            var model = await MateriasService.ObtenerEntregablesAlumno(materiaId);
 
             return PartialView("_Entregables", model);
         }

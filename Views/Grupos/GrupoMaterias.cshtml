@@ -35,7 +35,7 @@
                         <circle cx="12" cy="6.5" r="1.5" />
                     </svg>
                 </button>
-                <a href="@Url.Action("MateriaDetalles", "Materias", new { materiaId = materia.MateriaId})" class="text-decoration-none text-reset">
+                <a href="@Url.Action("MateriaDetalles", "Materias", new { materiaId = materia.MateriaId, grupoId = materia.GrupoId})" class="text-decoration-none text-reset">
                     <div class="row g-0 h-100">
                         <div class="col-md-4 d-flex align-items-center justify-content-center p-3" style="min-height:180px; background-color: @(""+(materia.CodigoColor ?? "#1db7f7"))">
                             <img src="~/Content/Iconos/materia_2.svg"

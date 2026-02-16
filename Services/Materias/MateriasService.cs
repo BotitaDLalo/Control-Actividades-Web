@@ -45,7 +45,7 @@ namespace ControlActividades.Services
 
             if (fuenteDatos == FuenteDatos.API)
             {
-                return await MateriasSTService.ObtenerMateriaDetalles(materiaId,  grupoId,  role,  ca_usuarioId,  st_usuarioId);
+                return await MateriasSTService.ObtenerMateriaDetalles(materiaId, grupoId, role, ca_usuarioId, st_usuarioId);
             }
             return await MateriasCAService.ObtenerMateriaDetalles(materiaId, grupoId, role, ca_usuarioId, st_usuarioId);
         }
@@ -69,6 +69,16 @@ namespace ControlActividades.Services
                 return await MateriasSTService.CrearActividadAsync(actividad);
             }
             return await MateriasCAService.CrearActividadAsync(actividad);
+        }
+
+        public async Task<EntregablesPartialViewModel> ObtenerEntregablesAlumno(int materiaId)
+        {
+            var fuenteDatos = FuenteDatosService.ObtenerFuenteDatos();
+            if (fuenteDatos == FuenteDatos.API)
+            {
+                return await MateriasSTService.ObtenerEntregablesAlumno(materiaId);
+            }
+            return await MateriasCAService.ObtenerEntregablesAlumno(materiaId);
         }
         #region Propiedades
         public FuenteDatosService FuenteDatosService

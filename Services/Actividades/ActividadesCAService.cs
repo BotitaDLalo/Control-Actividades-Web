@@ -46,7 +46,7 @@ namespace ControlActividades.Services.Actividades
             }
         }
 #endregion
-        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int materiaId, string rol)
+        public async Task<List<ActividadRes>> ObtenerActividadesPorMateria(int st_usuarioId,int materiaId, string rol, int grupoId = 0)
         {
             try
             {
@@ -73,7 +73,8 @@ namespace ControlActividades.Services.Actividades
                         Descripcion = a.Descripcion,
                         FechaCreacion = a.FechaCreacion,
                         FechaLimite = a.FechaLimite,
-                    //    Puntaje = a.Puntaje
+                        Puntaje = a.Puntaje,
+                        Rol = rol
                     })
                     .ToListAsync();
 

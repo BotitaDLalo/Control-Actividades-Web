@@ -124,6 +124,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
+function getMateriaIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('materiaId');
+}
+
+function getGrupoIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('grupoId');
+}
+
 // Funcion que carga las actividades a la vista.
 async function cargarActividadesDeMateria(midParam, forceReload) {
     const listaActividades = document.getElementById("listaActividadesDeMateria");
@@ -132,14 +142,22 @@ async function cargarActividadesDeMateria(midParam, forceReload) {
 
     try {
         // Determine materia id: allow caller to pass it as first param, otherwise use global
-        var mid = null;
-        if (typeof midParam !== 'undefined' && midParam !== null && midParam !== false) {
-            mid = midParam;
-        } else {
-            mid = (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) ? materiaIdGlobal : (window.materiaIdGlobal || null);
-        }
+        // var mid = null;
+        // if (typeof midParam !== 'undefined' && midParam !== null && midParam !== false) {
+        //     mid = midParam;
+        // } else {
+        //     mid = (typeof materiaIdGlobal !== 'undefined' && materiaIdGlobal) ? materiaIdGlobal : (window.materiaIdGlobal || null);
+        // }
         // normalize to number/string
-        if (typeof mid === 'object' && mid.hasOwnProperty('value')) mid = mid.value;
+        // if (typeof mid === 'object' && mid.hasOwnProperty('value')) mid = mid.value;
+        // if (mid !== null && typeof mid === 'object' && Object.prototype.hasOwnProperty.call(mid, 'value')) {
+        //      mid = mid.value;
+        // }
+
+        
+        let mid = getMateriaIdFromUrl();
+        let grupoId = getGrupoIdFromUrl();
+        
         // debug
         console.debug('cargarActividadesDeMateria: mid=', mid, 'forceReload=', !!forceReload);
         if (!mid) throw new Error('Materia no definida');
@@ -152,9 +170,10 @@ async function cargarActividadesDeMateria(midParam, forceReload) {
 
         // Try multiple endpoints (MVC and API variants) to be resilient to routing differences
         const endpoints = [
-            (basePath || '') + `/Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''),
-            (basePath || '') + `/api/Actividades/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''),
-            (basePath || '') + `/api/Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : '')
+            // (basePath || '') + `/Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''),
+            // (basePath || '') + `/api/Actividades/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : ''),
+            // (basePath || '') + `/api/Materias/ObtenerActividadesPorMateria?materiaId=${mid}` + (filtroVal ? `&filtro=${encodeURIComponent(filtroVal)}` : '')
+            (basePath || '') + `/Actividades/ObtenerActividadesPorMateria?materiaId=${mid}&grupoId=${grupoId}`,
         ];
 
         let response = null;

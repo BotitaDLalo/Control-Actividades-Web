@@ -112,5 +112,10 @@ namespace ControlActividades.Services.Materias
         {
             throw new NotImplementedException();
         }
+
+        public Task<EntregablesPartialViewModel> ObtenerEntregablesAlumno(int materiaId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
