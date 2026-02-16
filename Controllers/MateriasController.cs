@@ -1285,5 +1285,26 @@ namespace ControlMaterias.Controllers
 
             base.Dispose(disposing);
         }
+
+        #region Plantillas
+        [HttpGet]
+        public ActionResult DescargarPlantillaAlumnos()
+        {
+            try
+            {
+                // Generar CSV simple con cabeceras. Excel abre CSV sin problema.
+                var csv = "Email,Nombre,ApellidoPaterno,ApellidoMaterno\r\n";
+                var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+
+                // Retornar como archivo descargable. Usamos text/csv como content-type.
+                return File(bytes, "text/csv", "plantilla_alumnos.csv");
+            }
+            catch (Exception ex)
+            {
+                // En caso de error, devolver500 y mensaje simple
+                return new HttpStatusCodeResult(500, "No se pudo generar la plantilla: " + ex.Message);
+            }
+        }
+        #endregion
     }
 }
