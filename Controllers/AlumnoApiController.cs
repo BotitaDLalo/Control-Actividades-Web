@@ -2113,19 +2113,17 @@ namespace ControlActividades.Controllers
                 var actividadId = datosCancelacion.ActividadId;
 
 
-                var alumnoActividadEliminar = Db.tbEntregaActividadAlumno.FirstOrDefault(a => a.AlumnoId == alumnoId && a.ActividadId == actividadId && a.EstadoEntregaId == 1);
+                var alumnoActividadEliminar = Db.tbEntregaActividadAlumno.FirstOrDefault(a => a.AlumnoId == alumnoId && a.ActividadId == actividadId && a.EstadoEntregaId == 1 && a.Estatus == true);
 
                 if (alumnoActividadEliminar != null)
                 {
-                    var entregables = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == alumnoActividadEliminar.EntregaActividadAlumnoId).ToList();
-
-                    foreach (var entrega in entregables)
+                    // Verificar si la entrega está calificada (ahora está en tbEntregableActividadAlumno)
+                    if (alumnoActividadEliminar.Calificacion > 0)
                     {
-                        if (entrega.Calificacion.HasValue)
-                        {
-                            return BadRequest("No puedes cancelar esta entrega pues ya esta calificada");
-                        }
+                        return BadRequest("No puedes cancelar esta entrega pues ya esta calificada");
                     }
+
+                    var entregables = Db.tbEntregables.Where(a => a.EntregaActividadAlumnoId == alumnoActividadEliminar.EntregaActividadAlumnoId).ToList();
 
                     foreach (var entrega in entregables)
                     {
