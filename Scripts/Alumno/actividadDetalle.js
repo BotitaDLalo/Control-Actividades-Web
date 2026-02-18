@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarDetalleActividad();
     verificarEnvio();
 
-    //var btn = document.getElementById('btnEnviar');
-    //if (btn) btn.addEventListener('click', enviarEntrega);
+    var btn = document.getElementById('btnEnviar');
+    if (btn) btn.addEventListener('click', enviarEntrega);
 });
 
 function parseServerDateFlexible(val) {
@@ -125,7 +125,7 @@ async function enviarEntrega() {
     }
 
     try {
-        const resp = await fetch('/Alumnos/SubirEntrega', { method: 'POST', body: form });
+        const resp = await fetch('/Alumno/SubirEntrega', { method: 'POST', body: form });
         if (!resp.ok) {
             const txt = await resp.text().catch(() => '');
             throw new Error(txt || 'Error al subir entrega');
