@@ -104,14 +104,14 @@ namespace ControlActividades.Controllers
                     return BadRequest("Nombre y descripción son obligatorios");
 
                 var prompt = $@"
-Genera exactamente 3 versiones mejoradas de la siguiente actividad.
-No expliques nada.
-No numeres.
-Separa cada sugerencia con una línea en blanco.
+                    Genera exactamente 3 versiones mejoradas de la siguiente actividad.
+                    No expliques nada.
+                    No numeres.
+                    Separa cada sugerencia con una línea en blanco.
 
-Título: {nombre}
-Descripción: {descripcion}
-";
+                    Título: {nombre}
+                    Descripción: {descripcion}
+                    ";
 
                 var requestBody = new
                 {

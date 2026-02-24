@@ -97,7 +97,7 @@
         <div style="display:flex;flex-direction:column;">
             <h2 id="materiaNombre" style="margin:0; font-size:1.4rem; font-weight:600;">@ViewBag.NombreMateria</h2>
 
-            @if (fg.ObtenerFuenteDeDatos() == FuenteDatos.DB)
+           @if (fg.ObtenerFuenteDeDatos() == FuenteDatos.DB)
             {
                 <small style="opacity:0.95; margin-top:6px;">
                     Código: <strong id="codigoAcceso">@ViewBag.CodigoClase</strong>
@@ -376,7 +376,7 @@
     </script>
 
     <nav class="materia-nav">
-        @if (fg.ObtenerFuenteDeDatos() == FuenteDatos.DB)
+       @if (fg.ObtenerFuenteDeDatos() == FuenteDatos.DB)
         {
 
             <button class="tab-button active"
@@ -393,7 +393,7 @@
         </button>
 
 
-        @if (User.IsInRole(Rol.DOCENTE))
+       @if (User.IsInRole(Rol.DOCENTE))
         {
 
             <button class="tab-button"

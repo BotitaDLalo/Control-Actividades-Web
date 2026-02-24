@@ -9,7 +9,7 @@
 }
 
 <div class="container mt-4">
-    @if (User.IsInRole(roles.DOCENTE))
+   @if (User.IsInRole(roles.DOCENTE))
     {
         <div class="d-flex justify-content-end align-items-center mb-3">
             <div class="ms-3 d-flex align-items-center" style="gap:8px;">
@@ -20,7 +20,7 @@
         @Html.Partial("MateriasGrupoModal")
     }
     <div id="listaMateriasGrupo" class="content">
-        @foreach (var materia in Model)
+       @foreach (var materia in Model)
         {
             <div class="card mb-3 min-vh-50 position-relative custom-card"
                  style="max-width: 540px">

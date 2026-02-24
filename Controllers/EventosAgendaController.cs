@@ -27,7 +27,7 @@ namespace ControlActividades.Controllers
         public EventosAgendaController()
         {
         }
-        #region consantes
+        #region dependencias
         public EventosAgendaController(ApplicationUserManager userManager, 
             ApplicationSignInManager signInManager, 
             RoleManager<IdentityRole> roleManager, 
