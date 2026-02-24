@@ -19,7 +19,6 @@
     let modalCrear, formEvento;
 
     document.addEventListener("DOMContentLoaded", function () {
-        console.log("Inicializando modal de crear evento");
 
         // Modal bootstrap
         const modalEl = document.getElementById("modalCrearEvento");
@@ -33,7 +32,6 @@
         // Cargar grupos y materias
         cargarGruposMaterias();
 
-        // Activar tabs
         activarTabs();
 
         // Submit del formulario
@@ -67,7 +65,9 @@
                         <input type="checkbox" class="chk-grupo" data-grupo="${grupo.GrupoId}">
                         <strong>${grupo.NombreGrupo}</strong>
                     </label>
-                    <button type="button" class="btn-expandir" data-grupo="${grupo.GrupoId}">▶</button>
+                    <button type="button" class="btn-expandir" data-grupo="${grupo.GrupoId}">
+                        ▶
+                    </button>
                 </div>
                 <div class="materias-del-grupo hidden"></div>
                 `;
@@ -77,7 +77,8 @@
                     const divMat = document.createElement("div");
                     divMat.innerHTML = `
                         <label>
-                            <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}" data-materia="${mat.MateriaId}">
+                            <input type="checkbox" class="chk-materia" data-grupo="${grupo.GrupoId}"
+                            data-materia="${mat.MateriaId}">
                             ${mat.NombreMateria}
                         </label>
                     `;

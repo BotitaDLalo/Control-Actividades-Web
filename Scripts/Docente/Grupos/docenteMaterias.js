@@ -8,9 +8,9 @@ if (div && div.dataset && div.dataset.docenteid) {
 
 //Funcion para guarda las materias registradas sin un grupo
 async function guardarMateriaSinGrupo() {
-    const nombre = document.getElementById("nombreMateria").value; // Obtenemos el nombre de la materia desde el input
-    const descripcion = document.getElementById("descripcionMateria").value; // Obtenemos la descripción de la materia
-    const color = "#2196F3"; // Asignamos un color predeterminado para la materia
+    const nombre = document.getElementById("nombreMateria").value; 
+    const descripcion = document.getElementById("descripcionMateria").value;
+    const color = "#2196F3"; 
 
     if (nombre.trim() === '') { // Verificamos que el nombre de la materia no esté vacío
         Swal.fire({
@@ -19,22 +19,22 @@ async function guardarMateriaSinGrupo() {
             title: "Ingrese nombre de la materia.",
             showConfirmButton: false,
             timer: 2500
-        });// Mostramos una alerta si el nombre está vacío
+        });
         return;
     }
 
     // Enviamos una solicitud POST al servidor para guardar la materia
     const response = await fetch('/Materias/CrearMateria', {
-        method: 'POST', // Indicamos que la solicitud será de tipo POST
-        headers: { 'Content-Type': 'application/json' }, // Especificamos que el cuerpo de la solicitud será JSON
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify({
-            NombreMateria: nombre, // Enviamos el nombre de la materia
-            Descripcion: descripcion, // Enviamos la descripción de la materia
-            CodigoColor: color // Enviamos el color de la materia
+            NombreMateria: nombre, 
+            Descripcion: descripcion, 
+            CodigoColor: color 
         })
     });
     
-    if (response.ok) { // Verificamos si la respuesta es exitosa
+    if (response.ok) {
         Swal.fire({
             position: "top-end",
             icon: "success",
@@ -42,10 +42,10 @@ async function guardarMateriaSinGrupo() {
             showConfirmButton: false,
             timer: 2000
         });
-        ;// Mostramos una alerta de éxito
+        ;
         const form = document.getElementById("materiasSGForm");
-        if (form) form.reset(); // Limpiamos el formulario
-        if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo(); // Recargamos la lista de materias sin grupo
+        if (form) form.reset(); 
+        if (typeof cargarMateriasSinGrupo === 'function') cargarMateriasSinGrupo();
     } else {
         Swal.fire({
             position: "top-end",
@@ -53,7 +53,7 @@ async function guardarMateriaSinGrupo() {
             title: "Error al registrar materia.",
             showConfirmButton: false,
             timer: 2000
-        }); // Mostramos una alerta si hubo un error al guardar
+        }); 
     }
 }
 
