@@ -784,8 +784,6 @@
     <Content Include="Scripts\Shared\headerNotifications.js" />
     <Content Include="Templates\Emails\CodigoDocente.html" />
     <Content Include="Templates\Emails\ResetPassword.html" />
-    <Content Include="Views\Alumno\Grupos.cshtml.txt" />
-    <Content Include="Views\Alumno\Materias.cshtml.txt" />
     <Content Include="Views\Docente\Grupos.cshtml.txt" />
     <Content Include="Views\Docente\MateriasSinGrupo.cshtml.txt" />
     <Content Include="wwwroot\css\dashboard\content.css" />
@@ -842,7 +840,6 @@
     <Content Include="Views\Grupos\GrupoMaterias.cshtml" />
     <Content Include="Views\Materias\MateriasModal.cshtml" />
     <Content Include="Scripts\Papelera_Scripts\CrearActividadModal.cshtml" />
-    <Content Include="Views\Materias\CrearAvisoMateriaModal.cshtml" />
     <Content Include="SOLUCION_PROBLEMA_ALUMNO_REAPARECE.md" />
     <Content Include="SIMPLIFICACION_METODOS_ELIMINACION.md" />
     <Content Include="Views\Administrador\VerDocentes.cshtml" />
@@ -866,7 +863,6 @@
     <None Include="Views\Shared\_Sidebar.cshtml.bak" />
     <Content Include="Views\Alumno\Actividades.cshtml" />
     <Content Include="Views\Alumno\ActividadDetalle.cshtml" />
-    <Content Include="Views\Home\Calendario.cshtml" />
     <Content Include="Views\Alumno\_GruposPartial.cshtml" />
     <Content Include="Views\Alumno\_MateriasSinGrupoPartial.cshtml" />
     <Content Include="Views\EventosAgenda\CalendarioDocentes.cshtml" />
@@ -874,8 +870,6 @@
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Docente\Grupos.cshtml" />
     <Content Include="Views\Docente\MateriasSinGrupo.cshtml" />
-    <Content Include="Views\Alumno\Grupos.cshtml" />
-    <Content Include="Views\Alumno\Materias.cshtml" />
     <Content Include="Views\Docente\GruposStandalone.cshtml" />
     <Content Include="Views\Docente\MateriasSinGrupoStandalone.cshtml" />
     <Content Include="Views\EventosAgenda\CalendarioAlumnos.cshtml" />
@@ -913,7 +907,6 @@
     <Content Include="Views\Alumno\DetalleGrupo.cshtml" />
     <Content Include="Views\Alumno\DetalleMateria.cshtml" />
     <Content Include="Views\Alumno\Index.cshtml" />
-    <Content Include="Views\Alumno\Materia.cshtml" />
     <Content Include="Views\Alumno\_Actividades.cshtml" />
     <Content Include="Views\Alumno\_Alumnos.cshtml" />
     <Content Include="Views\Alumno\_Avisos.cshtml" />
